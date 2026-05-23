@@ -35,21 +35,14 @@
         :search="{}"
         row-key="id"
       >
+        <template #emptyText>
+          <a-empty :description="$t('billing.noConsumptionData')" />
+        </template>
         <template #bodyCell="{ column, record }">
-          <template v-if="column.dataIndex === 'featureName'">
-            {{ record.featureName?.[currentLocale] || record.featureName?.['zh-CN'] || '-' }}
-          </template>
-
-          <template v-if="column.dataIndex === 'billingStatus'">
-            <a-tag :color="billingStatusColorMap[record.billingStatus]">
-              {{ billingStatusMap[record.billingStatus] || record.billingStatus || '-' }}
-            </a-tag>
-          </template>
-
-          <template v-if="column.dataIndex === 'status'">
-            <a-tag :color="statusColorMap[record.status]">
-              {{ statusMap[record.status] || '-' }}
-            </a-tag>
+          <template v-if="column.dataIndex === 'amount'">
+            <span :class="record.amount < 0 ? 'text-red-500' : ''">
+              {{ record.amount }}
+            </span>
           </template>
         </template>
       </ProTable>
@@ -58,15 +51,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ProTable from '@/components/Pro/ProTable/index.vue'
 import ProStatCard from '@/components/Pro/ProStatCard/index.vue'
 import { getConsumptionList, getConsumptionStats } from '@/api/consumption'
-import { getLocale } from '@/locales'
 
 const { t } = useI18n()
-const currentLocale = computed(() => getLocale())
 
 const stats = ref({
   todayConsumption: 0,
@@ -83,112 +74,39 @@ async function loadStats() {
   }
 }
 
-const statusMap: Record<number, string> = {
-  1: t('billing.statusMap.success'),
-  2: t('billing.statusMap.failed'),
-  3: t('billing.statusMap.processing'),
-}
-
-const statusColorMap: Record<number, string> = {
-  1: 'green',
-  2: 'red',
-  3: 'blue',
-}
-
-const billingStatusMap: Record<string, string> = {
-  NONE: '-',
-  HELD: t('billing.billingStatusMap.held'),
-  CONFIRMED: t('billing.billingStatusMap.confirmed'),
-  REFUNDED: t('billing.billingStatusMap.refunded'),
-  CANCELLED: t('billing.billingStatusMap.cancelled'),
-  SETTLEMENT_FAILED: t('billing.billingStatusMap.settlementFailed'),
-}
-
-const billingStatusColorMap: Record<string, string> = {
-  HELD: 'blue',
-  CONFIRMED: 'green',
-  REFUNDED: 'orange',
-  CANCELLED: 'default',
-  SETTLEMENT_FAILED: 'red',
-}
-
 const columns = [
   {
-    title: t('capabilityGrant.username'),
-    dataIndex: 'username',
+    title: t('billing.userId'),
+    dataIndex: 'userId',
     searchType: 'input' as const,
+    width: 100,
+  },
+  {
+    title: t('billing.amount'),
+    dataIndex: 'amount',
+    width: 120,
+    align: 'center' as const,
+  },
+  {
+    title: t('billing.balanceAfter'),
+    dataIndex: 'balanceAfter',
+    width: 120,
+    align: 'center' as const,
+  },
+  {
+    title: t('billing.bizType'),
+    dataIndex: 'bizType',
     width: 120,
   },
   {
-    title: t('feature.featureName'),
-    dataIndex: 'featureName',
-    width: 150,
-  },
-  {
-    title: t('model.modelCode'),
-    dataIndex: 'modelCode',
-    searchType: 'input' as const,
-    width: 120,
-  },
-  {
-    title: t('billing.reservationNo'),
-    dataIndex: 'reservationNo',
+    title: t('billing.bizId'),
+    dataIndex: 'bizId',
     width: 180,
   },
   {
-    title: t('billing.billingStatus'),
-    dataIndex: 'billingStatus',
-    searchType: 'select' as const,
-    searchOptions: [
-      { label: t('billing.billingStatusMap.held'), value: 'HELD' },
-      { label: t('billing.billingStatusMap.confirmed'), value: 'CONFIRMED' },
-      { label: t('billing.billingStatusMap.refunded'), value: 'REFUNDED' },
-      { label: t('billing.billingStatusMap.cancelled'), value: 'CANCELLED' },
-      { label: t('billing.billingStatusMap.settlementFailed'), value: 'SETTLEMENT_FAILED' },
-    ],
-    width: 140,
-    align: 'center' as const,
-  },
-  {
-    title: t('billing.spec'),
-    dataIndex: 'spec',
-    width: 120,
-  },
-  {
-    title: t('billing.inputTokens'),
-    dataIndex: 'inputTokens',
-    width: 120,
-    align: 'center' as const,
-  },
-  {
-    title: t('billing.outputTokens'),
-    dataIndex: 'outputTokens',
-    width: 120,
-    align: 'center' as const,
-  },
-  {
-    title: t('billing.pointsCost'),
-    dataIndex: 'pointsCost',
-    width: 120,
-    align: 'center' as const,
-  },
-  {
-    title: t('billing.thirdPartyCost'),
-    dataIndex: 'thirdPartyCost',
-    width: 120,
-    align: 'center' as const,
-  },
-  {
-    title: t('billing.status'),
-    dataIndex: 'status',
-    searchType: 'select' as const,
-    searchOptions: [
-      { label: t('billing.statusMap.success'), value: 1 },
-      { label: t('billing.statusMap.failed'), value: 2 },
-      { label: t('billing.statusMap.processing'), value: 3 },
-    ],
-    width: 100,
-    align: 'center' as const,
+    title: t('billing.description'),
+    dataIndex: 'description',
+    ellipsis: true,
   },
   {
     title: t('common.createTime'),
@@ -200,14 +118,12 @@ const columns = [
 async function loadData(params: Record<string, unknown>) {
   const res = await getConsumptionList({
     userId: params.userId as number | undefined,
-    featureCode: params.featureCode as string | undefined,
-    billingStatus: params.billingStatus as string | undefined,
-    status: params.status as number | undefined,
+    bizKeyword: params.bizKeyword as string | undefined,
     pageNo: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
   })
   return {
-    data: res.items || [],
+    data: res.list || [],
     total: res.total || 0,
     success: true,
   }

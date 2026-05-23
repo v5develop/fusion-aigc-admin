@@ -6,16 +6,19 @@
       :search="{}"
       row-key="id"
     >
+      <template #emptyText>
+        <a-empty :description="$t('billing.noPointsLogData')" />
+      </template>
       <template #bodyCell="{ column, record }">
-        <template v-if="column.dataIndex === 'type'">
-          <a-tag :color="typeColorMap[record.type]">
-            {{ typeMap[record.type] || record.type }}
+        <template v-if="column.dataIndex === 'changeType'">
+          <a-tag :color="typeColorMap[record.changeType]">
+            {{ typeMap[record.changeType] || record.changeType }}
           </a-tag>
         </template>
 
-        <template v-if="column.dataIndex === 'source'">
-          <a-tag :color="sourceColorMap[record.source]">
-            {{ sourceMap[record.source] || record.source }}
+        <template v-if="column.dataIndex === 'bizType'">
+          <a-tag :color="bizTypeColorMap[record.bizType]">
+            {{ bizTypeMap[record.bizType] || record.bizType }}
           </a-tag>
         </template>
 
@@ -37,28 +40,28 @@ import { getPointsLogList } from '@/api/points'
 const { t } = useI18n()
 
 const typeMap: Record<string, string> = {
-  grant: t('points.typeMap.grant'),
-  consume: t('points.typeMap.consume'),
-  adjust: t('points.typeMap.adjust'),
-  refund: t('points.typeMap.refund'),
-  expire: t('points.typeMap.expire'),
+  GRANT: t('points.typeMap.grant'),
+  CONSUME: t('points.typeMap.consume'),
+  ADJUST: t('points.typeMap.adjust'),
+  REFUND: t('points.typeMap.refund'),
+  EXPIRE: t('points.typeMap.expire'),
 }
 
-const sourceMap: Record<string, string> = {
+const bizTypeMap: Record<string, string> = {
   union: t('points.sourceMap.union'),
   manual: t('points.sourceMap.manual'),
   system: t('points.sourceMap.system'),
 }
 
 const typeColorMap: Record<string, string> = {
-  grant: 'green',
-  consume: 'blue',
-  adjust: 'orange',
-  refund: 'purple',
-  expire: 'default',
+  GRANT: 'green',
+  CONSUME: 'blue',
+  ADJUST: 'orange',
+  REFUND: 'purple',
+  EXPIRE: 'default',
 }
 
-const sourceColorMap: Record<string, string> = {
+const bizTypeColorMap: Record<string, string> = {
   union: 'blue',
   manual: 'volcano',
   system: 'default',
@@ -72,39 +75,33 @@ const columns = [
     width: 100,
   },
   {
-    title: t('points.username'),
-    dataIndex: 'username',
-    searchType: 'input' as const,
-    width: 120,
-  },
-  {
     title: t('points.amount'),
     dataIndex: 'amount',
     width: 120,
     align: 'center' as const,
   },
   {
-    title: t('points.balance'),
-    dataIndex: 'balance',
+    title: t('points.balanceAfter'),
+    dataIndex: 'balanceAfter',
     width: 120,
     align: 'center' as const,
   },
   {
-    title: t('points.type'),
-    dataIndex: 'type',
+    title: t('points.changeType'),
+    dataIndex: 'changeType',
     searchType: 'select' as const,
     searchOptions: [
-      { label: t('points.typeMap.grant'), value: 'grant' },
-      { label: t('points.typeMap.consume'), value: 'consume' },
-      { label: t('points.typeMap.adjust'), value: 'adjust' },
-      { label: t('points.typeMap.refund'), value: 'refund' },
-      { label: t('points.typeMap.expire'), value: 'expire' },
+      { label: t('points.typeMap.grant'), value: 'GRANT' },
+      { label: t('points.typeMap.consume'), value: 'CONSUME' },
+      { label: t('points.typeMap.adjust'), value: 'ADJUST' },
+      { label: t('points.typeMap.refund'), value: 'REFUND' },
+      { label: t('points.typeMap.expire'), value: 'EXPIRE' },
     ],
     width: 100,
   },
   {
-    title: t('points.source'),
-    dataIndex: 'source',
+    title: t('points.bizType'),
+    dataIndex: 'bizType',
     searchType: 'select' as const,
     searchOptions: [
       { label: t('points.sourceMap.union'), value: 'union' },
@@ -114,8 +111,8 @@ const columns = [
     width: 100,
   },
   {
-    title: t('points.reason'),
-    dataIndex: 'reason',
+    title: t('points.description'),
+    dataIndex: 'description',
     ellipsis: true,
   },
   {
@@ -128,13 +125,12 @@ const columns = [
 async function loadData(params: Record<string, unknown>) {
   const res = await getPointsLogList({
     userId: params.userId as number | undefined,
-    type: params.type as string | undefined,
-    source: params.source as string | undefined,
+    changeType: params.changeType as string | undefined,
     pageNo: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
   })
   return {
-    data: res.items || [],
+    data: res.list || [],
     total: res.total || 0,
     success: true,
   }

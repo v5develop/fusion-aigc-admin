@@ -83,12 +83,14 @@ const summary = reactive({
   totalConsume: 0,
   totalRefund: 0,
   differenceAmount: 0,
-  period: '',
   items: [] as Array<{
     date: string
     grantCount: number
     consumeCount: number
     refundCount: number
+    grantAmount: number
+    consumeAmount: number
+    refundAmount: number
     difference: number
   }>,
 })
@@ -141,7 +143,6 @@ async function loadSummary() {
     summary.totalConsume = res?.totalConsume || 0
     summary.totalRefund = res?.totalRefund || 0
     summary.differenceAmount = res?.differenceAmount || 0
-    summary.period = res?.period || ''
     summary.items = res?.items || []
   } finally {
     loading.value = false
