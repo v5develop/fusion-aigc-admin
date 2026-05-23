@@ -1,6 +1,6 @@
 export default {
   common: {
-    appName: 'AI Fusion Video Admin',
+    appName: 'AI Fusion Video',
     add: '新增',
     edit: '编辑',
     delete: '删除',
@@ -254,6 +254,15 @@ export default {
     goodEvening: '晚上好',
     goodNight: '夜深了',
     totalUsers: '总用户数',
+    totalFeatures: '总功能点数',
+    totalModels: '总模型数',
+    todayConsumption: '今日消耗',
+    systemStatus: '系统状态',
+    status: '系统状态',
+    running: '运行中',
+    unionConnected: '联盟连接',
+    connected: '已连接',
+    disconnected: '未连接',
     totalOrders: '总订单数',
     totalRevenue: '总收入',
     conversionRate: '转化率',
@@ -294,6 +303,7 @@ export default {
   user: {
     title: '用户管理',
     username: '用户名',
+    nickname: '昵称',
     email: '邮箱',
     realName: '真实姓名',
     phone: '手机号',
@@ -333,6 +343,14 @@ export default {
     importFailed: '导入失败，请检查文件格式',
     importEmpty: '文件为空或格式不正确',
     importFormatError: 'CSV 格式不正确，需包含"用户名"、"姓名"、"邮箱"列',
+    list: '用户列表',
+    unionBound: '联盟绑定',
+    bound: '已绑定',
+    unbound: '未绑定',
+    pointsBalance: '点数余额',
+    adjustPoints: '调整点数',
+    adjustPointsConfirm: '确定要调整用户 {username} 的点数吗？',
+    noUserData: '暂无用户数据',
   },
 
   role: {
@@ -2302,6 +2320,9 @@ export default {
     deleteSuccess: '功能点删除成功',
     configureModels: '配置模型',
     mappingSaveSuccess: '模型映射保存成功',
+    noFeatureData: '暂无功能点数据',
+    noGrantData: '暂无能力下发记录',
+    noChangeLogData: '暂无能力变更日志',
   },
 
   // Model Management
@@ -2338,6 +2359,8 @@ export default {
     },
     yes: '是',
     no: '否',
+    noModelData: '暂无模型数据',
+    status: '状态',
   },
 
   // Pricing
@@ -2368,6 +2391,7 @@ export default {
     updateSuccess: '定价更新成功',
     createSuccess: '定价创建成功',
     deleteSuccess: '定价删除成功',
+    noPricingData: '暂无定价数据',
   },
 
   // Cost
@@ -2386,6 +2410,7 @@ export default {
     callCount: '调用次数',
     cost: '成本(元)',
     modelCount: '模型数量',
+    noCostData: '暂无成本数据',
   },
 
   // Billing
@@ -2393,9 +2418,14 @@ export default {
     consumption: '消耗明细',
     pointsLog: '点数流水',
     pointsAdjust: '点数调整',
-    userId: '用户ID',
     username: '用户名',
+    userId: '用户ID',
+    bizKeyword: '业务关键词',
     bizType: '业务类型',
+    bizId: '业务ID',
+    amount: '变动点数',
+    balanceAfter: '变动后余额',
+    description: '描述',
     todayConsumption: '今日消耗点数',
     monthConsumption: '本月消耗点数',
     todayThirdPartyCost: '今日三方成本',
@@ -2439,6 +2469,9 @@ export default {
       resolved: '已解决',
       ignored: '已忽略',
     },
+    noConsumptionData: '暂无消耗数据',
+    noPointsLogData: '暂无点数流水',
+    noExceptionData: '暂无异常任务',
   },
 
   // Points
@@ -2446,12 +2479,11 @@ export default {
     logTitle: '点数流水',
     adjustTitle: '点数调整',
     userId: '用户ID',
-    username: '用户名',
     amount: '点数',
-    balance: '余额',
-    type: '类型',
-    source: '来源',
-    reason: '原因',
+    balanceAfter: '变动后余额',
+    changeType: '变动类型',
+    bizType: '业务类型',
+    description: '描述',
     adjustType: '调整类型',
     adjustTypeAdd: '增加',
     adjustTypeDeduct: '扣减',
@@ -2505,6 +2537,7 @@ export default {
     approvalTicketId: '审批单号',
     approvalTicketPlaceholder: '请输入审批单号（大额操作必填）',
     approvalThreshold: '单笔超过 {threshold} 点需要审批',
+    noPointsLogData: '暂无点数流水',
   },
 
   // Reconciliation
@@ -2545,6 +2578,8 @@ export default {
     compensate: '补发',
     deduct: '扣减',
     ignore: '忽略',
+    noSummaryData: '暂无对账汇总数据',
+    noDifferenceData: '暂无差异数据',
   },
 
   // Settings
@@ -2578,7 +2613,7 @@ export default {
       confirmDelete: '确定要删除该管理员吗？',
       confirmResetPassword: '确定要重置该管理员密码吗？',
       username: '用户名',
-      nickname: '昵称',
+      realName: '姓名',
       email: '邮箱',
       phone: '手机号',
       roles: '角色',
@@ -2594,6 +2629,10 @@ export default {
       createSuccess: '管理员创建成功',
       deleteSuccess: '管理员删除成功',
       resetSuccess: '密码重置成功',
+      resetPasswordConfirm: '确定要重置用户 {username} 的密码为 123456 吗？',
+      toggleStatusConfirm: '确定要{action}用户 {username} 吗？',
+      deleteConfirm: '确定要删除用户 {username} 吗？',
+      noUserData: '暂无管理员数据',
     },
     role: {
       management: '角色管理',
@@ -2610,9 +2649,12 @@ export default {
       roleCodePattern: '角色编码仅支持大写字母、下划线',
       roleNameRequired: '请输入角色名称',
       selectPermission: '请选择权限',
+      availablePermissions: '可用权限',
+      assignedPermissions: '已分配权限',
       updateSuccess: '角色更新成功',
       createSuccess: '角色创建成功',
       deleteSuccess: '角色删除成功',
+      noRoleData: '暂无角色数据',
     },
   },
 
@@ -2699,6 +2741,7 @@ export default {
     updateSuccess: 'AI 提供商更新成功',
     deleteSuccess: 'AI 提供商删除成功',
     testConnection: '测试连接',
+    noProviderData: '暂无提供商数据',
   },
 
   // Settings Storage

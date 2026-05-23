@@ -1,6 +1,6 @@
 export default {
   common: {
-    appName: 'AI Fusion Video Admin',
+    appName: 'AI Fusion Video',
     add: 'Add',
     edit: 'Edit',
     delete: 'Delete',
@@ -218,7 +218,7 @@ export default {
   },
   login: {
     eyebrow: 'AI Fusion Video',
-    title: 'AI Fusion Video Admin',
+    title: 'AI Fusion Video',
     subtitle: 'Secure workspace entrance',
     username: 'Username',
     password: 'Password',
@@ -249,6 +249,15 @@ export default {
     goodEvening: 'Good evening',
     goodNight: 'Good night',
     totalUsers: 'Total Users',
+    totalFeatures: 'Total Features',
+    totalModels: 'Total Models',
+    todayConsumption: 'Today Consumption',
+    systemStatus: 'System Status',
+    status: 'System Status',
+    running: 'Running',
+    unionConnected: 'Union Connected',
+    connected: 'Connected',
+    disconnected: 'Disconnected',
     totalOrders: 'Total Orders',
     totalRevenue: 'Total Revenue',
     conversionRate: 'Conversion Rate',
@@ -288,6 +297,7 @@ export default {
   user: {
     title: 'User Management',
     username: 'Username',
+    nickname: 'Nickname',
     email: 'Email',
     realName: 'Real Name',
     phone: 'Phone',
@@ -327,6 +337,14 @@ export default {
     settings: 'Settings',
     theme: 'Theme',
     language: 'Language',
+    list: 'User List',
+    unionBound: 'Union Bound',
+    bound: 'Bound',
+    unbound: 'Unbound',
+    pointsBalance: 'Points Balance',
+    adjustPoints: 'Adjust Points',
+    adjustPointsConfirm: 'Are you sure you want to adjust points for user {username}?',
+    noUserData: 'No user data',
   },
   role: {
     title: 'Role Management',
@@ -2288,6 +2306,9 @@ export default {
     deleteSuccess: 'Feature deleted successfully',
     configureModels: 'Configure Models',
     mappingSaveSuccess: 'Model mapping saved successfully',
+    noFeatureData: 'No feature data',
+    noGrantData: 'No capability grant records',
+    noChangeLogData: 'No capability change logs',
   },
 
   // Model Management
@@ -2324,9 +2345,9 @@ export default {
     },
     yes: 'Yes',
     no: 'No',
+    noModelData: 'No model data',
+    status: 'Status',
   },
-
-  // Pricing
   pricing: {
     title: 'Pricing Configuration',
     createPricing: 'Create Pricing',
@@ -2354,6 +2375,7 @@ export default {
     updateSuccess: 'Pricing updated successfully',
     createSuccess: 'Pricing created successfully',
     deleteSuccess: 'Pricing deleted successfully',
+    noPricingData: 'No pricing data',
   },
 
   // Cost
@@ -2372,6 +2394,7 @@ export default {
     callCount: 'Call Count',
     cost: 'Cost (CNY)',
     modelCount: 'Model Count',
+    noCostData: 'No cost data',
   },
 
   // Billing
@@ -2379,9 +2402,14 @@ export default {
     consumption: 'Consumption Details',
     pointsLog: 'Points Log',
     pointsAdjust: 'Points Adjustment',
-    userId: 'User ID',
     username: 'Username',
+    userId: 'User ID',
+    bizKeyword: 'Biz Keyword',
     bizType: 'Biz Type',
+    bizId: 'Biz ID',
+    amount: 'Amount',
+    balanceAfter: 'Balance After',
+    description: 'Description',
     todayConsumption: 'Today Consumption',
     monthConsumption: 'This Month Consumption',
     todayThirdPartyCost: 'Today Third Party Cost',
@@ -2425,6 +2453,9 @@ export default {
       resolved: 'Resolved',
       ignored: 'Ignored',
     },
+    noConsumptionData: 'No consumption data',
+    noPointsLogData: 'No points log',
+    noExceptionData: 'No exception tasks',
   },
 
   // Points
@@ -2432,12 +2463,11 @@ export default {
     logTitle: 'Points Log',
     adjustTitle: 'Points Adjustment',
     userId: 'User ID',
-    username: 'Username',
     amount: 'Points',
-    balance: 'Balance',
-    type: 'Type',
-    source: 'Source',
-    reason: 'Reason',
+    balanceAfter: 'Balance After',
+    changeType: 'Change Type',
+    bizType: 'Biz Type',
+    description: 'Description',
     adjustType: 'Adjust Type',
     adjustTypeAdd: 'Add',
     adjustTypeDeduct: 'Deduct',
@@ -2491,9 +2521,8 @@ export default {
     approvalTicketId: 'Approval Ticket ID',
     approvalTicketPlaceholder: 'Please enter approval ticket ID (required for large amounts)',
     approvalThreshold: 'Single operation exceeding {threshold} points requires approval',
+    noPointsLogData: 'No points log',
   },
-
-  // Reconciliation
   reconciliation: {
     summary: 'Reconciliation Summary',
     difference: 'Difference Handling',
@@ -2531,6 +2560,8 @@ export default {
     compensate: 'Compensate',
     deduct: 'Deduct',
     ignore: 'Ignore',
+    noSummaryData: 'No reconciliation summary data',
+    noDifferenceData: 'No difference data',
   },
 
   // Settings
@@ -2564,7 +2595,7 @@ export default {
       confirmDelete: 'Are you sure you want to delete this admin?',
       confirmResetPassword: 'Are you sure you want to reset this admin\'s password?',
       username: 'Username',
-      nickname: 'Nickname',
+      realName: 'Real Name',
       email: 'Email',
       phone: 'Phone',
       roles: 'Roles',
@@ -2580,6 +2611,10 @@ export default {
       createSuccess: 'Admin created successfully',
       deleteSuccess: 'Admin deleted successfully',
       resetSuccess: 'Password reset successfully',
+      resetPasswordConfirm: 'Are you sure you want to reset password for user {username} to 123456?',
+      toggleStatusConfirm: 'Are you sure you want to {action} user {username}?',
+      deleteConfirm: 'Are you sure you want to delete user {username}?',
+      noUserData: 'No admin data',
     },
     role: {
       management: 'Role Management',
@@ -2596,9 +2631,12 @@ export default {
       roleCodePattern: 'Role code only supports uppercase letters and underscores',
       roleNameRequired: 'Please enter role name',
       selectPermission: 'Please select permissions',
+      availablePermissions: 'Available Permissions',
+      assignedPermissions: 'Assigned Permissions',
       updateSuccess: 'Role updated successfully',
       createSuccess: 'Role created successfully',
       deleteSuccess: 'Role deleted successfully',
+      noRoleData: 'No role data',
     },
   },
 
@@ -2685,9 +2723,8 @@ export default {
     updateSuccess: 'AI provider updated successfully',
     deleteSuccess: 'AI provider deleted successfully',
     testConnection: 'Test Connection',
+    noProviderData: 'No provider data',
   },
-
-  // Settings Storage
   settingsStorage: {
     title: 'Storage Configuration',
     type: 'Storage Type',

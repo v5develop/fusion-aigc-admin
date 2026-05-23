@@ -13,7 +13,7 @@ export interface PageParams {
 }
 
 export interface PageResult<T> {
-  items: T[]
+  list: T[]
   total: number
 }
 
@@ -29,14 +29,15 @@ export interface ListParams extends PageParams {
 export interface AdminUser {
   id: number
   username: string
-  nickname: string
+  realName: string
   email: string
   phone: string
   status: number
   roleIds: number[]
-  roles?: string[]
+  roles?: { id: number; roleCode: string; roleName: string }[]
+  lastLoginTime?: string
+  lastLoginIp?: string
   createTime: string
-  updateTime: string
 }
 
 export interface AdminUserListParams extends ListParams {}
@@ -44,8 +45,8 @@ export interface AdminUserListParams extends ListParams {}
 // Admin Role Types
 export interface AdminRole {
   id: number
-  name: string
-  code: string
+  roleCode: string
+  roleName: string
   description: string
   status: number
   permissions: string[]
@@ -53,7 +54,11 @@ export interface AdminRole {
   updateTime: string
 }
 
-export interface AdminRoleListParams extends ListParams {}
+export interface AdminRoleListParams extends ListParams {
+  roleCode?: string
+  roleName?: string
+  status?: number
+}
 
 // C-End User Types
 export interface User {
@@ -102,19 +107,30 @@ export interface FeatureListParams extends ListParams {}
 // AI Model Types
 export interface AIModel {
   id: number
-  modelCode: string
-  modelName: string
-  provider: string
-  modelType: string
+  name: string
+  code: string
+  provider?: string
+  modelType: number
   status: number
+  icon?: string
   description: string
+  sort?: number
+  config?: string
+  maxConcurrency?: number
+  defaultModel?: boolean
+  supportVision?: boolean
+  supportReasoning?: boolean
+  contextWindow?: number
+  apiConfigId?: number
   createTime: string
   updateTime: string
 }
 
 export interface ModelListParams extends ListParams {
-  provider?: string
-  modelType?: string
+  name?: string
+  code?: string
+  modelType?: number
+  status?: number
 }
 
 // Pricing Types
@@ -133,7 +149,7 @@ export interface ModelPricing {
 }
 
 export interface PricingListParams extends ListParams {
-  modelName?: string
+  modelId?: number
   actionType?: string
   status?: number
 }
@@ -142,45 +158,36 @@ export interface PricingListParams extends ListParams {
 export interface PointsLog {
   id: number
   userId: number
-  username: string
   amount: number
-  balance: number
-  type: string
-  source: string
-  reason: string
+  balanceAfter: number
+  changeType: string
+  bizType: string
+  description: string
   createTime: string
 }
 
-export interface PointsLogParams extends ListParams {
+export interface PointsLogParams extends PageParams {
   userId?: number
-  type?: string
-  source?: string
+  changeType?: string
+  startTime?: string
+  endTime?: string
 }
 
 // Consumption Types
 export interface Consumption {
   id: number
   userId: number
-  username: string
-  featureCode: string
-  featureName: Record<string, string>
-  modelCode: string
-  spec?: string
-  inputTokens: number
-  outputTokens: number
-  pointsCost: number
-  thirdPartyCost?: number
-  reservationNo: string
-  billingStatus: string
-  status: number
+  amount: number
+  balanceAfter: number
+  bizType: string
+  bizId: string
+  description: string
   createTime: string
 }
 
-export interface ConsumptionParams extends ListParams {
+export interface ConsumptionParams extends PageParams {
   userId?: number
-  featureCode?: string
-  billingStatus?: string
-  status?: number
+  bizKeyword?: string
 }
 
 // Reconciliation Types
@@ -189,15 +196,17 @@ export interface ReconciliationSummary {
   totalConsume: number
   totalRefund: number
   differenceAmount: number
-  period: string
-  items: ReconciliationItem[]
+  items: ReconciliationDailyItem[]
 }
 
-export interface ReconciliationItem {
+export interface ReconciliationDailyItem {
   date: string
   grantCount: number
   consumeCount: number
   refundCount: number
+  grantAmount: number
+  consumeAmount: number
+  refundAmount: number
   difference: number
 }
 

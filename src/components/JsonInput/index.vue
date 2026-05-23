@@ -18,8 +18,8 @@
       v-model:open="modalVisible"
       :title="modalTitle"
       :width="modalWidth"
-      :ok-text="okText"
-      :cancel-text="cancelText"
+      :ok-text="$t('common.ok')"
+      :cancel-text="$t('common.cancel')"
       @ok="handleOk"
       @cancel="handleCancel"
       class="json-input-modal"
@@ -42,10 +42,10 @@
               </a-space>
               <a-space size="small">
                 <a-button type="link" size="small" @click="expandAllObjectFields"
-                  >展开全部</a-button
+                  >{{ $t('common.expand') }}全部</a-button
                 >
                 <a-button type="link" size="small" @click="collapseAllObjectFields"
-                  >全部收起</a-button
+                  >{{ $t('common.collapse') }}全部</a-button
                 >
               </a-space>
             </div>
@@ -89,13 +89,13 @@
       <template #footer>
         <a-space>
           <a-button @click="toggleEditMode" size="small">
-            {{ useRawEdit ? '结构编辑' : '原始编辑' }}
+            {{ useRawEdit ? $t('common.formEdit') : $t('common.rawEdit') }}
           </a-button>
           <a-button @click="handleCancel" size="small">
-            {{ cancelText }}
+            {{ $t('common.cancel') }}
           </a-button>
           <a-button type="primary" @click="handleOk" size="small">
-            {{ okText }}
+            {{ $t('common.ok') }}
           </a-button>
         </a-space>
       </template>
@@ -109,6 +109,7 @@ import { message } from 'antdv-next';
 import { ref, computed, watch, type PropType } from 'vue';
 
 import ProCodeEditor from '@/components/Pro/ProCodeEditor/index.vue';
+import { $t } from '@/locales';
 
 import JsonFieldTreeList, {
   type FieldType,
@@ -216,9 +217,6 @@ const rawJsonText = ref('');
 const hoveredFieldPathKey = ref('');
 const draggingFieldPathKey = ref('');
 const newFieldKeys = ref<string[]>([]);
-
-const okText = '确定';
-const cancelText = '取消';
 
 const displayValue = computed(() => {
   if (!props.value) {

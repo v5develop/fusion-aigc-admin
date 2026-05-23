@@ -44,7 +44,7 @@
                 size="middle"
                 class="field-key-input"
                 :class="{ 'is-new': isNewField(key) }"
-                placeholder="字段名"
+                :placeholder="$t('common.fieldName')"
                 @update:value="(val: string) => handleKeyChange(key, val)"
               />
               <template v-else>
@@ -62,7 +62,7 @@
                 <div class="object-field-wrapper">
                   <span class="object-summary">{{ api.getObjectSummaryByPath(path, key) }}</span>
                   <a-button type="link" size="small" @click="toggleFieldExpand(key)">
-                    {{ isFieldExpanded(key) ? '收起' : '展开' }}
+                    {{ isFieldExpanded(key) ? $t('common.collapse') : $t('common.expand') }}
                   </a-button>
                 </div>
               </template>
@@ -73,7 +73,7 @@
                   mode="tags"
                   size="middle"
                   style="width: 100%"
-                  placeholder="输入标签按回车确认"
+                  :placeholder="$t('common.inputTags')"
                   :max-tag-count="2"
                   :disabled="api.isFieldReadonlyByPath(path, key)"
                 />
@@ -89,8 +89,8 @@
                   <span class="switch-label">
                     {{
                       currentObject[key]
-                        ? api.getFieldConfigByPath(path, key)?.activeLabel || '已启用'
-                        : api.getFieldConfigByPath(path, key)?.inactiveLabel || '已禁用'
+                        ? api.getFieldConfigByPath(path, key)?.activeLabel || $t('common.enabled')
+                        : api.getFieldConfigByPath(path, key)?.inactiveLabel || $t('common.disabled')
                     }}
                   </span>
                 </div>
@@ -113,7 +113,7 @@
                 <a-textarea
                   :value="api.getArrayFieldTextByPath(path, key)"
                   size="middle"
-                  placeholder="JSON: [1, 2, 3]"
+                  :placeholder="$t('common.jsonPlaceholder')"
                   :auto-size="{ minRows: 1, maxRows: 3 }"
                   :disabled="api.isFieldDisabledByPath(path, key)"
                   :readonly="api.isFieldReadonlyByPath(path, key)"
@@ -205,7 +205,7 @@
     >
       <a-button type="dashed" size="small" class="add-field-btn" @click="requestAddField">
         <PlusOutlined />
-        新增字段
+        {{ $t('common.addField') }}
       </a-button>
     </div>
   </div>
@@ -221,6 +221,8 @@ import {
 } from '@antdv-next/icons';
 import { computed, type PropType } from 'vue';
 import draggable from 'vuedraggable';
+
+import { $t } from '@/locales';
 
 defineOptions({
   name: 'JsonFieldTreeList',

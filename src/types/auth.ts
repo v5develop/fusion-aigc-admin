@@ -6,8 +6,13 @@ export interface LoginParams {
 }
 
 export interface LoginResult {
-  token: string
-  user: AdminInfo
+  accessToken: string
+  refreshToken: string
+  expiresIn: number
+  adminId: number
+  username: string
+  roleCode: string
+  user?: AdminInfo
 }
 
 export interface AdminInfo {
