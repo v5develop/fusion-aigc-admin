@@ -21,6 +21,18 @@ export function getRolePermissions(id: number) {
   return request.get<string[]>(`/api/admin/roles/${id}/permissions`)
 }
 
+export function getAllPermissions() {
+  return request.get<Permission[]>('/api/admin/roles/permissions/all')
+}
+
 export function saveRolePermissions(id: number, permissions: string[]) {
   return request.put(`/api/admin/roles/${id}/permissions`, { permissions })
+}
+
+export interface Permission {
+  id: number
+  permissionCode: string
+  permissionName: Record<string, string>
+  description?: string
+  status: number
 }

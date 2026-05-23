@@ -85,7 +85,9 @@ export function setupRouterGuards(router: Router) {
       if (!permissionStore.isRoutesGenerated) {
         try {
           const roles = authStore.user?.roles ?? []
-          await permissionStore.generateRoutes(roles, [])
+          // super_admin gets all routes, others get based on roles
+          const permissions = roles.includes('super_admin') ? ['*'] : roles
+          await permissionStore.generateRoutes(roles, permissions)
         } catch (error) {
           console.error('Failed to generate routes:', error);
         }

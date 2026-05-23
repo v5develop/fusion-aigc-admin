@@ -21,12 +21,20 @@ export const useAuthStore = defineStore('auth', () => {
 
   const login = async (username: string, password: string): Promise<void> => {
     const resp = await loginWithPassword(username, password)
-    // resp is already the unwrapped data from request interceptor
-    if (resp?.token) {
-      token.value = resp.token
-      user.value = resp.user
-      storeToken(resp.token)
-      storeUser(resp.user)
+    // Backend returns: { accessToken, refreshToken, expiresIn, adminId, username, roleCode }
+    if (resp?.accessToken) {
+      token.value = resp.accessToken
+      const userInfo: UserInfo = {
+        id: resp.adminId,
+        username: resp.username,
+        nickname: resp.username,
+        avatar: '',
+        roles: resp.roleCode ? [resp.roleCode] : [],
+        permissions: [],
+      }
+      user.value = userInfo
+      storeToken(resp.accessToken)
+      storeUser(userInfo)
     } else {
       throw new Error('Login failed')
     }
