@@ -7,6 +7,9 @@
       :toolbar="{}"
       row-key="id"
     >
+      <template #emptyText>
+        <a-empty :description="$t('model.noModelData')" />
+      </template>
       <template #toolbar>
         <a-button type="primary" @click="handleCreate">
           <PlusOutlined /> {{ $t('model.createModel') }}
@@ -48,19 +51,16 @@
       <a-form :model="formData" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
         <a-form-item :label="$t('model.modelCode')" required>
           <a-input
-            v-model:value="formData.modelCode"
+            v-model:value="formData.code"
             :placeholder="$t('model.modelCodePlaceholder')"
             :disabled="isEdit"
           />
         </a-form-item>
         <a-form-item :label="$t('model.modelName')" required>
           <a-input
-            v-model:value="formData.modelName"
+            v-model:value="formData.name"
             :placeholder="$t('model.modelNamePlaceholder')"
           />
-        </a-form-item>
-        <a-form-item :label="$t('model.provider')" required>
-          <a-input v-model:value="formData.provider" />
         </a-form-item>
         <a-form-item :label="$t('model.modelType')" required>
           <a-select v-model:value="formData.modelType" :options="modelTypeOptions" />
@@ -103,40 +103,34 @@ const modelTypeMap: Record<string, string> = {
 }
 
 const modelTypeOptions = [
-  { label: t('model.modelTypes.image'), value: 'image' },
-  { label: t('model.modelTypes.video'), value: 'video' },
-  { label: t('model.modelTypes.audio'), value: 'audio' },
-  { label: t('model.modelTypes.text'), value: 'text' },
+  { label: t('model.modelTypes.image'), value: 1 },
+  { label: t('model.modelTypes.video'), value: 2 },
+  { label: t('model.modelTypes.audio'), value: 3 },
+  { label: t('model.modelTypes.text'), value: 4 },
 ]
 
 const columns = [
   {
     title: t('model.modelCode'),
-    dataIndex: 'modelCode',
+    dataIndex: 'code',
     searchType: 'input' as const,
     width: 150,
   },
   {
     title: t('model.modelName'),
-    dataIndex: 'modelName',
+    dataIndex: 'name',
     searchType: 'input' as const,
     width: 180,
-  },
-  {
-    title: t('model.provider'),
-    dataIndex: 'provider',
-    searchType: 'input' as const,
-    width: 120,
   },
   {
     title: t('model.modelType'),
     dataIndex: 'modelType',
     searchType: 'select' as const,
     searchOptions: [
-      { label: t('model.modelTypes.image'), value: 'image' },
-      { label: t('model.modelTypes.video'), value: 'video' },
-      { label: t('model.modelTypes.audio'), value: 'audio' },
-      { label: t('model.modelTypes.text'), value: 'text' },
+      { label: t('model.modelTypes.image'), value: 1 },
+      { label: t('model.modelTypes.video'), value: 2 },
+      { label: t('model.modelTypes.audio'), value: 3 },
+      { label: t('model.modelTypes.text'), value: 4 },
     ],
     width: 120,
   },
@@ -171,23 +165,24 @@ const isEdit = ref(false)
 const editId = ref<number | null>(null)
 
 const formData = reactive({
-  modelCode: '',
-  modelName: '',
-  provider: '',
-  modelType: 'image',
+  code: '',
+  name: '',
+  modelType: 1,
   description: '',
   statusChecked: 1,
 })
 
 async function loadData(params: Record<string, unknown>) {
   const res = await getModelList({
-    provider: params.provider as string | undefined,
-    modelType: params.modelType as string | undefined,
+    name: params.name as string | undefined,
+    code: params.code as string | undefined,
+    modelType: params.modelType as number | undefined,
+    status: params.status as number | undefined,
     pageNo: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
   })
   return {
-    data: res.items || [],
+    data: res.list || [],
     total: res.total || 0,
     success: true,
   }
@@ -196,10 +191,9 @@ async function loadData(params: Record<string, unknown>) {
 function handleCreate() {
   isEdit.value = false
   editId.value = null
-  formData.modelCode = ''
-  formData.modelName = ''
-  formData.provider = ''
-  formData.modelType = 'image'
+  formData.code = ''
+  formData.name = ''
+  formData.modelType = 1
   formData.description = ''
   formData.statusChecked = 1
   modalVisible.value = true
@@ -208,9 +202,8 @@ function handleCreate() {
 function handleEdit(record: AIModel) {
   isEdit.value = true
   editId.value = record.id
-  formData.modelCode = record.modelCode
-  formData.modelName = record.modelName
-  formData.provider = record.provider
+  formData.code = record.code
+  formData.name = record.name
   formData.modelType = record.modelType
   formData.description = record.description
   formData.statusChecked = record.status
@@ -218,11 +211,11 @@ function handleEdit(record: AIModel) {
 }
 
 async function handleSubmit() {
-  if (!formData.modelCode) {
+  if (!formData.code) {
     message.error(t('model.modelCodeRequired'))
     return
   }
-  if (!formData.modelName) {
+  if (!formData.name) {
     message.error(t('model.modelNameRequired'))
     return
   }
@@ -230,9 +223,8 @@ async function handleSubmit() {
   submitLoading.value = true
   try {
     const data = {
-      modelCode: formData.modelCode,
-      modelName: formData.modelName,
-      provider: formData.provider,
+      code: formData.code,
+      name: formData.name,
       modelType: formData.modelType,
       description: formData.description,
       status: formData.statusChecked,

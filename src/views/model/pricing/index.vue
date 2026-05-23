@@ -7,6 +7,9 @@
       :toolbar="{}"
       row-key="id"
     >
+      <template #emptyText>
+        <a-empty :description="$t('pricing.noPricingData')" />
+      </template>
       <template #toolbar>
         <a-button type="primary" @click="handleCreate">
           <PlusOutlined /> {{ $t('pricing.createPricing') }}
@@ -70,7 +73,7 @@
             :disabled="isEdit"
           >
             <a-select-option v-for="model in modelList" :key="model.id" :value="model.id">
-              {{ model.modelName }}
+              {{ model.name }}
             </a-select-option>
           </a-select>
         </a-form-item>
@@ -149,7 +152,6 @@ const columns = [
   {
     title: t('model.modelName'),
     dataIndex: 'modelName',
-    searchType: 'input' as const,
     width: 180,
   },
   {
@@ -219,7 +221,7 @@ const formData = reactive({
 async function loadModels() {
   try {
     const res = await getModelList({ pageNo: 1, pageSize: 100 })
-    modelList.value = res.items
+    modelList.value = res.list
   } catch (error) {
     console.error('Failed to load models:', error)
   }
@@ -227,14 +229,13 @@ async function loadModels() {
 
 async function loadData(params: Record<string, unknown>) {
   const res = await getPricingList({
-    modelName: params.modelName as string | undefined,
+    modelId: params.modelId as number | undefined,
     actionType: params.actionType as string | undefined,
-    status: params.status as number | undefined,
     pageNo: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
   })
   return {
-    data: res.items || [],
+    data: res.list || [],
     total: res.total || 0,
     success: true,
   }
@@ -320,7 +321,7 @@ function handleDelete(record: any) {
 function filterModelOption(input: string, option: any) {
   const model = modelList.value.find(m => m.id === option.value)
   if (!model) return false
-  return model.modelName.toLowerCase().includes(input.toLowerCase())
+  return model.name.toLowerCase().includes(input.toLowerCase())
 }
 
 onMounted(() => {

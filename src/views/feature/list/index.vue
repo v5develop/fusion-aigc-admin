@@ -7,6 +7,9 @@
       :toolbar="{}"
       row-key="id"
     >
+      <template #emptyText>
+        <a-empty :description="$t('feature.noFeatureData')" />
+      </template>
       <template #toolbar>
         <a-button type="primary" @click="handleCreate">
           <PlusOutlined /> {{ $t('feature.createFeature') }}
@@ -162,7 +165,7 @@ async function loadData(params: Record<string, unknown>) {
     pageSize: (params.pageSize as number) || 10,
   })
   return {
-    data: res.items || [],
+    data: res.list || [],
     total: res.total || 0,
     success: true,
   }

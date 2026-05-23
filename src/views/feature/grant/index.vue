@@ -6,6 +6,9 @@
       :search="{}"
       row-key="id"
     >
+      <template #emptyText>
+        <a-empty :description="$t('feature.noGrantData')" />
+      </template>
       <template #bodyCell="{ column, record }">
         <template v-if="column.dataIndex === 'featureName'">
           {{ record.featureName?.[currentLocale] || record.featureName?.['zh-CN'] || '-' }}
@@ -133,7 +136,7 @@ async function loadData(params: Record<string, unknown>) {
     pageSize: (params.pageSize as number) || 10,
   })
   return {
-    data: res.items || [],
+    data: res.list || [],
     total: res.total || 0,
     success: true,
   }

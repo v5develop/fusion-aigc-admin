@@ -1,5 +1,6 @@
 <template>
   <a-config-provider
+    :locale="antdLocale"
     :theme="antdThemeConfig"
     :input="inputConfig"
     :select="selectConfig"
@@ -12,8 +13,13 @@
 
 <script setup lang="ts">
 import { theme as antdTheme, type ThemeConfig } from 'antdv-next';
+import zhCN from 'antdv-next/locale/zh_CN';
+import enUS from 'antdv-next/locale/en_US';
+import jaJP from 'antdv-next/locale/ja_JP';
+import koKR from 'antdv-next/locale/ko_KR';
 import { computed, onMounted } from 'vue';
 
+import { getLocale } from './locales';
 import { appDefaultSettings } from './settings';
 import { useSettingsStore } from './stores/settings';
 import { useThemeStore } from './stores/theme';
@@ -36,6 +42,18 @@ const selectConfig = computed(
 const datePickerConfig = computed(
   () => appDefaultSettings.datePicker as unknown as Record<string, unknown>,
 );
+
+const LOCALE_MAP: Record<string, any> = {
+  'zh-CN': zhCN,
+  'en-US': enUS,
+  'ja-JP': jaJP,
+  'ko-KR': koKR,
+};
+
+const antdLocale = computed(() => {
+  const locale = getLocale();
+  return LOCALE_MAP[locale] || zhCN;
+});
 
 onMounted(() => {
   // Initialize theme and settings from localStorage

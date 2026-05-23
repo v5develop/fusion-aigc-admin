@@ -32,8 +32,8 @@
             <a-card size="small" :class="{ 'model-card-selected': selectedModelIds.includes(model.id) }">
               <a-checkbox v-model:checked="selectedModelIds" :value="model.id">
                 <div class="model-info">
-                  <div class="model-name">{{ model.modelName }}</div>
-                  <div class="model-meta">{{ model.provider }} · {{ model.modelType }}</div>
+                  <div class="model-name">{{ model.name }}</div>
+                  <div class="model-meta">{{ model.code }} · {{ model.modelType }}</div>
                 </div>
               </a-checkbox>
             </a-card>
@@ -68,7 +68,7 @@ const saveLoading = ref(false)
 async function loadFeatures() {
   try {
     const res = await getFeatureList({ pageNo: 1, pageSize: 100 })
-    featureList.value = res.items
+    featureList.value = res.list
   } catch (error) {
     console.error('Failed to load features:', error)
   }
@@ -77,7 +77,7 @@ async function loadFeatures() {
 async function loadModels() {
   try {
     const res = await getModelList({ pageNo: 1, pageSize: 100 })
-    modelList.value = res.items
+    modelList.value = res.list
   } catch (error) {
     console.error('Failed to load models:', error)
   }

@@ -7,6 +7,9 @@
       :toolbar="{}"
       row-key="id"
     >
+      <template #emptyText>
+        <a-empty :description="$t('feature.noChangeLogData')" />
+      </template>
       <template #toolbar>
         <a-button @click="handleExport">
           <DownloadOutlined /> {{ $t('common.export') }}
@@ -142,7 +145,7 @@ async function loadData(params: Record<string, unknown>) {
     pageSize: (params.pageSize as number) || 10,
   })
   return {
-    data: res.items || [],
+    data: res.list || [],
     total: res.total || 0,
     success: true,
   }

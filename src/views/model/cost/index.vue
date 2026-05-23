@@ -32,7 +32,11 @@
         :request="loadData"
         :search="{}"
         row-key="id"
-      />
+      >
+        <template #emptyText>
+          <a-empty :description="$t('cost.noCostData')" />
+        </template>
+      </ProTable>
     </a-card>
   </div>
 </template>
@@ -109,7 +113,7 @@ async function loadData(params: Record<string, unknown>) {
     pageSize: (params.pageSize as number) || 10,
   })
   return {
-    data: res.items || [],
+    data: res.list || [],
     total: res.total || 0,
     success: true,
   }
