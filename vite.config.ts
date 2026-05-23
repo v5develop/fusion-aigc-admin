@@ -20,6 +20,7 @@ export default defineConfig(({ mode }) => {
       mockDevServerPlugin({
         prefix: "/api",
         log: "error",
+        enabled: env.VITE_USE_MOCK === 'true',
       }),
     ],
     css: {

@@ -79,7 +79,8 @@ import {
   RobotOutlined,
   TeamOutlined,
 } from '@antdv-next/icons'
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
+import { getDashboardStats } from '@/api/dashboard'
 
 const stats = reactive({
   totalUsers: 0,
@@ -89,6 +90,22 @@ const stats = reactive({
 })
 
 const unionConnected = ref(false)
+
+async function loadStats() {
+  try {
+    const res = await getDashboardStats()
+    stats.totalUsers = res.totalUsers || 0
+    stats.totalFeatures = res.totalFeatures || 0
+    stats.totalModels = res.totalModels || 0
+    stats.todayConsumption = res.todayConsumption || 0
+  } catch (error) {
+    console.error('Failed to load dashboard stats:', error)
+  }
+}
+
+onMounted(() => {
+  loadStats()
+})
 </script>
 
 <style scoped>

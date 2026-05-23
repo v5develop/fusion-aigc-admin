@@ -14,6 +14,9 @@
         :pagination="false"
         row-key="id"
       >
+        <template #emptyText>
+          <a-empty :description="$t('settingsAIProvider.noProviderData')" />
+        </template>
         <template #bodyCell="{ column, record }">
           <template v-if="column.dataIndex === 'type'">
             <a-tag color="blue">{{ typeMap[record.type] || record.type }}</a-tag>
