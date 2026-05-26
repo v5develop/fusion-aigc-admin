@@ -81,14 +81,16 @@
       :title="$t('admin.role.assignPermission')"
       :confirm-loading="permSubmitLoading"
       @ok="handlePermSubmit"
-      width="600px"
+      width="700px"
     >
-      <a-transfer
-        v-model:target-keys="selectedPermissions"
-        :data-source="permDataSource"
-        :titles="[$t('admin.role.availablePermissions'), $t('admin.role.assignedPermissions')]"
-        :render="(item: { permissionName: string }) => item.permissionName"
-      />
+      <div class="perm-tree-container">
+        <a-tree
+          v-model:checked-keys="selectedPermissions"
+          :tree-data="permTreeData"
+          checkable
+          :field-names="{ children: 'children', title: 'title', key: 'key' }"
+        />
+      </div>
     </a-modal>
   </div>
 </template>
@@ -109,7 +111,7 @@ import {
   type Permission,
 } from '@/api/admin-role'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 // Role list columns
 const columns = [
@@ -252,7 +254,49 @@ const currentRoleId = ref<number | null>(null)
 const selectedPermissions = ref<string[]>([])
 const allPermissions = ref<Permission[]>([])
 
-const permDataSource = ref<Array<{ key: string; permissionName: string; permissionCode: string }>>([])
+interface PermTreeNode {
+  key: string
+  title: string
+  children?: PermTreeNode[]
+}
+
+const permTreeData = ref<PermTreeNode[]>([])
+
+const resourceNames: Record<string, string> = {
+  admin: '管理员管理',
+  user: '用户管理',
+  feature: '功能点管理',
+  model: '模型管理',
+  billing: '计费管理',
+  reconciliation: '对账管理',
+  system: '系统设置',
+}
+
+function getPermName(p: Permission): string {
+  try {
+    const parsed = JSON.parse(p.permissionName)
+    return parsed[locale.value] || parsed['zh-CN'] || parsed['en-US'] || p.permissionCode
+  } catch {
+    return p.permissionName || p.permissionCode
+  }
+}
+
+function buildPermTree(perms: Permission[]): PermTreeNode[] {
+  const groups: Record<string, Permission[]> = {}
+  for (const p of perms) {
+    if (!groups[p.resource]) groups[p.resource] = []
+    groups[p.resource].push(p)
+  }
+  return Object.entries(groups).map(([resource, items]) => ({
+    key: `group_${resource}`,
+    title: resourceNames[resource] || resource,
+    selectable: false,
+    children: items.map(p => ({
+      key: p.permissionCode,
+      title: getPermName(p),
+    })),
+  }))
+}
 
 async function handleAssignPermission(record: Record<string, unknown>) {
   currentRoleId.value = record.id as number
@@ -264,11 +308,7 @@ async function handleAssignPermission(record: Record<string, unknown>) {
       getRolePermissions(record.id as number),
     ])
     allPermissions.value = perms
-    permDataSource.value = perms.map(p => ({
-      key: p.permissionCode,
-      permissionName: p.permissionName?.['zh-CN'] || p.permissionCode,
-      permissionCode: p.permissionCode,
-    }))
+    permTreeData.value = buildPermTree(perms)
     selectedPermissions.value = assigned
   } catch (error) {
     console.error('Failed to load permissions:', error)
@@ -290,3 +330,11 @@ async function handlePermSubmit() {
   }
 }
 </script>
+
+<style scoped>
+.perm-tree-container {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+</style>

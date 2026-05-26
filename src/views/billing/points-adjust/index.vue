@@ -231,7 +231,6 @@ async function handleConfirmSubmit() {
       adjustType: formData.adjustType,
       amount: formData.adjustAmount as number,
       reason: formData.adjustReason,
-      approvalTicketId: formData.approvalTicketId || undefined,
     })
     message.success(t('points.adjustSuccess'))
     confirmModalVisible.value = false

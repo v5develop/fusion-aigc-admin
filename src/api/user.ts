@@ -2,7 +2,7 @@ import { request } from '@/utils/request'
 import type { User, UserListParams, PageResult } from '@/types/api'
 
 export function getUserList(params: UserListParams) {
-  return request.get<PageResult<User>>('/api/admin/app-users', { params })
+  return request.get<PageResult<User>>('/api/v1/admin/app-users', { params })
 }
 
 export function getUserDetail(id: number) {

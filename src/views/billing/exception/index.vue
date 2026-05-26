@@ -1,17 +1,29 @@
 <template>
   <div class="page-container">
     <a-card :title="$t('billing.exceptionTitle')">
+      <a-tabs v-model:activeKey="activeTab">
+        <a-tab-pane key="tasks" :tab="$t('billing.exceptionTasks')" />
+        <a-tab-pane key="aged" :tab="$t('billing.agedHeldReservations')" />
+      </a-tabs>
+
+      <!-- 异常任务列表 -->
       <ProTable
-        :columns="columns"
-        :request="loadData"
+        v-if="activeTab === 'tasks'"
+        :columns="taskColumns"
+        :request="loadTasks"
         :search="{}"
-        row-key="id"
+        row-key="taskId"
       >
         <template #emptyText>
           <a-empty :description="$t('billing.noExceptionData')" />
         </template>
         <template #bodyCell="{ column, record }">
-          <template v-if="column.dataIndex === 'billingStatus'">
+          <template v-if="column.dataIndex === 'taskType'">
+            <a-tag :color="record.taskType === 'IMAGE' ? 'blue' : 'purple'">
+              {{ record.taskType === 'IMAGE' ? '图片' : '视频' }}
+            </a-tag>
+          </template>
+          <template v-else-if="column.dataIndex === 'billingStatus'">
             <a-tag :color="billingStatusColorMap[record.billingStatus]">
               {{ billingStatusMap[record.billingStatus] || record.billingStatus || '-' }}
             </a-tag>
@@ -29,44 +41,60 @@
           <template v-else-if="column.dataIndex === 'action'">
             <a-space>
               <a-button
-                v-if="record.status === 'OPEN'"
                 type="link"
                 size="small"
-                @click="handleRetry(record)"
+                @click="handleOpenCompensation(record, 'RETRY')"
               >
-                {{ $t('billing.retry') }}
+                重试
               </a-button>
               <a-button
-                v-if="record.status === 'OPEN'"
+                type="link"
+                size="small"
+                @click="handleOpenCompensation(record, 'REFUND')"
+              >
+                退款
+              </a-button>
+              <a-button
                 type="link"
                 size="small"
                 danger
-                @click="handleOpenIgnore(record)"
+                @click="handleOpenCompensation(record, 'IGNORE')"
               >
-                {{ $t('billing.ignore') }}
+                忽略
               </a-button>
             </a-space>
           </template>
         </template>
       </ProTable>
+
+      <!-- 过期占用扣费单 -->
+      <a-table
+        v-if="activeTab === 'aged'"
+        :columns="agedColumns"
+        :data-source="agedList"
+        :loading="agedLoading"
+        row-key="reservationNo"
+        :pagination="false"
+      >
+        <template #emptyText>
+          <a-empty description="暂无过期占用扣费单" />
+        </template>
+      </a-table>
     </a-card>
 
+    <!-- 补偿操作弹窗 -->
     <a-modal
-      v-model:open="ignoreVisible"
-      :title="$t('billing.ignore')"
-      @ok="handleConfirmIgnore"
+      v-model:open="compensationVisible"
+      :title="compensationTitle"
+      @ok="handleConfirmCompensation"
       :confirmLoading="submitting"
     >
-      <a-form layout="vertical" :model="ignoreForm" ref="ignoreFormRef">
-        <a-form-item
-          :label="$t('billing.remark')"
-          name="remark"
-          :rules="[{ required: true, message: $t('billing.remarkRequired') }]"
-        >
+      <a-form layout="vertical" :model="compensationForm">
+        <a-form-item label="原因" name="reason">
           <a-textarea
-            v-model:value="ignoreForm.remark"
+            v-model:value="compensationForm.reason"
             :rows="3"
-            :placeholder="$t('billing.remarkRequired')"
+            placeholder="请输入操作原因"
           />
         </a-form-item>
       </a-form>
@@ -75,21 +103,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { message, Modal } from 'antdv-next'
+import { ref, computed } from 'vue'
+import { message } from 'antdv-next'
 import ProTable from '@/components/Pro/ProTable/index.vue'
-import { getExceptionList, retryException, ignoreException } from '@/api/billing-exception'
-import type { FormInstance } from 'antdv-next'
+import { getExceptionTasks, getAgedHeldReservations, executeCompensation } from '@/api/billing-exception'
 
-const { t } = useI18n()
+const activeTab = ref('tasks')
 
 const billingStatusMap: Record<string, string> = {
-  HELD: t('billing.billingStatusMap.held'),
-  CONFIRMED: t('billing.billingStatusMap.confirmed'),
-  REFUNDED: t('billing.billingStatusMap.refunded'),
-  CANCELLED: t('billing.billingStatusMap.cancelled'),
-  SETTLEMENT_FAILED: t('billing.billingStatusMap.settlementFailed'),
+  HELD: '预扣占用',
+  CONFIRMED: '已确认',
+  REFUNDED: '已退款',
+  CANCELLED: '已取消',
+  SETTLEMENT_FAILED: '结算失败',
+  BILLING_PENDING_REVIEW: '待审核',
 }
 
 const billingStatusColorMap: Record<string, string> = {
@@ -98,112 +125,110 @@ const billingStatusColorMap: Record<string, string> = {
   REFUNDED: 'orange',
   CANCELLED: 'default',
   SETTLEMENT_FAILED: 'red',
+  BILLING_PENDING_REVIEW: 'warning',
 }
 
 const processStatusMap: Record<string, string> = {
-  OPEN: t('billing.processStatusMap.open'),
-  RESOLVED: t('billing.processStatusMap.resolved'),
-  IGNORED: t('billing.processStatusMap.ignored'),
+  0: '排队中',
+  1: '处理中',
+  2: '已完成',
+  3: '失败',
 }
 
 const processStatusColorMap: Record<string, string> = {
-  OPEN: 'red',
-  RESOLVED: 'green',
-  IGNORED: 'default',
+  0: 'default',
+  1: 'processing',
+  2: 'success',
+  3: 'error',
 }
 
-const columns = [
+const taskColumns = [
   {
-    title: t('billing.taskId'),
-    dataIndex: 'taskId',
-    searchType: 'input' as const,
-    width: 180,
+    title: '任务类型',
+    dataIndex: 'taskType',
+    searchType: 'select' as const,
+    searchOptions: [
+      { label: '图片', value: 'IMAGE' },
+      { label: '视频', value: 'VIDEO' },
+    ],
+    width: 100,
+    align: 'center' as const,
   },
   {
-    title: t('billing.reservationNo'),
+    title: '任务ID',
+    dataIndex: 'taskId',
+    width: 200,
+  },
+  {
+    title: '扣费单号',
     dataIndex: 'reservationNo',
     width: 180,
   },
   {
-    title: t('billing.userId'),
+    title: '用户ID',
     dataIndex: 'userId',
     searchType: 'input' as const,
     width: 100,
   },
   {
-    title: t('billing.username'),
-    dataIndex: 'username',
-    searchType: 'input' as const,
-    width: 120,
-  },
-  {
-    title: t('billing.bizType'),
-    dataIndex: 'bizType',
-    searchType: 'select' as const,
-    searchOptions: [
-      { label: 'IMAGE_GEN', value: 'IMAGE_GEN' },
-      { label: 'VIDEO_GEN', value: 'VIDEO_GEN' },
-    ],
-    width: 120,
-  },
-  {
-    title: t('billing.billingStatus'),
+    title: '计费状态',
     dataIndex: 'billingStatus',
     searchType: 'select' as const,
     searchOptions: [
-      { label: t('billing.billingStatusMap.held'), value: 'HELD' },
-      { label: t('billing.billingStatusMap.confirmed'), value: 'CONFIRMED' },
-      { label: t('billing.billingStatusMap.refunded'), value: 'REFUNDED' },
-      { label: t('billing.billingStatusMap.cancelled'), value: 'CANCELLED' },
-      { label: t('billing.billingStatusMap.settlementFailed'), value: 'SETTLEMENT_FAILED' },
+      { label: '结算失败', value: 'SETTLEMENT_FAILED' },
+      { label: '待审核', value: 'BILLING_PENDING_REVIEW' },
     ],
     width: 140,
     align: 'center' as const,
   },
   {
-    title: t('billing.pricePoints'),
+    title: '预扣点数',
     dataIndex: 'pricePoints',
     width: 100,
     align: 'center' as const,
   },
   {
-    title: t('billing.processStatus'),
+    title: '任务状态',
     dataIndex: 'status',
-    searchType: 'select' as const,
-    searchOptions: [
-      { label: t('billing.processStatusMap.open'), value: 'OPEN' },
-      { label: t('billing.processStatusMap.resolved'), value: 'RESOLVED' },
-      { label: t('billing.processStatusMap.ignored'), value: 'IGNORED' },
-    ],
-    width: 120,
+    width: 100,
     align: 'center' as const,
   },
   {
-    title: t('billing.errorMsg'),
+    title: '错误信息',
     dataIndex: 'errorMsg',
     ellipsis: true,
     width: 200,
   },
   {
-    title: t('common.createTime'),
+    title: '创建时间',
     dataIndex: 'createTime',
     width: 180,
   },
   {
-    title: t('common.action'),
+    title: '操作',
     dataIndex: 'action',
-    width: 150,
+    width: 200,
     align: 'center' as const,
     fixed: 'right' as const,
   },
 ]
 
-async function loadData(params: Record<string, unknown>) {
-  const res = await getExceptionList({
-    userId: params.userId as number | undefined,
-    bizType: params.bizType as string | undefined,
+const agedColumns = [
+  { title: '扣费单号', dataIndex: 'reservationNo', width: 180 },
+  { title: '用户ID', dataIndex: 'userId', width: 100 },
+  { title: '功能编码', dataIndex: 'featureCode', width: 120 },
+  { title: '模型ID', dataIndex: 'modelId', width: 100 },
+  { title: '预扣点数', dataIndex: 'pricePoints', width: 100, align: 'center' as const },
+  { title: '业务类型', dataIndex: 'bizType', width: 120 },
+  { title: '业务ID', dataIndex: 'bizId', width: 180 },
+  { title: '过期时间', dataIndex: 'expireTime', width: 180 },
+  { title: '创建时间', dataIndex: 'createTime', width: 180 },
+]
+
+async function loadTasks(params: Record<string, unknown>) {
+  const res = await getExceptionTasks({
+    taskType: params.taskType as string | undefined,
     billingStatus: params.billingStatus as string | undefined,
-    status: params.status as string | undefined,
     pageNo: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
   })
@@ -214,46 +239,58 @@ async function loadData(params: Record<string, unknown>) {
   }
 }
 
-const submitting = ref(false)
-const ignoreVisible = ref(false)
-const ignoreFormRef = ref<FormInstance>()
-const ignoreForm = ref({ remark: '' })
-const currentExceptionId = ref(0)
+const agedList = ref<any[]>([])
+const agedLoading = ref(false)
 
-function handleRetry(record: { id: number }) {
-  Modal.confirm({
-    title: t('billing.retry'),
-    content: t('billing.confirmRetry'),
-    onOk: async () => {
-      try {
-        await retryException(record.id)
-        message.success(t('billing.retrySuccess'))
-      } catch (error) {
-        console.error('Failed to retry exception:', error)
-      }
-    },
-  })
-}
-
-function handleOpenIgnore(record: { id: number }) {
-  currentExceptionId.value = record.id
-  ignoreForm.value.remark = ''
-  ignoreVisible.value = true
-}
-
-async function handleConfirmIgnore() {
+async function loadAgedReservations() {
+  agedLoading.value = true
   try {
-    await ignoreFormRef.value?.validateFields()
-    submitting.value = true
-    await ignoreException({
-      id: currentExceptionId.value,
-      remark: ignoreForm.value.remark,
-    })
-    message.success(t('billing.ignoreSuccess'))
-    ignoreVisible.value = false
+    const res = await getAgedHeldReservations({ limit: 100 })
+    agedList.value = res || []
   } catch (error) {
-    if ((error as any).errorFields) return
-    console.error('Failed to ignore exception:', error)
+    console.error('Failed to load aged held reservations:', error)
+  } finally {
+    agedLoading.value = false
+  }
+}
+
+// 补偿操作
+const submitting = ref(false)
+const compensationVisible = ref(false)
+const compensationForm = ref({ reason: '' })
+const compensationAction = ref('RETRY' as 'RETRY' | 'IGNORE' | 'REFUND')
+const compensationReservationNo = ref('')
+
+const compensationTitle = computed(() => {
+  const map = { RETRY: '重试结算', REFUND: '退款', IGNORE: '忽略' }
+  return map[compensationAction.value] || '补偿操作'
+})
+
+function handleOpenCompensation(record: { reservationNo: string }, action: 'RETRY' | 'IGNORE' | 'REFUND') {
+  compensationAction.value = action
+  compensationReservationNo.value = record.reservationNo
+  compensationForm.value.reason = ''
+  compensationVisible.value = true
+}
+
+async function handleConfirmCompensation() {
+  try {
+    submitting.value = true
+    await executeCompensation({
+      actionType: compensationAction.value,
+      reservationNo: compensationReservationNo.value,
+      reason: compensationForm.value.reason,
+    })
+    message.success('操作成功')
+    compensationVisible.value = false
+    // 刷新列表
+    if (activeTab.value === 'tasks') {
+      // ProTable 会自动刷新
+    } else {
+      await loadAgedReservations()
+    }
+  } catch (error) {
+    console.error('Failed to execute compensation:', error)
   } finally {
     submitting.value = false
   }

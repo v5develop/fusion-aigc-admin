@@ -106,12 +106,13 @@
 import { ref, reactive, onMounted } from 'vue'
 import { message } from 'antdv-next'
 import { useI18n } from 'vue-i18n'
-import { getStorageConfig, saveStorageConfig } from '@/api/config'
+import { getStorageConfig, saveStorageConfig, testStorageConnection } from '@/api/config'
 
 const { t } = useI18n()
 
 const formRef = ref()
 const submitting = ref(false)
+const testing = ref(false)
 
 const typeOptions = [
   { label: '本地存储', value: 'local' },
@@ -175,8 +176,18 @@ async function handleSubmit() {
   }
 }
 
-function handleTest() {
-  message.info(t('settingsStorage.testConnection'))
+async function handleTest() {
+  try {
+    await formRef.value?.validateFields()
+    testing.value = true
+    await testStorageConnection(formData)
+    message.success(t('settingsStorage.testConnectionSuccess'))
+  } catch (error) {
+    console.error('Test connection failed:', error)
+    message.error(t('settingsStorage.testConnectionFailed'))
+  } finally {
+    testing.value = false
+  }
 }
 
 onMounted(() => {

@@ -2,11 +2,11 @@ import { request } from '@/utils/request'
 import type { AdminRole, AdminRoleListParams, PageResult } from '@/types/api'
 
 export function getAdminRoleList(params: AdminRoleListParams) {
-  return request.get<PageResult<AdminRole>>('/api/admin/roles', { params })
+  return request.get<PageResult<AdminRole>>('/api/v1/admin/roles', { params })
 }
 
 export function createAdminRole(data: Partial<AdminRole>) {
-  return request.post('/api/admin/roles', data)
+  return request.post('/api/v1/admin/roles', data)
 }
 
 export function updateAdminRole(id: number, data: Partial<AdminRole>) {
@@ -22,7 +22,7 @@ export function getRolePermissions(id: number) {
 }
 
 export function getAllPermissions() {
-  return request.get<Permission[]>('/api/admin/roles/permissions/all')
+  return request.get<Permission[]>('/api/v1/admin/roles/permissions/all')
 }
 
 export function saveRolePermissions(id: number, permissions: string[]) {
@@ -32,7 +32,9 @@ export function saveRolePermissions(id: number, permissions: string[]) {
 export interface Permission {
   id: number
   permissionCode: string
-  permissionName: Record<string, string>
+  permissionName: string
+  resource: string
+  action: string
   description?: string
   status: number
 }

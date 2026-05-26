@@ -31,6 +31,10 @@
           </a-tag>
         </template>
 
+        <template v-if="column.dataIndex === 'actionType'">
+          <a-tag>{{ actionTypeMap[record.actionType] || record.actionType || '-' }}</a-tag>
+        </template>
+
         <template v-if="column.dataIndex === 'action'">
           <a-space>
             <a-button type="link" size="small" @click="handleEdit(record)">
@@ -72,6 +76,9 @@
             :placeholder="$t('feature.descriptionPlaceholder')"
           />
         </a-form-item>
+        <a-form-item :label="$t('feature.actionType')" required>
+          <a-select v-model:value="formData.actionType" :options="actionTypeOptions" />
+        </a-form-item>
         <a-form-item :label="$t('feature.status')">
           <a-switch
             v-model:checked="formData.statusChecked"
@@ -98,6 +105,20 @@ import { getLocale } from '@/locales'
 const { t } = useI18n()
 const currentLocale = computed(() => getLocale())
 
+const actionTypeOptions = [
+  { label: t('pricing.actionTypeImage'), value: 'IMAGE_GEN' },
+  { label: t('pricing.actionTypeVideo'), value: 'VIDEO_GEN' },
+  { label: t('pricing.actionTypeText'), value: 'TEXT_CHAT' },
+  { label: t('pricing.actionTypeTool'), value: 'AI_TOOL' },
+]
+
+const actionTypeMap: Record<string, string> = {
+  IMAGE_GEN: t('pricing.actionTypeImage'),
+  VIDEO_GEN: t('pricing.actionTypeVideo'),
+  TEXT_CHAT: t('pricing.actionTypeText'),
+  AI_TOOL: t('pricing.actionTypeTool'),
+}
+
 const columns = [
   {
     title: t('feature.featureCode'),
@@ -115,6 +136,13 @@ const columns = [
     title: t('feature.description'),
     dataIndex: 'description',
     ellipsis: true,
+  },
+  {
+    title: t('feature.actionType'),
+    dataIndex: 'actionType',
+    searchType: 'select' as const,
+    searchOptions: actionTypeOptions,
+    width: 120,
   },
   {
     title: t('feature.modelCount'),
@@ -156,6 +184,7 @@ const formData = reactive({
   featureCode: '',
   featureName: {} as Record<string, string>,
   description: {} as Record<string, string>,
+  actionType: 'IMAGE_GEN',
   statusChecked: 1,
 })
 
@@ -177,6 +206,7 @@ function handleCreate() {
   formData.featureCode = ''
   formData.featureName = {}
   formData.description = {}
+  formData.actionType = 'IMAGE_GEN'
   formData.statusChecked = 1
   modalVisible.value = true
 }
@@ -187,6 +217,7 @@ function handleEdit(record: Feature) {
   formData.featureCode = record.featureCode
   formData.featureName = record.featureName || {}
   formData.description = record.description || {}
+  formData.actionType = record.actionType || 'IMAGE_GEN'
   formData.statusChecked = record.status
   modalVisible.value = true
 }
@@ -207,6 +238,7 @@ async function handleSubmit() {
       featureCode: formData.featureCode,
       featureName: formData.featureName,
       description: formData.description,
+      actionType: formData.actionType,
       status: formData.statusChecked,
     }
 

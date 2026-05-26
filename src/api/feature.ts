@@ -2,11 +2,11 @@ import { request } from '@/utils/request'
 import type { Feature, FeatureListParams, PageResult } from '@/types/api'
 
 export function getFeatureList(params: FeatureListParams) {
-  return request.get<PageResult<Feature>>('/api/admin/capabilities/points', { params })
+  return request.get<PageResult<Feature>>('/api/v1/admin/capabilities/points', { params })
 }
 
 export function createFeature(data: Partial<Feature>) {
-  return request.post('/api/admin/capabilities/points', data)
+  return request.post('/api/v1/admin/capabilities/points', data)
 }
 
 export function updateFeature(id: number, data: Partial<Feature>) {
@@ -37,7 +37,7 @@ export interface CapabilityGrant {
 }
 
 export function getFeatureGrantList(params: { userId?: number; pageNo: number; pageSize: number }) {
-  return request.get<PageResult<CapabilityGrant>>('/api/admin/capabilities/grants', { params })
+  return request.get<PageResult<CapabilityGrant>>('/api/v1/admin/capabilities/grants', { params })
 }
 
 export function revokeCapability(grantId: number) {
@@ -58,5 +58,5 @@ export interface CapabilityChangeLog {
 }
 
 export function getFeatureChangeLog(params: { featureId?: number; pageNo: number; pageSize: number }) {
-  return request.get<PageResult<CapabilityChangeLog>>('/api/admin/capabilities/change-log', { params })
+  return request.get<PageResult<CapabilityChangeLog>>('/api/v1/admin/capabilities/change-log', { params })
 }

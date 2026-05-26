@@ -2,7 +2,7 @@
   "name": "ai-fusion-video-admin",
   "version": "1.0.0",
   "type": "module",
-  "description": "AI Fusion Video - A modern Vue 3 admin scaffold for AI Fusion Video management",
+  "description": "Fusion AIGC - A modern Vue 3 admin scaffold for Fusion AIGC management",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

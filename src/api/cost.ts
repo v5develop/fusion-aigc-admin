@@ -9,9 +9,9 @@ export function getCostList(params: {
   pageNo: number
   pageSize: number
 }) {
-  return request.get<PageResult<ModelCost>>('/api/admin/costs', { params })
+  return request.get<PageResult<ModelCost>>('/api/v1/admin/costs', { params })
 }
 
 export function getCostStats(params: { startDate?: string; endDate?: string }) {
-  return request.get<ModelCostStats>('/api/admin/costs/stats', { params })
+  return request.get<ModelCostStats>('/api/v1/admin/costs/stats', { params })
 }

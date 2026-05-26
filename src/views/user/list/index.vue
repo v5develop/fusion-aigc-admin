@@ -47,18 +47,47 @@
         </template>
       </ProTable>
     </a-card>
+
+    <a-modal
+      v-model:open="adjustModalVisible"
+      :title="$t('user.adjustPoints')"
+      @ok="handleConfirmAdjust"
+    >
+      <a-form layout="vertical">
+        <a-form-item label="用户">
+          <a-input :value="adjustForm.username" disabled />
+        </a-form-item>
+        <a-form-item label="操作类型">
+          <a-radio-group v-model:value="adjustForm.adjustType">
+            <a-radio value="ADD">增加</a-radio>
+            <a-radio value="DEDUCT">扣减</a-radio>
+          </a-radio-group>
+        </a-form-item>
+        <a-form-item label="调整点数">
+          <a-input-number v-model:value="adjustForm.amount" :min="1" style="width: 100%" />
+        </a-form-item>
+        <a-form-item label="调整原因">
+          <a-textarea v-model:value="adjustForm.reason" :rows="3" placeholder="请输入调整原因" />
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { message, Modal } from 'antdv-next'
+import { message } from 'antdv-next'
 import ProTable from '@/components/Pro/ProTable/index.vue'
-import { getUserList, adjustUserPoints } from '@/api/user'
+import { getUserList } from '@/api/user'
+import { adjustPoints } from '@/api/points'
+import { ref } from 'vue'
 
 const { t } = useI18n()
 const router = useRouter()
+
+const adjustModalVisible = ref(false)
+const adjustForm = ref({ userId: 0, username: '', amount: 0, reason: '', adjustType: 'ADD' as string })
 
 const statusMap: Record<number, string> = {
   1: t('common.enabled'),
@@ -160,24 +189,37 @@ function handleViewDetail(record: Record<string, unknown>) {
 }
 
 function handleAdjustPoints(record: Record<string, unknown>) {
-  let amount = 0
-  let reason = ''
+  adjustForm.value = {
+    userId: record.id as number,
+    username: record.username as string,
+    amount: 0,
+    reason: '',
+    adjustType: 'ADD',
+  }
+  adjustModalVisible.value = true
+}
 
-  Modal.confirm({
-    title: t('user.adjustPoints'),
-    content: t('user.adjustPointsConfirm', { username: record.username }),
-    width: 400,
-    okText: t('common.confirm'),
-    cancelText: t('common.cancel'),
-    onOk: async () => {
-      try {
-        await adjustUserPoints(record.id as number, { amount, reason })
-        message.success(t('common.success'))
-      } catch (error) {
-        console.error('Adjust points failed:', error)
-      }
-    },
-  })
+async function handleConfirmAdjust() {
+  if (!adjustForm.value.reason) {
+    message.warning('请输入调整原因')
+    return
+  }
+  if (adjustForm.value.amount <= 0) {
+    message.warning('调整点数必须大于0')
+    return
+  }
+  try {
+    await adjustPoints({
+      userId: adjustForm.value.userId,
+      adjustType: adjustForm.value.adjustType,
+      amount: adjustForm.value.amount,
+      reason: adjustForm.value.reason,
+    })
+    message.success(t('common.success'))
+    adjustModalVisible.value = false
+  } catch (error) {
+    console.error('Adjust points failed:', error)
+  }
 }
 </script>
 

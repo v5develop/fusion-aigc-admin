@@ -2,11 +2,11 @@ import { request } from '@/utils/request'
 import type { AdminUser, AdminUserListParams, PageResult } from '@/types/api'
 
 export function getAdminUserList(params: AdminUserListParams) {
-  return request.get<PageResult<AdminUser>>('/api/admin/users', { params })
+  return request.get<PageResult<AdminUser>>('/api/v1/admin/users', { params })
 }
 
 export function createAdminUser(data: Partial<AdminUser>) {
-  return request.post('/api/admin/users', data)
+  return request.post('/api/v1/admin/users', data)
 }
 
 export function updateAdminUser(id: number, data: Partial<AdminUser>) {

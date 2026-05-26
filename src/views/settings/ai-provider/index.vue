@@ -127,13 +127,14 @@ import { ref, reactive, onMounted } from 'vue'
 import { PlusOutlined } from '@antdv-next/icons'
 import { message } from 'antdv-next'
 import { useI18n } from 'vue-i18n'
-import { getAIProviderConfig, saveAIProviderConfig } from '@/api/config'
+import { getAIProviderConfig, saveAIProviderConfig, testAIProviderConnection } from '@/api/config'
 
 const { t } = useI18n()
 
 const loading = ref(false)
 const modalVisible = ref(false)
 const submitLoading = ref(false)
+const testing = ref(false)
 const isEdit = ref(false)
 const editId = ref<number | null>(null)
 
@@ -285,8 +286,17 @@ async function handleStatusChange(record: any) {
   }
 }
 
-function handleTest(record: any) {
-  message.info(`${t('settingsAIProvider.testConnection')}: ${record.name}`)
+async function handleTest(record: any) {
+  testing.value = true
+  try {
+    await testAIProviderConnection(record)
+    message.success(t('settingsAIProvider.testConnectionSuccess'))
+  } catch (error) {
+    console.error('Test connection failed:', error)
+    message.error(t('settingsAIProvider.testConnectionFailed'))
+  } finally {
+    testing.value = false
+  }
 }
 
 onMounted(() => {

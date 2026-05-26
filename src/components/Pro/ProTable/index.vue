@@ -94,11 +94,12 @@
         v-bind="$attrs"
         @change="handleTableChange"
       >
-        <template v-if="toolbar" #title>
+        <template v-if="toolbar || $slots.toolbar" #title>
           <div ref="toolbarRef" class="pro-table-toolbar">
             <div class="toolbar-left">
-              <span v-if="toolbar.title" class="toolbar-title">{{ toolbar.title }}</span>
-              <span v-if="toolbar.subTitle" class="toolbar-subtitle">{{ toolbar.subTitle }}</span>
+              <slot name="toolbar"></slot>
+              <span v-if="toolbar?.title" class="toolbar-title">{{ toolbar.title }}</span>
+              <span v-if="toolbar?.subTitle" class="toolbar-subtitle">{{ toolbar.subTitle }}</span>
             </div>
             <div class="toolbar-right">
               <slot name="toolbar-actions"></slot>
@@ -270,7 +271,11 @@
         <template #bodyCell="{ column, record, text, index }">
           <span v-if="column.dataIndex === '__index'">{{ getRowIndex(index) }}</span>
 
-          <a-space v-else-if="column.dataIndex === 'action'" class="row-action-group" :size="4">
+          <a-space
+            v-else-if="column.dataIndex === 'action' && column.actions && column.actions.length"
+            class="row-action-group"
+            :size="4"
+          >
             <template v-for="(action, idx) in column.actions" :key="idx">
               <a-button
                 v-if="!action.hidden?.(record)"

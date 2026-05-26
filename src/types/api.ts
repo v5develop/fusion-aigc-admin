@@ -96,6 +96,7 @@ export interface Feature {
   featureCode: string
   featureName: Record<string, string>
   description: Record<string, string> | null
+  actionType?: string
   status: number
   modelCount: number
   createTime: string
@@ -225,6 +226,20 @@ export interface ReconciliationDifference {
   createTime: string
 }
 
+export interface ReconciliationMonthly {
+  totalGrant: number
+  totalConsume: number
+  totalDifference: number
+  items: ReconciliationMonthlyItem[]
+}
+
+export interface ReconciliationMonthlyItem {
+  date: string
+  grantCount: number
+  consumeCount: number
+  difference: number
+}
+
 // Model Cost Types
 export interface ModelCost {
   id: number
@@ -247,23 +262,33 @@ export interface ModelCostStats {
 }
 
 // Billing Exception Types
-export interface BillingException {
-  id: number
+export interface BillingExceptionTask {
+  taskType: 'IMAGE' | 'VIDEO'
   taskId: string
   reservationNo: string
-  bizType: string
-  billingStatus: string
-  errorMsg: string
   userId: number
-  username: string
+  billingStatus: string
   pricePoints: number
+  status: number
+  errorMsg: string
+  createTime: string
+  updateTime: string
+}
+
+export interface AgedHeldReservation {
+  reservationNo: string
+  userId: number
+  featureCode: string
+  modelId: number
+  pricePoints: number
+  bizType: string
+  bizId: string
   status: string
+  expireTime: string
   createTime: string
 }
 
 export interface BillingExceptionListParams extends PageParams {
-  userId?: number
-  bizType?: string
+  taskType?: string
   billingStatus?: string
-  status?: string
 }

@@ -58,9 +58,14 @@
         </a-form-item>
 
         <a-form-item>
-          <a-button type="primary" @click="handleSubmit" :loading="submitting">
-            {{ $t('common.save') }}
-          </a-button>
+          <a-space>
+            <a-button type="primary" @click="handleSubmit" :loading="submitting">
+              {{ $t('common.save') }}
+            </a-button>
+            <a-button @click="handleTest" :loading="testing">
+              {{ $t('settingsUnion.testConnection') }}
+            </a-button>
+          </a-space>
         </a-form-item>
       </a-form>
     </a-card>
@@ -71,12 +76,13 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { message } from 'antdv-next'
-import { getUnionConfig, saveUnionConfig } from '@/api/config'
+import { getUnionConfig, saveUnionConfig, testUnionConnection } from '@/api/config'
 
 const { t } = useI18n()
 
 const formRef = ref()
 const submitting = ref(false)
+const testing = ref(false)
 
 const formData = reactive({
   baseUrl: '',
@@ -117,6 +123,20 @@ async function handleSubmit() {
     // Validation error or API error handled by interceptor
   } finally {
     submitting.value = false
+  }
+}
+
+async function handleTest() {
+  try {
+    await formRef.value?.validateFields()
+    testing.value = true
+    await testUnionConnection(formData)
+    message.success(t('settingsUnion.testConnectionSuccess'))
+  } catch (error) {
+    console.error('Test connection failed:', error)
+    message.error(t('settingsUnion.testConnectionFailed'))
+  } finally {
+    testing.value = false
   }
 }
 

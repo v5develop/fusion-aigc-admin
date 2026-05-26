@@ -1,14 +1,27 @@
 import { request } from '@/utils/request'
-import type { BillingException, BillingExceptionListParams, PageResult } from '@/types/api'
+import type { BillingExceptionTask, AgedHeldReservation, PageResult } from '@/types/api'
 
-export function getExceptionList(params: BillingExceptionListParams) {
-  return request.get<PageResult<BillingException>>('/api/admin/billing/exceptions', { params })
+export function getExceptionTasks(params: {
+  taskType?: string
+  billingStatus?: string
+  pageNo: number
+  pageSize: number
+}) {
+  return request.get<PageResult<BillingExceptionTask>>('/api/v1/admin/billing/exceptions/tasks', { params })
 }
 
-export function retryException(id: number) {
-  return request.post(`/api/admin/billing/exceptions/${id}/retry`)
+export function getAgedHeldReservations(params?: {
+  expiredBefore?: string
+  limit?: number
+}) {
+  return request.get<AgedHeldReservation[]>('/api/v1/admin/billing/exceptions/aged-held-reservations', { params })
 }
 
-export function ignoreException(data: { id: number; remark: string }) {
-  return request.post('/api/admin/billing/exceptions/ignore', data)
+export function executeCompensation(data: {
+  actionType: 'RETRY' | 'IGNORE' | 'REFUND'
+  reservationNo: string
+  requestId?: string
+  reason?: string
+}) {
+  return request.post('/api/v1/admin/billing/compensation/execute', data)
 }

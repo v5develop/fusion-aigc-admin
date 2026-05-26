@@ -184,7 +184,7 @@ const languageOptions = [
 ]
 
 const basicForm = reactive({
-  siteName: 'AI Fusion Video',
+  siteName: 'Fusion AIGC',
   siteLogo: '',
   defaultLanguage: 'zh-CN',
   defaultPoints: 100,
