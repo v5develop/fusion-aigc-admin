@@ -181,6 +181,7 @@ export const encryptedSessionStorage = new EncryptedStorage(window.sessionStorag
 
 // Token storage helpers
 const TOKEN_KEY = 'afv_admin_token';
+const REFRESH_TOKEN_KEY = 'afv_admin_refresh_token';
 const USER_KEY = 'afv_admin_user';
 
 export function getToken(): string | null {
@@ -193,6 +194,23 @@ export function setToken(token: string): void {
 
 export function removeToken(): void {
   localStorage.remove(TOKEN_KEY)
+}
+
+export function getRefreshToken(): string | null {
+  return localStorage.get<string>(REFRESH_TOKEN_KEY)
+}
+
+export function setRefreshToken(refreshToken: string): void {
+  localStorage.set(REFRESH_TOKEN_KEY, refreshToken)
+}
+
+export function removeRefreshToken(): void {
+  localStorage.remove(REFRESH_TOKEN_KEY)
+}
+
+export function clearTokens(): void {
+  removeToken();
+  removeRefreshToken();
 }
 
 export function getUser<T = Record<string, unknown>>(): T | null {

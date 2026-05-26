@@ -18,6 +18,8 @@ export const useLayoutStore = defineStore('layout', () => {
   const aiEntryVisible = ref(true);
   const aiCollabEnabled = ref(false);
   const aiPanelWidth = ref(420);
+  const globalLoading = ref(false);
+  const loadingText = ref('');
 
   // Actions
   const toggleSidebar = () => {
@@ -74,6 +76,16 @@ export const useLayoutStore = defineStore('layout', () => {
     return collapsed.value ? collapsedWidth.value : sidebarWidth.value;
   };
 
+  const showLoading = (text = '加载中...') => {
+    loadingText.value = text;
+    globalLoading.value = true;
+  };
+
+  const hideLoading = () => {
+    globalLoading.value = false;
+    loadingText.value = '';
+  };
+
   // Initialize from localStorage
   const initLayout = () => {
     const savedCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
@@ -117,6 +129,8 @@ export const useLayoutStore = defineStore('layout', () => {
     aiEntryVisible,
     aiCollabEnabled,
     aiPanelWidth,
+    globalLoading,
+    loadingText,
     // Actions
     toggleSidebar,
     setSidebarCollapsed,
@@ -128,6 +142,8 @@ export const useLayoutStore = defineStore('layout', () => {
     setAiEntryVisible,
     setAiPanelWidth,
     getCurrentSidebarWidth,
+    showLoading,
+    hideLoading,
     initLayout,
   };
 });

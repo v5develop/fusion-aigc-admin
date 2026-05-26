@@ -4,14 +4,15 @@ import { ref, computed } from 'vue'
 import {
   getStoredToken,
   storeToken,
-  clearToken,
   getStoredUser,
   storeUser,
   clearUser,
   loginWithPassword,
   logout as apiLogout,
+  refreshToken as apiRefreshToken,
   type UserInfo,
 } from '@/api/auth'
+import { setRefreshToken, getRefreshToken, clearTokens } from '@/utils/storage'
 import { usePermissionStore } from '@/stores/permission'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -35,9 +36,31 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = userInfo
       storeToken(resp.accessToken)
       storeUser(userInfo)
+      if (resp.refreshToken) {
+        setRefreshToken(resp.refreshToken)
+      }
     } else {
       throw new Error('Login failed')
     }
+  }
+
+  const setTokens = (accessToken: string, newRefreshToken: string) => {
+    token.value = accessToken
+    storeToken(accessToken)
+    setRefreshToken(newRefreshToken)
+  }
+
+  const refreshAccessToken = async (): Promise<string> => {
+    const storedRefreshToken = getRefreshToken()
+    if (!storedRefreshToken) {
+      throw new Error('No refresh token available')
+    }
+    const resp = await apiRefreshToken(storedRefreshToken)
+    if (resp?.accessToken) {
+      setTokens(resp.accessToken, resp.refreshToken || storedRefreshToken)
+      return resp.accessToken
+    }
+    throw new Error('Token refresh failed')
   }
 
   const logout = async () => {
@@ -46,7 +69,7 @@ export const useAuthStore = defineStore('auth', () => {
         await apiLogout()
       }
     } finally {
-      clearToken()
+      clearTokens()
       clearUser()
       token.value = null
       user.value = null
@@ -73,5 +96,7 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     logout,
     initAuth,
+    setTokens,
+    refreshAccessToken,
   }
 })

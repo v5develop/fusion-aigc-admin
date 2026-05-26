@@ -5,6 +5,17 @@
       class="admin-layout"
       :class="[settingsStore.layoutMode, { mobile: layoutStore.isMobile }]"
     >
+      <!-- Global Loading Overlay -->
+      <Teleport to="body">
+        <Transition name="fade">
+          <div v-if="layoutStore.globalLoading" class="global-loading-overlay">
+            <div class="global-loading-content">
+              <div class="loading-spinner"></div>
+              <p class="loading-text">{{ layoutStore.loadingText || '加载中...' }}</p>
+            </div>
+          </div>
+        </Transition>
+      </Teleport>
       <!-- Vertical Layout -->
       <template v-if="settingsStore.layoutMode === 'vertical'">
         <!-- Sidebar -->
@@ -900,5 +911,59 @@ watch(
     z-index: 9999 !important;
     pointer-events: none !important;
   }
+}
+
+// Global loading overlay
+.global-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+
+  .global-loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 32px 48px;
+    background: var(--color-bg-container);
+    border-radius: 8px;
+    box-shadow: var(--shadow-3);
+  }
+
+  .loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  .loading-text {
+    margin: 0;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
