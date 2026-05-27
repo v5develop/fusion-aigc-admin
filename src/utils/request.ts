@@ -19,6 +19,11 @@ const service: AxiosInstance = axios.create({
   },
 })
 
+// ---- Retry config ----
+const RETRYABLE_STATUS = [408, 429, 500, 502, 503, 504]
+const MAX_RETRY_COUNT = 2
+const RETRY_DELAY_BASE = 500
+
 // ---- Token refresh queue ----
 let isRefreshing = false
 let failedQueue: Array<{
@@ -131,6 +136,21 @@ service.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & {
       _retry?: boolean
+      _retryCount?: number
+    }
+
+    // 重试逻辑：对可重试状态码进行指数退避重试
+    if (originalRequest && RETRYABLE_STATUS.includes(error.response?.status ?? 0)) {
+      const retryCount = originalRequest._retryCount ?? 0
+      if (retryCount < MAX_RETRY_COUNT) {
+        originalRequest._retryCount = retryCount + 1
+        const delay = RETRY_DELAY_BASE * Math.pow(2, retryCount)
+        console.warn(
+          `[HTTP Retry] ${originalRequest.method?.toUpperCase()} ${originalRequest.url} - attempt ${retryCount + 1}/${MAX_RETRY_COUNT} after ${delay}ms`,
+        )
+        await new Promise((resolve) => setTimeout(resolve, delay))
+        return service(originalRequest)
+      }
     }
 
     // If no config (e.g. network error) or not 401, handle normally

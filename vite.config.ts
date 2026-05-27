@@ -63,22 +63,32 @@ export default defineConfig(({ mode }) => {
           manualChunks(id) {
             if (
               id.includes("node_modules/vue/") ||
-              id.includes("node_modules/vue-router/") ||
-              id.includes("node_modules/pinia/")
+              id.includes("node_modules/@vue/")
             ) {
               return "vue-vendor";
             }
+            if (id.includes("node_modules/vue-router/")) {
+              return "vue-router-vendor";
+            }
+            if (id.includes("node_modules/pinia/")) {
+              return "pinia-vendor";
+            }
             if (
               id.includes("node_modules/antdv-next/") ||
-              id.includes("node_modules/@antdv-next/")
+              id.includes("node_modules/@antdv-next/") ||
+              id.includes("node_modules/ant-design-vue/")
             ) {
               return "antdv-vendor";
             }
             if (
               id.includes("node_modules/echarts/") ||
-              id.includes("node_modules/vue-echarts/")
+              id.includes("node_modules/vue-echarts/") ||
+              id.includes("node_modules/zrender/")
             ) {
               return "chart-vendor";
+            }
+            if (id.includes("node_modules/dayjs/") || id.includes("node_modules/axios/")) {
+              return "utils-vendor";
             }
           },
         },
