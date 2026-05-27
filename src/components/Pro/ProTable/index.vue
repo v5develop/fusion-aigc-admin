@@ -395,6 +395,8 @@ interface Props {
   ellipsis?: boolean;
   bordered?: boolean;
   fixedHeader?: boolean;
+  // Column config persistence key (stored in localStorage)
+  storageKey?: string;
   // Built-in CRUD modal
   formItems?: ProFormItem[];
   formGrid?: ProFormGrid;
@@ -1234,6 +1236,78 @@ const densityMenuProps = computed(() => ({
 }));
 
 // Methods
+interface PersistedColumnConfig {
+  key: string;
+  checked: boolean;
+  fixed?: 'left' | 'right';
+  order: number;
+}
+
+interface PersistedTableConfig {
+  columns: PersistedColumnConfig[];
+  showIndexColumn?: boolean;
+  size?: ProTableDensity;
+}
+
+const STORAGE_PREFIX = 'pro-table-config:';
+
+const loadColumnConfig = (): PersistedTableConfig | null => {
+  if (!props.storageKey) return null;
+  try {
+    const raw = localStorage.getItem(`${STORAGE_PREFIX}${props.storageKey}`);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+const saveColumnConfig = () => {
+  if (!props.storageKey) return;
+  try {
+    const config: PersistedTableConfig = {
+      columns: columnStates.value.map((state, index) => ({
+        key: state.key,
+        checked: state.checked,
+        fixed: state.fixed,
+        order: index,
+      })),
+      showIndexColumn: showIndexColumn.value,
+      size: tableSize.value as ProTableDensity,
+    };
+    localStorage.setItem(`${STORAGE_PREFIX}${props.storageKey}`, JSON.stringify(config));
+  } catch {
+    // Storage full or unavailable, silently ignore
+  }
+};
+
+const clearColumnConfig = () => {
+  if (!props.storageKey) return;
+  localStorage.removeItem(`${STORAGE_PREFIX}${props.storageKey}`);
+};
+
+const applyPersistedConfig = (
+  states: ColumnState[],
+  config: PersistedTableConfig,
+): ColumnState[] => {
+  const configMap = new Map(config.columns.map((c) => [c.key, c]));
+
+  // Reorder and apply checked/fixed from persisted config
+  const reordered = [...states].sort((a, b) => {
+    const orderA = configMap.get(a.key)?.order ?? Infinity;
+    const orderB = configMap.get(b.key)?.order ?? Infinity;
+    return orderA - orderB;
+  });
+
+  return reordered.map((state) => {
+    const persisted = configMap.get(state.key);
+    return {
+      ...state,
+      checked: persisted?.checked ?? state.checked,
+      fixed: persisted?.fixed ?? state.fixed,
+    };
+  });
+};
+
 const initializeColumnStates = () => {
   const previousFilters = { ...tableFilters.value };
   const states = props.columns.map((column, index) => {
@@ -1253,9 +1327,23 @@ const initializeColumnStates = () => {
     } as ColumnState;
   });
 
-  columnStates.value = states;
+  // Apply persisted config if available
+  const persisted = loadColumnConfig();
+  if (persisted) {
+    const applied = applyPersistedConfig(states, persisted);
+    columnStates.value = applied;
+    if (persisted.showIndexColumn !== undefined) {
+      showIndexColumn.value = persisted.showIndexColumn;
+    }
+    if (persisted.size) {
+      tableSize.value = normalizeDensity(persisted.size);
+    }
+  } else {
+    columnStates.value = states;
+    showIndexColumn.value = defaultShowIndexColumn.value;
+  }
+
   defaultColumnStates.value = states.map(cloneColumnState);
-  showIndexColumn.value = defaultShowIndexColumn.value;
 
   const nextFilters: Record<string, (string | number | boolean)[] | null> = {};
   states.forEach((state) => {
@@ -1305,6 +1393,7 @@ const toggleColumnChecked = (key: string, checked: boolean) => {
   if (!item) return;
 
   item.checked = checked;
+  saveColumnConfig();
   scheduleMeasureTable();
 };
 
@@ -1317,6 +1406,7 @@ const toggleColumnFixed = (key: string, position: 'left' | 'right') => {
   if (!item) return;
 
   item.fixed = item.fixed === position ? undefined : position;
+  saveColumnConfig();
   scheduleMeasureTable();
 };
 
@@ -1332,17 +1422,20 @@ const handleToggleAllColumns = () => {
       item.checked = true;
     });
   }
+  saveColumnConfig();
   scheduleMeasureTable();
 };
 
 const toggleIndexColumn = () => {
   showIndexColumn.value = !showIndexColumn.value;
+  saveColumnConfig();
   scheduleMeasureTable();
 };
 
 const handleResetColumns = () => {
   columnStates.value = defaultColumnStates.value.map(cloneColumnState);
   showIndexColumn.value = defaultShowIndexColumn.value;
+  clearColumnConfig();
   scheduleMeasureTable();
 };
 
@@ -1367,6 +1460,7 @@ const handleDrop = (targetKey: string) => {
   list.splice(targetIndex, 0, dragItem);
   columnStates.value = list;
   draggingColumnKey.value = '';
+  saveColumnConfig();
   scheduleMeasureTable();
 };
 
