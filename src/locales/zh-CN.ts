@@ -265,8 +265,8 @@ export default {
     todayFailedTasks: '今日失败',
     todayGrantPoints: '今日发放点数',
     todayGrantCount: '今日发放笔数',
-    todayUnionRequests: '今日联合请求',
-    todayUnionSuccess: '今日联合成功',
+    todayUnionRequests: '今日联盟请求',
+    todayUnionSuccess: '今日联盟成功',
     openDifferences: '待处理差异',
     taskTrend: '任务趋势',
     userTrend: '用户趋势',
@@ -2414,6 +2414,7 @@ export default {
   cost: {
     title: '模型成本',
     todayCost: '今日成本',
+    totalCount: '总调用次数',
     monthCost: '本月成本',
     totalCost: '累计成本',
     reservationNo: '预扣单号',

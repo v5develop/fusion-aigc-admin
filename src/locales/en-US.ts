@@ -2398,6 +2398,7 @@ export default {
   cost: {
     title: 'Model Cost',
     todayCost: 'Today Cost',
+    totalCount: 'Total Count',
     monthCost: 'This Month Cost',
     totalCost: 'Total Cost',
     reservationNo: 'Reservation No',

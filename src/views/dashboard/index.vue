@@ -301,7 +301,7 @@ onMounted(() => {
   justify-content: center;
 }
 
-.bar-chart {
+.chart-container :deep(.bar-chart) {
   display: flex;
   align-items: flex-end;
   justify-content: space-around;
@@ -310,7 +310,7 @@ onMounted(() => {
   gap: 8px;
 }
 
-.bar-item {
+.chart-container :deep(.bar-item) {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -318,7 +318,7 @@ onMounted(() => {
   max-width: 60px;
 }
 
-.bar {
+.chart-container :deep(.bar) {
   width: 100%;
   min-height: 4px;
   background: linear-gradient(180deg, #1890ff 0%, #69c0ff 100%);
@@ -330,18 +330,18 @@ onMounted(() => {
   position: relative;
 }
 
-.bar-consume {
+.chart-container :deep(.bar-consume) {
   background: linear-gradient(180deg, #fa541c 0%, #ff7a45 100%);
 }
 
-.bar-value {
+.chart-container :deep(.bar-value) {
   font-size: 11px;
   color: #fff;
   padding: 2px 4px;
   white-space: nowrap;
 }
 
-.bar-label {
+.chart-container :deep(.bar-label) {
   font-size: 11px;
   color: #8c8c8c;
   margin-top: 8px;

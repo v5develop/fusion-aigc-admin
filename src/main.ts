@@ -1,6 +1,10 @@
 import AntdvNext from 'antdv-next';
+import dayjs from 'dayjs';
+import 'dayjs/locale/zh-cn';
 import { createPinia } from 'pinia';
 import { createApp } from 'vue';
+
+dayjs.locale('zh-cn');
 
 import App from './App.vue';
 import { registerDefaultComponentProps } from './components/Global/defaultComponentProps';

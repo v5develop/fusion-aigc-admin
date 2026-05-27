@@ -237,6 +237,8 @@ export interface ReconciliationMonthlyItem {
   date: string
   grantCount: number
   consumeCount: number
+  grantAmount: number
+  consumeAmount: number
   difference: number
 }
 

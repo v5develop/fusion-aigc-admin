@@ -9,7 +9,7 @@
 
       <!-- 汇总视图 -->
       <template v-if="activeTab === 'summary'">
-        <a-form layout="inline" class="mb-4">
+        <a-form layout="inline" style="margin-bottom: 16px;">
           <a-form-item :label="$t('reconciliation.period')">
             <a-range-picker v-model:value="dateRange" @change="handleDateChange" />
           </a-form-item>
@@ -82,9 +82,9 @@
 
       <!-- 月度明细视图 -->
       <template v-if="activeTab === 'monthly'">
-        <a-form layout="inline" class="mb-4">
+        <a-form layout="inline" style="margin-bottom: 16px;">
           <a-form-item :label="$t('reconciliation.month')">
-            <a-picker
+            <a-date-picker
               v-model:value="selectedMonth"
               picker="month"
               @change="loadMonthly"
@@ -269,7 +269,7 @@ async function handleExport() {
     const blob = await exportReconciliation({
       startDate: dateRange.value[0].format('YYYY-MM-DD'),
       endDate: dateRange.value[1].format('YYYY-MM-DD'),
-    })
+    }) as Blob
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -340,7 +340,7 @@ onMounted(() => {
   border-radius: 8px;
 }
 
-.bar-chart {
+.chart-container :deep(.bar-chart) {
   display: flex;
   align-items: flex-end;
   justify-content: space-around;
@@ -348,7 +348,7 @@ onMounted(() => {
   gap: 4px;
 }
 
-.bar-group {
+.chart-container :deep(.bar-group) {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -356,36 +356,37 @@ onMounted(() => {
   max-width: 40px;
 }
 
-.bar {
+.chart-container :deep(.bar) {
   width: 45%;
-  min-height: 2px;
+  min-height: 4px;
   border-radius: 2px 2px 0 0;
   transition: height 0.3s ease;
+  flex-shrink: 0;
 }
 
-.bar-grant {
+.chart-container :deep(.bar-grant) {
   background: linear-gradient(180deg, #1890ff 0%, #69c0ff 100%);
 }
 
-.bar-consume {
+.chart-container :deep(.bar-consume) {
   background: linear-gradient(180deg, #52c41a 0%, #95de64 100%);
 }
 
-.bar-label {
+.chart-container :deep(.bar-label) {
   font-size: 10px;
   color: #8c8c8c;
   margin-top: 4px;
   white-space: nowrap;
 }
 
-.chart-legend {
+.chart-container :deep(.chart-legend) {
   display: flex;
   justify-content: center;
   gap: 16px;
   margin-top: 8px;
 }
 
-.legend-item {
+.chart-container :deep(.legend-item) {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -393,12 +394,12 @@ onMounted(() => {
   color: #595959;
 }
 
-.legend-dot {
+.chart-container :deep(.legend-dot) {
   width: 8px;
   height: 8px;
   border-radius: 50%;
 }
 
-.legend-grant { background: #1890ff; }
-.legend-consume { background: #52c41a; }
+.chart-container :deep(.legend-grant) { background: #1890ff; }
+.chart-container :deep(.legend-consume) { background: #52c41a; }
 </style>
