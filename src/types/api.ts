@@ -292,3 +292,85 @@ export interface BillingExceptionListParams extends PageParams {
   taskType?: string
   billingStatus?: string
 }
+
+// Settings Types
+export interface UnionConfig {
+  appId: string
+  appSecret: string
+  callbackUrl: string
+  enabled: boolean
+}
+
+export interface AIProviderConfig {
+  provider: string
+  apiKey: string
+  apiBaseUrl: string
+  enabled: boolean
+}
+
+export interface StorageConfig {
+  type: string
+  endpoint: string
+  accessKey: string
+  secretKey: string
+  bucket: string
+  basePath: string
+  enabled: boolean
+}
+
+export interface SystemConfig {
+  siteName: string
+  siteLogo: string
+  enableRegister: boolean
+  enableMaintenance: boolean
+  maintenanceMessage: string
+}
+
+// Capability Grant Types
+export interface CapabilityGrant {
+  id: number
+  userId: number
+  username: string
+  featureName: Record<string, string>
+  source: string
+  effectiveTime: string
+  expireTime: string
+  status: number
+}
+
+export interface CapabilityChangeLog {
+  id: number
+  userId: number
+  username: string
+  featureCode: string
+  featureName: Record<string, string>
+  changeType: string
+  pointsChange: number
+  source: string
+  remark: string
+  createTime: string
+}
+
+// Consumption Stats Types
+export interface ConsumptionStats {
+  todayConsumption: number
+  monthConsumption: number
+  todayThirdPartyCost: number
+}
+
+// Points Adjust Types
+export interface PointsAdjustParams {
+  userId: number
+  adjustType: string
+  amount: number
+  reason: string
+  idempotencyKey?: string
+}
+
+// Compensation Types
+export interface CompensationParams {
+  actionType: 'RETRY' | 'IGNORE' | 'REFUND'
+  reservationNo: string
+  requestId?: string
+  reason?: string
+}

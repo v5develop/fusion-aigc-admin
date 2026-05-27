@@ -1,5 +1,5 @@
 import { request } from '@/utils/request'
-import type { Feature, FeatureListParams, PageResult } from '@/types/api'
+import type { Feature, FeatureListParams, PageResult, CapabilityGrant, CapabilityChangeLog } from '@/types/api'
 
 export function getFeatureList(params: FeatureListParams) {
   return request.get<PageResult<Feature>>('/api/v1/admin/capabilities/points', { params })
@@ -25,36 +25,12 @@ export function saveFeatureModelMapping(id: number, data: { modelIds: number[] }
   return request.put(`/api/admin/capabilities/points/${id}/models`, data)
 }
 
-export interface CapabilityGrant {
-  id: number
-  userId: number
-  username: string
-  featureName: Record<string, string>
-  source: string
-  effectiveTime: string
-  expireTime: string
-  status: number
-}
-
 export function getFeatureGrantList(params: { userId?: number; pageNo: number; pageSize: number }) {
   return request.get<PageResult<CapabilityGrant>>('/api/v1/admin/capabilities/grants', { params })
 }
 
 export function revokeCapability(grantId: number) {
   return request.post(`/api/admin/capabilities/grants/${grantId}/revoke`)
-}
-
-export interface CapabilityChangeLog {
-  id: number
-  userId: number
-  username: string
-  featureCode: string
-  featureName: Record<string, string>
-  changeType: string
-  pointsChange: number
-  source: string
-  remark: string
-  createTime: string
 }
 
 export function getFeatureChangeLog(params: { featureId?: number; pageNo: number; pageSize: number }) {

@@ -15,11 +15,16 @@ export interface DashboardStats {
   todayGrantCount: number
   todayUnionRequests: number
   todayUnionSuccess: number
+  todayPaidOrders: number
+  todayRechargeAmount: number
+  todayRechargePoints: number
   openDifferences: number
   trend?: {
     labels: string[]
     taskCounts: number[]
+    userCounts: number[]
     consumeAmounts: number[]
+    rechargeAmounts: number[]
   }
 }
 

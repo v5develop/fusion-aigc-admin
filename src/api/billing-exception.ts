@@ -1,5 +1,5 @@
 import { request } from '@/utils/request'
-import type { BillingExceptionTask, AgedHeldReservation, PageResult } from '@/types/api'
+import type { BillingExceptionTask, AgedHeldReservation, CompensationParams, PageResult } from '@/types/api'
 
 export function getExceptionTasks(params: {
   taskType?: string
@@ -17,11 +17,6 @@ export function getAgedHeldReservations(params?: {
   return request.get<AgedHeldReservation[]>('/api/v1/admin/billing/exceptions/aged-held-reservations', { params })
 }
 
-export function executeCompensation(data: {
-  actionType: 'RETRY' | 'IGNORE' | 'REFUND'
-  reservationNo: string
-  requestId?: string
-  reason?: string
-}) {
+export function executeCompensation(data: CompensationParams) {
   return request.post('/api/v1/admin/billing/compensation/execute', data)
 }

@@ -6,17 +6,17 @@ export function getUserList(params: UserListParams) {
 }
 
 export function getUserDetail(id: number) {
-  return request.get<User>(`/api/admin/app-users/${id}`)
+  return request.get<User>(`/api/v1/admin/app-users/${id}`)
 }
 
 export function getUserCapabilities(userId: number) {
-  return request.get(`/api/admin/app-users/${userId}/capabilities`)
+  return request.get(`/api/v1/admin/app-users/${userId}/capabilities`)
 }
 
 export function getUserPoints(userId: number) {
-  return request.get(`/api/admin/app-users/${userId}/points`)
+  return request.get(`/api/v1/admin/app-users/${userId}/points`)
 }
 
 export function adjustUserPoints(userId: number, data: { amount: number; reason: string }) {
-  return request.post(`/api/admin/app-users/${userId}/points/adjust`, data)
+  return request.post(`/api/v1/admin/app-users/${userId}/points/adjust`, data)
 }
