@@ -57,8 +57,8 @@
                 :allow-add="allowAdd"
                 :allow-delete="allowDelete"
                 :allow-sort="allowSort"
-                :allow-edit-key="true"
-                :allow-edit-type="true"
+                :allow-edit-key="allowEditKey"
+                :allow-edit-type="allowEditType"
                 :hovered-path-key="hoveredFieldPathKey"
                 :dragging-path-key="draggingFieldPathKey"
                 :api="treeEditorApi"
@@ -186,6 +186,14 @@ const props = defineProps({
     default: true,
   },
   allowSort: {
+    type: Boolean,
+    default: true,
+  },
+  allowEditType: {
+    type: Boolean,
+    default: true,
+  },
+  allowEditKey: {
     type: Boolean,
     default: true,
   },
@@ -951,8 +959,17 @@ watch(
   :deep(.ant-modal-body) {
     max-height: 70vh;
     overflow: hidden;
-    padding: 16px 20px;
+    padding: 16px 24px;
     background: var(--color-bg-layout);
+  }
+
+  :deep(.ant-modal-header) {
+    padding: 16px 24px;
+  }
+
+  :deep(.ant-modal-close) {
+    top: 16px;
+    right: 24px;
   }
 }
 
@@ -971,13 +988,14 @@ watch(
     border: 1px solid var(--color-border-secondary);
     border-radius: 8px;
     overflow: hidden;
+    margin:20px 20px;
   }
 
   .editor-toolbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 12px;
+    padding: 12px 16px;
     border-bottom: 1px solid var(--color-border-secondary);
   }
 
