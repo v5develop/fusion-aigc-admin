@@ -40,15 +40,26 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: 3000,
+      host: '0.0.0.0',
       open: false,
       proxy: {
         '/admin': {
           target: proxyTarget,
           changeOrigin: true,
+          configure: (proxy) => {
+            proxy.on('proxyReq', (proxyReq) => {
+              proxyReq.removeHeader('Origin')
+            })
+          },
         },
         '/api': {
           target: proxyTarget,
           changeOrigin: true,
+          configure: (proxy) => {
+            proxy.on('proxyReq', (proxyReq) => {
+              proxyReq.removeHeader('Origin')
+            })
+          },
         },
       },
     },

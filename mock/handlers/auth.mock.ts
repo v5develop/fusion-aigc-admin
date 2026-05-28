@@ -5,7 +5,7 @@ import { adminUser, regularUser } from '../data/users.data';
 export default defineMock([
   // Login
   {
-    url: '/api/admin/auth/login',
+    url: '/api/v1/admin/auth/login',
     method: 'POST',
     body: (req) => {
       const { username, password } = req.body;
@@ -41,7 +41,7 @@ export default defineMock([
 
   // Logout
   {
-    url: '/api/admin/auth/logout',
+    url: '/api/v1/admin/auth/logout',
     method: 'POST',
     body: {
       code: 0,
@@ -53,7 +53,7 @@ export default defineMock([
 
   // Get user info
   {
-    url: '/api/admin/auth/info',
+    url: '/api/v1/admin/auth/info',
     method: 'GET',
     body: (req) => {
       // Get token from header
