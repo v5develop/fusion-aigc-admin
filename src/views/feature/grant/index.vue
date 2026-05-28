@@ -26,7 +26,7 @@
           </a-tag>
         </template>
 
-        <template v-if="column.dataIndex === 'action'">
+        <template v-if="column.key === 'operation'">
           <a-button
             v-if="record.status === 1"
             type="link"
@@ -122,7 +122,8 @@ const columns = [
   },
   {
     title: t('common.action'),
-    dataIndex: 'action',
+    dataIndex: 'operation',
+    key: 'operation',
     width: 120,
     align: 'center' as const,
     fixed: 'right' as const,

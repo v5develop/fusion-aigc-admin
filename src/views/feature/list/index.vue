@@ -35,7 +35,7 @@
           <a-tag>{{ actionTypeMap[record.actionType] || record.actionType || '-' }}</a-tag>
         </template>
 
-        <template v-if="column.dataIndex === 'action'">
+        <template v-if="column.key === 'operation'">
           <a-space>
             <a-button type="link" size="small" @click="handleEdit(record)">
               {{ $t('common.edit') }}
@@ -168,7 +168,8 @@ const columns = [
   },
   {
     title: t('common.action'),
-    dataIndex: 'action',
+    dataIndex: 'operation',
+    key: 'operation',
     width: 150,
     align: 'center' as const,
     fixed: 'right' as const,

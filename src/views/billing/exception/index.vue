@@ -38,7 +38,7 @@
               <span class="text-ellipsis">{{ record.errorMsg }}</span>
             </a-tooltip>
           </template>
-          <template v-else-if="column.dataIndex === 'action'">
+          <template v-else-if="column.key === 'operation'">
             <a-space>
               <a-button
                 type="link"
@@ -206,7 +206,8 @@ const taskColumns = [
   },
   {
     title: '操作',
-    dataIndex: 'action',
+    dataIndex: 'operation',
+    key: 'operation',
     width: 200,
     align: 'center' as const,
     fixed: 'right' as const,

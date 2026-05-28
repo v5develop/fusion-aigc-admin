@@ -34,7 +34,7 @@
             <span class="points-value">{{ record.pointsBalance || 0 }}</span>
           </template>
 
-          <template v-if="column.dataIndex === 'action'">
+          <template v-if="column.key === 'operation'">
             <a-space :size="4">
               <a-button type="link" size="small" @click="handleViewDetail(record)">
                 {{ $t('common.view') }}
@@ -162,7 +162,8 @@ const columns = [
   },
   {
     title: t('common.action'),
-    dataIndex: 'action',
+    dataIndex: 'operation',
+    key: 'operation',
     width: 160,
     fixed: 'right' as const,
     align: 'center' as const,
