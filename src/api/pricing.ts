@@ -10,9 +10,9 @@ export function createPricing(data: Partial<ModelPricing>) {
 }
 
 export function updatePricing(id: number, data: Partial<ModelPricing>) {
-  return request.put(`/api/admin/pricing/${id}`, data)
+  return request.put(`/api/v1/admin/pricing/${id}`, data)
 }
 
 export function deletePricing(id: number) {
-  return request.delete(`/api/admin/pricing/${id}`)
+  return request.delete(`/api/v1/admin/pricing/${id}`)
 }

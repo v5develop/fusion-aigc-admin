@@ -10,9 +10,9 @@ export function createModel(data: Partial<AIModel>) {
 }
 
 export function updateModel(id: number, data: Partial<AIModel>) {
-  return request.put(`/api/admin/models/${id}`, data)
+  return request.put(`/api/v1/admin/models/${id}`, data)
 }
 
 export function deleteModel(id: number) {
-  return request.delete(`/api/admin/models/${id}`)
+  return request.delete(`/api/v1/admin/models/${id}`)
 }

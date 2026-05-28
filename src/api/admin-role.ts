@@ -10,15 +10,15 @@ export function createAdminRole(data: Partial<AdminRole>) {
 }
 
 export function updateAdminRole(id: number, data: Partial<AdminRole>) {
-  return request.put(`/api/admin/roles/${id}`, data)
+  return request.put(`/api/v1/admin/roles/${id}`, data)
 }
 
 export function deleteAdminRole(id: number) {
-  return request.delete(`/api/admin/roles/${id}`)
+  return request.delete(`/api/v1/admin/roles/${id}`)
 }
 
 export function getRolePermissions(id: number) {
-  return request.get<string[]>(`/api/admin/roles/${id}/permissions`)
+  return request.get<string[]>(`/api/v1/admin/roles/${id}/permissions`)
 }
 
 export function getAllPermissions() {
@@ -26,7 +26,7 @@ export function getAllPermissions() {
 }
 
 export function saveRolePermissions(id: number, permissions: string[]) {
-  return request.put(`/api/admin/roles/${id}/permissions`, { permissions })
+  return request.put(`/api/v1/admin/roles/${id}/permissions`, { permissions })
 }
 
 export interface Permission {
@@ -36,5 +36,4 @@ export interface Permission {
   resource: string
   action: string
   description?: string
-  status: number
 }

@@ -10,17 +10,17 @@ export function createAdminUser(data: Partial<AdminUser>) {
 }
 
 export function updateAdminUser(id: number, data: Partial<AdminUser>) {
-  return request.put(`/api/admin/users/${id}`, data)
+  return request.put(`/api/v1/admin/users/${id}`, data)
 }
 
 export function deleteAdminUser(id: number) {
-  return request.delete(`/api/admin/users/${id}`)
+  return request.delete(`/api/v1/admin/users/${id}`)
 }
 
 export function resetAdminPassword(id: number, data: { newPassword: string }) {
-  return request.put(`/api/admin/users/${id}/password`, data)
+  return request.put(`/api/v1/admin/users/${id}/password`, data)
 }
 
 export function toggleAdminStatus(id: number, status: number) {
-  return request.put(`/api/admin/users/${id}/status`, { status })
+  return request.put(`/api/v1/admin/users/${id}/status`, { status })
 }

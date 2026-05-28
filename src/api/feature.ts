@@ -10,19 +10,19 @@ export function createFeature(data: Partial<Feature>) {
 }
 
 export function updateFeature(id: number, data: Partial<Feature>) {
-  return request.put(`/api/admin/capabilities/points/${id}`, data)
+  return request.put(`/api/v1/admin/capabilities/points/${id}`, data)
 }
 
 export function deleteFeature(id: number) {
-  return request.delete(`/api/admin/capabilities/points/${id}`)
+  return request.delete(`/api/v1/admin/capabilities/points/${id}`)
 }
 
 export function getFeatureModelMapping(id: number) {
-  return request.get<{ modelIds: number[] }>(`/api/admin/capabilities/points/${id}/models`)
+  return request.get<{ modelIds: number[] }>(`/api/v1/admin/capabilities/points/${id}/models`)
 }
 
 export function saveFeatureModelMapping(id: number, data: { modelIds: number[] }) {
-  return request.put(`/api/admin/capabilities/points/${id}/models`, data)
+  return request.put(`/api/v1/admin/capabilities/points/${id}/models`, data)
 }
 
 export function getFeatureGrantList(params: { userId?: number; pageNo: number; pageSize: number }) {
@@ -30,7 +30,7 @@ export function getFeatureGrantList(params: { userId?: number; pageNo: number; p
 }
 
 export function revokeCapability(grantId: number) {
-  return request.post(`/api/admin/capabilities/grants/${grantId}/revoke`)
+  return request.post(`/api/v1/admin/capabilities/grants/${grantId}/revoke`)
 }
 
 export function getFeatureChangeLog(params: { featureId?: number; pageNo: number; pageSize: number }) {
