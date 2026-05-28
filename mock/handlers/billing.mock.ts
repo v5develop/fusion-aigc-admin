@@ -3,7 +3,7 @@ import { defineMock } from 'vite-plugin-mock-dev-server';
 import {
   mockUnionConfig,
   mockAIProviderConfig,
-  mockStorageConfig,
+  mockStorageConfigs,
   mockSystemConfig,
 } from '../data/settings.data';
 
@@ -23,7 +23,7 @@ import {
 // In-memory storage for settings updates
 const unionConfig = { ...mockUnionConfig };
 const aiProviderConfig = { ...mockAIProviderConfig };
-const storageConfig = { ...mockStorageConfig };
+const storageConfigs = mockStorageConfigs.map(item => ({ ...item }));
 const systemConfig = { ...mockSystemConfig };
 
 // In-memory storage for billing data
@@ -43,7 +43,7 @@ export default defineMock([
 
   // Get union config
   {
-    url: '/api/admin/settings/union',
+    url: '/api/v1/admin/settings/union',
     method: 'GET',
     body: {
       code: 0,
@@ -55,7 +55,7 @@ export default defineMock([
 
   // Save union config
   {
-    url: '/api/admin/settings/union',
+    url: '/api/v1/admin/settings/union',
     method: 'PUT',
     body: (req) => {
       Object.assign(unionConfig, req.body);
@@ -65,7 +65,7 @@ export default defineMock([
 
   // Get AI provider config
   {
-    url: '/api/admin/settings/ai-provider',
+    url: '/api/v1/admin/settings/ai-provider',
     method: 'GET',
     body: {
       code: 0,
@@ -77,7 +77,7 @@ export default defineMock([
 
   // Save AI provider config
   {
-    url: '/api/admin/settings/ai-provider',
+    url: '/api/v1/admin/settings/ai-provider',
     method: 'PUT',
     body: (req) => {
       Object.assign(aiProviderConfig, req.body);
@@ -85,31 +85,65 @@ export default defineMock([
     },
   },
 
-  // Get storage config
+  // Storage config list
   {
-    url: '/api/admin/settings/storage',
+    url: '/api/v1/admin/storage/config/list',
     method: 'GET',
     body: {
       code: 0,
       message: 'Success',
-      data: storageConfig,
+      data: storageConfigs,
       success: true,
     },
   },
 
-  // Save storage config
+  // Create storage config
   {
-    url: '/api/admin/settings/storage',
+    url: '/api/v1/admin/storage/config/create',
+    method: 'POST',
+    body: (req) => {
+      const id = storageConfigs.length ? Math.max(...storageConfigs.map(item => item.id)) + 1 : 1;
+      const newConfig = {
+        id,
+        status: 1,
+        isDefault: false,
+        createTime: new Date().toISOString(),
+        updateTime: new Date().toISOString(),
+        ...req.body,
+      };
+      storageConfigs.push(newConfig);
+      return { code: 0, message: 'Success', data: id, success: true };
+    },
+  },
+
+  // Update storage config
+  {
+    url: '/api/v1/admin/storage/config/update',
     method: 'PUT',
     body: (req) => {
-      Object.assign(storageConfig, req.body);
+      const idx = storageConfigs.findIndex(item => item.id === Number(req.body.id));
+      if (idx === -1) return { code: 404, message: '存储配置不存在', data: null, success: false };
+      Object.assign(storageConfigs[idx], req.body, { updateTime: new Date().toISOString() });
+      return { code: 0, message: 'Success', data: true, success: true };
+    },
+  },
+
+  // Set default storage config
+  {
+    url: '/api/v1/admin/storage/config/set-default',
+    method: 'PUT',
+    body: (req) => {
+      const id = Number(req.query?.id);
+      const config = storageConfigs.find(item => item.id === id);
+      if (!config) return { code: 404, message: '存储配置不存在', data: null, success: false };
+      storageConfigs.forEach(item => { item.isDefault = item.id === id; });
       return { code: 0, message: 'Success', data: true, success: true };
     },
   },
 
   // Get system config
   {
-    url: '/api/admin/settings/system',
+    url: '/api/v1/admin/settings/system',
     method: 'GET',
     body: {
       code: 0,
@@ -121,7 +155,7 @@ export default defineMock([
 
   // Save system config
   {
-    url: '/api/admin/settings/system',
+    url: '/api/v1/admin/settings/system',
     method: 'PUT',
     body: (req) => {
       Object.assign(systemConfig, req.body);
@@ -133,7 +167,7 @@ export default defineMock([
 
   // Feature list
   {
-    url: '/api/admin/capabilities/points',
+    url: '/api/v1/admin/capabilities/points',
     method: 'GET',
     body: (req) => {
       const { pageNo = 1, pageSize = 10, featureCode, status } = req.query || {};
@@ -160,7 +194,7 @@ export default defineMock([
 
   // Create feature
   {
-    url: '/api/admin/capabilities/points',
+    url: '/api/v1/admin/capabilities/points',
     method: 'POST',
     body: (req) => {
       const newFeature = {
@@ -175,7 +209,7 @@ export default defineMock([
 
   // Update feature
   {
-    url: '/api/admin/capabilities/points/:id',
+    url: '/api/v1/admin/capabilities/points/:id',
     method: 'PUT',
     body: (req) => {
       const id = Number(req.params.id);
@@ -188,7 +222,7 @@ export default defineMock([
 
   // Delete feature
   {
-    url: '/api/admin/capabilities/points/:id',
+    url: '/api/v1/admin/capabilities/points/:id',
     method: 'DELETE',
     body: (req) => {
       const id = Number(req.params.id);
@@ -201,20 +235,20 @@ export default defineMock([
 
   // Feature model mapping
   {
-    url: '/api/admin/capabilities/points/:id/models',
+    url: '/api/v1/admin/capabilities/points/:id/models',
     method: 'GET',
     body: { code: 0, message: 'Success', data: { modelIds: [1, 2] }, success: true },
   },
 
   {
-    url: '/api/admin/capabilities/points/:id/models',
+    url: '/api/v1/admin/capabilities/points/:id/models',
     method: 'PUT',
     body: { code: 0, message: 'Success', data: true, success: true },
   },
 
   // Capability grant list
   {
-    url: '/api/admin/capabilities/grants',
+    url: '/api/v1/admin/capabilities/grants',
     method: 'GET',
     body: (req) => {
       const { pageNo = 1, pageSize = 10 } = req.query || {};
@@ -236,7 +270,7 @@ export default defineMock([
 
   // Revoke capability
   {
-    url: '/api/admin/capabilities/grants/:grantId/revoke',
+    url: '/api/v1/admin/capabilities/grants/:grantId/revoke',
     method: 'POST',
     body: (req) => {
       const grantId = Number(req.params.grantId);
@@ -249,7 +283,7 @@ export default defineMock([
 
   // Change log
   {
-    url: '/api/admin/capabilities/change-log',
+    url: '/api/v1/admin/capabilities/change-log',
     method: 'GET',
     body: (req) => {
       const { pageNo = 1, pageSize = 10 } = req.query || {};
@@ -272,7 +306,7 @@ export default defineMock([
   // ========== Model APIs ==========
 
   {
-    url: '/api/admin/models',
+    url: '/api/v1/admin/models',
     method: 'GET',
     body: (req) => {
       const { pageNo = 1, pageSize = 10 } = req.query || {};
@@ -293,7 +327,7 @@ export default defineMock([
   },
 
   {
-    url: '/api/admin/models',
+    url: '/api/v1/admin/models',
     method: 'POST',
     body: (req) => {
       const newModel = { id: models.length + 1, ...req.body, createTime: new Date().toISOString() };
@@ -303,7 +337,7 @@ export default defineMock([
   },
 
   {
-    url: '/api/admin/models/:id',
+    url: '/api/v1/admin/models/:id',
     method: 'PUT',
     body: (req) => {
       const id = Number(req.params.id);
@@ -315,7 +349,7 @@ export default defineMock([
   },
 
   {
-    url: '/api/admin/models/:id',
+    url: '/api/v1/admin/models/:id',
     method: 'DELETE',
     body: (req) => {
       const id = Number(req.params.id);
@@ -329,7 +363,7 @@ export default defineMock([
   // ========== Pricing APIs ==========
 
   {
-    url: '/api/admin/pricing',
+    url: '/api/v1/admin/pricing',
     method: 'GET',
     body: (req) => {
       const { pageNo = 1, pageSize = 10 } = req.query || {};
@@ -350,7 +384,7 @@ export default defineMock([
   },
 
   {
-    url: '/api/admin/pricing',
+    url: '/api/v1/admin/pricing',
     method: 'POST',
     body: (req) => {
       const newPricing = { id: pricing.length + 1, ...req.body, createTime: new Date().toISOString() };
@@ -360,7 +394,7 @@ export default defineMock([
   },
 
   {
-    url: '/api/admin/pricing/:id',
+    url: '/api/v1/admin/pricing/:id',
     method: 'PUT',
     body: (req) => {
       const id = Number(req.params.id);
@@ -372,7 +406,7 @@ export default defineMock([
   },
 
   {
-    url: '/api/admin/pricing/:id',
+    url: '/api/v1/admin/pricing/:id',
     method: 'DELETE',
     body: (req) => {
       const id = Number(req.params.id);
@@ -386,7 +420,7 @@ export default defineMock([
   // ========== Cost APIs ==========
 
   {
-    url: '/api/admin/costs',
+    url: '/api/v1/admin/costs',
     method: 'GET',
     body: (req) => {
       const { pageNo = 1, pageSize = 10 } = req.query || {};
@@ -407,7 +441,7 @@ export default defineMock([
   },
 
   {
-    url: '/api/admin/costs/stats',
+    url: '/api/v1/admin/costs/stats',
     method: 'GET',
     body: {
       code: 0,
@@ -424,7 +458,7 @@ export default defineMock([
   // ========== Consumption APIs ==========
 
   {
-    url: '/api/admin/consumptions',
+    url: '/api/v1/admin/consumptions',
     method: 'GET',
     body: (req) => {
       const { pageNo = 1, pageSize = 10 } = req.query || {};
@@ -447,7 +481,7 @@ export default defineMock([
   // ========== Points APIs ==========
 
   {
-    url: '/api/admin/points/logs',
+    url: '/api/v1/admin/points/logs',
     method: 'GET',
     body: (req) => {
       const { pageNo = 1, pageSize = 10 } = req.query || {};
@@ -468,7 +502,7 @@ export default defineMock([
   },
 
   {
-    url: '/api/admin/points/adjust',
+    url: '/api/v1/admin/points/adjust',
     method: 'POST',
     body: { code: 0, message: 'Success', data: true, success: true },
   },
@@ -476,7 +510,7 @@ export default defineMock([
   // ========== Reconciliation APIs ==========
 
   {
-    url: '/api/admin/reconciliation/summary',
+    url: '/api/v1/admin/reconciliation/summary',
     method: 'GET',
     body: {
       code: 0,
@@ -504,7 +538,7 @@ export default defineMock([
   },
 
   {
-    url: '/api/admin/reconciliation/differences',
+    url: '/api/v1/admin/reconciliation/differences',
     method: 'GET',
     body: (req) => {
       const { pageNo = 1, pageSize = 10 } = req.query || {};
@@ -525,7 +559,7 @@ export default defineMock([
   },
 
   {
-    url: '/api/admin/reconciliation/differences/handle',
+    url: '/api/v1/admin/reconciliation/differences/handle',
     method: 'POST',
     body: (req) => {
       const { id, action } = req.body;
@@ -545,7 +579,7 @@ export default defineMock([
   // ========== Billing Exception APIs ==========
 
   {
-    url: '/api/admin/billing/exceptions',
+    url: '/api/v1/admin/billing/exceptions',
     method: 'GET',
     body: (req) => {
       const { pageNo = 1, pageSize = 10, userId, bizType, billingStatus, status } = req.query || {};
@@ -577,7 +611,7 @@ export default defineMock([
   },
 
   {
-    url: '/api/admin/billing/exceptions/:id/retry',
+    url: '/api/v1/admin/billing/exceptions/:id/retry',
     method: 'POST',
     body: (req) => {
       const id = Number(req.params.id);
@@ -589,7 +623,7 @@ export default defineMock([
   },
 
   {
-    url: '/api/admin/billing/exceptions/ignore',
+    url: '/api/v1/admin/billing/exceptions/ignore',
     method: 'POST',
     body: (req) => {
       const { id, remark } = req.body;
@@ -604,7 +638,7 @@ export default defineMock([
   // ========== Consumption Stats API ==========
 
   {
-    url: '/api/admin/consumptions/stats',
+    url: '/api/v1/admin/consumptions/stats',
     method: 'GET',
     body: () => ({
       code: 0,

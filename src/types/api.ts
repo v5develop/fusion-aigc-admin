@@ -60,6 +60,23 @@ export interface AdminRoleListParams extends ListParams {
   status?: number
 }
 
+// Admin Permission Types
+export interface AdminPermission {
+  id: number
+  permissionCode: string
+  permissionName: string
+  resource: string
+  action: string
+  description?: string
+  createTime: string
+  updateTime: string
+}
+
+export interface AdminPermissionListParams extends ListParams {
+  resource?: string
+  action?: string
+}
+
 // C-End User Types
 export interface User {
   id: number
@@ -297,35 +314,91 @@ export interface BillingExceptionListParams extends PageParams {
 
 // Settings Types
 export interface UnionConfig {
+  baseUrl: string
   appId: string
   appSecret: string
+  tokenUrl: string
   callbackUrl: string
-  enabled: boolean
+  signatureEnabled?: boolean
+  whitelistEnabled?: boolean
+  whitelistIps?: string[]
 }
 
 export interface AIProviderConfig {
-  provider: string
-  apiKey: string
-  apiBaseUrl: string
-  enabled: boolean
+  id?: number | null
+  action?: string
+  status?: number
+  name?: string
+  type?: string
+  baseUrl?: string
+  apiKey?: string
+  model?: string
+  maxTokens?: number
+  temperature?: number
+  timeout?: number
+  providers?: Array<{
+    id?: number
+    name: string
+    type: string
+    baseUrl?: string
+    apiKey: string
+    model?: string
+    maxTokens?: number
+    temperature?: number
+    timeout?: number
+    status?: number
+  }>
+  defaultProvider?: string
+  enableRemoteModels?: string
 }
 
+export type StorageConfigType = 'local' | 's3'
+export type StoragePlatform = 'local' | 'aliyun_oss' | 'tencent_cos' | 'aws_s3' | 'minio' | 's3'
+
 export interface StorageConfig {
-  type: string
-  endpoint: string
-  accessKey: string
-  secretKey: string
-  bucket: string
-  basePath: string
-  enabled: boolean
+  id?: number
+  name: string
+  type: StorageConfigType
+  endpoint?: string
+  bucketName?: string
+  accessKey?: string
+  secretKey?: string
+  region?: string
+  basePath?: string
+  customDomain?: string
+  isDefault?: boolean
+  status?: number
+  remark?: string
+  createTime?: string
+  updateTime?: string
 }
 
 export interface SystemConfig {
-  siteName: string
-  siteLogo: string
-  enableRegister: boolean
-  enableMaintenance: boolean
-  maintenanceMessage: string
+  basic?: {
+    siteName: string
+    siteLogo: string
+    defaultLanguage: string
+    defaultPoints: number
+    pointsExpireDays: number
+  }
+  security?: {
+    tokenExpireHours: number
+    maxLoginAttempts: number
+    lockDuration: number
+    enableCaptcha: boolean
+    enableIpWhitelist: boolean
+    ipWhitelist: string
+  }
+  notification?: {
+    lowPointsThreshold: number
+    enableExpireNotify: boolean
+    expireNotifyDays: number
+  }
+  section?: string
+  siteName?: string
+  siteBaseUrl?: string
+  allowRegister?: string
+  defaultPoints?: string | number
 }
 
 // Capability Grant Types
