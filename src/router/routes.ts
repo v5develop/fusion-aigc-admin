@@ -114,6 +114,17 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
           requiredPermissions: 'admin_role:view',
         },
       },
+      {
+        path: 'permissions',
+        name: 'AdminPermissions',
+        component: () => import('@/views/admin/permission/index.vue'),
+        meta: {
+          title: 'menu.adminPermissions',
+          icon: 'LockOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'admin_role:view',
+        },
+      },
     ],
   },
   {

@@ -22,7 +22,7 @@
           </a-tag>
         </template>
 
-        <template v-if="column.dataIndex === 'action'">
+        <template v-if="column.key === 'operation'">
           <a-space :size="4">
             <a-button type="link" size="small" @click="handleEdit(record)">
               {{ $t('common.edit') }}
@@ -106,10 +106,10 @@ import {
   updateAdminRole,
   deleteAdminRole,
   getRolePermissions,
-  getAllPermissions,
   saveRolePermissions,
   type Permission,
 } from '@/api/admin-role'
+import { getPermissionTree } from '@/api/admin-permission'
 
 const { t, locale } = useI18n()
 
@@ -150,7 +150,8 @@ const columns = [
   },
   {
     title: t('common.action'),
-    dataIndex: 'action',
+    dataIndex: 'operation',
+    key: 'operation',
     width: 200,
     align: 'center' as const,
     fixed: 'right' as const,
@@ -252,7 +253,6 @@ const permModalVisible = ref(false)
 const permSubmitLoading = ref(false)
 const currentRoleId = ref<number | null>(null)
 const selectedPermissions = ref<string[]>([])
-const allPermissions = ref<Permission[]>([])
 
 interface PermTreeNode {
   key: string
@@ -261,16 +261,6 @@ interface PermTreeNode {
 }
 
 const permTreeData = ref<PermTreeNode[]>([])
-
-const resourceNames: Record<string, string> = {
-  admin: '管理员管理',
-  user: '用户管理',
-  feature: '功能点管理',
-  model: '模型管理',
-  billing: '计费管理',
-  reconciliation: '对账管理',
-  system: '系统设置',
-}
 
 function getPermName(p: Permission): string {
   try {
@@ -281,17 +271,12 @@ function getPermName(p: Permission): string {
   }
 }
 
-function buildPermTree(perms: Permission[]): PermTreeNode[] {
-  const groups: Record<string, Permission[]> = {}
-  for (const p of perms) {
-    if (!groups[p.resource]) groups[p.resource] = []
-    groups[p.resource].push(p)
-  }
-  return Object.entries(groups).map(([resource, items]) => ({
-    key: `group_${resource}`,
-    title: resourceNames[resource] || resource,
+function buildPermTreeFromGroups(groups: Array<{ resource: string; permissions: Permission[] }>): PermTreeNode[] {
+  return groups.map(group => ({
+    key: `group_${group.resource}`,
+    title: group.resource,
     selectable: false,
-    children: items.map(p => ({
+    children: group.permissions.map(p => ({
       key: p.permissionCode,
       title: getPermName(p),
     })),
@@ -303,12 +288,11 @@ async function handleAssignPermission(record: Record<string, unknown>) {
   permModalVisible.value = true
 
   try {
-    const [perms, assigned] = await Promise.all([
-      getAllPermissions(),
+    const [treeRes, assigned] = await Promise.all([
+      getPermissionTree(),
       getRolePermissions(record.id as number),
     ])
-    allPermissions.value = perms
-    permTreeData.value = buildPermTree(perms)
+    permTreeData.value = buildPermTreeFromGroups(treeRes)
     selectedPermissions.value = assigned
   } catch (error) {
     console.error('Failed to load permissions:', error)
