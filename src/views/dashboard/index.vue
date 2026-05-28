@@ -299,6 +299,7 @@ onMounted(() => {
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  overflow-x: auto;
 }
 
 .chart-container :deep(.bar-chart) {
@@ -308,6 +309,7 @@ onMounted(() => {
   height: 100%;
   padding: 0 16px;
   gap: 8px;
+  min-width: 100%;
 }
 
 .chart-container :deep(.bar-item) {
@@ -315,6 +317,7 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   flex: 1;
+  min-width: 32px;
   max-width: 60px;
 }
 
@@ -339,11 +342,32 @@ onMounted(() => {
   color: #fff;
   padding: 2px 4px;
   white-space: nowrap;
+  line-height: 1;
 }
 
 .chart-container :deep(.bar-label) {
   font-size: 11px;
   color: #8c8c8c;
   margin-top: 8px;
+  white-space: nowrap;
+  text-align: center;
+  line-height: 1.2;
+}
+
+@media (max-width: 768px) {
+  .chart-container :deep(.bar-item) {
+    min-width: 24px;
+    max-width: 40px;
+  }
+
+  .chart-container :deep(.bar-value) {
+    font-size: 10px;
+    padding: 1px 2px;
+  }
+
+  .chart-container :deep(.bar-label) {
+    font-size: 10px;
+    margin-top: 4px;
+  }
 }
 </style>
