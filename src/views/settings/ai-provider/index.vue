@@ -31,7 +31,7 @@
             />
           </template>
 
-          <template v-if="column.dataIndex === 'action'">
+          <template v-if="column.key === 'operation'">
             <a-space>
               <a-button type="link" size="small" @click="handleEdit(record)">
                 {{ $t('common.edit') }}
@@ -187,7 +187,8 @@ const columns = [
   },
   {
     title: t('common.action'),
-    dataIndex: 'action',
+    dataIndex: 'operation',
+    key: 'operation',
     width: 200,
     align: 'center' as const,
   },
@@ -207,8 +208,8 @@ const formData = reactive({
 async function loadProviders() {
   loading.value = true
   try {
-    const res = await getAIProviderConfig() as Record<string, unknown>
-    providerList.value = (res.providers as Array<Record<string, unknown>>) || res || []
+    const res = await getAIProviderConfig()
+    providerList.value = (res.providers as Array<Record<string, unknown>>) || []
   } catch {
     providerList.value = []
   } finally {
