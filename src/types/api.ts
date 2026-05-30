@@ -366,11 +366,32 @@ export interface StorageConfig {
   region?: string
   basePath?: string
   customDomain?: string
+  stsRoleArn?: string
+  stsRegion?: string
   isDefault?: boolean
   status?: number
   remark?: string
   createTime?: string
   updateTime?: string
+}
+
+export interface SystemStorageConfig {
+  privateEndpoint?: string
+  privateBucket?: string
+  privateAccessKey?: string
+  privateSecretKey?: string
+  privateRegion?: string
+  privateCustomDomain?: string
+  privateStsRoleArn?: string
+  privateStsRegion?: string
+  publicEndpoint?: string
+  publicBucket?: string
+  publicAccessKey?: string
+  publicSecretKey?: string
+  publicRegion?: string
+  publicCustomDomain?: string
+  publicStsRoleArn?: string
+  publicStsRegion?: string
 }
 
 export interface SystemConfig {

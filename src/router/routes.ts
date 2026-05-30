@@ -408,6 +408,17 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
+        path: 'storage-system',
+        name: 'SettingsStorageSystem',
+        component: () => import('@/views/settings/storage-system/index.vue'),
+        meta: {
+          title: 'menu.settingsStorageSystem',
+          icon: 'CloudServerOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'system:storage_config',
+        },
+      },
+      {
         path: 'system',
         name: 'SettingsSystem',
         component: () => import('@/views/settings/system/index.vue'),

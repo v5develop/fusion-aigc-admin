@@ -123,6 +123,7 @@ export default {
     settingsUnion: '联盟配置',
     settingsAIProvider: 'AI 提供商配置',
     settingsStorage: '存储配置',
+    settingsStorageSystem: '系统存储',
     settingsSystem: '系统参数',
   },
 
@@ -2846,6 +2847,30 @@ export default {
     noProviderData: '暂无提供商数据',
   },
 
+  // Settings Storage System (系统数据库配置 C)
+  settingsStorageSystem: {
+    title: '系统存储（数据库配置）',
+    tip: '系统级存储配置（数据库），覆盖系统文件配置（环境变量），被用户级存储配置覆盖。两个桶字段齐全（端点+桶+AK+SK）时该桶才生效，否则回退环境变量。',
+    privateBucketTitle: '私有桶（AIGC 输入素材）',
+    publicBucketTitle: '公有桶（持久公开展示）',
+    endpoint: '服务端点',
+    endpointPlaceholder: 'https://oss-cn-hangzhou.aliyuncs.com',
+    bucket: '桶名称',
+    accessKey: '访问密钥（AccessKey）',
+    secretKey: '秘密密钥（SecretKey）',
+    region: '区域',
+    customDomain: '自定义域名',
+    stsRoleArn: 'STS 角色 ARN',
+    stsRoleArnPlaceholder: 'acs:ram::1234567890:role/oss-direct-upload',
+    stsRegion: 'STS 区域',
+    maskedSecretHint: '已脱敏，留空或不修改则保留原值',
+    save: '保存',
+    saveSuccess: '保存成功',
+    testConnection: '测试连接',
+    testSuccess: '连接测试通过',
+    testFailed: '连接测试失败',
+  },
+
   // Settings Storage
   settingsStorage: {
     title: '存储配置',
@@ -2884,6 +2909,7 @@ export default {
     customDomain: '访问域名 / CDN 域名',
     customDomainPlaceholder: '例如：https://cdn.example.com，可留空',
     customDomainHint: '填写后后端会优先用该域名生成文件访问 URL；留空则按 bucket + endpoint 拼接。',
+    stsRoleArnHint: '配置后该存储才支持 STS 临时凭证直传；留空则仅支持预签名 / POST policy 直传。',
     customDomainInvalid: '访问域名格式不合法',
     remark: '备注',
     remarkPlaceholder: '请输入备注，可留空',
