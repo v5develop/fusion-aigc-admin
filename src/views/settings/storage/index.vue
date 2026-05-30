@@ -158,6 +158,23 @@
             />
             <div class="form-hint">{{ $t('settingsStorage.customDomainHint') }}</div>
           </a-form-item>
+
+          <template v-if="supportsSts">
+            <a-form-item label="STS Role ARN">
+              <a-input
+                v-model:value="formData.stsRoleArn"
+                placeholder="acs:ram::1234567890:role/oss-direct-upload"
+              />
+              <div class="form-hint">{{ $t('settingsStorage.stsRoleArnHint') }}</div>
+            </a-form-item>
+
+            <a-form-item label="STS Region">
+              <a-input
+                v-model:value="formData.stsRegion"
+                :placeholder="currentPlatformConfig.regionPlaceholder"
+              />
+            </a-form-item>
+          </template>
         </template>
 
         <a-form-item :label="$t('settingsStorage.remark')">
@@ -197,6 +214,8 @@ interface StorageFormData {
   region: string
   basePath: string
   customDomain: string
+  stsRoleArn: string
+  stsRegion: string
   remark: string
 }
 
@@ -231,6 +250,8 @@ const formData = reactive<StorageFormData>({
   region: '',
   basePath: './data/media',
   customDomain: '',
+  stsRoleArn: '',
+  stsRegion: '',
   remark: '',
 })
 
@@ -283,24 +304,24 @@ const platformConfigs = computed<Record<StoragePlatform, PlatformConfig>>(() => 
     secretKeyPlaceholder: t('settingsStorage.secretKeyPlaceholder'),
     regionPlaceholder: 'us-east-1',
   },
-  minio: {
-    value: 'minio',
-    label: t('settingsStorage.platform.minio'),
-    description: t('settingsStorage.platformDesc.minio'),
-    endpointPlaceholder: 'http://localhost:9000',
-    endpointHint: t('settingsStorage.endpointHint.minio'),
-    accessKeyLabel: t('settingsStorage.accessKey'),
-    accessKeyPlaceholder: t('settingsStorage.accessKeyPlaceholder'),
-    secretKeyLabel: t('settingsStorage.secretKey'),
-    secretKeyPlaceholder: t('settingsStorage.secretKeyPlaceholder'),
-    regionPlaceholder: 'us-east-1',
-  },
   s3: {
     value: 's3',
     label: t('settingsStorage.platform.s3'),
     description: t('settingsStorage.platformDesc.s3'),
     endpointPlaceholder: 'https://s3.example.com',
     endpointHint: t('settingsStorage.endpointHint.s3'),
+    accessKeyLabel: t('settingsStorage.accessKey'),
+    accessKeyPlaceholder: t('settingsStorage.accessKeyPlaceholder'),
+    secretKeyLabel: t('settingsStorage.secretKey'),
+    secretKeyPlaceholder: t('settingsStorage.secretKeyPlaceholder'),
+    regionPlaceholder: 'us-east-1',
+  },
+  minio: {
+    value: 'minio',
+    label: t('settingsStorage.platform.minio'),
+    description: t('settingsStorage.platformDesc.minio'),
+    endpointPlaceholder: 'http://localhost:9000',
+    endpointHint: t('settingsStorage.endpointHint.minio'),
     accessKeyLabel: t('settingsStorage.accessKey'),
     accessKeyPlaceholder: t('settingsStorage.accessKeyPlaceholder'),
     secretKeyLabel: t('settingsStorage.secretKey'),
@@ -324,6 +345,8 @@ const platformMap = computed(() => {
 
 const currentPlatformConfig = computed(() => platformConfigs.value[formData.storagePlatform])
 const isLocalPlatform = computed(() => formData.storagePlatform === 'local')
+const isMinioPlatform = computed(() => formData.storagePlatform === 'minio')
+const supportsSts = computed(() => !isLocalPlatform.value && !isMinioPlatform.value)
 const hasMaskedSecret = computed(() => isMaskedValue(formData.accessKey) || isMaskedValue(formData.secretKey))
 
 const columns = computed(() => [
@@ -362,6 +385,8 @@ function hydrateForm(config: StorageConfig) {
     region: config.region || '',
     basePath: config.basePath || (config.type === 'local' ? './data/media' : ''),
     customDomain: config.customDomain || '',
+    stsRoleArn: config.stsRoleArn || '',
+    stsRegion: config.stsRegion || '',
     remark: config.remark || '',
   })
 }
@@ -378,6 +403,8 @@ function resetForm() {
     region: '',
     basePath: './data/media',
     customDomain: '',
+    stsRoleArn: '',
+    stsRegion: '',
     remark: '',
   })
 }
@@ -397,6 +424,8 @@ function toSavePayload(): StorageConfig {
     payload.bucketName = formData.bucketName.trim()
     payload.region = formData.region.trim() || undefined
     payload.customDomain = formData.customDomain.trim() || undefined
+    payload.stsRoleArn = formData.stsRoleArn.trim() || undefined
+    payload.stsRegion = formData.stsRegion.trim() || undefined
     if (!isMaskedValue(formData.accessKey)) {
       payload.accessKey = formData.accessKey.trim()
     }
