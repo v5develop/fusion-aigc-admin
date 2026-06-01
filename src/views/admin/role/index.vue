@@ -271,16 +271,28 @@ function getPermName(p: Permission): string {
   }
 }
 
-function buildPermTreeFromGroups(groups: Array<{ resource: string; permissions: Permission[] }>): PermTreeNode[] {
+function buildPermTreeFromGroups(groups: Array<{ resource: string; resourceName: string; permissions: Permission[] }>): PermTreeNode[] {
   return groups.map(group => ({
     key: `group_${group.resource}`,
-    title: group.resource,
+    title: getResourceName(group),
     selectable: false,
     children: group.permissions.map(p => ({
       key: p.permissionCode,
       title: getPermName(p),
     })),
   }))
+}
+
+function getResourceName(group: { resource: string; resourceName: string }): string {
+  try {
+    if (group.resourceName) {
+      const parsed = JSON.parse(group.resourceName)
+      return parsed[locale.value] || parsed['zh-CN'] || parsed['en-US'] || group.resource
+    }
+    return group.resource
+  } catch {
+    return group.resource
+  }
 }
 
 async function handleAssignPermission(record: Record<string, unknown>) {

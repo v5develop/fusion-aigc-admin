@@ -20,6 +20,10 @@
           {{ getPermName(record) }}
         </template>
 
+        <template v-if="column.dataIndex === 'resourceDisplayName'">
+          {{ getResourceDisplayNameByCode(record.resource as string) }}
+        </template>
+
         <template v-if="column.key === 'operation'">
           <a-space :size="4">
             <a-button type="link" size="small" @click="handleEdit(record)">
@@ -59,11 +63,16 @@
             :placeholder="lang.placeholder"
           />
         </a-form-item>
-        <a-divider orientation="left">{{ $t('admin.permission.resource') }}</a-divider>
-        <a-form-item :label="$t('admin.permission.resource')">
-          <a-input
+        <a-divider orientation="left">{{ $t('admin.permission.resourceCode') }}</a-divider>
+        <a-form-item :label="$t('admin.permission.resourceCode')">
+          <a-select
             v-model:value="permForm.resource"
-            :placeholder="$t('admin.permission.resource')"
+            :placeholder="$t('admin.permission.selectResource')"
+            :options="resourceOptions"
+            :field-names="{ label: 'label', value: 'value' }"
+            show-search
+            :filter-option="filterResourceOption"
+            @change="handleResourceChange"
           />
         </a-form-item>
         <a-form-item :label="$t('admin.permission.action')">
@@ -84,7 +93,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { message, Modal } from 'antdv-next'
 import { useI18n } from 'vue-i18n'
 import ProTable from '@/components/Pro/ProTable/index.vue'
@@ -94,6 +103,8 @@ import {
   updateAdminPermission,
   deleteAdminPermission,
 } from '@/api/admin-permission'
+import { getAdminResourceOptions } from '@/api/admin-resource'
+import type { AdminResource } from '@/types/api'
 
 const { t, locale } = useI18n()
 
@@ -123,7 +134,12 @@ const columns = [
     width: 200,
   },
   {
-    title: t('admin.permission.resource'),
+    title: t('admin.permission.resourceName'),
+    dataIndex: 'resourceDisplayName',
+    width: 150,
+  },
+  {
+    title: t('admin.permission.resourceCode'),
     dataIndex: 'resource',
     searchType: 'input' as const,
     width: 120,
@@ -191,6 +207,49 @@ const permForm = reactive({
   description: '',
 })
 
+const resourceOptions = ref<Array<{ label: string; value: string }>>([])
+const resourceCodeToNameMap = ref<Record<string, string>>({})
+
+function filterResourceOption(input: string, option: { label: string; value: string }) {
+  return option.label.toLowerCase().includes(input.toLowerCase())
+}
+
+function handleResourceChange(value: string) {
+  const selected = resourceOptions.value.find(opt => opt.value === value)
+  if (selected) {
+    permForm.resource = selected.value
+  }
+}
+
+function getResourceDisplayNameByCode(code: string): string {
+  return resourceCodeToNameMap.value[code] || code
+}
+
+async function loadResourceOptions() {
+  try {
+    const resources = await getAdminResourceOptions()
+    resourceOptions.value = resources.map(r => ({
+      label: getResourceDisplayName(r.resourceName),
+      value: r.resourceCode,
+    }))
+    resourceCodeToNameMap.value = resources.reduce((acc, r) => {
+      acc[r.resourceCode] = getResourceDisplayName(r.resourceName)
+      return acc
+    }, {} as Record<string, string>)
+  } catch (error) {
+    console.error('Failed to load resource options:', error)
+  }
+}
+
+function getResourceDisplayName(raw: string): string {
+  try {
+    const parsed = JSON.parse(raw)
+    return parsed[locale.value] || parsed['zh-CN'] || parsed['en-US'] || raw
+  } catch {
+    return raw
+  }
+}
+
 function parsePermName(raw: string): Record<string, string> {
   try {
     return JSON.parse(raw)
@@ -215,6 +274,7 @@ function handleCreate() {
   isEdit.value = false
   editId.value = null
   resetForm()
+  loadResourceOptions()
   permModalVisible.value = true
 }
 
@@ -226,6 +286,7 @@ function handleEdit(record: Record<string, unknown>) {
   permForm.resource = record.resource as string
   permForm.action = record.action as string
   permForm.description = (record.description as string) || ''
+  loadResourceOptions()
   permModalVisible.value = true
 }
 
@@ -257,6 +318,10 @@ async function handlePermSubmit() {
     permSubmitLoading.value = false
   }
 }
+
+onMounted(() => {
+  loadResourceOptions()
+})
 
 function handleDelete(record: Record<string, unknown>) {
   Modal.confirm({

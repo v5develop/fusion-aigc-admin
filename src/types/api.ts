@@ -77,6 +77,23 @@ export interface AdminPermissionListParams extends ListParams {
   action?: string
 }
 
+// Admin Resource Types
+export interface AdminResource {
+  id: number
+  resourceCode: string
+  resourceName: string
+  description?: string
+  sort: number
+  status: number
+  createTime: string
+  updateTime: string
+}
+
+export interface AdminResourceListParams extends ListParams {
+  resourceCode?: string
+  status?: number
+}
+
 // C-End User Types
 export interface User {
   id: number

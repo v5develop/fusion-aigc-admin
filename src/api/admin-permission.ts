@@ -23,5 +23,6 @@ export function getPermissionTree() {
 
 export interface PermissionGroup {
   resource: string
+  resourceName: string
   permissions: AdminPermission[]
 }
