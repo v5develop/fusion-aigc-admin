@@ -160,19 +160,30 @@
           </a-form-item>
 
           <template v-if="supportsSts">
-            <a-form-item label="STS Role ARN">
+            <a-form-item :label="currentPlatformConfig.stsRoleArnLabel">
               <a-input
                 v-model:value="formData.stsRoleArn"
-                placeholder="acs:ram::1234567890:role/oss-direct-upload"
+                :placeholder="currentPlatformConfig.stsRoleArnPlaceholder"
               />
               <div class="form-hint">{{ $t('settingsStorage.stsRoleArnHint') }}</div>
             </a-form-item>
 
-            <a-form-item label="STS Region">
+            <a-form-item :label="currentPlatformConfig.stsRegionLabel">
+              <a-space style="width: 100%">
+                <a-checkbox v-model:checked="stsRegionSameAsRegion" @change="handleStsRegionSameChange">
+                  {{ $t('settingsStorage.stsRegionSameAsRegion') }}
+                </a-checkbox>
+              </a-space>
               <a-input
+                v-if="!stsRegionSameAsRegion"
                 v-model:value="formData.stsRegion"
-                :placeholder="currentPlatformConfig.regionPlaceholder"
+                :placeholder="currentPlatformConfig.stsRegionPlaceholder"
+                style="margin-top: 8px"
               />
+              <div v-if="stsRegionSameAsRegion" class="form-hint">
+                {{ $t('settingsStorage.stsRegionHint') }}: {{ formData.region || '-' }}
+              </div>
+              <div v-else class="form-hint">{{ $t('settingsStorage.stsRegionHint') }}</div>
             </a-form-item>
           </template>
         </template>
@@ -230,6 +241,10 @@ interface PlatformConfig {
   secretKeyLabel: string
   secretKeyPlaceholder: string
   regionPlaceholder: string
+  stsRoleArnLabel: string
+  stsRoleArnPlaceholder: string
+  stsRegionLabel: string
+  stsRegionPlaceholder: string
 }
 
 const { t } = useI18n()
@@ -239,6 +254,7 @@ const submitLoading = ref(false)
 const modalVisible = ref(false)
 const isEdit = ref(false)
 const configList = ref<StorageConfig[]>([])
+const stsRegionSameAsRegion = ref(true)
 
 const formData = reactive<StorageFormData>({
   name: '',
@@ -267,6 +283,10 @@ const platformConfigs = computed<Record<StoragePlatform, PlatformConfig>>(() => 
     secretKeyLabel: t('settingsStorage.secretKey'),
     secretKeyPlaceholder: '',
     regionPlaceholder: '',
+    stsRoleArnLabel: '',
+    stsRoleArnPlaceholder: '',
+    stsRegionLabel: '',
+    stsRegionPlaceholder: '',
   },
   aliyun_oss: {
     value: 'aliyun_oss',
@@ -274,11 +294,15 @@ const platformConfigs = computed<Record<StoragePlatform, PlatformConfig>>(() => 
     description: t('settingsStorage.platformDesc.aliyunOss'),
     endpointPlaceholder: 'https://oss-cn-hangzhou.aliyuncs.com',
     endpointHint: t('settingsStorage.endpointHint.aliyunOss'),
-    accessKeyLabel: t('settingsStorage.accessKey'),
-    accessKeyPlaceholder: t('settingsStorage.accessKeyPlaceholder'),
-    secretKeyLabel: t('settingsStorage.secretKey'),
-    secretKeyPlaceholder: t('settingsStorage.secretKeyPlaceholder'),
+    accessKeyLabel: t('settingsStorage.aliyunAccessKeyLabel'),
+    accessKeyPlaceholder: t('settingsStorage.aliyunAccessKeyPlaceholder'),
+    secretKeyLabel: t('settingsStorage.aliyunSecretKeyLabel'),
+    secretKeyPlaceholder: t('settingsStorage.aliyunSecretKeyPlaceholder'),
     regionPlaceholder: 'cn-hangzhou',
+    stsRoleArnLabel: t('settingsStorage.aliyunStsRoleArn'),
+    stsRoleArnPlaceholder: t('settingsStorage.aliyunStsRoleArnPlaceholder'),
+    stsRegionLabel: t('settingsStorage.aliyunStsRegion'),
+    stsRegionPlaceholder: t('settingsStorage.aliyunStsRegionPlaceholder'),
   },
   tencent_cos: {
     value: 'tencent_cos',
@@ -291,6 +315,10 @@ const platformConfigs = computed<Record<StoragePlatform, PlatformConfig>>(() => 
     secretKeyLabel: t('settingsStorage.secretKey'),
     secretKeyPlaceholder: t('settingsStorage.secretKeyPlaceholder'),
     regionPlaceholder: 'ap-guangzhou',
+    stsRoleArnLabel: t('settingsStorage.tencentStsRoleArn'),
+    stsRoleArnPlaceholder: t('settingsStorage.tencentStsRoleArnPlaceholder'),
+    stsRegionLabel: t('settingsStorage.tencentStsRegion'),
+    stsRegionPlaceholder: t('settingsStorage.tencentStsRegionPlaceholder'),
   },
   aws_s3: {
     value: 'aws_s3',
@@ -298,11 +326,15 @@ const platformConfigs = computed<Record<StoragePlatform, PlatformConfig>>(() => 
     description: t('settingsStorage.platformDesc.awsS3'),
     endpointPlaceholder: 'https://s3.us-east-1.amazonaws.com',
     endpointHint: t('settingsStorage.endpointHint.awsS3'),
-    accessKeyLabel: t('settingsStorage.accessKey'),
-    accessKeyPlaceholder: t('settingsStorage.accessKeyPlaceholder'),
-    secretKeyLabel: t('settingsStorage.secretKey'),
-    secretKeyPlaceholder: t('settingsStorage.secretKeyPlaceholder'),
+    accessKeyLabel: t('settingsStorage.awsAccessKeyLabel'),
+    accessKeyPlaceholder: t('settingsStorage.awsAccessKeyPlaceholder'),
+    secretKeyLabel: t('settingsStorage.awsSecretKeyLabel'),
+    secretKeyPlaceholder: t('settingsStorage.awsSecretKeyPlaceholder'),
     regionPlaceholder: 'us-east-1',
+    stsRoleArnLabel: t('settingsStorage.awsStsRoleArn'),
+    stsRoleArnPlaceholder: t('settingsStorage.awsStsRoleArnPlaceholder'),
+    stsRegionLabel: t('settingsStorage.awsStsRegion'),
+    stsRegionPlaceholder: t('settingsStorage.awsStsRegionPlaceholder'),
   },
   s3: {
     value: 's3',
@@ -315,6 +347,10 @@ const platformConfigs = computed<Record<StoragePlatform, PlatformConfig>>(() => 
     secretKeyLabel: t('settingsStorage.secretKey'),
     secretKeyPlaceholder: t('settingsStorage.secretKeyPlaceholder'),
     regionPlaceholder: 'us-east-1',
+    stsRoleArnLabel: t('settingsStorage.stsRoleArn'),
+    stsRoleArnPlaceholder: t('settingsStorage.stsRoleArnPlaceholder'),
+    stsRegionLabel: t('settingsStorage.stsRegion'),
+    stsRegionPlaceholder: t('settingsStorage.stsRegionPlaceholder'),
   },
   minio: {
     value: 'minio',
@@ -327,6 +363,10 @@ const platformConfigs = computed<Record<StoragePlatform, PlatformConfig>>(() => 
     secretKeyLabel: t('settingsStorage.secretKey'),
     secretKeyPlaceholder: t('settingsStorage.secretKeyPlaceholder'),
     regionPlaceholder: 'us-east-1',
+    stsRoleArnLabel: t('settingsStorage.stsRoleArn'),
+    stsRoleArnPlaceholder: t('settingsStorage.stsRoleArnPlaceholder'),
+    stsRegionLabel: t('settingsStorage.stsRegion'),
+    stsRegionPlaceholder: t('settingsStorage.stsRegionPlaceholder'),
   },
 }))
 
@@ -389,6 +429,7 @@ function hydrateForm(config: StorageConfig) {
     stsRegion: config.stsRegion || '',
     remark: config.remark || '',
   })
+  stsRegionSameAsRegion.value = !config.stsRegion || config.stsRegion === config.region
 }
 
 function resetForm() {
@@ -407,6 +448,13 @@ function resetForm() {
     stsRegion: '',
     remark: '',
   })
+  stsRegionSameAsRegion.value = true
+}
+
+function handleStsRegionSameChange() {
+  if (stsRegionSameAsRegion.value) {
+    formData.stsRegion = formData.region
+  }
 }
 
 function toSavePayload(): StorageConfig {
@@ -425,7 +473,7 @@ function toSavePayload(): StorageConfig {
     payload.region = formData.region.trim() || undefined
     payload.customDomain = formData.customDomain.trim() || undefined
     payload.stsRoleArn = formData.stsRoleArn.trim() || undefined
-    payload.stsRegion = formData.stsRegion.trim() || undefined
+    payload.stsRegion = stsRegionSameAsRegion.value ? formData.region.trim() || undefined : formData.stsRegion.trim() || undefined
     if (!isMaskedValue(formData.accessKey)) {
       payload.accessKey = formData.accessKey.trim()
     }

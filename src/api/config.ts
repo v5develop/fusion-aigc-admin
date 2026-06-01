@@ -50,7 +50,7 @@ export function saveSystemConfig(data: SystemConfig) {
   return request.put('/api/v1/admin/settings/system', data)
 }
 
-/** 系统级存储（数据库配置 C，双桶 + STS）。覆盖系统文件配置 A，被用户级配置 B 覆盖。 */
+/** 系统级存储（数据库配置 B，双桶 + STS）。覆盖系统文件配置 A，被用户级配置 C 覆盖。 */
 export function getSystemStorageConfig() {
   return request.get<SystemStorageConfig>('/api/v1/admin/settings/storage')
 }

@@ -30,7 +30,20 @@
               <a-input v-model:value="formData.privateStsRoleArn" :placeholder="$t('settingsStorageSystem.stsRoleArnPlaceholder')" />
             </a-form-item>
             <a-form-item :label="$t('settingsStorageSystem.stsRegion')">
-              <a-input v-model:value="formData.privateStsRegion" />
+              <a-space style="width: 100%">
+                <a-checkbox v-model:checked="privateStsRegionSameAsRegion" @change="handlePrivateStsRegionSameChange">
+                  {{ $t('settingsStorageSystem.stsRegionSameAsRegion') }}
+                </a-checkbox>
+              </a-space>
+              <a-input
+                v-if="!privateStsRegionSameAsRegion"
+                v-model:value="formData.privateStsRegion"
+                style="margin-top: 8px"
+              />
+              <div v-if="privateStsRegionSameAsRegion" class="form-tip">
+                {{ $t('settingsStorageSystem.stsRegionHint') }}: {{ formData.privateRegion || '-' }}
+              </div>
+              <div v-else class="form-tip">{{ $t('settingsStorageSystem.stsRegionHint') }}</div>
             </a-form-item>
           </a-col>
 
@@ -59,7 +72,20 @@
               <a-input v-model:value="formData.publicStsRoleArn" :placeholder="$t('settingsStorageSystem.stsRoleArnPlaceholder')" />
             </a-form-item>
             <a-form-item :label="$t('settingsStorageSystem.stsRegion')">
-              <a-input v-model:value="formData.publicStsRegion" />
+              <a-space style="width: 100%">
+                <a-checkbox v-model:checked="publicStsRegionSameAsRegion" @change="handlePublicStsRegionSameChange">
+                  {{ $t('settingsStorageSystem.stsRegionSameAsRegion') }}
+                </a-checkbox>
+              </a-space>
+              <a-input
+                v-if="!publicStsRegionSameAsRegion"
+                v-model:value="formData.publicStsRegion"
+                style="margin-top: 8px"
+              />
+              <div v-if="publicStsRegionSameAsRegion" class="form-tip">
+                {{ $t('settingsStorageSystem.stsRegionHint') }}: {{ formData.publicRegion || '-' }}
+              </div>
+              <div v-else class="form-tip">{{ $t('settingsStorageSystem.stsRegionHint') }}</div>
             </a-form-item>
           </a-col>
         </a-row>
@@ -90,6 +116,8 @@ const { t } = useI18n()
 
 const submitting = ref(false)
 const testing = ref(false)
+const privateStsRegionSameAsRegion = ref(true)
+const publicStsRegionSameAsRegion = ref(true)
 
 const formData = reactive<SystemStorageConfig>({
   privateEndpoint: '',
@@ -114,9 +142,27 @@ function isMasked(value?: string) {
   return !!value && value.includes('****')
 }
 
+function handlePrivateStsRegionSameChange() {
+  if (privateStsRegionSameAsRegion.value) {
+    formData.privateStsRegion = formData.privateRegion
+  }
+}
+
+function handlePublicStsRegionSameChange() {
+  if (publicStsRegionSameAsRegion.value) {
+    formData.publicStsRegion = formData.publicRegion
+  }
+}
+
 // 脱敏字段未修改（仍含 ****）则不回传，避免把掩码写回后端
 function buildPayload(): SystemStorageConfig {
   const payload: SystemStorageConfig = { ...formData }
+  if (privateStsRegionSameAsRegion.value) {
+    payload.privateStsRegion = formData.privateRegion
+  }
+  if (publicStsRegionSameAsRegion.value) {
+    payload.publicStsRegion = formData.publicRegion
+  }
   if (isMasked(payload.privateAccessKey)) delete payload.privateAccessKey
   if (isMasked(payload.privateSecretKey)) delete payload.privateSecretKey
   if (isMasked(payload.privateStsRoleArn)) delete payload.privateStsRoleArn
@@ -129,7 +175,11 @@ function buildPayload(): SystemStorageConfig {
 async function loadConfig() {
   try {
     const res = await getSystemStorageConfig()
-    if (res) Object.assign(formData, res)
+    if (res) {
+      Object.assign(formData, res)
+      privateStsRegionSameAsRegion.value = !res.privateStsRegion || res.privateStsRegion === res.privateRegion
+      publicStsRegionSameAsRegion.value = !res.publicStsRegion || res.publicStsRegion === res.publicRegion
+    }
   } catch {
     // 使用默认空值
   }
