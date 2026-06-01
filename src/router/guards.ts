@@ -87,7 +87,16 @@ export function setupRouterGuards(router: Router) {
           const roles = authStore.user?.roles ?? []
           // super_admin gets all routes, others get based on roles
           const permissions = roles.includes('super_admin') ? ['*'] : roles
-          await permissionStore.generateRoutes(roles, permissions)
+          const accessedRoutes = await permissionStore.generateRoutes(roles, permissions)
+          
+          // Add dynamic routes to router
+          accessedRoutes.forEach((route) => {
+            router.addRoute(route)
+          })
+          
+          // Retry the current navigation with newly added routes
+          next({ ...to, replace: true })
+          return
         } catch (error) {
           console.error('Failed to generate routes:', error);
         }
