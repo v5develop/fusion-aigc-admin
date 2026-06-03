@@ -43,9 +43,15 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',
       open: false,
       proxy: {
-        '/admin': {
+        '^/admin(?:/|$)': {
           target: proxyTarget,
           changeOrigin: true,
+          bypass: (req) => {
+            const accept = req.headers.accept || ''
+            if (accept.includes('text/html')) {
+              return '/index.html'
+            }
+          },
           configure: (proxy) => {
             proxy.on('proxyReq', (proxyReq) => {
               proxyReq.removeHeader('Origin')
