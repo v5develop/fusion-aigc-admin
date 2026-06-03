@@ -104,8 +104,6 @@ import {
   deleteAdminPermission,
 } from '@/api/admin-permission'
 import { getAdminResourceOptions } from '@/api/admin-resource'
-import type { AdminResource } from '@/types/api'
-
 const { t, locale } = useI18n()
 
 interface LangConfig {
