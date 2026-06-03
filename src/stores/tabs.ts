@@ -52,6 +52,47 @@ export const useTabsStore = defineStore('tabs', () => {
     return resolved.startsWith('/') ? resolved : `/${resolved}`;
   };
 
+  const ensureMenuTab = (menuPath: string) => {
+    const resolved = router.resolve(menuPath);
+    const { path, fullPath, name, meta, query, params } = resolved;
+    const routeName = String(name || path);
+    const routeTitle = meta?.title ? String(meta.title) : routeName;
+    const routeIcon = meta?.icon ? String(meta.icon) : undefined;
+    const isAffix = Boolean(meta?.affix);
+
+    const existingTab = tabs.value.find((tab) => tab.path === path);
+    if (existingTab) {
+      existingTab.name = routeName;
+      existingTab.title = routeTitle;
+      existingTab.icon = routeIcon;
+      existingTab.fullPath = fullPath;
+      existingTab.query = query as Record<string, unknown>;
+      existingTab.params = params as Record<string, unknown>;
+      existingTab.affix = isAffix;
+      if (isAffix) {
+        existingTab.pinned = false;
+      }
+      updateTabClosable(existingTab);
+      activeTabPath.value = path;
+      return;
+    }
+
+    tabs.value.push({
+      id: fullPath,
+      name: routeName,
+      title: routeTitle,
+      icon: routeIcon,
+      path,
+      fullPath,
+      query: query as Record<string, unknown>,
+      params: params as Record<string, unknown>,
+      closable: !isAffix,
+      pinned: false,
+      affix: isAffix,
+    });
+    activeTabPath.value = path;
+  };
+
   // Getters
   const cachedTabs = computed(() => {
     return tabs.value
@@ -66,13 +107,21 @@ export const useTabsStore = defineStore('tabs', () => {
   // Actions
   const addTab = (route: RouteLocationNormalized) => {
     const { path, fullPath, name, meta, query, params } = route;
+
+    // Hidden pages (e.g. create/edit) don't get their own tab. If they declare
+    // an `activeMenu`, keep that parent list tab present and active instead so
+    // refreshing the page (e.g. /template/create) doesn't lose the 模板列表 tab.
+    if (meta?.hidden) {
+      if (meta.activeMenu) {
+        ensureMenuTab(String(meta.activeMenu));
+      }
+      return;
+    }
+
     const routeName = String(name || path);
     const routeTitle = meta?.title ? String(meta.title) : routeName;
     const routeIcon = meta?.icon ? String(meta.icon) : undefined;
     const isAffix = Boolean(meta?.affix);
-
-    // Skip if hidden
-    if (meta?.hidden) return;
 
     // Check if tab already exists
     const existingTab = tabs.value.find((tab) => tab.path === path);

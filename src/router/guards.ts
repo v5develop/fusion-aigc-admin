@@ -105,8 +105,9 @@ export function setupRouterGuards(router: Router) {
       initTabsIfNeeded();
     }
 
-    // Add to tabs
-    if (to.name && to.meta.requiresAuth !== false && !to.meta.hidden) {
+    // Add to tabs. The tabs store handles hidden routes with activeMenu by
+    // ensuring their parent list tab is present instead of adding a new tab.
+    if (to.name && to.meta.requiresAuth !== false) {
       tabsStore.addTab(to);
     }
 
@@ -118,10 +119,12 @@ export function setupRouterGuards(router: Router) {
     // Scroll to top
     window.scrollTo(0, 0);
 
-    // Set active tab
+    // Set active tab. Hidden pages can declare activeMenu so their parent list
+    // tab stays highlighted and present after a direct refresh.
     const tabsStore = useTabsStore();
-    if (to.path) {
-      tabsStore.setActiveTab(to.path);
+    const activeTabPath = to.meta.activeMenu ? String(to.meta.activeMenu) : to.path;
+    if (activeTabPath) {
+      tabsStore.setActiveTab(activeTabPath);
     }
 
     // Record menu visit history

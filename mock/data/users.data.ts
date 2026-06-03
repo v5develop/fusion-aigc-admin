@@ -13,5 +13,5 @@ export const regularUser = {
   nickname: '普通用户',
   avatar: '',
   roles: ['user'],
-  permissions: ['user:view'],
+  permissions: ['user:view', 'template:view'],
 }
