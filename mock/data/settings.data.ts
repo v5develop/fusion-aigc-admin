@@ -2,7 +2,7 @@
 
 export const mockUnionConfig = {
   baseUrl: 'https://union.example.com',
-  appId: 'app_123456',
+  appKey: 'app_123456',
   appSecret: 'secret_abcdef',
   tokenUrl: 'https://union.example.com/oauth/token',
   callbackUrl: 'https://admin.example.com/callback',

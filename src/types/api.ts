@@ -332,13 +332,15 @@ export interface BillingExceptionListParams extends PageParams {
 // Settings Types
 export interface UnionConfig {
   baseUrl: string
-  appId: string
+  appKey: string
   appSecret: string
   tokenUrl: string
   callbackUrl: string
   signatureEnabled?: boolean
   whitelistEnabled?: boolean
   whitelistIps?: string[]
+  trustedProxies?: string[]
+  offlineRequireTimestamp?: boolean
 }
 
 export interface AIProviderConfig {

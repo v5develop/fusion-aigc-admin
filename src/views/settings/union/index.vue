@@ -17,10 +17,10 @@
               />
             </a-form-item>
 
-            <a-form-item :label="$t('settingsUnion.appId')" name="appId">
+            <a-form-item :label="$t('settingsUnion.appKey')" name="appKey">
               <a-input
-                v-model:value="formData.appId"
-                :placeholder="$t('settingsUnion.appIdPlaceholder')"
+                v-model:value="formData.appKey"
+                :placeholder="$t('settingsUnion.appKeyPlaceholder')"
               />
             </a-form-item>
 
@@ -52,6 +52,7 @@
                 v-model:checked="formData.signatureEnabled"
                 :checked-children="$t('common.enabled')"
                 :un-checked-children="$t('common.disabled')"
+                @change="handleSignatureChange"
               />
               <div class="form-tip">{{ $t('settingsUnion.signatureEnabledTip') }}</div>
             </a-form-item>
@@ -61,6 +62,7 @@
                 v-model:checked="formData.whitelistEnabled"
                 :checked-children="$t('common.enabled')"
                 :un-checked-children="$t('common.disabled')"
+                @change="handleWhitelistChange"
               />
               <div class="form-tip">{{ $t('settingsUnion.whitelistEnabledTip') }}</div>
             </a-form-item>
@@ -72,6 +74,36 @@
                 :rows="4"
               />
               <div class="form-tip">{{ $t('settingsUnion.whitelistIpsTip') }}</div>
+            </a-form-item>
+
+            <a-form-item name="trustedProxies" v-if="formData.whitelistEnabled" class="advanced-item">
+              <template #label>
+                <span class="advanced-label">
+                  {{ $t('settingsUnion.trustedProxies') }}
+                  <a-tag size="small" color="default">{{ $t('settingsUnion.advancedTag') }}</a-tag>
+                </span>
+              </template>
+              <a-textarea
+                v-model:value="trustedProxiesText"
+                :placeholder="$t('settingsUnion.trustedProxiesPlaceholder')"
+                :rows="3"
+              />
+              <div class="form-tip">{{ $t('settingsUnion.trustedProxiesTip') }}</div>
+            </a-form-item>
+
+            <a-form-item v-if="formData.whitelistEnabled" class="advanced-item">
+              <template #label>
+                <span class="advanced-label">
+                  {{ $t('settingsUnion.offlineRequireTimestamp') }}
+                  <a-tag size="small" color="default">{{ $t('settingsUnion.advancedTag') }}</a-tag>
+                </span>
+              </template>
+              <a-switch
+                v-model:checked="formData.offlineRequireTimestamp"
+                :checked-children="$t('common.enabled')"
+                :un-checked-children="$t('common.disabled')"
+              />
+              <div class="form-tip">{{ $t('settingsUnion.offlineRequireTimestampTip') }}</div>
             </a-form-item>
 
             <a-form-item>
@@ -88,6 +120,59 @@
         </a-tab-pane>
 
         <a-tab-pane key="openapi" :tab="$t('settingsUnion.openapi')">
+          <a-card size="small" class="signature-guide">
+            <template #title>{{ $t('settingsUnion.signatureGuideTitle') }}</template>
+            <a-alert type="info" show-icon :message="$t('settingsUnion.signatureGuideIntro')" style="margin-bottom: 12px" />
+
+            <div class="section-title">{{ $t('settingsUnion.authModesTitle') }}</div>
+            <div class="auth-modes">
+              <div v-for="mode in authModes" :key="mode.key" class="auth-mode-item">
+                <div class="auth-mode-head">
+                  <a-tag :color="mode.key === 'signed' ? 'green' : 'orange'">{{ mode.title }}</a-tag>
+                </div>
+                <div class="auth-mode-desc">{{ mode.desc }}</div>
+                <div class="auth-mode-headers">
+                  <span class="auth-mode-headers-label">{{ $t('settingsUnion.authModeHeaders') }}</span>
+                  <code>{{ mode.headers }}</code>
+                </div>
+              </div>
+            </div>
+
+            <div class="section-title" style="margin-top: 12px">{{ $t('settingsUnion.signatureHeaders') }}</div>
+            <a-table
+              :columns="signatureHeaderColumns"
+              :data-source="signatureHeaders"
+              :pagination="false"
+              size="small"
+              row-key="name"
+            >
+              <template #bodyCell="{ column, record }">
+                <template v-if="column.dataIndex === 'required'">
+                  <a-tag :color="record.required ? 'red' : 'default'" size="small">
+                    {{ record.required ? $t('settingsUnion.paramRequired') : $t('settingsUnion.paramOptional') }}
+                  </a-tag>
+                </template>
+              </template>
+            </a-table>
+            <div class="section-title" style="margin-top: 12px">{{ $t('settingsUnion.signatureSteps') }}</div>
+            <pre class="code-block"><code>{{ signatureAlgoText }}</code></pre>
+            <div class="section-title" style="margin-top: 12px">{{ $t('settingsUnion.signatureParamsTitle') }}</div>
+            <a-table
+              :columns="signatureParamColumns"
+              :data-source="signatureParams"
+              :pagination="false"
+              size="small"
+              row-key="field"
+            >
+              <template #bodyCell="{ column, record }">
+                <template v-if="column.dataIndex === 'field'">
+                  <code>{{ record.field }}</code>
+                </template>
+              </template>
+            </a-table>
+            <div class="form-tip">{{ $t('settingsUnion.signatureGuideNote') }}</div>
+          </a-card>
+
           <div class="api-list">
             <div v-for="api in apiDocs" :key="api.method + api.path" class="api-item">
               <div class="api-header">
@@ -176,19 +261,28 @@ const testing = ref(false)
 
 const formData = reactive({
   baseUrl: '',
-  appId: '',
+  appKey: '',
   appSecret: '',
   tokenUrl: '',
   callbackUrl: '',
   signatureEnabled: true,
   whitelistEnabled: false,
   whitelistIps: [] as string[],
+  trustedProxies: [] as string[],
+  offlineRequireTimestamp: true,
 })
 
 const whitelistIpsText = computed({
   get: () => formData.whitelistIps.join('\n'),
   set: (val: string) => {
     formData.whitelistIps = val.split('\n').map(s => s.trim()).filter(s => s.length > 0)
+  },
+})
+
+const trustedProxiesText = computed({
+  get: () => formData.trustedProxies.join('\n'),
+  set: (val: string) => {
+    formData.trustedProxies = val.split('\n').map(s => s.trim()).filter(s => s.length > 0)
   },
 })
 
@@ -229,11 +323,11 @@ const rules = {
       trigger: 'blur',
     },
   ],
-  appId: [
+  appKey: [
     {
       validator: (_rule: any, _value: any, callback: any) => {
-        if (isSignatureRequired() && !formData.appId) {
-          callback(new Error(t('settingsUnion.appId') + t('common.required')))
+        if (isSignatureRequired() && !formData.appKey) {
+          callback(new Error(t('settingsUnion.appKey') + t('common.required')))
         } else {
           callback()
         }
@@ -296,6 +390,21 @@ const rules = {
       trigger: 'change',
     },
   ],
+  trustedProxies: [
+    {
+      validator: (_rule: any, _value: any, callback: any) => {
+        if (formData.trustedProxies && formData.trustedProxies.length > 0) {
+          const invalidIp = formData.trustedProxies.find(ip => !isValidIpOrCidr(ip))
+          if (invalidIp) {
+            callback(new Error(`无效的 IP 格式: ${invalidIp}`))
+            return
+          }
+        }
+        callback()
+      },
+      trigger: 'change',
+    },
+  ],
 }
 
 const paramColumns = computed(() => [
@@ -303,6 +412,65 @@ const paramColumns = computed(() => [
   { title: t('settingsUnion.paramType'), dataIndex: 'type', width: 180 },
   { title: t('settingsUnion.paramRequired'), dataIndex: 'required', width: 80, align: 'center' as const },
   { title: t('settingsUnion.paramDesc'), dataIndex: 'description', ellipsis: true },
+])
+
+const signatureHeaderColumns = computed(() => [
+  { title: t('settingsUnion.paramName'), dataIndex: 'name', width: 200 },
+  { title: t('settingsUnion.paramRequired'), dataIndex: 'required', width: 80, align: 'center' as const },
+  { title: t('settingsUnion.paramDesc'), dataIndex: 'description', ellipsis: true },
+])
+
+const authModes = computed(() => [
+  {
+    key: 'signed',
+    title: t('settingsUnion.authModeSignedTitle'),
+    desc: t('settingsUnion.authModeSignedDesc'),
+    headers: 'X-Union-App-Key, X-Union-Timestamp, X-Union-Nonce, X-Union-Signature',
+  },
+  {
+    key: 'unsigned',
+    title: t('settingsUnion.authModeUnsignedTitle'),
+    desc: t('settingsUnion.authModeUnsignedDesc'),
+    headers: 'X-Union-App-Key, X-Union-Timestamp, X-Union-Nonce',
+  },
+])
+
+const signatureHeaders = computed(() => [
+  { name: 'X-Union-App-Key', required: true, description: t('settingsUnion.headerAppKeyDesc') },
+  { name: 'X-Union-Timestamp', required: true, description: t('settingsUnion.headerTimestampDesc') },
+  { name: 'X-Union-Nonce', required: true, description: t('settingsUnion.headerNonceDesc') },
+  { name: 'X-Union-Signature', required: true, description: t('settingsUnion.headerSignatureDesc') },
+  { name: 'X-Union-Key-Version', required: false, description: t('settingsUnion.headerKeyVersionDesc') },
+])
+
+const signatureAlgoText = [
+  'stringToSign =',
+  '  httpMethod + "\\n" +',
+  '  requestUri + "\\n" +',
+  '  canonicalQuery + "\\n" +',
+  '  bodyHash + "\\n" +',
+  '  timestamp + "\\n" +',
+  '  nonce + "\\n" +',
+  '  appKey',
+  '',
+  'signature = HMAC-SHA256(stringToSign, appSecret)',
+].join('\n')
+
+const signatureParamColumns = computed(() => [
+  { title: t('settingsUnion.signatureParamField'), dataIndex: 'field', width: 200 },
+  { title: t('settingsUnion.paramDesc'), dataIndex: 'description', ellipsis: true },
+])
+
+const signatureParams = computed(() => [
+  { field: 'httpMethod', description: t('settingsUnion.sigParamMethodDesc') },
+  { field: 'requestUri', description: t('settingsUnion.sigParamUriDesc') },
+  { field: 'canonicalQuery', description: t('settingsUnion.sigParamQueryDesc') },
+  { field: 'bodyHash', description: t('settingsUnion.sigParamBodyDesc') },
+  { field: 'timestamp', description: t('settingsUnion.sigParamTimestampDesc') },
+  { field: 'nonce', description: t('settingsUnion.sigParamNonceDesc') },
+  { field: 'appKey', description: t('settingsUnion.sigParamAppKeyDesc') },
+  { field: 'appSecret', description: t('settingsUnion.sigParamAppSecretDesc') },
+  { field: 'signature', description: t('settingsUnion.sigParamSignatureDesc') },
 ])
 
 const apiDocs = computed(() => {
@@ -537,7 +705,27 @@ async function loadConfig() {
   }
 }
 
+// 签名验签与 IP 白名单不能同时关闭，避免联盟接口完全无鉴权。
+// 关闭最后一种鉴权方式时，自动切换打开另一种。
+function handleSignatureChange(checked: boolean) {
+  if (!checked && !formData.whitelistEnabled) {
+    formData.whitelistEnabled = true
+    message.warning(t('settingsUnion.authMethodSwitchedTip'))
+  }
+}
+
+function handleWhitelistChange(checked: boolean) {
+  if (!checked && !formData.signatureEnabled) {
+    formData.signatureEnabled = true
+    message.warning(t('settingsUnion.authMethodSwitchedTip'))
+  }
+}
+
 async function handleSubmit() {
+  if (!formData.signatureEnabled && !formData.whitelistEnabled) {
+    message.error(t('settingsUnion.authMethodRequiredTip'))
+    return
+  }
   try {
     await formRef.value?.validateFields()
     submitting.value = true
@@ -640,6 +828,16 @@ onMounted(() => {
   margin-top: 4px;
 }
 
+.advanced-item :deep(.ant-form-item-label) > label {
+  color: #888;
+}
+
+.advanced-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .code-block {
   background: #1e1e1e;
   color: #d4d4d4;
@@ -654,5 +852,48 @@ onMounted(() => {
 
 .code-block code {
   font-family: inherit;
+}
+
+.auth-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.auth-mode-item {
+  flex: 1 1 280px;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  padding: 10px 12px;
+  background: #fafafa;
+}
+
+.auth-mode-head {
+  margin-bottom: 6px;
+}
+
+.auth-mode-desc {
+  font-size: 13px;
+  color: #555;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.auth-mode-headers {
+  font-size: 12px;
+}
+
+.auth-mode-headers-label {
+  color: #888;
+  margin-right: 6px;
+}
+
+.auth-mode-headers code {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: #c41d7f;
+  background: #fff0f6;
+  padding: 1px 4px;
+  border-radius: 3px;
 }
 </style>
