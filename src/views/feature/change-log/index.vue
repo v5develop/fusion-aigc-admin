@@ -28,12 +28,6 @@
             {{ capabilityChangeLogSourceMap[record.source] || record.source }}
           </a-tag>
         </template>
-
-        <template v-if="column.dataIndex === 'pointsChange'">
-          <span :class="record.pointsChange > 0 ? 'text-green-500' : record.pointsChange < 0 ? 'text-red-500' : ''">
-            {{ record.pointsChange > 0 ? '+' : '' }}{{ record.pointsChange }}
-          </span>
-        </template>
       </template>
     </ProTable>
   </div>
@@ -114,12 +108,6 @@ const columns = [
       { label: t('capabilityChangeLog.changeTypeMap.expire'), value: 'expire' },
     ],
     width: 120,
-  },
-  {
-    title: t('capabilityChangeLog.pointsChange'),
-    dataIndex: 'pointsChange',
-    width: 120,
-    align: 'center' as const,
   },
   {
     title: t('capabilityChangeLog.operator'),

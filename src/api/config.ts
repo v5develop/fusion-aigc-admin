@@ -18,7 +18,7 @@ export function saveAIProviderConfig(data: AIProviderConfig) {
 }
 
 export function getStorageConfigs() {
-  return request.get<StorageConfig[]>('/api/v1/admin/storage/config/list')
+  return request.get<StorageConfig[]>('/api/v1/admin/storage-configs/list')
 }
 
 export async function getStorageConfig() {
@@ -27,11 +27,11 @@ export async function getStorageConfig() {
 }
 
 export function createStorageConfig(data: StorageConfig) {
-  return request.post<number>('/api/v1/admin/storage/config/create', data)
+  return request.post<number>('/api/v1/admin/storage-configs/create', data)
 }
 
 export function updateStorageConfig(data: StorageConfig) {
-  return request.put<boolean>('/api/v1/admin/storage/config/update', data)
+  return request.put<boolean>('/api/v1/admin/storage-configs/update', data)
 }
 
 export function saveStorageConfig(data: StorageConfig) {
@@ -39,7 +39,7 @@ export function saveStorageConfig(data: StorageConfig) {
 }
 
 export function setDefaultStorageConfig(id: number) {
-  return request.put<boolean>('/api/v1/admin/storage/config/set-default', null, { params: { id } })
+  return request.put<boolean>(`/api/v1/admin/storage-configs/set-default/${id}`)
 }
 
 export function getSystemConfig() {
@@ -72,7 +72,7 @@ export function testAIProviderConnection(data: AIProviderConfig) {
 }
 
 export function deleteStorageConfig(id: number) {
-  return request.delete<boolean>('/api/v1/admin/storage/config/delete', { params: { id } })
+  return request.delete<boolean>(`/api/v1/admin/storage-configs/delete/${id}`)
 }
 
 export function validateStorageConfig(_data: StorageConfig) {

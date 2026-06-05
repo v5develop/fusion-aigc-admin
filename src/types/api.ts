@@ -460,7 +460,6 @@ export interface CapabilityChangeLog {
   featureCode: string
   featureName: Record<string, string>
   changeType: string
-  pointsChange: number
   source: string
   remark: string
   createTime: string
