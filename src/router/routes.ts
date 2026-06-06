@@ -194,7 +194,7 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
           title: 'menu.featureList',
           icon: 'BarsOutlined',
           requiresAuth: true,
-          requiredPermissions: 'capability:view',
+          requiredPermissions: 'feature:view',
         },
       },
       {
@@ -205,7 +205,7 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
           title: 'menu.featureModelMapping',
           icon: 'DeploymentUnitOutlined',
           requiresAuth: true,
-          requiredPermissions: 'capability:manage',
+          requiredPermissions: 'feature:manage',
         },
       },
       {
@@ -216,7 +216,7 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
           title: 'menu.featureGrant',
           icon: 'CloudDownloadOutlined',
           requiresAuth: true,
-          requiredPermissions: 'capability:view',
+          requiredPermissions: 'feature:view',
         },
       },
       {
@@ -227,7 +227,7 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
           title: 'menu.featureChangeLog',
           icon: 'HistoryOutlined',
           requiresAuth: true,
-          requiredPermissions: 'capability:view',
+          requiredPermissions: 'feature:view',
         },
       },
     ],

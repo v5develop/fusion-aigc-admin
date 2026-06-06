@@ -1,38 +1,42 @@
 import { request } from '@/utils/request'
-import type { Feature, FeatureListParams, PageResult, CapabilityGrant, CapabilityChangeLog } from '@/types/api'
+import type { Feature, FeatureListParams, PageResult, FeatureGrant, FeatureChangeLog } from '@/types/api'
 
 export function getFeatureList(params: FeatureListParams) {
-  return request.get<PageResult<Feature>>('/api/v1/admin/capabilities/points', { params })
+  return request.get<PageResult<Feature>>('/api/v1/admin/creation/features', { params })
+}
+
+export function getFeatureOptions() {
+  return request.get<Feature[]>('/api/v1/admin/creation/features/all')
 }
 
 export function createFeature(data: Partial<Feature>) {
-  return request.post('/api/v1/admin/capabilities/points', data)
+  return request.post('/api/v1/admin/creation/features', data)
 }
 
 export function updateFeature(id: number, data: Partial<Feature>) {
-  return request.put(`/api/v1/admin/capabilities/points/${id}`, data)
+  return request.put(`/api/v1/admin/creation/features/${id}`, data)
 }
 
 export function deleteFeature(id: number) {
-  return request.delete(`/api/v1/admin/capabilities/points/${id}`)
+  return request.delete(`/api/v1/admin/creation/features/${id}`)
 }
 
 export function getFeatureModelMapping(id: number) {
-  return request.get<{ modelIds: number[] }>(`/api/v1/admin/capabilities/points/${id}/models`)
+  return request.get<{ modelIds: number[] }>(`/api/v1/admin/creation/features/${id}/models`)
 }
 
 export function saveFeatureModelMapping(id: number, data: { modelIds: number[] }) {
-  return request.put(`/api/v1/admin/capabilities/points/${id}/models`, data)
+  return request.put(`/api/v1/admin/creation/features/${id}/models`, data)
 }
 
 export function getFeatureGrantList(params: { userId?: number; pageNo: number; pageSize: number }) {
-  return request.get<PageResult<CapabilityGrant>>('/api/v1/admin/capabilities/grants', { params })
+  return request.get<PageResult<FeatureGrant>>('/api/v1/admin/creation/feature-grants', { params })
 }
 
-export function revokeCapability(grantId: number) {
-  return request.post(`/api/v1/admin/capabilities/grants/${grantId}/revoke`)
+export function revokeFeature(grantId: number) {
+  return request.post(`/api/v1/admin/creation/features/grants/${grantId}/revoke`)
 }
 
 export function getFeatureChangeLog(params: { featureId?: number; pageNo: number; pageSize: number }) {
-  return request.get<PageResult<CapabilityChangeLog>>('/api/v1/admin/capabilities/change-log', { params })
+  return request.get<PageResult<FeatureChangeLog>>('/api/v1/admin/creation/features/change-log', { params })
 }

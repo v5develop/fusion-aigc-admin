@@ -19,13 +19,13 @@
       <template #bodyCell="{ column, record }">
         <template v-if="column.dataIndex === 'changeType'">
           <a-tag :color="changeTypeColorMap[record.changeType]">
-            {{ capabilityChangeLogChangeTypeMap[record.changeType] || record.changeType }}
+            {{ featureChangeLogChangeTypeMap[record.changeType] || record.changeType }}
           </a-tag>
         </template>
 
         <template v-if="column.dataIndex === 'source'">
           <a-tag>
-            {{ capabilityChangeLogSourceMap[record.source] || record.source }}
+            {{ featureChangeLogSourceMap[record.source] || record.source }}
           </a-tag>
         </template>
       </template>
@@ -42,21 +42,21 @@ import { getFeatureChangeLog } from '@/api/feature'
 
 const { t } = useI18n()
 
-const capabilityChangeLogChangeTypeMap: Record<string, string> = {
-  grant: t('capabilityChangeLog.changeTypeMap.grant'),
-  revoke: t('capabilityChangeLog.changeTypeMap.revoke'),
-  upgrade: t('capabilityChangeLog.changeTypeMap.upgrade'),
-  downgrade: t('capabilityChangeLog.changeTypeMap.downgrade'),
-  manualAdd: t('capabilityChangeLog.changeTypeMap.manualAdd'),
-  manualRemove: t('capabilityChangeLog.changeTypeMap.manualRemove'),
-  expire: t('capabilityChangeLog.changeTypeMap.expire'),
+const featureChangeLogChangeTypeMap: Record<string, string> = {
+  grant: t('featureChangeLog.changeTypeMap.grant'),
+  revoke: t('featureChangeLog.changeTypeMap.revoke'),
+  upgrade: t('featureChangeLog.changeTypeMap.upgrade'),
+  downgrade: t('featureChangeLog.changeTypeMap.downgrade'),
+  manualAdd: t('featureChangeLog.changeTypeMap.manualAdd'),
+  manualRemove: t('featureChangeLog.changeTypeMap.manualRemove'),
+  expire: t('featureChangeLog.changeTypeMap.expire'),
 }
 
-const capabilityChangeLogSourceMap: Record<string, string> = {
-  unionGrant: t('capabilityChangeLog.sourceMap.unionGrant'),
-  unionRevoke: t('capabilityChangeLog.sourceMap.unionRevoke'),
-  manual: t('capabilityChangeLog.sourceMap.manual'),
-  systemExpire: t('capabilityChangeLog.sourceMap.systemExpire'),
+const featureChangeLogSourceMap: Record<string, string> = {
+  unionGrant: t('featureChangeLog.sourceMap.unionGrant'),
+  unionRevoke: t('featureChangeLog.sourceMap.unionRevoke'),
+  manual: t('featureChangeLog.sourceMap.manual'),
+  systemExpire: t('featureChangeLog.sourceMap.systemExpire'),
 }
 
 const changeTypeColorMap: Record<string, string> = {
@@ -71,51 +71,51 @@ const changeTypeColorMap: Record<string, string> = {
 
 const columns = [
   {
-    title: t('capabilityChangeLog.userId'),
+    title: t('featureChangeLog.userId'),
     dataIndex: 'userId',
     searchType: 'input' as const,
     width: 100,
   },
   {
-    title: t('capabilityChangeLog.username'),
+    title: t('featureChangeLog.username'),
     dataIndex: 'username',
     searchType: 'input' as const,
     width: 120,
   },
   {
-    title: t('capabilityChangeLog.featureCode'),
+    title: t('featureChangeLog.featureCode'),
     dataIndex: 'featureCode',
     searchType: 'input' as const,
     width: 120,
   },
   {
-    title: t('capabilityChangeLog.unionUserId'),
+    title: t('featureChangeLog.unionUserId'),
     dataIndex: 'unionUserId',
     searchType: 'input' as const,
     width: 150,
   },
   {
-    title: t('capabilityChangeLog.changeType'),
+    title: t('featureChangeLog.changeType'),
     dataIndex: 'changeType',
     searchType: 'select' as const,
     searchOptions: [
-      { label: t('capabilityChangeLog.changeTypeMap.grant'), value: 'grant' },
-      { label: t('capabilityChangeLog.changeTypeMap.revoke'), value: 'revoke' },
-      { label: t('capabilityChangeLog.changeTypeMap.upgrade'), value: 'upgrade' },
-      { label: t('capabilityChangeLog.changeTypeMap.downgrade'), value: 'downgrade' },
-      { label: t('capabilityChangeLog.changeTypeMap.manualAdd'), value: 'manualAdd' },
-      { label: t('capabilityChangeLog.changeTypeMap.manualRemove'), value: 'manualRemove' },
-      { label: t('capabilityChangeLog.changeTypeMap.expire'), value: 'expire' },
+      { label: t('featureChangeLog.changeTypeMap.grant'), value: 'grant' },
+      { label: t('featureChangeLog.changeTypeMap.revoke'), value: 'revoke' },
+      { label: t('featureChangeLog.changeTypeMap.upgrade'), value: 'upgrade' },
+      { label: t('featureChangeLog.changeTypeMap.downgrade'), value: 'downgrade' },
+      { label: t('featureChangeLog.changeTypeMap.manualAdd'), value: 'manualAdd' },
+      { label: t('featureChangeLog.changeTypeMap.manualRemove'), value: 'manualRemove' },
+      { label: t('featureChangeLog.changeTypeMap.expire'), value: 'expire' },
     ],
     width: 120,
   },
   {
-    title: t('capabilityChangeLog.operator'),
+    title: t('featureChangeLog.operator'),
     dataIndex: 'operator',
     width: 120,
   },
   {
-    title: t('capabilityChangeLog.remark'),
+    title: t('featureChangeLog.remark'),
     dataIndex: 'remark',
     ellipsis: true,
   },
@@ -140,6 +140,6 @@ async function loadData(params: Record<string, unknown>) {
 }
 
 function handleExport() {
-  message.success(t('capabilityChangeLog.exportSuccess'))
+  message.success(t('featureChangeLog.exportSuccess'))
 }
 </script>

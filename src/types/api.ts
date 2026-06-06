@@ -106,12 +106,12 @@ export interface User {
   isUnionBound: boolean
   status: number
   pointsBalance: number
-  capabilities: UserCapability[]
+  capabilities: UserFeature[]
   createTime: string
   updateTime: string
 }
 
-export interface UserCapability {
+export interface UserFeature {
   id: number
   featureCode: string
   featureName: Record<string, string>
@@ -173,6 +173,7 @@ export interface ModelPricing {
   id: number
   modelId: number
   modelName?: string
+  modelCode?: string
   actionType: string
   pricePoints: number
   priceUnit?: string
@@ -441,8 +442,8 @@ export interface SystemConfig {
   defaultPoints?: string | number
 }
 
-// Capability Grant Types
-export interface CapabilityGrant {
+// Feature Grant Types
+export interface FeatureGrant {
   id: number
   userId: number
   username: string
@@ -453,7 +454,7 @@ export interface CapabilityGrant {
   status: number
 }
 
-export interface CapabilityChangeLog {
+export interface FeatureChangeLog {
   id: number
   userId: number
   username: string

@@ -16,13 +16,13 @@
 
         <template v-if="column.dataIndex === 'source'">
           <a-tag :color="record.source === 'union' ? 'blue' : 'orange'">
-            {{ capabilityGrantSourceMap[record.source] || record.source }}
+            {{ featureGrantSourceMap[record.source] || record.source }}
           </a-tag>
         </template>
 
         <template v-if="column.dataIndex === 'status'">
           <a-tag :color="statusColorMap[record.status]">
-            {{ capabilityGrantStatusMap[record.status] || '-' }}
+            {{ featureGrantStatusMap[record.status] || '-' }}
           </a-tag>
         </template>
 
@@ -34,7 +34,7 @@
             danger
             @click="handleRevoke(record)"
           >
-            {{ $t('capabilityGrant.revoke') }}
+            {{ $t('featureGrant.revoke') }}
           </a-button>
         </template>
       </template>
@@ -47,21 +47,21 @@ import { computed } from 'vue'
 import { message, Modal } from 'antdv-next'
 import { useI18n } from 'vue-i18n'
 import ProTable from '@/components/Pro/ProTable/index.vue'
-import { getFeatureGrantList, revokeCapability } from '@/api/feature'
+import { getFeatureGrantList, revokeFeature } from '@/api/feature'
 import { getLocale } from '@/locales'
 
 const { t } = useI18n()
 const currentLocale = computed(() => getLocale())
 
-const capabilityGrantSourceMap: Record<string, string> = {
-  union: t('capabilityGrant.sourceMap.union'),
-  manual: t('capabilityGrant.sourceMap.manual'),
+const featureGrantSourceMap: Record<string, string> = {
+  union: t('featureGrant.sourceMap.union'),
+  manual: t('featureGrant.sourceMap.manual'),
 }
 
-const capabilityGrantStatusMap: Record<number, string> = {
-  1: t('capabilityGrant.statusMap.active'),
-  2: t('capabilityGrant.statusMap.expired'),
-  3: t('capabilityGrant.statusMap.revoked'),
+const featureGrantStatusMap: Record<number, string> = {
+  1: t('featureGrant.statusMap.active'),
+  2: t('featureGrant.statusMap.expired'),
+  3: t('featureGrant.statusMap.revoked'),
 }
 
 const statusColorMap: Record<number, string> = {
@@ -72,50 +72,50 @@ const statusColorMap: Record<number, string> = {
 
 const columns = [
   {
-    title: t('capabilityGrant.userId'),
+    title: t('featureGrant.userId'),
     dataIndex: 'userId',
     searchType: 'input' as const,
     width: 100,
   },
   {
-    title: t('capabilityGrant.username'),
+    title: t('featureGrant.username'),
     dataIndex: 'username',
     searchType: 'input' as const,
     width: 120,
   },
   {
-    title: t('capabilityGrant.featureName'),
+    title: t('featureGrant.featureName'),
     dataIndex: 'featureName',
     width: 180,
   },
   {
-    title: t('capabilityGrant.source'),
+    title: t('featureGrant.source'),
     dataIndex: 'source',
     searchType: 'select' as const,
     searchOptions: [
-      { label: t('capabilityGrant.sourceMap.union'), value: 'union' },
-      { label: t('capabilityGrant.sourceMap.manual'), value: 'manual' },
+      { label: t('featureGrant.sourceMap.union'), value: 'union' },
+      { label: t('featureGrant.sourceMap.manual'), value: 'manual' },
     ],
     width: 100,
   },
   {
-    title: t('capabilityGrant.effectiveTime'),
+    title: t('featureGrant.effectiveTime'),
     dataIndex: 'effectiveTime',
     width: 180,
   },
   {
-    title: t('capabilityGrant.expireTime'),
+    title: t('featureGrant.expireTime'),
     dataIndex: 'expireTime',
     width: 180,
   },
   {
-    title: t('capabilityGrant.status'),
+    title: t('featureGrant.status'),
     dataIndex: 'status',
     searchType: 'select' as const,
     searchOptions: [
-      { label: t('capabilityGrant.statusMap.active'), value: 1 },
-      { label: t('capabilityGrant.statusMap.expired'), value: 2 },
-      { label: t('capabilityGrant.statusMap.revoked'), value: 3 },
+      { label: t('featureGrant.statusMap.active'), value: 1 },
+      { label: t('featureGrant.statusMap.expired'), value: 2 },
+      { label: t('featureGrant.statusMap.revoked'), value: 3 },
     ],
     width: 100,
     align: 'center' as const,
@@ -146,10 +146,10 @@ async function loadData(params: Record<string, unknown>) {
 function handleRevoke(record: { id: number }) {
   Modal.confirm({
     title: t('common.warning'),
-    content: t('capabilityGrant.confirmRevoke'),
+    content: t('featureGrant.confirmRevoke'),
     onOk: async () => {
-      await revokeCapability(record.id)
-      message.success(t('capabilityGrant.revokeSuccess'))
+      await revokeFeature(record.id)
+      message.success(t('featureGrant.revokeSuccess'))
     },
   })
 }
