@@ -108,8 +108,8 @@ export default {
     featureManagement: 'Feature Management',
     featureList: 'Feature List',
     featureModelMapping: 'Model Mapping',
-    featureGrant: 'Capability Grants',
-    featureChangeLog: 'Capability Change Log',
+    featureGrant: 'Feature Grants',
+    featureChangeLog: 'Feature Change Log',
     modelManagement: 'Model Management',
     modelList: 'Model List',
     modelPricing: 'Model Pricing',
@@ -2310,8 +2310,8 @@ export default {
   feature: {
     list: 'Feature List',
     modelMapping: 'Model Mapping',
-    grant: 'Capability Grants',
-    changeLog: 'Capability Change Log',
+    grant: 'Feature Grants',
+    changeLog: 'Feature Change Log',
     createFeature: 'Create Feature',
     editFeature: 'Edit Feature',
     deleteFeature: 'Delete Feature',
@@ -2334,8 +2334,8 @@ export default {
     configureModels: 'Configure Models',
     mappingSaveSuccess: 'Model mapping saved successfully',
     noFeatureData: 'No feature data',
-    noGrantData: 'No capability grant records',
-    noChangeLogData: 'No capability change logs',
+    noGrantData: 'No feature grant records',
+    noChangeLogData: 'No feature change logs',
   },
 
   // Model Management
@@ -2366,10 +2366,11 @@ export default {
     configurePricing: 'Configure Pricing',
     viewCosts: 'View Costs',
     modelTypes: {
+      chat: 'Chat',
       image: 'Image Generation',
       video: 'Video Generation',
-      audio: 'Audio Generation',
-      text: 'Text Generation',
+      tts: 'Text-to-Speech',
+      stt: 'Speech-to-Text',
     },
     yes: 'Yes',
     no: 'No',
@@ -2814,9 +2815,9 @@ export default {
     },
   },
 
-  // Capability Grant
-  capabilityGrant: {
-    title: 'Capability Grants',
+  // Feature Grant
+  featureGrant: {
+    title: 'Feature Grants',
     userId: 'User ID',
     username: 'Username',
     featureName: 'Feature',
@@ -2825,8 +2826,8 @@ export default {
     expireTime: 'Expire Time',
     status: 'Status',
     revoke: 'Revoke',
-    confirmRevoke: 'Are you sure you want to revoke this capability? After revocation, the user will no longer be able to use this feature.',
-    revokeSuccess: 'Capability revoked successfully',
+    confirmRevoke: 'Are you sure you want to revoke this feature? After revocation, the user will no longer be able to use this feature.',
+    revokeSuccess: 'Feature revoked successfully',
     sourceMap: {
       union: 'Alliance Grant',
       manual: 'Manual Add',
@@ -2838,9 +2839,9 @@ export default {
     },
   },
 
-  // Capability Change Log
-  capabilityChangeLog: {
-    title: 'Capability Change Log',
+  // Feature Change Log
+  featureChangeLog: {
+    title: 'Feature Change Log',
     userId: 'User ID',
     username: 'Username',
     featureCode: 'Feature Code',

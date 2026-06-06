@@ -1,6 +1,7 @@
 <template>
   <div class="page-container">
     <ProTable
+      ref="tableRef"
       :columns="columns"
       :request="loadData"
       :search="{}"
@@ -95,18 +96,20 @@ import type { AIModel } from '@/types/api'
 
 const { t } = useI18n()
 
-const modelTypeMap: Record<string, string> = {
-  image: t('model.modelTypes.image'),
-  video: t('model.modelTypes.video'),
-  audio: t('model.modelTypes.audio'),
-  text: t('model.modelTypes.text'),
+const modelTypeMap: Record<number, string> = {
+  1: t('model.modelTypes.chat'),
+  2: t('model.modelTypes.image'),
+  3: t('model.modelTypes.video'),
+  4: t('model.modelTypes.tts'),
+  5: t('model.modelTypes.stt'),
 }
 
 const modelTypeOptions = [
-  { label: t('model.modelTypes.image'), value: 1 },
-  { label: t('model.modelTypes.video'), value: 2 },
-  { label: t('model.modelTypes.audio'), value: 3 },
-  { label: t('model.modelTypes.text'), value: 4 },
+  { label: t('model.modelTypes.chat'), value: 1 },
+  { label: t('model.modelTypes.image'), value: 2 },
+  { label: t('model.modelTypes.video'), value: 3 },
+  { label: t('model.modelTypes.tts'), value: 4 },
+  { label: t('model.modelTypes.stt'), value: 5 },
 ]
 
 const columns = [
@@ -127,10 +130,11 @@ const columns = [
     dataIndex: 'modelType',
     searchType: 'select' as const,
     searchOptions: [
-      { label: t('model.modelTypes.image'), value: 1 },
-      { label: t('model.modelTypes.video'), value: 2 },
-      { label: t('model.modelTypes.audio'), value: 3 },
-      { label: t('model.modelTypes.text'), value: 4 },
+      { label: t('model.modelTypes.chat'), value: 1 },
+      { label: t('model.modelTypes.image'), value: 2 },
+      { label: t('model.modelTypes.video'), value: 3 },
+      { label: t('model.modelTypes.tts'), value: 4 },
+      { label: t('model.modelTypes.stt'), value: 5 },
     ],
     width: 120,
   },
@@ -160,6 +164,7 @@ const columns = [
   },
 ]
 
+const tableRef = ref()
 const modalVisible = ref(false)
 const submitLoading = ref(false)
 const isEdit = ref(false)
@@ -168,7 +173,7 @@ const editId = ref<number | null>(null)
 const formData = reactive({
   code: '',
   name: '',
-  modelType: 1,
+  modelType: 2,
   description: '',
   statusChecked: 1,
 })
@@ -194,7 +199,7 @@ function handleCreate() {
   editId.value = null
   formData.code = ''
   formData.name = ''
-  formData.modelType = 1
+  formData.modelType = 2
   formData.description = ''
   formData.statusChecked = 1
   modalVisible.value = true
@@ -239,6 +244,7 @@ async function handleSubmit() {
       message.success(t('model.createSuccess'))
     }
     modalVisible.value = false
+    tableRef.value?.reload()
   } catch (error) {
     console.error('Failed to save model:', error)
   } finally {

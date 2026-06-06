@@ -1,6 +1,7 @@
 <template>
   <div class="page-container">
     <ProTable
+      ref="tableRef"
       :columns="columns"
       :request="loadData"
       :search="{}"
@@ -66,13 +67,13 @@
         </a-form-item>
         <a-form-item :label="$t('feature.featureName')" required>
           <I18nInput
-            v-model:value="formData.featureName"
+            v-model:value="featureName"
             :placeholder="$t('feature.featureNamePlaceholder')"
           />
         </a-form-item>
         <a-form-item :label="$t('feature.description')">
           <I18nInput
-            v-model:value="formData.description"
+            v-model:value="description"
             :placeholder="$t('feature.descriptionPlaceholder')"
           />
         </a-form-item>
@@ -180,11 +181,13 @@ const modalVisible = ref(false)
 const submitLoading = ref(false)
 const isEdit = ref(false)
 const editId = ref<number | null>(null)
+const tableRef = ref()
+
+const featureName = ref<Record<string, string>>({})
+const description = ref<Record<string, string>>({})
 
 const formData = reactive({
   featureCode: '',
-  featureName: {} as Record<string, string>,
-  description: {} as Record<string, string>,
   actionType: 'IMAGE_GEN',
   statusChecked: 1,
 })
@@ -205,8 +208,8 @@ function handleCreate() {
   isEdit.value = false
   editId.value = null
   formData.featureCode = ''
-  formData.featureName = {}
-  formData.description = {}
+  featureName.value = {}
+  description.value = {}
   formData.actionType = 'IMAGE_GEN'
   formData.statusChecked = 1
   modalVisible.value = true
@@ -216,8 +219,8 @@ function handleEdit(record: Feature) {
   isEdit.value = true
   editId.value = record.id
   formData.featureCode = record.featureCode
-  formData.featureName = record.featureName || {}
-  formData.description = record.description || {}
+  featureName.value = { ...(record.featureName || {}) }
+  description.value = { ...(record.description || {}) }
   formData.actionType = record.actionType || 'IMAGE_GEN'
   formData.statusChecked = record.status
   modalVisible.value = true
@@ -228,7 +231,7 @@ async function handleSubmit() {
     message.error(t('feature.featureCodeRequired'))
     return
   }
-  if (!formData.featureName || !Object.values(formData.featureName).some(v => v)) {
+  if (!featureName.value || !Object.values(featureName.value).some(v => v)) {
     message.error(t('feature.featureNameRequired'))
     return
   }
@@ -237,8 +240,8 @@ async function handleSubmit() {
   try {
     const data = {
       featureCode: formData.featureCode,
-      featureName: formData.featureName,
-      description: formData.description,
+      featureName: featureName.value,
+      description: description.value,
       actionType: formData.actionType,
       status: formData.statusChecked,
     }
@@ -251,6 +254,7 @@ async function handleSubmit() {
       message.success(t('feature.createSuccess'))
     }
     modalVisible.value = false
+    tableRef.value?.reload()
   } catch (error) {
     console.error('Failed to save feature:', error)
   } finally {
@@ -265,6 +269,7 @@ function handleDelete(record: Feature) {
     onOk: async () => {
       await deleteFeature(record.id)
       message.success(t('feature.deleteSuccess'))
+      tableRef.value?.reload()
     },
   })
 }

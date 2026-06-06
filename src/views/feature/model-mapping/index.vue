@@ -1,44 +1,41 @@
 <template>
   <div class="page-container">
     <a-card :title="$t('feature.modelMapping')">
-      <a-form layout="inline" class="mb-4">
+      <a-form layout="inline" class="filter-form">
         <a-form-item :label="$t('feature.featureName')">
           <a-select
             v-model:value="selectedFeatureId"
             :placeholder="$t('feature.featureNamePlaceholder')"
             style="width: 300px"
             show-search
+            :options="featureOptions"
             :filter-option="filterFeatureOption"
             @change="loadFeatureModels"
-          >
-            <a-select-option v-for="feature in featureList" :key="feature.id" :value="feature.id">
-              {{ feature.featureName?.[currentLocale] || feature.featureName?.['zh-CN'] || feature.featureCode }}
-            </a-select-option>
-          </a-select>
+          />
         </a-form-item>
       </a-form>
 
-      <a-divider />
-
       <div v-if="selectedFeatureId" class="model-mapping-content">
-        <div class="mb-4">
+        <div class="save-bar">
           <a-button type="primary" :loading="saveLoading" @click="handleSave">
             <SaveOutlined /> {{ $t('common.save') }}
           </a-button>
         </div>
 
-        <a-row :gutter="[16, 16]">
-          <a-col v-for="model in modelList" :key="model.id" :xs="24" :sm="12" :md="8" :lg="6">
-            <a-card size="small" :class="{ 'model-card-selected': selectedModelIds.includes(model.id) }">
-              <a-checkbox v-model:checked="selectedModelIds" :value="model.id">
-                <div class="model-info">
-                  <div class="model-name">{{ model.name }}</div>
-                  <div class="model-meta">{{ model.code }} · {{ model.modelType }}</div>
-                </div>
-              </a-checkbox>
-            </a-card>
-          </a-col>
-        </a-row>
+        <a-checkbox-group v-model:value="selectedModelIds" style="width: 100%">
+          <a-row :gutter="[16, 16]">
+            <a-col v-for="model in filteredModelList" :key="model.id" :xs="24" :sm="12" :md="8" :lg="6">
+              <a-card size="small" :class="{ 'model-card-selected': selectedModelIds.includes(model.id) }">
+                <a-checkbox :value="model.id">
+                  <div class="model-info">
+                    <div class="model-name">{{ model.name }}</div>
+                    <div class="model-meta">{{ model.code }} · {{ model.modelType }}</div>
+                  </div>
+                </a-checkbox>
+              </a-card>
+            </a-col>
+          </a-row>
+        </a-checkbox-group>
       </div>
 
       <a-empty v-else :description="$t('feature.featureNamePlaceholder')" />
@@ -51,8 +48,8 @@ import { ref, computed, onMounted } from 'vue'
 import { SaveOutlined } from '@antdv-next/icons'
 import { message } from 'antdv-next'
 import { useI18n } from 'vue-i18n'
-import { getFeatureList, getFeatureModelMapping, saveFeatureModelMapping } from '@/api/feature'
-import { getModelList } from '@/api/model'
+import { getFeatureOptions, getFeatureModelMapping, saveFeatureModelMapping } from '@/api/feature'
+import { getModelOptions } from '@/api/model'
 import type { Feature, AIModel } from '@/types/api'
 import { getLocale } from '@/locales'
 
@@ -65,10 +62,34 @@ const selectedFeatureId = ref<number | null>(null)
 const selectedModelIds = ref<number[]>([])
 const saveLoading = ref(false)
 
+const actionTypeModelTypeMap: Record<string, number> = {
+  IMAGE_GEN: 2,
+  VIDEO_GEN: 3,
+  TEXT_CHAT: 1,
+}
+
+const selectedFeature = computed(() =>
+  featureList.value.find(f => f.id === selectedFeatureId.value),
+)
+
+const filteredModelList = computed(() => {
+  const feature = selectedFeature.value
+  if (!feature?.actionType) return modelList.value
+  const requiredType = actionTypeModelTypeMap[feature.actionType]
+  if (!requiredType) return modelList.value
+  return modelList.value.filter(m => m.modelType === requiredType)
+})
+
+const featureOptions = computed(() =>
+  featureList.value.map(feature => ({
+    label: feature.featureName?.[currentLocale.value] || feature.featureName?.['zh-CN'] || feature.featureCode,
+    value: feature.id,
+  })),
+)
+
 async function loadFeatures() {
   try {
-    const res = await getFeatureList({ pageNo: 1, pageSize: 100 })
-    featureList.value = res.list
+    featureList.value = await getFeatureOptions()
   } catch (error) {
     console.error('Failed to load features:', error)
   }
@@ -76,8 +97,7 @@ async function loadFeatures() {
 
 async function loadModels() {
   try {
-    const res = await getModelList({ pageNo: 1, pageSize: 100 })
-    modelList.value = res.list
+    modelList.value = await getModelOptions()
   } catch (error) {
     console.error('Failed to load models:', error)
   }
@@ -91,7 +111,18 @@ async function loadFeatureModels() {
 
   try {
     const res = await getFeatureModelMapping(selectedFeatureId.value)
-    selectedModelIds.value = res.modelIds || []
+    const modelIds = res.modelIds || []
+    // Filter out modelIds that don't match the current feature's actionType
+    const feature = selectedFeature.value
+    if (feature?.actionType) {
+      const requiredType = actionTypeModelTypeMap[feature.actionType]
+      if (requiredType) {
+        const validIds = new Set(modelList.value.filter(m => m.modelType === requiredType).map(m => m.id))
+        selectedModelIds.value = modelIds.filter(id => validIds.has(id))
+        return
+      }
+    }
+    selectedModelIds.value = modelIds
   } catch (error) {
     console.error('Failed to load feature models:', error)
     selectedModelIds.value = []
@@ -128,6 +159,14 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.filter-form {
+  margin-bottom: 16px;
+}
+
+.save-bar {
+  margin-bottom: 16px;
+}
+
 .model-mapping-content {
   margin-top: 16px;
 }
