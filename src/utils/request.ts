@@ -88,7 +88,7 @@ service.interceptors.response.use(
     if (res.code !== undefined && res.code !== 0) {
       const { code, message: msg } = res
 
-      // Auth error: 401 or similar
+      // Auth error: HTTP 标准 401
       if (code === 401) {
         handleAuthFailure()
         const authError = new Error(msg || 'Unauthorized') as Error & { isAuthError: boolean }
@@ -96,37 +96,38 @@ service.interceptors.response.use(
         return Promise.reject(authError)
       }
 
-      // Server error: 5xx
-      if (code >= 500) {
-        message.error(msg || '服务器内部错误')
-        return Promise.reject(new Error(msg || 'Server Error'))
-      }
-
-      // Rate limit: 429
-      if (code === 429) {
-        message.error(msg || '请求过于频繁，请稍后重试')
-        return Promise.reject(new Error(msg || 'Rate Limited'))
-      }
-
-      // Circuit breaker / service degraded
-      if (code === 503) {
-        message.error(msg || '服务暂时不可用，请稍后重试')
-        return Promise.reject(new Error(msg || 'Service Degraded'))
-      }
-
-      // Blacklist / access denied: 403
+      // Access denied: HTTP 标准 403
       if (code === 403) {
         message.error(msg || '访问被拒绝')
         return Promise.reject(new Error(msg || 'Access Denied'))
       }
 
-      // Bad request: 400
+      // Bad request: HTTP 标准 400
       if (code === 400) {
         message.error(msg || '请求参数错误')
         return Promise.reject(new Error(msg || 'Bad Request'))
       }
 
-      // Other business errors
+      // Not found: HTTP 标准 404
+      if (code === 404) {
+        message.error(msg || '资源不存在')
+        return Promise.reject(new Error(msg || 'Not Found'))
+      }
+
+      // Conflict: HTTP 标准 409
+      if (code === 409) {
+        message.error(msg || '资源冲突')
+        return Promise.reject(new Error(msg || 'Conflict'))
+      }
+
+      // System error: 5xxx 业务错误码
+      if (code >= 5000 && code < 6000) {
+        message.error(msg || '服务器内部错误')
+        return Promise.reject(new Error(msg || 'Server Error'))
+      }
+
+      // All other business errors (1xxx/2xxx/3xxx/4xxx/6xxx/7xxx/40xxx/46xxx)
+      // Display the specific error message from backend
       message.error(msg || '请求失败')
       return Promise.reject(new Error(msg || 'Error'))
     }
