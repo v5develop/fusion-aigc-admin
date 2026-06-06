@@ -1,4 +1,5 @@
 import { request } from '@/utils/request'
+import type { AxiosRequestConfig } from 'axios'
 import {
   getToken, setToken, removeToken,
   getUser, setUser, removeUser
@@ -6,7 +7,9 @@ import {
 import type { LoginParams, LoginResult, AdminInfo, UserInfo } from '@/types/auth'
 
 export function loginWithPassword(username: string, password: string) {
-  return request.post<LoginResult>('/api/v1/admin/auth/login', { username, password })
+  return request.post<LoginResult>('/api/v1/admin/auth/login', { username, password }, {
+    silentError: true,
+  } as AxiosRequestConfig & { silentError: boolean })
 }
 
 export function refreshToken(refreshToken: string) {

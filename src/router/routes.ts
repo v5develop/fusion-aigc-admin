@@ -175,6 +175,54 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
     ],
   },
   {
+    path: '/creation',
+    name: 'Creation',
+    redirect: '/creation/dashboard',
+    component: () => import('@/components/Layout/AdminLayout.vue'),
+    meta: {
+      title: 'menu.creationManagement',
+      icon: 'ThunderboltOutlined',
+      requiresAuth: true,
+      order: 25,
+    },
+    children: [
+      {
+        path: 'dashboard',
+        name: 'CreationDashboard',
+        component: () => import('@/views/creation/dashboard/index.vue'),
+        meta: {
+          title: 'menu.creationDashboard',
+          icon: 'DashboardOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'task:dashboard',
+        },
+      },
+      {
+        path: 'task',
+        name: 'CreationTaskList',
+        component: () => import('@/views/creation/task/index.vue'),
+        meta: {
+          title: 'menu.creationTaskList',
+          icon: 'UnorderedListOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'task:view',
+        },
+      },
+      {
+        path: 'task/detail/:id',
+        name: 'CreationTaskDetail',
+        component: () => import('@/views/creation/task/detail.vue'),
+        meta: {
+          title: 'menu.creationTaskDetail',
+          requiresAuth: true,
+          hidden: true,
+          activeMenu: '/creation/task',
+          requiredPermissions: 'task:view',
+        },
+      },
+    ],
+  },
+  {
     path: '/feature',
     name: 'Feature',
     redirect: '/feature/list',

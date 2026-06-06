@@ -86,11 +86,16 @@ service.interceptors.response.use(
     const res = response.data
 
     if (res.code !== undefined && res.code !== 0) {
-      const { code, message: msg } = res
+      const { code } = res
+      const msg = res.msg || res.message || ''
+
+      // Check if request opts out of auto error message
+      const silentError = (response.config as AxiosRequestConfig & { silentError?: boolean })
+        ?.silentError
 
       // Auth error: HTTP 标准 401
       if (code === 401) {
-        handleAuthFailure()
+        if (!silentError) handleAuthFailure()
         const authError = new Error(msg || 'Unauthorized') as Error & { isAuthError: boolean }
         authError.isAuthError = true
         return Promise.reject(authError)
@@ -98,37 +103,37 @@ service.interceptors.response.use(
 
       // Access denied: HTTP 标准 403
       if (code === 403) {
-        message.error(msg || '访问被拒绝')
+        if (!silentError) message.error(msg || '访问被拒绝')
         return Promise.reject(new Error(msg || 'Access Denied'))
       }
 
       // Bad request: HTTP 标准 400
       if (code === 400) {
-        message.error(msg || '请求参数错误')
+        if (!silentError) message.error(msg || '请求参数错误')
         return Promise.reject(new Error(msg || 'Bad Request'))
       }
 
       // Not found: HTTP 标准 404
       if (code === 404) {
-        message.error(msg || '资源不存在')
+        if (!silentError) message.error(msg || '资源不存在')
         return Promise.reject(new Error(msg || 'Not Found'))
       }
 
       // Conflict: HTTP 标准 409
       if (code === 409) {
-        message.error(msg || '资源冲突')
+        if (!silentError) message.error(msg || '资源冲突')
         return Promise.reject(new Error(msg || 'Conflict'))
       }
 
       // System error: 5xxx 业务错误码
       if (code >= 5000 && code < 6000) {
-        message.error(msg || '服务器内部错误')
+        if (!silentError) message.error(msg || '服务器内部错误')
         return Promise.reject(new Error(msg || 'Server Error'))
       }
 
       // All other business errors (1xxx/2xxx/3xxx/4xxx/6xxx/7xxx/40xxx/46xxx)
       // Display the specific error message from backend
-      message.error(msg || '请求失败')
+      if (!silentError) message.error(msg || '请求失败')
       return Promise.reject(new Error(msg || 'Error'))
     }
 
