@@ -13,7 +13,7 @@ import {
   mockPricing,
   mockCostLogs,
   mockPointsLogs,
-  mockCapabilityGrants,
+  mockFeatureGrants,
   mockChangeLogs,
   mockDifferences,
   mockConsumptions,
@@ -32,7 +32,7 @@ const models = [...mockModels];
 const pricing = [...mockPricing];
 const costLogs = [...mockCostLogs];
 const pointsLogs = [...mockPointsLogs];
-const capabilityGrants = [...mockCapabilityGrants];
+const featureGrants = [...mockFeatureGrants];
 const changeLogs = [...mockChangeLogs];
 const differences = [...mockDifferences];
 const consumptions = [...mockConsumptions];
@@ -165,9 +165,21 @@ export default defineMock([
 
   // ========== Feature APIs ==========
 
-  // Feature list
+  // Feature list (all, for dropdown)
   {
-    url: '/api/v1/admin/capabilities/points',
+    url: '/api/v1/admin/creation/features/all',
+    method: 'GET',
+    body: () => ({
+      code: 0,
+      message: 'Success',
+      data: features,
+      success: true,
+    }),
+  },
+
+  // Feature list (paginated)
+  {
+    url: '/api/v1/admin/creation/features',
     method: 'GET',
     body: (req) => {
       const { pageNo = 1, pageSize = 10, featureCode, status } = req.query || {};
@@ -194,7 +206,7 @@ export default defineMock([
 
   // Create feature
   {
-    url: '/api/v1/admin/capabilities/points',
+    url: '/api/v1/admin/creation/features',
     method: 'POST',
     body: (req) => {
       const newFeature = {
@@ -209,12 +221,12 @@ export default defineMock([
 
   // Update feature
   {
-    url: '/api/v1/admin/capabilities/points/:id',
+    url: '/api/v1/admin/creation/features/:id',
     method: 'PUT',
     body: (req) => {
       const id = Number(req.params.id);
       const idx = features.findIndex(f => f.id === id);
-      if (idx === -1) return { code: 404, message: '功能点不存在', data: null, success: false };
+      if (idx === -1) return { code: 404, message: '创作能力不存在', data: null, success: false };
       Object.assign(features[idx], req.body);
       return { code: 0, message: 'Success', data: true, success: true };
     },
@@ -222,12 +234,12 @@ export default defineMock([
 
   // Delete feature
   {
-    url: '/api/v1/admin/capabilities/points/:id',
+    url: '/api/v1/admin/creation/features/:id',
     method: 'DELETE',
     body: (req) => {
       const id = Number(req.params.id);
       const idx = features.findIndex(f => f.id === id);
-      if (idx === -1) return { code: 404, message: '功能点不存在', data: null, success: false };
+      if (idx === -1) return { code: 404, message: '创作能力不存在', data: null, success: false };
       features[idx].status = 0;
       return { code: 0, message: 'Success', data: true, success: true };
     },
@@ -235,18 +247,18 @@ export default defineMock([
 
   // Feature model mapping
   {
-    url: '/api/v1/admin/capabilities/points/:id/models',
+    url: '/api/v1/admin/creation/features/:id/models',
     method: 'GET',
     body: { code: 0, message: 'Success', data: { modelIds: [1, 2] }, success: true },
   },
 
   {
-    url: '/api/v1/admin/capabilities/points/:id/models',
+    url: '/api/v1/admin/creation/features/:id/models',
     method: 'PUT',
     body: { code: 0, message: 'Success', data: true, success: true },
   },
 
-  // Capability grant list
+  // Feature grant list
   {
     url: '/api/v1/admin/capabilities/grants',
     method: 'GET',
@@ -258,8 +270,8 @@ export default defineMock([
         code: 0,
         message: 'Success',
         data: {
-          list: capabilityGrants.slice(start, end),
-          total: capabilityGrants.length,
+          list: featureGrants.slice(start, end),
+          total: featureGrants.length,
           pageNo: Number(pageNo),
           pageSize: Number(pageSize),
         },
@@ -268,13 +280,13 @@ export default defineMock([
     },
   },
 
-  // Revoke capability
+  // Revoke feature
   {
     url: '/api/v1/admin/capabilities/grants/:grantId/revoke',
     method: 'POST',
     body: (req) => {
       const grantId = Number(req.params.grantId);
-      const grant = capabilityGrants.find(g => g.id === grantId);
+      const grant = featureGrants.find(g => g.id === grantId);
       if (!grant) return { code: 404, message: '记录不存在', data: null, success: false };
       grant.status = 3;
       return { code: 0, message: 'Success', data: true, success: true };
@@ -304,6 +316,17 @@ export default defineMock([
   },
 
   // ========== Model APIs ==========
+
+  {
+    url: '/api/v1/admin/models/list',
+    method: 'GET',
+    body: () => ({
+      code: 0,
+      message: 'Success',
+      data: models,
+      success: true,
+    }),
+  },
 
   {
     url: '/api/v1/admin/models',

@@ -613,7 +613,7 @@ const apiDocs = computed(() => {
       requestParams: [],
       requestExample: null,
       responseParams: [
-        { name: 'code', type: 'String', required: false, description: '能力编码' },
+        { name: 'code', type: 'String', required: false, description: '创作能力编码' },
         { name: 'name', type: 'Map<String, String>', required: false, description: t('settingsUnion.featureNameDesc') },
         { name: 'description', type: 'Map<String, String>', required: false, description: t('settingsUnion.featureDescDesc') },
         { name: 'status', type: 'String', required: false, description: t('settingsUnion.featureStatusDesc') },
@@ -625,13 +625,13 @@ const apiDocs = computed(() => {
           {
             code: 'video_gen',
             name: { zh: '视频生成', en: 'Video Generation' },
-            description: { zh: 'AI 视频生成能力', en: 'AI video generation' },
+            description: { zh: 'AI 视频生成创作能力', en: 'AI video generation' },
             status: 'active',
           },
           {
             code: 'image_gen',
             name: { zh: '图片生成', en: 'Image Generation' },
-            description: { zh: 'AI 图片生成能力', en: 'AI image generation' },
+            description: { zh: 'AI 图片生成创作能力', en: 'AI image generation' },
             status: 'active',
           },
         ],

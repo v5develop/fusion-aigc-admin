@@ -1,6 +1,7 @@
 <template>
   <div class="page-container">
     <ProTable
+      ref="tableRef"
       :columns="columns"
       :request="loadData"
       :search="{}"
@@ -19,6 +20,10 @@
       <template #bodyCell="{ column, record }">
         <template v-if="column.dataIndex === 'modelName'">
           {{ record.modelName || '-' }}
+        </template>
+
+        <template v-if="column.dataIndex === 'modelCode'">
+          {{ record.modelCode || '-' }}
         </template>
 
         <template v-if="column.dataIndex === 'actionType'">
@@ -71,11 +76,8 @@
             show-search
             :filter-option="filterModelOption"
             :disabled="isEdit"
-          >
-            <a-select-option v-for="model in modelList" :key="model.id" :value="model.id">
-              {{ model.name }}
-            </a-select-option>
-          </a-select>
+            :options="modelSelectOptions"
+          />
         </a-form-item>
         <a-form-item :label="$t('pricing.actionType')" required>
           <a-select v-model:value="formData.actionType" :options="actionTypeOptions" />
@@ -107,14 +109,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { PlusOutlined } from '@antdv-next/icons'
 import { message, Modal } from 'antdv-next'
 import { useI18n } from 'vue-i18n'
 import dayjs from 'dayjs'
 import ProTable from '@/components/Pro/ProTable/index.vue'
 import { getPricingList, createPricing, updatePricing, deletePricing } from '@/api/pricing'
-import { getModelList } from '@/api/model'
+import { getModelOptions } from '@/api/model'
 import type { ModelPricing } from '@/types/api'
 import type { AIModel } from '@/types/api'
 
@@ -152,7 +154,12 @@ const columns = [
   {
     title: t('model.modelName'),
     dataIndex: 'modelName',
-    width: 180,
+    width: 150,
+  },
+  {
+    title: t('model.modelCode'),
+    dataIndex: 'modelCode',
+    width: 150,
   },
   {
     title: t('pricing.actionType'),
@@ -203,7 +210,9 @@ const columns = [
   },
 ]
 
+const tableRef = ref()
 const modelList = ref<AIModel[]>([])
+const modelSelectOptions = computed(() => modelList.value.map(m => ({ label: m.name, value: m.id })))
 const modalVisible = ref(false)
 const submitLoading = ref(false)
 const isEdit = ref(false)
@@ -221,8 +230,7 @@ const formData = reactive({
 
 async function loadModels() {
   try {
-    const res = await getModelList({ pageNo: 1, pageSize: 100 })
-    modelList.value = res.list
+    modelList.value = await getModelOptions()
   } catch (error) {
     console.error('Failed to load models:', error)
   }
@@ -289,7 +297,7 @@ async function handleSubmit() {
       actionType: formData.actionType,
       pricePoints: formData.pricePoints,
       priceUnit: formData.priceUnit,
-      effectiveTime: formData.effectiveTime ? formData.effectiveTime.toISOString() : undefined,
+      effectiveTime: formData.effectiveTime ? formData.effectiveTime.format('YYYY-MM-DD HH:mm:ss') : undefined,
       status: formData.statusChecked,
     }
 
@@ -301,6 +309,7 @@ async function handleSubmit() {
       message.success(t('pricing.createSuccess'))
     }
     modalVisible.value = false
+    tableRef.value?.reload()
   } catch (error) {
     console.error('Failed to save pricing:', error)
   } finally {
@@ -315,6 +324,7 @@ function handleDelete(record: any) {
     onOk: async () => {
       await deletePricing(record.id)
       message.success(t('pricing.deleteSuccess'))
+      tableRef.value?.reload()
     },
   })
 }

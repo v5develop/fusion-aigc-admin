@@ -36,10 +36,10 @@ export const mockFeatures = [
 export const mockModels = [
   {
     id: 1,
-    modelCode: 'gpt-4o',
-    modelName: 'GPT-4o',
+    name: 'GPT-4o',
+    code: 'gpt-4o',
     provider: 'OpenAI',
-    modelType: 'text-to-video',
+    modelType: 2,
     icon: 'https://example.com/icons/gpt4o.png',
     description: 'OpenAI GPT-4o 视频生成模型',
     status: 1,
@@ -51,13 +51,14 @@ export const mockModels = [
     maxConcurrency: 10,
     apiConfigId: 1,
     createTime: '2025-01-10T10:00:00',
+    updateTime: '2025-01-10T10:00:00',
   },
   {
     id: 2,
-    modelCode: 'claude-3-5-sonnet',
-    modelName: 'Claude 3.5 Sonnet',
+    name: 'Claude 3.5 Sonnet',
+    code: 'claude-3-5-sonnet',
     provider: 'Anthropic',
-    modelType: 'text-to-image',
+    modelType: 2,
     icon: 'https://example.com/icons/claude.png',
     description: 'Anthropic Claude 3.5 图片生成',
     status: 1,
@@ -69,6 +70,7 @@ export const mockModels = [
     maxConcurrency: 5,
     apiConfigId: 2,
     createTime: '2025-01-11T10:00:00',
+    updateTime: '2025-01-11T10:00:00',
   },
 ]
 
@@ -195,7 +197,7 @@ export const mockPointsLogs = [
   },
 ]
 
-export const mockCapabilityGrants = [
+export const mockFeatureGrants = [
   {
     id: 1,
     userId: 1001,
