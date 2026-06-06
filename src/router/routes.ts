@@ -383,6 +383,17 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
           requiredPermissions: 'billing:exception',
         },
       },
+      {
+        path: 'action-type',
+        name: 'BillingActionType',
+        component: () => import('@/views/billing/action-type/index.vue'),
+        meta: {
+          title: 'menu.billingActionType',
+          icon: 'TagOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'action_type:view',
+        },
+      },
     ],
   },
   {

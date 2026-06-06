@@ -117,17 +117,22 @@ import dayjs from 'dayjs'
 import ProTable from '@/components/Pro/ProTable/index.vue'
 import { getPricingList, createPricing, updatePricing, deletePricing } from '@/api/pricing'
 import { getModelOptions } from '@/api/model'
-import type { ModelPricing } from '@/types/api'
-import type { AIModel } from '@/types/api'
+import { getActionTypesAll } from '@/api/action-type'
+import type { ModelPricing, ActionType, AIModel } from '@/types/api'
 
 const { t } = useI18n()
 
-const actionTypeMap: Record<string, string> = {
-  IMAGE_GEN: t('pricing.actionTypeImage'),
-  VIDEO_GEN: t('pricing.actionTypeVideo'),
-  TEXT_CHAT: t('pricing.actionTypeText'),
-  AI_TOOL: t('pricing.actionTypeTool'),
-}
+const actionTypeList = ref<ActionType[]>([])
+const actionTypeOptions = computed(() =>
+  actionTypeList.value.map(item => ({ label: item.actionName, value: item.actionCode }))
+)
+const actionTypeMap = computed<Record<string, string>>(() => {
+  const map: Record<string, string> = {}
+  for (const item of actionTypeList.value) {
+    map[item.actionCode] = item.actionName
+  }
+  return map
+})
 
 const priceUnitMap: Record<string, string> = {
   PER_REQUEST: t('pricing.unitPerRequest'),
@@ -135,13 +140,6 @@ const priceUnitMap: Record<string, string> = {
   PER_SECOND: t('pricing.unitPerSecond'),
   PER_1K_TOKENS: t('pricing.unitPer1kTokens'),
 }
-
-const actionTypeOptions = [
-  { label: t('pricing.actionTypeImage'), value: 'IMAGE_GEN' },
-  { label: t('pricing.actionTypeVideo'), value: 'VIDEO_GEN' },
-  { label: t('pricing.actionTypeText'), value: 'TEXT_CHAT' },
-  { label: t('pricing.actionTypeTool'), value: 'AI_TOOL' },
-]
 
 const priceUnitOptions = [
   { label: t('pricing.unitPerRequest'), value: 'PER_REQUEST' },
@@ -221,7 +219,7 @@ const editId = ref<number | null>(null)
 const formData = reactive({
   modelId: undefined as number | undefined,
   modelName: '',
-  actionType: 'IMAGE_GEN',
+  actionType: '' as string,
   pricePoints: 0,
   priceUnit: 'PER_REQUEST',
   effectiveTime: null as dayjs.Dayjs | null,
@@ -233,6 +231,14 @@ async function loadModels() {
     modelList.value = await getModelOptions()
   } catch (error) {
     console.error('Failed to load models:', error)
+  }
+}
+
+async function loadActionTypes() {
+  try {
+    actionTypeList.value = await getActionTypesAll()
+  } catch (error) {
+    console.error('Failed to load action types:', error)
   }
 }
 
@@ -255,7 +261,7 @@ function handleCreate() {
   editId.value = null
   formData.modelId = undefined
   formData.modelName = ''
-  formData.actionType = 'IMAGE_GEN'
+  formData.actionType = actionTypeList.value[0]?.actionCode || ''
   formData.pricePoints = 0
   formData.priceUnit = 'PER_REQUEST'
   formData.effectiveTime = null
@@ -268,7 +274,7 @@ function handleEdit(record: ModelPricing) {
   editId.value = record.id
   formData.modelId = record.modelId
   formData.modelName = record.modelName || ''
-  formData.actionType = record.actionType || 'IMAGE_GEN'
+  formData.actionType = record.actionType || ''
   formData.pricePoints = record.pricePoints || 0
   formData.priceUnit = record.priceUnit || 'PER_REQUEST'
   formData.effectiveTime = record.effectiveTime ? dayjs(record.effectiveTime) : null
@@ -337,5 +343,6 @@ function filterModelOption(input: string, option: any) {
 
 onMounted(() => {
   loadModels()
+  loadActionTypes()
 })
 </script>

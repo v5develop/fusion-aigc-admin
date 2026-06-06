@@ -489,3 +489,19 @@ export interface CompensationParams {
   requestId?: string
   reason?: string
 }
+
+// Action Type Types
+export interface ActionType {
+  id: number
+  actionCode: string
+  actionName: string
+  description?: string
+  sortOrder?: number
+  status: number
+  createTime: string
+  updateTime?: string
+}
+
+export interface ActionTypeListParams extends PageParams {
+  status?: number
+}

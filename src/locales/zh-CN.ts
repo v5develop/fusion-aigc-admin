@@ -126,6 +126,7 @@ export default {
     billingPointsLog: '点数流水',
     billingPointsAdjust: '点数调整',
     billingException: '异常任务',
+    billingActionType: '动作类型',
     reconciliationManagement: '对账管理',
     reconciliationSummary: '对账汇总',
     reconciliationDifference: '差异处理',
@@ -2579,6 +2580,27 @@ export default {
     approvalTicketPlaceholder: '请输入审批单号（大额操作必填）',
     approvalThreshold: '单笔超过 {threshold} 点需要审批',
     noPointsLogData: '暂无点数流水',
+  },
+
+  // Action Type
+  actionType: {
+    create: '新建动作类型',
+    edit: '编辑动作类型',
+    actionCode: '动作编码',
+    actionName: '动作名称',
+    description: '描述',
+    sortOrder: '排序',
+    noData: '暂无动作类型数据',
+    confirmDelete: '确定要删除该动作类型吗？',
+    actionCodeRequired: '请输入动作编码',
+    actionNameRequired: '请输入动作名称',
+    actionCodePlaceholder: '请输入动作编码（如 productSetImages）',
+    actionNamePlaceholder: '请输入动作名称',
+    descriptionPlaceholder: '请输入描述',
+    sortOrderPlaceholder: '请输入排序值',
+    createSuccess: '创建成功',
+    updateSuccess: '更新成功',
+    deleteSuccess: '删除成功',
   },
 
   // Reconciliation
