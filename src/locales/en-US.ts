@@ -2366,6 +2366,8 @@ export default {
     modelNamePlaceholder: 'Please enter model name',
     description: 'Description',
     descriptionPlaceholder: 'Please enter model description',
+    apiConfig: 'API Config',
+    apiConfigPlaceholder: 'Select API config (optional for local models)',
     updateSuccess: 'Model updated successfully',
     createSuccess: 'Model created successfully',
     deleteSuccess: 'Model deleted successfully',

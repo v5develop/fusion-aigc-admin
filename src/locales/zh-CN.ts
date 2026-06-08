@@ -2384,6 +2384,8 @@ export default {
     modelNamePlaceholder: '请输入模型名称',
     description: '描述',
     descriptionPlaceholder: '请输入模型描述',
+    apiConfig: 'API 配置',
+    apiConfigPlaceholder: '请选择 API 配置（本地模型可不填）',
     updateSuccess: '模型更新成功',
     createSuccess: '模型创建成功',
     deleteSuccess: '模型删除成功',

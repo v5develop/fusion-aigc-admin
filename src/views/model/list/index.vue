@@ -73,6 +73,14 @@
             :rows="3"
           />
         </a-form-item>
+        <a-form-item :label="$t('model.apiConfig')">
+          <a-select
+            v-model:value="formData.apiConfigId"
+            :options="apiConfigOptions"
+            :placeholder="$t('model.apiConfigPlaceholder')"
+            allow-clear
+          />
+        </a-form-item>
         <a-form-item :label="$t('model.status')">
           <a-switch
             v-model:checked="formData.statusChecked"
@@ -86,13 +94,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { PlusOutlined } from '@antdv-next/icons'
 import { message, Modal } from 'antdv-next'
 import { useI18n } from 'vue-i18n'
 import ProTable from '@/components/Pro/ProTable/index.vue'
 import { getModelList, createModel, updateModel, deleteModel } from '@/api/model'
-import type { AIModel } from '@/types/api'
+import { getApiConfigList } from '@/api/config'
+import type { AIModel, ApiConfig } from '@/types/api'
 
 const { t } = useI18n()
 
@@ -175,8 +184,22 @@ const formData = reactive({
   name: '',
   modelType: 2,
   description: '',
+  apiConfigId: undefined as number | undefined,
   statusChecked: 1,
 })
+
+const apiConfigOptions = ref<{ label: string; value: number }[]>([])
+
+async function loadApiConfigs() {
+  try {
+    const configs = await getApiConfigList()
+    apiConfigOptions.value = configs
+      .filter((c: ApiConfig) => c.status === 1)
+      .map((c: ApiConfig) => ({ label: `${c.name} (${c.platform})`, value: c.id }))
+  } catch (e) {
+    console.error('Failed to load API configs:', e)
+  }
+}
 
 async function loadData(params: Record<string, unknown>) {
   const res = await getModelList({
@@ -201,6 +224,7 @@ function handleCreate() {
   formData.name = ''
   formData.modelType = 2
   formData.description = ''
+  formData.apiConfigId = undefined
   formData.statusChecked = 1
   modalVisible.value = true
 }
@@ -212,6 +236,7 @@ function handleEdit(record: AIModel) {
   formData.name = record.name
   formData.modelType = record.modelType
   formData.description = record.description
+  formData.apiConfigId = record.apiConfigId
   formData.statusChecked = record.status
   modalVisible.value = true
 }
@@ -233,6 +258,7 @@ async function handleSubmit() {
       name: formData.name,
       modelType: formData.modelType,
       description: formData.description,
+      apiConfigId: formData.apiConfigId,
       status: formData.statusChecked,
     }
 
@@ -262,4 +288,8 @@ function handleDelete(record: AIModel) {
     },
   })
 }
+
+onMounted(() => {
+  loadApiConfigs()
+})
 </script>

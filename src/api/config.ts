@@ -1,5 +1,5 @@
 import { request } from '@/utils/request'
-import type { UnionConfig, AIProviderConfig, StorageConfig, SystemConfig, SystemStorageConfig } from '@/types/api'
+import type { UnionConfig, ApiConfig, AIProviderConfig, StorageConfig, SystemConfig, SystemStorageConfig } from '@/types/api'
 
 export function getUnionConfig() {
   return request.get<UnionConfig>('/api/v1/admin/settings/union')
@@ -7,6 +7,10 @@ export function getUnionConfig() {
 
 export function saveUnionConfig(data: UnionConfig) {
   return request.put('/api/v1/admin/settings/union', data)
+}
+
+export function getApiConfigList() {
+  return request.get<ApiConfig[]>('/api/v1/admin/api-config/list')
 }
 
 export function getAIProviderConfig() {

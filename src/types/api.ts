@@ -344,6 +344,15 @@ export interface UnionConfig {
   offlineRequireTimestamp?: boolean
 }
 
+export interface ApiConfig {
+  id: number
+  name: string
+  platform: string
+  apiUrl?: string
+  status: number
+  remark?: string
+}
+
 export interface AIProviderConfig {
   id?: number | null
   action?: string
