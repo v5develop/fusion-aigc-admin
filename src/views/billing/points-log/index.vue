@@ -45,12 +45,28 @@ const typeMap: Record<string, string> = {
   ADJUST: t('points.typeMap.adjust'),
   REFUND: t('points.typeMap.refund'),
   EXPIRE: t('points.typeMap.expire'),
+  FREEZE: t('points.typeMap.freeze'),
+  UNFREEZE: t('points.typeMap.unfreeze'),
+  REVOKE: t('points.typeMap.revoke'),
+  RECHARGE: t('points.typeMap.recharge'),
 }
 
 const bizTypeMap: Record<string, string> = {
   union: t('points.sourceMap.union'),
   manual: t('points.sourceMap.manual'),
   system: t('points.sourceMap.system'),
+  CREATION: t('points.bizTypeMap.creation'),
+  IMAGE_GEN: t('points.bizTypeMap.imageGen'),
+  VIDEO_GEN: t('points.bizTypeMap.videoGen'),
+  TEXT_CHAT: t('points.bizTypeMap.textChat'),
+  AI_TOOL: t('points.bizTypeMap.aiTool'),
+  union_grant: t('points.bizTypeMap.unionGrant'),
+  UNION_RECHARGE: t('points.bizTypeMap.unionRecharge'),
+  union_refund: t('points.bizTypeMap.unionRefund'),
+  recharge: t('points.bizTypeMap.recharge'),
+  admin_adjust: t('points.bizTypeMap.adminAdjust'),
+  BATCH_EXPIRE: t('points.bizTypeMap.batchExpire'),
+  admin_revoke: t('points.bizTypeMap.adminRevoke'),
 }
 
 const typeColorMap: Record<string, string> = {
@@ -59,6 +75,10 @@ const typeColorMap: Record<string, string> = {
   ADJUST: 'orange',
   REFUND: 'purple',
   EXPIRE: 'default',
+  FREEZE: 'warning',
+  UNFREEZE: 'cyan',
+  REVOKE: 'red',
+  RECHARGE: 'green',
 }
 
 const bizTypeColorMap: Record<string, string> = {
@@ -96,6 +116,10 @@ const columns = [
       { label: t('points.typeMap.adjust'), value: 'ADJUST' },
       { label: t('points.typeMap.refund'), value: 'REFUND' },
       { label: t('points.typeMap.expire'), value: 'EXPIRE' },
+      { label: t('points.typeMap.freeze'), value: 'FREEZE' },
+      { label: t('points.typeMap.unfreeze'), value: 'UNFREEZE' },
+      { label: t('points.typeMap.revoke'), value: 'REVOKE' },
+      { label: t('points.typeMap.recharge'), value: 'RECHARGE' },
     ],
     width: 100,
   },
@@ -104,9 +128,18 @@ const columns = [
     dataIndex: 'bizType',
     searchType: 'select' as const,
     searchOptions: [
-      { label: t('points.sourceMap.union'), value: 'union' },
-      { label: t('points.sourceMap.manual'), value: 'manual' },
-      { label: t('points.sourceMap.system'), value: 'system' },
+      { label: t('points.bizTypeMap.creation'), value: 'CREATION' },
+      { label: t('points.bizTypeMap.imageGen'), value: 'IMAGE_GEN' },
+      { label: t('points.bizTypeMap.videoGen'), value: 'VIDEO_GEN' },
+      { label: t('points.bizTypeMap.textChat'), value: 'TEXT_CHAT' },
+      { label: t('points.bizTypeMap.aiTool'), value: 'AI_TOOL' },
+      { label: t('points.bizTypeMap.unionGrant'), value: 'union_grant' },
+      { label: t('points.bizTypeMap.unionRecharge'), value: 'UNION_RECHARGE' },
+      { label: t('points.bizTypeMap.unionRefund'), value: 'union_refund' },
+      { label: t('points.bizTypeMap.recharge'), value: 'recharge' },
+      { label: t('points.bizTypeMap.adminAdjust'), value: 'admin_adjust' },
+      { label: t('points.bizTypeMap.batchExpire'), value: 'BATCH_EXPIRE' },
+      { label: t('points.bizTypeMap.adminRevoke'), value: 'admin_revoke' },
     ],
     width: 100,
   },
