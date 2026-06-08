@@ -95,6 +95,11 @@ const columns = [
     width: 100,
   },
   {
+    title: t('points.username'),
+    dataIndex: 'username',
+    width: 120,
+  },
+  {
     title: t('points.amount'),
     dataIndex: 'amount',
     width: 120,

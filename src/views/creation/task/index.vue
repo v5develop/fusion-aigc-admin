@@ -197,6 +197,11 @@ const columns = [
     align: 'center' as const,
   },
   {
+    title: t('creationTask.username'),
+    dataIndex: 'username',
+    width: 120,
+  },
+  {
     title: t('creationTask.type'),
     dataIndex: 'type',
     searchType: 'select' as const,

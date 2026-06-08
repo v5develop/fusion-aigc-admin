@@ -194,6 +194,7 @@ export interface PricingListParams extends ListParams {
 export interface PointsLog {
   id: number
   userId: number
+  username: string
   amount: number
   balanceAfter: number
   changeType: string
@@ -213,6 +214,7 @@ export interface PointsLogParams extends PageParams {
 export interface Consumption {
   id: number
   userId: number
+  username: string
   amount: number
   balanceAfter: number
   bizType: string
@@ -283,6 +285,7 @@ export interface ModelCost {
   reservationNo: string
   taskId: string
   userId: number
+  username?: string
   modelId: number
   pricingId: number
   pointsConsumed: number

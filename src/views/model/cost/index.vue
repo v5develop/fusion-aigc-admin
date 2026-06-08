@@ -75,6 +75,11 @@ const columns = [
     width: 100,
   },
   {
+    title: t('cost.username'),
+    dataIndex: 'username',
+    width: 120,
+  },
+  {
     title: t('cost.modelId'),
     dataIndex: 'modelId',
     width: 100,

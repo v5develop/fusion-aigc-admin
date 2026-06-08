@@ -82,6 +82,11 @@ const columns = [
     width: 100,
   },
   {
+    title: t('billing.username'),
+    dataIndex: 'username',
+    width: 120,
+  },
+  {
     title: t('billing.amount'),
     dataIndex: 'amount',
     width: 120,
