@@ -1,10 +1,381 @@
 <template>
   <div class="page-container">
-    <a-card :title="$t('user.detail')">
-      <a-empty :description="$t('common.developing')" />
-    </a-card>
+    <a-page-header
+      :title="$t('user.detail')"
+      @back="handleBack"
+    >
+      <template #extra>
+        <a-space>
+          <a-button @click="handleAdjustPoints">
+            <DollarOutlined />
+            {{ $t('user.adjustPoints') }}
+          </a-button>
+        </a-space>
+      </template>
+    </a-page-header>
+
+    <a-spin :spinning="loading">
+      <a-row :gutter="[16, 16]">
+        <!-- 基本信息 -->
+        <a-col :span="24" :lg="14">
+          <a-card :title="$t('user.basicInfo')" :bordered="false">
+            <template #extra>
+              <a-tag :color="statusColorMap[userInfo?.status ?? -1]">
+                {{ statusMap[userInfo?.status ?? -1] || '-' }}
+              </a-tag>
+            </template>
+
+            <div class="user-header">
+              <a-avatar :size="72" :src="userInfo?.avatar">
+                {{ userInfo?.nickname?.charAt(0) }}
+              </a-avatar>
+              <div class="user-header-text">
+                <span class="user-nickname">{{ userInfo?.nickname || '-' }}</span>
+                <span class="user-username">@{{ userInfo?.username || '-' }}</span>
+              </div>
+            </div>
+
+            <a-divider />
+
+            <a-descriptions :column="{ xs: 1, sm: 2 }" size="middle" bordered>
+              <a-descriptions-item :label="$t('user.id')">
+                {{ userInfo?.id || '-' }}
+              </a-descriptions-item>
+              <a-descriptions-item :label="$t('user.email')">
+                {{ userInfo?.email || '-' }}
+              </a-descriptions-item>
+              <a-descriptions-item :label="$t('user.phone')">
+                {{ userInfo?.phone || '-' }}
+              </a-descriptions-item>
+              <a-descriptions-item :label="$t('user.unionBound')">
+                <a-tag :color="userInfo?.isUnionBound ? 'green' : 'default'">
+                  {{ userInfo?.isUnionBound ? $t('user.bound') : $t('user.unbound') }}
+                </a-tag>
+              </a-descriptions-item>
+              <a-descriptions-item v-if="userInfo?.unionUserId" :label="$t('user.unionUserId')">
+                <a-typography-text copyable>{{ userInfo?.unionUserId }}</a-typography-text>
+              </a-descriptions-item>
+              <a-descriptions-item v-if="!userInfo?.unionUserId" :label="$t('user.unionUserId')">
+                -
+              </a-descriptions-item>
+              <a-descriptions-item :label="$t('common.createTime')">
+                {{ userInfo?.createTime || '-' }}
+              </a-descriptions-item>
+              <a-descriptions-item :label="$t('common.updateTime')">
+                {{ userInfo?.updateTime || '-' }}
+              </a-descriptions-item>
+            </a-descriptions>
+          </a-card>
+        </a-col>
+
+        <!-- 右侧信息 -->
+        <a-col :span="24" :lg="10">
+          <!-- 点数信息 -->
+          <a-card :title="$t('user.pointsBalance')" :bordered="false" class="points-card">
+            <div class="points-display">
+              <span class="points-number">{{ userInfo?.pointsBalance ?? 0 }}</span>
+              <span class="points-unit">{{ $t('user.pointsUnit') }}</span>
+            </div>
+            <template #extra>
+              <a-button type="link" size="small" @click="handleAdjustPoints">
+                {{ $t('user.adjustPoints') }}
+              </a-button>
+            </template>
+          </a-card>
+
+          <!-- 创作能力 -->
+          <a-card
+            :title="$t('user.capabilities')"
+            :bordered="false"
+            class="capabilities-card"
+            style="margin-top: 16px"
+          >
+            <template v-if="capabilities && capabilities.length > 0">
+              <div
+                v-for="item in capabilities"
+                :key="item.id"
+                class="capability-item"
+              >
+                <div class="capability-header">
+                  <span class="capability-name">{{ getFeatureName(item.featureName) }}</span>
+                  <a-tag :color="item.status === 1 ? 'blue' : 'default'">
+                    {{ item.status === 1 ? $t('common.enabled') : $t('common.disabled') }}
+                  </a-tag>
+                </div>
+                <div class="capability-meta">
+                  <span class="capability-code">{{ item.featureCode }}</span>
+                  <span class="capability-time">
+                    {{ $t('user.grantTime') }}: {{ item.grantTime || '-' }}
+                  </span>
+                </div>
+                <div v-if="item.expireTime" class="capability-expire">
+                  {{ $t('user.expireTime') }}: {{ item.expireTime }}
+                </div>
+              </div>
+            </template>
+            <template v-else-if="!capabilitiesLoading">
+              <a-empty :description="$t('user.noCapabilities')" />
+            </template>
+            <template v-else>
+              <div class="capabilities-skeleton">
+                <a-skeleton active />
+              </div>
+            </template>
+          </a-card>
+        </a-col>
+      </a-row>
+    </a-spin>
+
+    <!-- 调整点数弹窗 -->
+    <a-modal
+      v-model:open="adjustModalVisible"
+      :title="$t('user.adjustPoints')"
+      @ok="handleConfirmAdjust"
+      :confirm-loading="adjustLoading"
+    >
+      <a-form layout="vertical">
+        <a-form-item :label="$t('user.username')">
+          <a-input :value="userInfo?.username" disabled />
+        </a-form-item>
+        <a-form-item :label="$t('user.adjustType')">
+          <a-radio-group v-model:value="adjustForm.adjustType">
+            <a-radio value="ADD">{{ $t('user.adjustAdd') }}</a-radio>
+            <a-radio value="DEDUCT">{{ $t('user.adjustDeduct') }}</a-radio>
+          </a-radio-group>
+        </a-form-item>
+        <a-form-item :label="$t('user.adjustAmount')">
+          <a-input-number
+            v-model:value="adjustForm.amount"
+            :min="1"
+            :precision="0"
+            style="width: 100%"
+            :placeholder="$t('user.adjustAmountPlaceholder')"
+          />
+        </a-form-item>
+        <a-form-item :label="$t('user.adjustReason')">
+          <a-textarea
+            v-model:value="adjustForm.reason"
+            :rows="3"
+            :placeholder="$t('user.adjustReasonPlaceholder')"
+          />
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import { message } from 'antdv-next'
+import { DollarOutlined } from '@antdv-next/icons'
+import { getUserDetail, getUserCapabilities } from '@/api/user'
+import { adjustPoints } from '@/api/points'
+import type { User, UserFeature } from '@/types/api'
+
+const { t } = useI18n()
+const router = useRouter()
+const route = useRoute()
+
+const loading = ref(false)
+const capabilitiesLoading = ref(false)
+const userInfo = ref<User | null>(null)
+const capabilities = ref<UserFeature[]>([])
+
+// 调整点数相关
+const adjustModalVisible = ref(false)
+const adjustLoading = ref(false)
+const adjustForm = ref({
+  userId: 0,
+  amount: 0 as number,
+  reason: '',
+  adjustType: 'ADD' as string,
+})
+
+// 状态映射
+const statusMap: Record<number, string> = {
+  1: t('common.enabled'),
+  0: t('common.disabled'),
+}
+
+const statusColorMap: Record<number, string> = {
+  1: 'green',
+  0: 'red',
+}
+
+// 获取用户详情
+async function fetchUserDetail() {
+  const id = Number(route.params.id)
+  if (!id) {
+    message.error('用户ID无效')
+    return
+  }
+  loading.value = true
+  try {
+    userInfo.value = await getUserDetail(id)
+    // 同时获取能力列表
+    fetchCapabilities(id)
+  } catch {
+    // 错误已在 request 拦截器中处理
+  } finally {
+    loading.value = false
+  }
+}
+
+// 获取用户创作能力
+async function fetchCapabilities(userId: number) {
+  capabilitiesLoading.value = true
+  try {
+    capabilities.value = (await getUserCapabilities(userId)) as UserFeature[]
+  } catch {
+    // 能力获取失败不阻塞主流程
+    capabilities.value = []
+  } finally {
+    capabilitiesLoading.value = false
+  }
+}
+
+// 从 featureName 记录中获取当前语言名称
+function getFeatureName(featureName: Record<string, string>): string {
+  const { locale } = useI18n()
+  return featureName[locale.value] || featureName['zh-CN'] || featureName['en-US'] || Object.values(featureName)[0] || '-'
+}
+
+// 返回列表
+function handleBack() {
+  router.push({ name: 'UserList' })
+}
+
+// 调整点数
+function handleAdjustPoints() {
+  if (!userInfo.value) return
+  adjustForm.value = {
+    userId: userInfo.value.id,
+    amount: 0,
+    reason: '',
+    adjustType: 'ADD',
+  }
+  adjustModalVisible.value = true
+}
+
+async function handleConfirmAdjust() {
+  if (!adjustForm.value.reason.trim()) {
+    message.warning(t('user.adjustReasonRequired'))
+    return
+  }
+  if (adjustForm.value.amount <= 0) {
+    message.warning(t('user.adjustAmountInvalid'))
+    return
+  }
+  adjustLoading.value = true
+  try {
+    await adjustPoints({
+      userId: adjustForm.value.userId,
+      adjustType: adjustForm.value.adjustType,
+      amount: adjustForm.value.amount,
+      reason: adjustForm.value.reason,
+    })
+    message.success(t('common.success'))
+    adjustModalVisible.value = false
+    // 刷新用户信息
+    fetchUserDetail()
+  } catch {
+    // 错误已在 request 拦截器中处理
+  } finally {
+    adjustLoading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchUserDetail()
+})
 </script>
+
+<style scoped lang="scss">
+.user-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 4px;
+
+  .user-header-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .user-nickname {
+      font-size: 20px;
+      font-weight: 600;
+      color: rgba(0, 0, 0, 0.85);
+    }
+
+    .user-username {
+      font-size: 14px;
+      color: rgba(0, 0, 0, 0.45);
+    }
+  }
+}
+
+.points-display {
+  text-align: center;
+  padding: 16px 0;
+
+  .points-number {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--color-primary, #1677ff);
+  }
+
+  .points-unit {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.45);
+    margin-left: 4px;
+  }
+}
+
+.capability-item {
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  &:first-child {
+    padding-top: 0;
+  }
+
+  .capability-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+
+    .capability-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: rgba(0, 0, 0, 0.85);
+    }
+  }
+
+  .capability-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: rgba(0, 0, 0, 0.45);
+    margin-bottom: 4px;
+  }
+
+  .capability-expire {
+    font-size: 12px;
+    color: rgba(0, 0, 0, 0.45);
+  }
+}
+
+.capabilities-skeleton {
+  padding: 8px 0;
+}
+</style>

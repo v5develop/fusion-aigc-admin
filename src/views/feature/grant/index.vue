@@ -26,6 +26,10 @@
           </a-tag>
         </template>
 
+        <template v-if="column.dataIndex === 'effectiveTime' || column.dataIndex === 'expireTime'">
+          {{ record[column.dataIndex] || '-' }}
+        </template>
+
         <template v-if="column.key === 'operation'">
           <a-button
             v-if="record.status === 1"

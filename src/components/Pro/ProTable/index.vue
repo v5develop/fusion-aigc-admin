@@ -270,6 +270,7 @@
 
         <template #bodyCell="{ column, record, text, index }">
           <span v-if="column.dataIndex === '__index'">{{ getRowIndex(index) }}</span>
+          <span v-else-if="column.dataIndex === '__id'">{{ getRowId(record) }}</span>
 
           <a-space
             v-else-if="column.dataIndex === 'action' && column.actions && column.actions.length"
@@ -858,7 +859,17 @@ const displayColumns = computed<ProTableColumn[]>(() => {
       title: '#',
       dataIndex: '__index',
       key: '__index',
-      width: 64,
+      width: 60,
+      align: 'center',
+      fixed: 'left',
+      ellipsis: false,
+      resizable: false,
+    },
+    {
+      title: $t('proTable.id'),
+      dataIndex: '__id',
+      key: '__id',
+      width: 80,
       align: 'center',
       fixed: 'left',
       ellipsis: false,
@@ -1386,6 +1397,14 @@ const getRowIndex = (index: number) => {
     return index + 1;
   }
   return (currentPage.value - 1) * pageSize.value + index + 1;
+};
+
+const getRowId = (record: Record<string, unknown>) => {
+  const rk = props.rowKey;
+  if (typeof rk === 'function') {
+    return rk(record);
+  }
+  return record[rk];
 };
 
 const toggleColumnChecked = (key: string, checked: boolean) => {

@@ -937,6 +937,7 @@ export default {
     densityLarge: '헐렁한',
     densityMiddle: '기본',
     densitySmall: '콤팩트',
+    id: 'Data ID',
     loadDataFailed: '데이터 로드 실패',
   },
   profile: {

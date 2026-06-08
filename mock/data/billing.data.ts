@@ -365,3 +365,87 @@ export const mockBillingExceptions = [
     createTime: '2025-01-15T14:00:00',
   },
 ]
+
+export const mockRechargeConsumptions = [
+  {
+    rechargeId: 'RCH20250115001',
+    pointsAmount: 1000,
+    consumedAmount: 350,
+    remainingAmount: 650,
+    expireTime: '2025-07-15 09:00:00',
+    expired: false,
+  },
+  {
+    rechargeId: 'RCH20250115002',
+    pointsAmount: 500,
+    consumedAmount: 500,
+    remainingAmount: 0,
+    expireTime: '2025-02-01 00:00:00',
+    expired: true,
+  },
+  {
+    rechargeId: 'RCH20250115003',
+    pointsAmount: 2000,
+    consumedAmount: 0,
+    remainingAmount: 2000,
+    expireTime: null,
+    expired: false,
+  },
+]
+
+export const mockUserPointsLogs = [
+  {
+    changeType: 'RECHARGE',
+    amount: 1000,
+    balanceAfter: 1000,
+    bizType: 'UNION_RECHARGE',
+    bizId: 'RCH20250115001',
+    description: '联盟点数充值',
+    createTime: '2025-01-15 09:00:00',
+  },
+  {
+    changeType: 'CONSUME',
+    amount: -50,
+    balanceAfter: 950,
+    bizType: 'union_grant',
+    bizId: 'GRANT20250115001',
+    description: '视频生成消费',
+    createTime: '2025-01-15 10:30:00',
+  },
+  {
+    changeType: 'CONSUME',
+    amount: -300,
+    balanceAfter: 650,
+    bizType: 'union_grant',
+    bizId: 'GRANT20250115002',
+    description: '批量视频生成消费',
+    createTime: '2025-01-15 11:00:00',
+  },
+  {
+    changeType: 'RECHARGE',
+    amount: 500,
+    balanceAfter: 1150,
+    bizType: 'UNION_RECHARGE',
+    bizId: 'RCH20250115002',
+    description: '联盟点数充值',
+    createTime: '2025-01-16 09:00:00',
+  },
+  {
+    changeType: 'REFUND',
+    amount: 100,
+    balanceAfter: 1250,
+    bizType: 'union_refund',
+    bizId: 'REFUND20250116001',
+    description: '任务失败退款',
+    createTime: '2025-01-16 14:00:00',
+  },
+  {
+    changeType: 'GRANT',
+    amount: 200,
+    balanceAfter: 1450,
+    bizType: 'union_grant',
+    bizId: 'GRANT20250116001',
+    description: '联盟创作能力下发',
+    createTime: '2025-01-16 15:00:00',
+  },
+]

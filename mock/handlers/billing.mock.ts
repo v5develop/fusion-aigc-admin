@@ -18,6 +18,8 @@ import {
   mockDifferences,
   mockConsumptions,
   mockBillingExceptions,
+  mockRechargeConsumptions,
+  mockUserPointsLogs,
 } from '../data/billing.data';
 
 // In-memory storage for settings updates
@@ -673,5 +675,41 @@ export default defineMock([
       },
       success: true,
     }),
+  },
+
+  // ========== Union Open APIs ==========
+
+  // Batch query recharge consumption summary
+  {
+    url: '/api/v1/union/recharge-consumption-summary',
+    method: 'POST',
+    body: (req) => {
+      const { rechargeIds } = req.body || {};
+      if (!rechargeIds || !Array.isArray(rechargeIds)) {
+        return { code: 400, message: '充值单号列表不能为空', data: null, success: false };
+      }
+      const result = mockRechargeConsumptions.filter(r => rechargeIds.includes(r.rechargeId));
+      return { code: 0, message: 'Success', data: result, success: true };
+    },
+  },
+
+  // Query user points log (paginated)
+  {
+    url: '/api/v1/union/user-points-transactions',
+    method: 'GET',
+    body: (req) => {
+      const { user_id, page = 1, page_size = 20 } = req.query || {};
+      const start = (Number(page) - 1) * Number(page_size);
+      const end = start + Number(page_size);
+      return {
+        code: 0,
+        message: 'Success',
+        data: {
+          total: mockUserPointsLogs.length,
+          list: mockUserPointsLogs.slice(start, end),
+        },
+        success: true,
+      };
+    },
   },
 ]);

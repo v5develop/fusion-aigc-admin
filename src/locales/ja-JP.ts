@@ -942,6 +942,7 @@ export default {
     densityLarge: 'ゆるい',
     densityMiddle: 'デフォルト',
     densitySmall: 'コンパクト',
+    id: 'Data ID',
     loadDataFailed: 'データのロードに失敗しました',
   },
   profile: {
