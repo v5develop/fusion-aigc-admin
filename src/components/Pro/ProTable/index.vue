@@ -91,6 +91,7 @@
         :bordered="effectiveBordered"
         :sticky="effectiveFixedHeader"
         :scroll="tableScroll"
+        :expandable="expandable"
         v-bind="$attrs"
         @change="handleTableChange"
       >
@@ -311,6 +312,11 @@
             :value-type-props="column.valueTypeProps"
           />
         </template>
+
+        <!-- Expanded Row Slot Forwarding -->
+        <template v-if="$slots.expandedRowRender" #expandedRowRender="slotProps">
+          <slot name="expandedRowRender" v-bind="slotProps" />
+        </template>
       </a-table>
     </div>
 
@@ -405,6 +411,8 @@ interface Props {
   formModalWidth?: number | string;
   formCreateTitle?: string;
   formEditTitle?: string;
+  // Expandable row support
+  expandable?: Record<string, unknown>;
 }
 
 interface ColumnState {
@@ -537,6 +545,7 @@ const props = withDefaults(defineProps<Props>(), {
     showTotal: (value: number) => $t('proTable.total', { total: value }),
   }),
   formModalWidth: 640,
+  expandable: undefined,
 });
 
 const emit = defineEmits(['refresh', 'form-submit']);
