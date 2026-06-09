@@ -751,7 +751,7 @@ const apiDocs = computed(() => {
       path: '/api/v1/union/user-points-transactions',
       description: t('settingsUnion.userPointsLogDesc'),
       requestParams: [
-        { name: 'userId', type: 'Long', required: true, description: t('settingsUnion.unionUserIdDesc') },
+        { name: 'unionUserId', type: 'Long', required: true, description: t('settingsUnion.unionUserIdDesc') },
         { name: 'page', type: 'Integer', required: false, description: t('settingsUnion.pageDesc') },
         { name: 'pageSize', type: 'Integer', required: false, description: t('settingsUnion.pageSizeDesc') },
         { name: 'changeType', type: 'String', required: false, description: t('settingsUnion.changeTypeFilterDesc') },
