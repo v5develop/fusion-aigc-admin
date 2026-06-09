@@ -754,6 +754,7 @@ const apiDocs = computed(() => {
         { name: 'userId', type: 'Long', required: true, description: t('settingsUnion.userIdDesc') },
         { name: 'page', type: 'Integer', required: false, description: t('settingsUnion.pageDesc') },
         { name: 'pageSize', type: 'Integer', required: false, description: t('settingsUnion.pageSizeDesc') },
+        { name: 'changeType', type: 'String', required: false, description: t('settingsUnion.changeTypeFilterDesc') },
       ],
       requestExample: null,
       responseParams: [

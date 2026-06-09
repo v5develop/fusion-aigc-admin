@@ -42,6 +42,25 @@ export interface CreationTask {
   createTime: string
   updateTime: string
   children?: CreationTask[]
+  // ---- 子任务成本字段（组合任务子任务列表）----
+  costSource?: string
+  estimatedCost?: number
+  meterType?: string
+  meterValue?: number
+  providerModel?: string
+  reservationLines?: ReservationLine[]
+}
+
+export interface ReservationLine {
+  lineNo: number
+  componentCode: string
+  stepCode: string
+  mode: number
+  reservedPoints: number
+  confirmedPoints: number
+  refundedPoints: number
+  status: string
+  outputRef: string
 }
 
 // Task list query params
@@ -156,4 +175,29 @@ export function batchCancelCreationTasks(taskIds: string[]) {
 
 export function getCreationDashboardData(params?: { days?: number }) {
   return request.get<CreationDashboardData>('/api/v1/admin/creation/dashboard', { params })
+}
+
+// ======================== Composite Cost Summary ========================
+
+export interface CompositeCostSummary {
+  parentTaskId: string
+  totalEstimatedCost: number
+  costCount: number
+  breakdown: CompositeCostItem[]
+}
+
+export interface CompositeCostItem {
+  stepCode: string
+  taskId: string
+  costSource: string
+  pointsConsumed: number
+  meterType: string
+  meterValue?: number
+  createTime?: string
+}
+
+export function getCompositeCostSummary(parentTaskId: string) {
+  return request.get<CompositeCostSummary>('/api/v1/admin/costs/composite-summary', {
+    params: { parentTaskId },
+  })
 }

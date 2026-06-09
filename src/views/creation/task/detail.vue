@@ -69,6 +69,12 @@
           <a-descriptions-item :label="$t('creationTask.aigcTaskId')">
             {{ task?.aigcTaskId || '-' }}
           </a-descriptions-item>
+          <a-descriptions-item :label="$t('creationTask.mode')">
+            <a-tag v-if="task?.mode != null" :color="isCompositeMode(task.mode) ? 'purple' : 'blue'">
+              {{ 'MODE_' + task.mode }}
+            </a-tag>
+            <span v-else>-</span>
+          </a-descriptions-item>
           <a-descriptions-item :label="$t('creationTask.parentTaskId')">
             {{ task?.parentTaskId || '-' }}
           </a-descriptions-item>
@@ -163,6 +169,74 @@
                 :text="statusMap[record.status] || '-'"
               />
             </template>
+            <template v-if="column.dataIndex === 'estimatedCost'">
+              <span v-if="record.estimatedCost != null" class="points-value">
+                {{ record.estimatedCost }}
+              </span>
+              <span v-else>-</span>
+            </template>
+            <template v-if="column.dataIndex === 'costSource'">
+              <a-tag v-if="record.costSource" :color="costSourceColorMap[record.costSource] || 'default'">
+                {{ t('creationTask.costSourceMap.' + record.costSource) || record.costSource }}
+              </a-tag>
+              <span v-else>-</span>
+            </template>
+            <template v-if="column.dataIndex === 'providerModel'">
+              <code v-if="record.providerModel">{{ record.providerModel }}</code>
+              <span v-else>-</span>
+            </template>
+          </template>
+        </a-table>
+      </a-card>
+
+      <!-- Composite Cost Summary -->
+      <a-card
+        v-if="costSummary && costSummary.breakdown.length > 0"
+        :title="$t('creationTask.costSummary')"
+        style="margin-bottom: 16px"
+      >
+        <a-descriptions :column="3" size="small" style="margin-bottom: 12px">
+          <a-descriptions-item :label="$t('creationTask.totalEstimatedCost')">
+            <span class="points-value">{{ costSummary.totalEstimatedCost }}</span>
+          </a-descriptions-item>
+          <a-descriptions-item :label="$t('creationTask.costCount')">
+            {{ costSummary.costCount }}
+          </a-descriptions-item>
+        </a-descriptions>
+        <a-table
+          :columns="costColumns"
+          :data-source="costSummary.breakdown"
+          :pagination="false"
+          row-key="taskId"
+          size="small"
+        >
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.dataIndex === 'costSource'">
+              <a-tag :color="costSourceColorMap[record.costSource] || 'default'">
+                {{ record.costSource }}
+              </a-tag>
+            </template>
+            <template v-if="column.dataIndex === 'stepCode'">
+              <code>{{ record.stepCode }}</code>
+            </template>
+          </template>
+        </a-table>
+      </a-card>
+
+      <!-- Reservation Lines -->
+      <a-card
+        v-if="task?.reservationLines && task.reservationLines.length > 0"
+        :title="$t('creationTask.reservationLines')"
+        style="margin-bottom: 16px"
+      >
+        <a-table :columns="reservationColumns" :data-source="task.reservationLines" :pagination="false" row-key="lineNo" size="small">
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.dataIndex === 'stepCode'"><code>{{ record.stepCode }}</code></template>
+            <template v-if="column.dataIndex === 'mode'"><a-tag v-if="record.mode != null" color="blue">MODE_{{ record.mode }}</a-tag></template>
+            <template v-if="column.dataIndex === 'reservedPoints'"><span class="points-value">{{ record.reservedPoints ?? '-' }}</span></template>
+            <template v-if="column.dataIndex === 'confirmedPoints'"><span class="points-value">{{ record.confirmedPoints ?? '-' }}</span></template>
+            <template v-if="column.dataIndex === 'refundedPoints'"><span class="points-value">{{ record.refundedPoints ?? '-' }}</span></template>
+            <template v-if="column.dataIndex === 'status'"><a-tag :color="reservationStatusColorMap[record.status]">{{ record.status }}</a-tag></template>
           </template>
         </a-table>
       </a-card>
@@ -192,8 +266,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { message, Modal } from 'antdv-next'
-import { getCreationTaskDetail, cancelCreationTask, retryCreationTask, forceCompleteCreationTask } from '@/api/creation-task'
-import type { CreationTask } from '@/api/creation-task'
+import { getCreationTaskDetail, cancelCreationTask, retryCreationTask, forceCompleteCreationTask, getCompositeCostSummary } from '@/api/creation-task'
+import type { CreationTask, CompositeCostSummary } from '@/api/creation-task'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -201,6 +275,34 @@ const route = useRoute()
 
 const loading = ref(false)
 const task = ref<CreationTask | null>(null)
+const costSummary = ref<CompositeCostSummary | null>(null)
+
+// Composite modes (MODE_999 = hitVideo, MODE_1000 = hitVideoReplication)
+function isCompositeMode(mode: number) {
+  return mode === 999 || mode === 1000
+}
+
+const reservationColumns = [
+  { title: t('creationTask.stepCode'), dataIndex: 'stepCode', width: 140 },
+  { title: t('creationTask.mode'), dataIndex: 'mode', width: 90, align: 'center' as const },
+  { title: t('creationTask.reservedPoints'), dataIndex: 'reservedPoints', width: 110, align: 'right' as const },
+  { title: t('creationTask.confirmedPoints'), dataIndex: 'confirmedPoints', width: 110, align: 'right' as const },
+  { title: t('creationTask.refundedPoints'), dataIndex: 'refundedPoints', width: 110, align: 'right' as const },
+  { title: t('creationTask.status'), dataIndex: 'status', width: 110, align: 'center' as const },
+]
+
+const reservationStatusColorMap: Record<string, string> = {
+  HELD: 'blue', CONFIRMED: 'green', REFUNDED: 'orange', CANCELLED: 'default',
+}
+
+const costColumns = [
+  { title: t('creationTask.stepCode'), dataIndex: 'stepCode', width: 160 },
+  { title: t('creationTask.taskId'), dataIndex: 'taskId', width: 200, ellipsis: true },
+  { title: t('creationTask.estimatedCost'), dataIndex: 'pointsConsumed', width: 100, align: 'right' as const },
+  { title: t('creationTask.costSource'), dataIndex: 'costSource', width: 100, align: 'center' as const },
+  { title: t('creationTask.meterType'), dataIndex: 'meterType', width: 100 },
+  { title: t('common.createTime'), dataIndex: 'createTime', width: 170 },
+]
 
 // Status map
 const statusMap: Record<number, string> = {
@@ -247,13 +349,23 @@ const billingStatusColorMap: Record<string, string> = {
   SETTLEMENT_FAILED: 'red',
 }
 
+const costSourceColorMap: Record<string, string> = {
+  ESTIMATED: 'orange',
+  BILLED: 'green',
+  RETURNED: 'blue',
+  UNKNOWN: 'default',
+}
+
 // Child task columns
 const childColumns = [
-  { title: t('creationTask.taskId'), dataIndex: 'taskId', width: 200 },
+  { title: t('creationTask.taskId'), dataIndex: 'taskId', width: 200, ellipsis: true },
   { title: t('creationTask.type'), dataIndex: 'type', width: 100, align: 'center' as const },
-  { title: t('creationTask.status'), dataIndex: 'status', width: 120 },
-  { title: t('creationTask.modelName'), dataIndex: 'modelName', width: 140 },
-  { title: t('common.createTime'), dataIndex: 'createTime', width: 180 },
+  { title: t('creationTask.status'), dataIndex: 'status', width: 100 },
+  { title: t('creationTask.modelName'), dataIndex: 'modelName', width: 120 },
+  { title: t('creationTask.providerModel'), dataIndex: 'providerModel', width: 110 },
+  { title: t('creationTask.estimatedCost'), dataIndex: 'estimatedCost', width: 100, align: 'right' as const },
+  { title: t('creationTask.costSource'), dataIndex: 'costSource', width: 100, align: 'center' as const },
+  { title: t('common.createTime'), dataIndex: 'createTime', width: 170 },
 ]
 
 // Format params JSON
@@ -275,6 +387,12 @@ async function loadTask() {
   loading.value = true
   try {
     task.value = await getCreationTaskDetail(id)
+    // 组合任务加载成本明细
+    if (task.value?.mode != null && isCompositeMode(task.value.mode) && task.value.taskId) {
+      try {
+        costSummary.value = await getCompositeCostSummary(task.value.taskId)
+      } catch { costSummary.value = null }
+    }
   } catch (error) {
     console.error('Failed to load task detail:', error)
   } finally {

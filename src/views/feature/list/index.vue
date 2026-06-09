@@ -93,7 +93,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, nextTick } from 'vue'
 import { PlusOutlined } from '@antdv-next/icons'
 import { message, Modal } from 'antdv-next'
 import { useI18n } from 'vue-i18n'
@@ -183,8 +183,8 @@ const isEdit = ref(false)
 const editId = ref<number | null>(null)
 const tableRef = ref()
 
-const featureName = ref<Record<string, string>>({})
-const description = ref<Record<string, string>>({})
+const featureName = ref<Record<string, string>>({ 'zh-CN': '', 'en-US': '', 'ja-JP': '', 'ko-KR': '' })
+const description = ref<Record<string, string>>({ 'zh-CN': '', 'en-US': '', 'ja-JP': '', 'ko-KR': '' })
 
 const formData = reactive({
   featureCode: '',
@@ -208,8 +208,8 @@ function handleCreate() {
   isEdit.value = false
   editId.value = null
   formData.featureCode = ''
-  featureName.value = {}
-  description.value = {}
+  featureName.value = { 'zh-CN': '', 'en-US': '', 'ja-JP': '', 'ko-KR': '' }
+  description.value = { 'zh-CN': '', 'en-US': '', 'ja-JP': '', 'ko-KR': '' }
   formData.actionType = 'IMAGE_GEN'
   formData.statusChecked = 1
   modalVisible.value = true
@@ -227,6 +227,8 @@ function handleEdit(record: Feature) {
 }
 
 async function handleSubmit() {
+  await nextTick() // 确保 I18nInput 的值已同步
+
   if (!formData.featureCode) {
     message.error(t('feature.featureCodeRequired'))
     return

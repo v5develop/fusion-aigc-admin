@@ -159,7 +159,16 @@ watch(
     valueType.value = typeof newValue === 'string' ? 'string' : 'object';
     const normalized = normalizeValue(newValue);
 
+    // Detect empty → normalized transition: force emit even if innerValue already matches
+    const wasEmpty = !newValue || (typeof newValue === 'object' && Object.keys(newValue).length === 0);
+
     if (isRecordEqual(normalized, innerValue.value)) {
+      if (wasEmpty) {
+        // Parent had empty value but normalized default differs from what was previously synced
+        const returnValue = valueType.value === 'string' ? JSON.stringify(normalized) : normalized;
+        emit('update:value', returnValue);
+        emit('change', returnValue);
+      }
       return;
     }
 
@@ -169,7 +178,7 @@ watch(
   { immediate: true },
 );
 
-// Watch for internal value changes and emit
+// Watch for internal value changes and emit (sync flush so parent gets updated before next event)
 watch(
   () => innerValue.value,
   (newValue) => {
@@ -186,6 +195,6 @@ watch(
     emit('update:value', returnValue);
     emit('change', returnValue);
   },
-  { deep: true },
+  { deep: true, flush: 'sync' },
 );
 </script>

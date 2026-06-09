@@ -394,6 +394,28 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
           requiredPermissions: 'action_type:view',
         },
       },
+      {
+        path: 'offers',
+        name: 'BillingOffer',
+        component: () => import('@/views/billing/offer/index.vue'),
+        meta: {
+          title: 'menu.billingOffer',
+          icon: 'ShopOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'billing_offer:view',
+        },
+      },
+      {
+        path: 'rules',
+        name: 'BillingRule',
+        component: () => import('@/views/billing/rule/index.vue'),
+        meta: {
+          title: 'menu.billingRule',
+          icon: 'ThunderboltOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'billing_rule:view',
+        },
+      },
     ],
   },
   {
