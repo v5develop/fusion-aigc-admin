@@ -205,7 +205,7 @@ async function handleSearchUser() {
       id: res.id,
       username: res.username,
       nickname: res.nickname,
-      pointsBalance: res.pointsBalance,
+      pointsBalance: res.balance,
       isUnionBound: res.isUnionBound,
     }
   } catch {

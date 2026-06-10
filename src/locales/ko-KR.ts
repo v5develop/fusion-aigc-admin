@@ -2328,6 +2328,7 @@ export default {
     username: '사용자 이름',
     modelId: '모델 ID',
     pointsConsumed: '소비 포인트',
+    costSource: '비용 출처',
     actualCostAmount: '실제 비용',
     actualCostCurrency: '통화 유형',
     callCount: '호출 횟수',

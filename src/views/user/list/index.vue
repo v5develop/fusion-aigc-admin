@@ -30,8 +30,8 @@
             </a-tag>
           </template>
 
-          <template v-if="column.dataIndex === 'pointsBalance'">
-            <span class="points-value">{{ record.pointsBalance || 0 }}</span>
+          <template v-if="column.dataIndex === 'balance'">
+            <span class="points-value">{{ record.balance || 0 }}</span>
           </template>
 
           <template v-if="column.key === 'operation'">
@@ -140,7 +140,7 @@ const columns = [
   },
   {
     title: t('user.pointsBalance'),
-    dataIndex: 'pointsBalance',
+    dataIndex: 'balance',
     width: 120,
     align: 'center' as const,
   },

@@ -105,7 +105,8 @@ export interface User {
   unionUserId: string | null
   isUnionBound: boolean
   status: number
-  pointsBalance: number
+  balance: number
+  frozen: number
   capabilities: UserFeature[]
   createTime: string
   updateTime: string

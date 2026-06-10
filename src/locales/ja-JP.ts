@@ -2340,6 +2340,7 @@ export default {
     username: 'ユーザー名',
     modelId: 'モデルID',
     pointsConsumed: '消費ポイント',
+    costSource: 'コストソース',
     actualCostAmount: '実際のコスト',
     actualCostCurrency: '通貨タイプ',
     callCount: '呼び出し回数',

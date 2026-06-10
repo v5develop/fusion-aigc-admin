@@ -34,7 +34,15 @@ export function getFeatureGrantList(params: { userId?: number; pageNo: number; p
 }
 
 export function revokeFeature(grantId: number) {
-  return request.post(`/api/v1/admin/creation/features/grants/${grantId}/revoke`)
+  return request.post(`/api/v1/admin/creation/feature-grants/${grantId}/revoke`)
+}
+
+export function manualAddFeature(data: { unionUserId: string; featureCode: string; expireTime?: string }) {
+  return request.post('/api/v1/admin/creation/feature-grants', data)
+}
+
+export function manualRemoveFeature(grantId: number) {
+  return request.post(`/api/v1/admin/creation/feature-grants/${grantId}/manual-remove`)
 }
 
 export function getFeatureChangeLog(params: { featureId?: number; pageNo: number; pageSize: number }) {

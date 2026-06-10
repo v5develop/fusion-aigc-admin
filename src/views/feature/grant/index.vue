@@ -6,6 +6,11 @@
       :search="{}"
       row-key="id"
     >
+      <template #toolBar>
+        <a-button type="primary" @click="showManualAddModal">
+          {{ $t('featureGrant.manualAdd') }}
+        </a-button>
+      </template>
       <template #emptyText>
         <a-empty :description="$t('feature.noGrantData')" />
       </template>
@@ -40,19 +45,54 @@
           >
             {{ $t('featureGrant.revoke') }}
           </a-button>
+          <a-button
+            v-if="record.status === 1"
+            type="link"
+            size="small"
+            danger
+            @click="handleManualRemove(record)"
+          >
+            {{ $t('featureGrant.manualRemove') }}
+          </a-button>
         </template>
       </template>
     </ProTable>
+
+    <!-- 手动添加创作能力弹窗 -->
+    <a-modal
+      v-model:open="manualAddVisible"
+      :title="$t('featureGrant.manualAdd')"
+      @ok="handleManualAddOk"
+      @cancel="manualAddVisible = false"
+    >
+      <a-form :model="manualAddForm" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
+        <a-form-item :label="$t('featureGrant.unionUserId')" required>
+          <a-input v-model:value="manualAddForm.unionUserId" :placeholder="$t('featureGrant.unionUserIdPlaceholder')" />
+        </a-form-item>
+        <a-form-item :label="$t('featureGrant.featureCode')" required>
+          <a-select v-model:value="manualAddForm.featureCode" :placeholder="$t('featureGrant.selectFeature')">
+            <a-select-option v-for="f in featureOptions" :key="f.featureCode" :value="f.featureCode">
+              {{ f.featureName?.[currentLocale] || f.featureName?.['zh-CN'] || f.featureCode }}
+            </a-select-option>
+          </a-select>
+        </a-form-item>
+        <a-form-item :label="$t('featureGrant.expireTime')">
+          <a-date-picker v-model:value="manualAddForm.expireTime" show-time style="width: 100%" />
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { message, Modal } from 'antdv-next'
 import { useI18n } from 'vue-i18n'
+import dayjs from 'dayjs'
 import ProTable from '@/components/Pro/ProTable/index.vue'
-import { getFeatureGrantList, revokeFeature } from '@/api/feature'
+import { getFeatureGrantList, revokeFeature, manualAddFeature, manualRemoveFeature, getFeatureOptions } from '@/api/feature'
 import { getLocale } from '@/locales'
+import type { Feature } from '@/types/api'
 
 const { t } = useI18n()
 const currentLocale = computed(() => getLocale())
@@ -128,7 +168,7 @@ const columns = [
     title: t('common.action'),
     dataIndex: 'operation',
     key: 'operation',
-    width: 120,
+    width: 180,
     align: 'center' as const,
     fixed: 'right' as const,
   },
@@ -157,4 +197,56 @@ function handleRevoke(record: { id: number }) {
     },
   })
 }
+
+function handleManualRemove(record: { id: number }) {
+  Modal.confirm({
+    title: t('common.warning'),
+    content: t('featureGrant.confirmManualRemove'),
+    onOk: async () => {
+      await manualRemoveFeature(record.id)
+      message.success(t('featureGrant.manualRemoveSuccess'))
+    },
+  })
+}
+
+// 手动添加相关
+const manualAddVisible = ref(false)
+const manualAddForm = ref({
+  unionUserId: '',
+  featureCode: undefined as string | undefined,
+  expireTime: undefined as dayjs.Dayjs | undefined,
+})
+const featureOptions = ref<Feature[]>([])
+
+function showManualAddModal() {
+  manualAddForm.value = {
+    unionUserId: '',
+    featureCode: undefined,
+    expireTime: undefined,
+  }
+  manualAddVisible.value = true
+}
+
+async function handleManualAddOk() {
+  if (!manualAddForm.value.unionUserId) {
+    message.error(t('featureGrant.unionUserIdRequired'))
+    return
+  }
+  if (!manualAddForm.value.featureCode) {
+    message.error(t('featureGrant.featureCodeRequired'))
+    return
+  }
+  await manualAddFeature({
+    unionUserId: manualAddForm.value.unionUserId,
+    featureCode: manualAddForm.value.featureCode,
+    expireTime: manualAddForm.value.expireTime?.format('YYYY-MM-DD HH:mm:ss'),
+  })
+  message.success(t('featureGrant.manualAddSuccess'))
+  manualAddVisible.value = false
+}
+
+onMounted(async () => {
+  const res = await getFeatureOptions()
+  featureOptions.value = res || []
+})
 </script>

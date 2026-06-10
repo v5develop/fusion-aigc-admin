@@ -82,13 +82,27 @@ const columns = [
   {
     title: t('cost.modelId'),
     dataIndex: 'modelId',
-    width: 100,
+    width: 180,
+    customRender: ({ record }: { record: { modelName?: string; modelId: number } }) => {
+      return record.modelName ? `${record.modelName} (${record.modelId})` : record.modelId
+    },
   },
   {
     title: t('cost.pointsConsumed'),
     dataIndex: 'pointsConsumed',
     width: 120,
     align: 'center' as const,
+  },
+  {
+    title: t('cost.costSource'),
+    dataIndex: 'costSource',
+    width: 100,
+    customRender: ({ record }: { record: { costSource?: string } }) => {
+      const source = record.costSource
+      if (source === 'billed') return '供应商计费'
+      if (source === 'estimated') return '预估'
+      return '-'
+    },
   },
   {
     title: t('cost.actualCostAmount'),

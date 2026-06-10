@@ -2451,6 +2451,7 @@ export default {
     username: 'Username',
     modelId: 'Model ID',
     pointsConsumed: 'Points Consumed',
+    costSource: 'Cost Source',
     actualCostAmount: 'Actual Cost',
     actualCostCurrency: 'Currency',
     callCount: 'Call Count',

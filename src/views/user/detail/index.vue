@@ -73,7 +73,7 @@
           <!-- 点数信息 -->
           <a-card :title="$t('user.pointsBalance')" :bordered="false" class="points-card">
             <div class="points-display">
-              <span class="points-number">{{ userInfo?.pointsBalance ?? 0 }}</span>
+              <span class="points-number">{{ userInfo?.balance ?? 0 }}</span>
               <span class="points-unit">{{ $t('user.pointsUnit') }}</span>
             </div>
             <template #extra>
