@@ -347,42 +347,40 @@ export interface UnionConfig {
   offlineRequireTimestamp?: boolean
 }
 
-export interface ApiConfig {
-  id: number
+/** @deprecated Use AiProvider */
+export type ApiConfig = AiProvider
+
+export interface AiProvider {
+  id?: number
   name: string
   platform: string
   apiUrl?: string
-  status: number
+  autoAppendV1Path?: boolean
+  proxyType?: string
+  proxyHost?: string
+  proxyPort?: number
+  proxyUsername?: string
+  proxyPassword?: string
+  apiKey?: string
+  appId?: string
+  appSecret?: string
+  modelId?: number
+  status?: number
   remark?: string
+  createTime?: string
+  updateTime?: string
 }
 
-export interface AIProviderConfig {
-  id?: number | null
-  action?: string
-  status?: number
+export interface AiProviderPageParams {
   name?: string
-  type?: string
-  baseUrl?: string
-  apiKey?: string
-  model?: string
-  maxTokens?: number
-  temperature?: number
-  timeout?: number
-  providers?: Array<{
-    id?: number
-    name: string
-    type: string
-    baseUrl?: string
-    apiKey: string
-    model?: string
-    maxTokens?: number
-    temperature?: number
-    timeout?: number
-    status?: number
-  }>
-  defaultProvider?: string
-  enableRemoteModels?: string
+  platform?: string
+  status?: number
+  pageNo?: number
+  pageSize?: number
 }
+
+/** @deprecated 保留兼容别名 */
+export type AIProviderConfig = AiProvider
 
 export type StorageConfigType = 'local' | 's3'
 export type StoragePlatform = 'local' | 'aliyun_oss' | 'tencent_cos' | 'aws_s3' | 'minio' | 's3'

@@ -11,23 +11,22 @@
         :columns="columns"
         :data-source="providerList"
         :loading="loading"
-        :pagination="false"
+        :pagination="pagination"
+        @change="handleTableChange"
         row-key="id"
       >
         <template #emptyText>
           <a-empty :description="$t('settingsAIProvider.noProviderData')" />
         </template>
         <template #bodyCell="{ column, record }">
-          <template v-if="column.dataIndex === 'type'">
-            <a-tag color="blue">{{ typeMap[record.type] || record.type }}</a-tag>
+          <template v-if="column.dataIndex === 'platform'">
+            <a-tag color="blue">{{ platformMap[record.platform] || record.platform }}</a-tag>
           </template>
 
           <template v-if="column.dataIndex === 'status'">
             <a-switch
-              v-model:checked="record.status"
-              :checked-value="1"
-              :unchecked-value="0"
-              @change="handleStatusChange(record)"
+              :checked="record.status === 1"
+              @change="(checked: boolean) => handleStatusChange(record, checked)"
             />
           </template>
 
@@ -70,14 +69,14 @@
         </a-form-item>
         <a-form-item :label="$t('settingsAIProvider.type')" required>
           <a-select
-            v-model:value="formData.type"
+            v-model:value="formData.platform"
             :placeholder="$t('settingsAIProvider.typePlaceholder')"
-            :options="typeOptions"
+            :options="platformOptions"
           />
         </a-form-item>
         <a-form-item :label="$t('settingsAIProvider.baseUrl')">
           <a-input
-            v-model:value="formData.baseUrl"
+            v-model:value="formData.apiUrl"
             :placeholder="$t('settingsAIProvider.baseUrlPlaceholder')"
           />
         </a-form-item>
@@ -85,36 +84,6 @@
           <a-input-password
             v-model:value="formData.apiKey"
             :placeholder="$t('settingsAIProvider.apiKeyPlaceholder')"
-          />
-        </a-form-item>
-        <a-form-item :label="$t('settingsAIProvider.model')">
-          <a-input
-            v-model:value="formData.model"
-            :placeholder="$t('settingsAIProvider.modelPlaceholder')"
-          />
-        </a-form-item>
-        <a-form-item :label="$t('settingsAIProvider.maxTokens')">
-          <a-input-number
-            v-model:value="formData.maxTokens"
-            :min="1"
-            style="width: 100%"
-          />
-        </a-form-item>
-        <a-form-item :label="$t('settingsAIProvider.temperature')">
-          <a-input-number
-            v-model:value="formData.temperature"
-            :min="0"
-            :max="2"
-            :step="0.1"
-            style="width: 100%"
-          />
-        </a-form-item>
-        <a-form-item :label="$t('settingsAIProvider.timeout')">
-          <a-input-number
-            v-model:value="formData.timeout"
-            :min="1000"
-            :step="1000"
-            style="width: 100%"
           />
         </a-form-item>
       </a-form>
@@ -127,34 +96,55 @@ import { ref, reactive, onMounted } from 'vue'
 import { PlusOutlined } from '@antdv-next/icons'
 import { message } from 'antdv-next'
 import { useI18n } from 'vue-i18n'
-import { getAIProviderConfig, saveAIProviderConfig, testAIProviderConnection } from '@/api/config'
+import {
+  getAiProviderPage,
+  createAiProvider,
+  updateAiProvider,
+  deleteAiProvider,
+  testAiProviderConnection,
+} from '@/api/config'
+import type { AiProvider } from '@/types/api'
 
 const { t } = useI18n()
 
 const loading = ref(false)
 const modalVisible = ref(false)
 const submitLoading = ref(false)
-const testing = ref(false)
 const isEdit = ref(false)
 const editId = ref<number | null>(null)
 
-const providerList = ref<any[]>([])
+const providerList = ref<AiProvider[]>([])
 
-const typeMap: Record<string, string> = {
+const pagination = reactive({
+  current: 1,
+  pageSize: 10,
+  total: 0,
+  showTotal: (total: number) => `共 ${total} 条`,
+})
+
+const platformMap: Record<string, string> = {
   openai: 'OpenAI',
+  openai_compatible: 'OpenAI Compatible',
   anthropic: 'Anthropic',
   dashscope: 'DashScope',
   ollama: 'Ollama',
   gemini: 'Gemini',
+  vertex_ai: 'Vertex AI',
+  volcengine: 'Volcengine',
+  GoogleFlowReverseApi: 'Google Flow Reverse Api',
   custom: t('settingsAIProvider.custom'),
 }
 
-const typeOptions = [
+const platformOptions = [
   { label: 'OpenAI', value: 'openai' },
+  { label: 'OpenAI Compatible', value: 'openai_compatible' },
   { label: 'Anthropic', value: 'anthropic' },
   { label: 'DashScope', value: 'dashscope' },
   { label: 'Ollama', value: 'ollama' },
   { label: 'Gemini', value: 'gemini' },
+  { label: 'Vertex AI', value: 'vertex_ai' },
+  { label: 'Volcengine', value: 'volcengine' },
+  { label: 'Google Flow Reverse Api', value: 'GoogleFlowReverseApi' },
   { label: t('settingsAIProvider.custom'), value: 'custom' },
 ]
 
@@ -166,18 +156,13 @@ const columns = [
   },
   {
     title: t('settingsAIProvider.type'),
-    dataIndex: 'type',
-    width: 120,
+    dataIndex: 'platform',
+    width: 150,
   },
   {
     title: t('settingsAIProvider.baseUrl'),
-    dataIndex: 'baseUrl',
+    dataIndex: 'apiUrl',
     ellipsis: true,
-  },
-  {
-    title: t('settingsAIProvider.model'),
-    dataIndex: 'model',
-    width: 150,
   },
   {
     title: t('settingsAIProvider.enabled'),
@@ -187,7 +172,6 @@ const columns = [
   },
   {
     title: t('common.action'),
-    dataIndex: 'operation',
     key: 'operation',
     width: 200,
     align: 'center' as const,
@@ -196,20 +180,20 @@ const columns = [
 
 const formData = reactive({
   name: '',
-  type: 'openai',
-  baseUrl: '',
+  platform: 'openai',
+  apiUrl: '',
   apiKey: '',
-  model: '',
-  maxTokens: 4096,
-  temperature: 0.7,
-  timeout: 30000,
 })
 
 async function loadProviders() {
   loading.value = true
   try {
-    const res = await getAIProviderConfig()
-    providerList.value = (res.providers as Array<Record<string, unknown>>) || []
+    const res = await getAiProviderPage({
+      pageNo: pagination.current,
+      pageSize: pagination.pageSize,
+    })
+    providerList.value = res.list || []
+    pagination.total = res.total || 0
   } catch {
     providerList.value = []
   } finally {
@@ -217,26 +201,33 @@ async function loadProviders() {
   }
 }
 
+function handleTableChange(pag: { current?: number; pageSize?: number }) {
+  if (pag.current) pagination.current = pag.current
+  if (pag.pageSize) pagination.pageSize = pag.pageSize
+  loadProviders()
+}
+
 function handleAdd() {
   isEdit.value = false
   editId.value = null
   Object.assign(formData, {
     name: '',
-    type: 'openai',
-    baseUrl: '',
+    platform: 'openai',
+    apiUrl: '',
     apiKey: '',
-    model: '',
-    maxTokens: 4096,
-    temperature: 0.7,
-    timeout: 30000,
   })
   modalVisible.value = true
 }
 
-function handleEdit(record: any) {
+function handleEdit(record: AiProvider) {
   isEdit.value = true
-  editId.value = record.id
-  Object.assign(formData, record)
+  editId.value = record.id ?? null
+  Object.assign(formData, {
+    name: record.name,
+    platform: record.platform,
+    apiUrl: record.apiUrl ?? '',
+    apiKey: '', // 安全原因不回显
+  })
   modalVisible.value = true
 }
 
@@ -245,18 +236,34 @@ async function handleSubmit() {
     message.error(t('settingsAIProvider.nameRequired'))
     return
   }
-  if (!formData.apiKey) {
+  if (!formData.apiKey && !isEdit.value) {
     message.error(t('settingsAIProvider.apiKeyRequired'))
     return
   }
 
   submitLoading.value = true
   try {
-    await saveAIProviderConfig({
-      id: editId.value,
-      ...formData,
-    })
-    message.success(isEdit.value ? t('settingsAIProvider.updateSuccess') : t('settingsAIProvider.createSuccess'))
+    if (isEdit.value && editId.value) {
+      const data: Partial<AiProvider> = {
+        name: formData.name,
+        platform: formData.platform,
+        apiUrl: formData.apiUrl || undefined,
+      }
+      if (formData.apiKey) {
+        data.apiKey = formData.apiKey
+      }
+      await updateAiProvider(editId.value, data)
+      message.success(t('settingsAIProvider.updateSuccess'))
+    } else {
+      await createAiProvider({
+        name: formData.name,
+        platform: formData.platform,
+        apiUrl: formData.apiUrl || undefined,
+        apiKey: formData.apiKey,
+        status: 1,
+      })
+      message.success(t('settingsAIProvider.createSuccess'))
+    }
     modalVisible.value = false
     loadProviders()
   } catch {
@@ -266,9 +273,9 @@ async function handleSubmit() {
   }
 }
 
-async function handleDelete(record: any) {
+async function handleDelete(record: AiProvider) {
   try {
-    await saveAIProviderConfig({ id: record.id, action: 'delete' })
+    await deleteAiProvider(record.id!)
     message.success(t('settingsAIProvider.deleteSuccess'))
     loadProviders()
   } catch {
@@ -276,27 +283,21 @@ async function handleDelete(record: any) {
   }
 }
 
-async function handleStatusChange(record: any) {
+async function handleStatusChange(record: AiProvider, checked: boolean) {
   try {
-    await saveAIProviderConfig({
-      id: record.id,
-      status: record.status,
-    })
+    await updateAiProvider(record.id!, { status: checked ? 1 : 0 })
+    record.status = checked ? 1 : 0
   } catch {
     record.status = record.status === 1 ? 0 : 1
   }
 }
 
-async function handleTest(record: any) {
-  testing.value = true
+async function handleTest(record: AiProvider) {
   try {
-    await testAIProviderConnection(record)
+    await testAiProviderConnection(record)
     message.success(t('settingsAIProvider.testConnectionSuccess'))
-  } catch (error) {
-    console.error('Test connection failed:', error)
+  } catch {
     message.error(t('settingsAIProvider.testConnectionFailed'))
-  } finally {
-    testing.value = false
   }
 }
 

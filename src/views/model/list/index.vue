@@ -100,8 +100,8 @@ import { message, Modal } from 'antdv-next'
 import { useI18n } from 'vue-i18n'
 import ProTable from '@/components/Pro/ProTable/index.vue'
 import { getModelList, createModel, updateModel, deleteModel } from '@/api/model'
-import { getApiConfigList } from '@/api/config'
-import type { AIModel, ApiConfig } from '@/types/api'
+import { getAiProviderList } from '@/api/config'
+import type { AIModel, AiProvider } from '@/types/api'
 
 const { t } = useI18n()
 
@@ -192,10 +192,10 @@ const apiConfigOptions = ref<{ label: string; value: number }[]>([])
 
 async function loadApiConfigs() {
   try {
-    const configs = await getApiConfigList()
+    const configs = await getAiProviderList()
     apiConfigOptions.value = configs
-      .filter((c: ApiConfig) => c.status === 1)
-      .map((c: ApiConfig) => ({ label: `${c.name} (${c.platform})`, value: c.id }))
+      .filter((c: AiProvider) => c.status === 1)
+      .map((c: AiProvider) => ({ label: `${c.name} (${c.platform})`, value: c.id! }))
   } catch (e) {
     console.error('Failed to load API configs:', e)
   }

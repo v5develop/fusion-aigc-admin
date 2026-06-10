@@ -207,7 +207,7 @@
           </a-col>
           <a-col :span="8">
             <a-form-item :label="$t('billingOffer.defaultModelId')">
-              <a-input-number v-model:value="variantForm.defaultModelId" />
+              <a-select v-model:value="variantForm.defaultModelId" :options="modelOptions" show-search allow-clear :filter-option="filterModelOption" placeholder="请选择模型" />
             </a-form-item>
           </a-col>
         </a-row>
@@ -266,7 +266,7 @@
         <a-row :gutter="16">
           <a-col :span="8">
             <a-form-item :label="$t('billingOffer.modelId')">
-              <a-input-number v-model:value="componentForm.modelId" />
+              <a-select v-model:value="componentForm.modelId" :options="modelOptions" show-search allow-clear :filter-option="filterModelOption" placeholder="请选择模型" />
             </a-form-item>
           </a-col>
           <a-col :span="8">
@@ -290,7 +290,8 @@ import { ref, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { message } from 'antdv-next'
 import { getFeatureOptions } from '@/api/feature'
-import type { Feature } from '@/types/api'
+import { getModelOptions } from '@/api/model'
+import type { Feature, AIModel } from '@/types/api'
 import { PlusOutlined, ReloadOutlined } from '@antdv-next/icons'
 import ProTable from '@/components/Pro/ProTable/index.vue'
 import {
@@ -325,6 +326,27 @@ function filterFeatureOption(input: string, option: { label?: string }) {
   return option.label?.toLowerCase().includes(input.toLowerCase()) ?? false
 }
 loadFeatureOptions()
+
+// Model options (模型下拉)
+const modelOptions = ref<{ label: string; value: number }[]>([])
+const modelList = ref<AIModel[]>([])
+async function loadModelOptions() {
+  try {
+    const list = await getModelOptions()
+    modelList.value = list || []
+    updateModelOptions()
+  } catch { /* ignore */ }
+}
+function updateModelOptions() {
+  modelOptions.value = modelList.value.map(m => ({
+    label: `${m.name} (${m.code})`,
+    value: m.id,
+  }))
+}
+function filterModelOption(input: string, option: { label?: string }) {
+  return option.label?.toLowerCase().includes(input.toLowerCase()) ?? false
+}
+loadModelOptions()
 
 const submitLoading = ref(false)
 const refreshing = ref(false)
