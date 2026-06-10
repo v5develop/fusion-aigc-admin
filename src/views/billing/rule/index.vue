@@ -150,7 +150,7 @@ const columns = [
 ]
 
 async function loadData(p: Record<string, unknown>) {
-  const res = await getRuleList({ pageNo: p.current || 1, pageSize: p.pageSize || 10 })
+  const res = await getRuleList({ page: p.current || 1, pageSize: p.pageSize || 10 })
   return { data: res.list || [], total: res.total || 0, success: true }
 }
 

@@ -196,7 +196,7 @@ async function loadData(params: Record<string, unknown>) {
   const res = await getAdminUserList({
     username: params.username as string | undefined,
     status: params.status as number | undefined,
-    pageNo: (params.current as number) || 1,
+    page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
   })
   return {
@@ -211,7 +211,7 @@ const roleOptions = ref<Array<{ label: string; value: number }>>([])
 
 async function loadRoles() {
   try {
-    const res = await getAdminRoleList({ pageNo: 1, pageSize: 100 })
+    const res = await getAdminRoleList({ page: 1, pageSize: 100 })
     roleOptions.value = (res.list || []).map((r: AdminRole) => ({
       label: r.roleName,
       value: r.id,

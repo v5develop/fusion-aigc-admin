@@ -194,7 +194,7 @@ const formData = reactive({
 
 async function loadData(params: Record<string, unknown>) {
   const res = await getFeatureList({
-    pageNo: (params.current as number) || 1,
+    page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
   })
   return {

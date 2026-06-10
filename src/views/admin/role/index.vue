@@ -163,7 +163,7 @@ async function loadData(params: Record<string, unknown>) {
     roleCode: params.roleCode as string | undefined,
     roleName: params.roleName as string | undefined,
     status: params.status as number | undefined,
-    pageNo: (params.current as number) || 1,
+    page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
   })
   return {

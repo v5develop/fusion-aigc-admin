@@ -369,7 +369,7 @@ async function loadOffers(params: Record<string, unknown>) {
   // 调用分页 tree 接口，传递分页参数和搜索条件
   const { current, pageSize, ...searchParams } = params as { current?: number; pageSize?: number; [key: string]: unknown }
   const result = await getOfferTree({
-    pageNo: current,
+    page: current,
     pageSize: pageSize,
     ...searchParams,
   })

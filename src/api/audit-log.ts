@@ -17,7 +17,7 @@ export interface AuditLog {
 }
 
 export interface AuditLogParams {
-  pageNo: number
+  page: number
   pageSize: number
   operatorId?: number
   action?: string
@@ -27,7 +27,7 @@ export interface AuditLogParams {
 }
 
 export function getAuditLogList(params: AuditLogParams) {
-  return request.get<{ list: AuditLog[]; total: number; pageNo: number; pageSize: number }>('/api/v1/admin/audit-logs/page', { params })
+  return request.get<{ list: AuditLog[]; total: number; page: number; pageSize: number }>('/api/v1/admin/audit-logs/page', { params })
 }
 
 export function getAuditLogDetail(id: number) {

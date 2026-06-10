@@ -167,7 +167,7 @@ async function loadData(params: Record<string, unknown>) {
     keyword: params.name as string | undefined,
     category: params.category as string | undefined,
     enabled: params.enabled as number | undefined,
-    pageNo: (params.current as number) || 1,
+    page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
   })
   return {

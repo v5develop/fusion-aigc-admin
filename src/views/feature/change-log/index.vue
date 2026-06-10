@@ -129,7 +129,7 @@ const columns = [
 async function loadData(params: Record<string, unknown>) {
   const res = await getFeatureChangeLog({
     featureId: params.featureId as number | undefined,
-    pageNo: (params.current as number) || 1,
+    page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
   })
   return {

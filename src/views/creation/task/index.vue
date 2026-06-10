@@ -287,7 +287,7 @@ async function loadData(params: Record<string, unknown>) {
     featureCode: params.featureCode as string | undefined,
     billingStatus: params.billingStatus as string | undefined,
     keyword: params.keyword as string | undefined,
-    pageNo: (params.current as number) || 1,
+    page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
   })
   return {
@@ -384,7 +384,7 @@ async function handleExport() {
       featureCode: searchParams.featureCode,
       billingStatus: searchParams.billingStatus,
       keyword: searchParams.keyword,
-      pageNo: 1,
+      page: 1,
       pageSize: 10000,
     })
     const url = window.URL.createObjectURL(blob as unknown as Blob)

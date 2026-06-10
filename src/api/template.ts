@@ -60,7 +60,7 @@ export function getTemplateList(params: {
   category?: string
   mode?: string
   enabled?: number
-  pageNo?: number
+  page?: number
   pageSize?: number
 }) {
   return request.get<PageResult<TemplateRecord>>('/api/v1/admin/creation/templates', { params })

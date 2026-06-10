@@ -189,7 +189,7 @@ async function loadProviders() {
   loading.value = true
   try {
     const res = await getAiProviderPage({
-      pageNo: pagination.current,
+      page: pagination.current,
       pageSize: pagination.pageSize,
     })
     providerList.value = res.list || []

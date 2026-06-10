@@ -983,7 +983,7 @@ export default {
     403: '无权限访问',
     500: '服务器错误',
     backHome: '返回首页',
-    pageNotFound: '抱歉，您访问的页面不存在',
+    pagetFound: '抱歉，您访问的页面不存在',
     noPermission: '抱歉，您没有权限访问此页面',
     serverError: '抱歉，服务器出现错误',
   },

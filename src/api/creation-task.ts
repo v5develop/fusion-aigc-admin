@@ -75,7 +75,7 @@ export interface CreationTaskQuery {
   startTime?: string
   endTime?: string
   keyword?: string
-  pageNo: number
+  page: number
   pageSize: number
 }
 

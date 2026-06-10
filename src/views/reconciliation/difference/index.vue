@@ -226,7 +226,7 @@ async function loadData(params: Record<string, unknown>) {
   const res = await getDifferenceList({
     status: params.status as string | undefined,
     differenceType: params.differenceType as string | undefined,
-    pageNo: (params.current as number) || 1,
+    page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 20,
   })
   return {

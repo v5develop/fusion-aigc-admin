@@ -124,7 +124,7 @@ async function loadData(params: Record<string, unknown>) {
   const res = await getConsumptionList({
     userId: params.userId as number | undefined,
     bizKeyword: params.bizKeyword as string | undefined,
-    pageNo: (params.current as number) || 1,
+    page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
   })
   return {

@@ -175,7 +175,7 @@ async function loadData(params: Record<string, unknown>) {
     keyword: params.keyword as string | undefined,
     isUnionBound: params.isUnionBound as boolean | undefined,
     status: params.status as number | undefined,
-    pageNo: (params.current as number) || 1,
+    page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
   })
   return {

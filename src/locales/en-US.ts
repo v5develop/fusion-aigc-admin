@@ -958,7 +958,7 @@ export default {
     '404': 'Page Not Found',
     '500': 'Server Error',
     backHome: 'Back to Home',
-    pageNotFound: 'Sorry, the page you visited does not exist',
+    pagetFound: 'Sorry, the page you visited does not exist',
     noPermission: 'Sorry, you do not have permission to access this page',
     serverError: 'Sorry, the server is reporting an error',
   },

@@ -6,7 +6,7 @@ export function getCostList(params: {
   userId?: number
   startDate?: string
   endDate?: string
-  pageNo: number
+  page: number
   pageSize: number
 }) {
   return request.get<PageResult<ModelCost>>('/api/v1/admin/costs', { params })

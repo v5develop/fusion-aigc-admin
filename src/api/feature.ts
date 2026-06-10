@@ -29,7 +29,7 @@ export function saveFeatureModelMapping(id: number, data: { modelIds: number[] }
   return request.put(`/api/v1/admin/creation/features/${id}/models`, data)
 }
 
-export function getFeatureGrantList(params: { userId?: number; pageNo: number; pageSize: number }) {
+export function getFeatureGrantList(params: { userId?: number; page: number; pageSize: number }) {
   return request.get<PageResult<FeatureGrant>>('/api/v1/admin/creation/feature-grants', { params })
 }
 
@@ -45,6 +45,6 @@ export function manualRemoveFeature(grantId: number) {
   return request.post(`/api/v1/admin/creation/feature-grants/${grantId}/manual-remove`)
 }
 
-export function getFeatureChangeLog(params: { featureId?: number; pageNo: number; pageSize: number }) {
+export function getFeatureChangeLog(params: { featureId?: number; page: number; pageSize: number }) {
   return request.get<PageResult<FeatureChangeLog>>('/api/v1/admin/creation/features/change-log', { params })
 }

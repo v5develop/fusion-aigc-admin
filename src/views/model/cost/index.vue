@@ -128,7 +128,7 @@ async function loadData(params: Record<string, unknown>) {
     userId: params.userId as number | undefined,
     startDate: params.startDate as string | undefined,
     endDate: params.endDate as string | undefined,
-    pageNo: (params.current as number) || 1,
+    page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
   })
   return {

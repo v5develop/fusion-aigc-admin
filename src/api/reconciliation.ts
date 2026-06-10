@@ -19,7 +19,7 @@ export function exportReconciliation(params: { startDate: string; endDate: strin
 export function getDifferenceList(params: {
   status?: string
   differenceType?: string
-  pageNo: number
+  page: number
   pageSize: number
 }) {
   return request.get<PageResult<ReconciliationDifference>>('/api/v1/admin/reconciliation/differences', { params })

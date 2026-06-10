@@ -84,7 +84,7 @@ async function loadData(): Promise<void> {
     const res = await getPromptList({
       keyword: keyword.value || undefined,
       enabled: 1,
-      pageNo: 1,
+      page: 1,
       pageSize: 50,
     })
     list.value = res.list || []

@@ -7,7 +7,7 @@ export interface ApiResponse<T = unknown> {
 }
 
 export interface PageParams {
-  pageNo: number
+  page: number
   pageSize: number
   [key: string]: unknown
 }
@@ -376,7 +376,7 @@ export interface AiProviderPageParams {
   name?: string
   platform?: string
   status?: number
-  pageNo?: number
+  page?: number
   pageSize?: number
 }
 

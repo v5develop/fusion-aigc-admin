@@ -68,7 +68,7 @@ export function getPromptList(params: {
   keyword?: string
   category?: string
   enabled?: number
-  pageNo?: number
+  page?: number
   pageSize?: number
 }) {
   return request.get<PageResult<PromptRecord>>('/api/v1/admin/creation/prompts', { params })
