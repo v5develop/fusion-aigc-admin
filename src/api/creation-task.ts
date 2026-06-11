@@ -22,7 +22,11 @@ export interface CreationTask {
   type: TaskType
   typeName?: string
   mode: number
+  /** 用户原始入参：用户端完整原始请求体快照（仅入口主任务有值，子任务/派生任务为 null）*/
+  requestParams?: string
+  /** 出口/执行入参：下发执行方（AIGC/第三方 API）的入参快照 */
   params?: string
+  /** 执行方任务 ID：执行方返回的任务标识（本地 task_id / 豆包 arkId / wavespeed requestId / comet taskId）*/
   aigcTaskId?: string
   status: TaskStatus
   statusText?: string

@@ -105,7 +105,15 @@
         </a-descriptions>
       </a-card>
 
-      <!-- Params Info -->
+      <!-- Request Params（用户原始入参，仅主任务有值） -->
+      <a-card :title="$t('creationTask.requestParamsInfo')" style="margin-bottom: 16px">
+        <div v-if="formattedRequestParams" class="json-viewer">
+          <pre>{{ formattedRequestParams }}</pre>
+        </div>
+        <a-empty v-else :description="$t('creationTask.noRequestParams')" />
+      </a-card>
+
+      <!-- Execution Params（下发执行方的出口入参） -->
       <a-card :title="$t('creationTask.paramsInfo')" style="margin-bottom: 16px">
         <div v-if="formattedParams" class="json-viewer">
           <pre>{{ formattedParams }}</pre>
@@ -374,7 +382,18 @@ const childColumns = [
   { title: t('common.createTime'), dataIndex: 'createTime', width: 170 },
 ]
 
-// Format params JSON
+// Format request params JSON（用户原始入参，仅入口主任务有值）
+const formattedRequestParams = computed(() => {
+  if (!task.value?.requestParams) return ''
+  try {
+    const parsed = JSON.parse(task.value.requestParams)
+    return JSON.stringify(parsed, null, 2)
+  } catch {
+    return task.value.requestParams
+  }
+})
+
+// Format execution params JSON（下发执行方的出口入参）
 const formattedParams = computed(() => {
   if (!task.value?.params) return ''
   try {
