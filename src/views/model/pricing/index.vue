@@ -148,7 +148,7 @@ const priceUnitOptions = [
   { label: t('pricing.unitPer1kTokens'), value: 'PER_1K_TOKENS' },
 ]
 
-const columns = [
+const columns = computed(() => [
   {
     title: t('model.modelName'),
     dataIndex: 'modelName',
@@ -163,7 +163,7 @@ const columns = [
     title: t('pricing.actionType'),
     dataIndex: 'actionType',
     searchType: 'select' as const,
-    searchOptions: actionTypeOptions,
+    searchOptions: actionTypeOptions.value,
     width: 120,
   },
   {
@@ -206,7 +206,7 @@ const columns = [
     align: 'center' as const,
     fixed: 'right' as const,
   },
-]
+])
 
 const tableRef = ref()
 const modelList = ref<AIModel[]>([])

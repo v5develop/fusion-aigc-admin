@@ -113,7 +113,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ExportOutlined, StopOutlined } from '@antdv-next/icons'
@@ -197,7 +197,7 @@ const billingStatusColorMap: Record<string, string> = {
 }
 
 // Columns definition
-const columns = [
+const columns = computed(() => [
   {
     title: t('creationTask.taskId'),
     dataIndex: 'taskId',
@@ -220,7 +220,7 @@ const columns = [
     title: t('creationTask.type'),
     dataIndex: 'type',
     searchType: 'select' as const,
-    searchOptions: typeSearchOptions,
+    searchOptions: typeSearchOptions.value,
     width: 100,
     align: 'center' as const,
   },
@@ -287,7 +287,7 @@ const columns = [
     align: 'center' as const,
     fixed: 'right' as const,
   },
-]
+])
 
 // Load data
 async function loadData(params: Record<string, unknown>) {
