@@ -32,8 +32,8 @@
         </template>
 
         <template v-if="column.dataIndex === 'type'">
-          <a-tag :color="typeColorMap[record.type]">
-            {{ typeMap[record.type] || record.type }}
+          <a-tag :color="getTypeColor(record.type)">
+            {{ record.typeName || record.type }}
           </a-tag>
         </template>
 
@@ -113,7 +113,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ExportOutlined, StopOutlined } from '@antdv-next/icons'
@@ -128,11 +128,25 @@ import {
   batchCancelCreationTasks,
 } from '@/api/creation-task'
 import type { CreationTask } from '@/api/creation-task'
+import { getAllOffers } from '@/api/billing-offer'
 
 const { t } = useI18n()
 const router = useRouter()
 const tableRef = ref()
 const selectedRowKeys = ref<string[]>([])
+
+// 动态类型筛选选项（从 offer 表加载）
+const typeSearchOptions = ref<{ label: string; value: string }[]>([])
+onMounted(async () => {
+  try {
+    const offers = await getAllOffers()
+    typeSearchOptions.value = (offers || [])
+      .filter((o: any) => o.entryCode && o.status === 'ACTIVE')
+      .map((o: any) => ({ label: o.name || o.entryCode, value: o.entryCode }))
+  } catch {
+    // 加载失败时留空，不影响主流程
+  }
+})
 
 // Status map
 const statusMap: Record<number, string> = {
@@ -151,17 +165,18 @@ const statusColorMap: Record<number, string> = {
   4: '#d9d9d9',
 }
 
-// Type map
-const typeMap: Record<string, string> = {
-  IMAGE: t('creationTask.typeImage'),
-  VIDEO: t('creationTask.typeVideo'),
-  ECOMMERCE: t('creationTask.typeEcommerce'),
-}
-
-const typeColorMap: Record<string, string> = {
-  IMAGE: 'blue',
-  VIDEO: 'purple',
-  ECOMMERCE: 'orange',
+// Type color map — 尝试匹配已知大类意图，未匹配时根据名称选择
+const TYPE_COLORS = ['blue', 'purple', 'orange', 'green', 'cyan', 'magenta']
+function getTypeColor(type: string, index?: number): string {
+  if (!type) return 'default'
+  // 图片类
+  if (/image|Image|photo|Photo|picture/i.test(type) || type === 'IMAGE') return 'blue'
+  // 视频类
+  if (/video|Video|clip|Clip/i.test(type) || type === 'VIDEO') return 'purple'
+  // 电商类
+  if (/ecommerce|Ecommerce|product|Product/i.test(type) || type === 'ECOMMERCE') return 'orange'
+  // 回退：按 index 循环分配
+  return TYPE_COLORS[(index ?? 0) % TYPE_COLORS.length]
 }
 
 // Billing status map
@@ -205,11 +220,7 @@ const columns = [
     title: t('creationTask.type'),
     dataIndex: 'type',
     searchType: 'select' as const,
-    searchOptions: [
-      { label: t('creationTask.typeImage'), value: 'IMAGE' },
-      { label: t('creationTask.typeVideo'), value: 'VIDEO' },
-      { label: t('creationTask.typeEcommerce'), value: 'ECOMMERCE' },
-    ],
+    searchOptions: typeSearchOptions,
     width: 100,
     align: 'center' as const,
   },

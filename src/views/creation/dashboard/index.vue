@@ -259,11 +259,16 @@ const STATUS_COLORS: Record<string, string> = {
   已取消: '#8c8c8c',
 }
 
-const TYPE_COLORS: Record<string, string> = {
-  图片生成: CHART_COLORS.primary,
-  视频生成: CHART_COLORS.purple,
-  电商创作: CHART_COLORS.orange,
-}
+// 调色板：所有类型统一使用循环调色板
+const PALETTE = [
+  CHART_COLORS.primary,
+  CHART_COLORS.purple,
+  CHART_COLORS.orange,
+  CHART_COLORS.success,
+  CHART_COLORS.warning,
+  CHART_COLORS.cyan,
+  '#eb2f96', '#faad14', '#a0d911', '#f5222d',
+]
 
 // === 失败原因表格列 ===
 const failureColumns = computed(() => [
@@ -390,10 +395,10 @@ const typePieOption = computed(() => ({
       type: 'pie',
       radius: ['45%', '70%'],
       center: ['50%', '45%'],
-      data: typeData.value.map((item) => ({
+      data: typeData.value.map((item, idx) => ({
         name: item.name,
         value: item.value,
-        itemStyle: { color: TYPE_COLORS[item.name] || CHART_COLORS.primary },
+        itemStyle: { color: PALETTE[idx % PALETTE.length] },
       })),
       emphasis: { itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.5)' } },
       label: { formatter: '{b}\n{d}%' },
@@ -501,7 +506,7 @@ const userRankingOption = computed(() => {
 
 // === 耗时统计分组柱状图 ===
 const durationOption = computed(() => {
-  const types = durationData.value.map((d) => d.type)
+  const types = durationData.value.map((d) => d.typeName || d.type)
   return {
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
     legend: { data: ['P50', 'P90', 'P99'], bottom: 0 },

@@ -43,6 +43,7 @@ export interface HeatmapItem {
 
 export interface DurationGroup {
   type: string
+  typeName?: string
   p50: number
   p90: number
   p99: number

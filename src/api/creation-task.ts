@@ -10,8 +10,8 @@ export enum TaskStatus {
   CANCELLED = 4,
 }
 
-// Task type enum
-export type TaskType = 'IMAGE' | 'VIDEO' | 'ECOMMERCE'
+// Task type enum — 数据库存储小驼峰格式（如 productSetImages、hitVideo），列表筛选仍可用大类
+export type TaskType = string
 
 // Creation Task record
 export interface CreationTask {
@@ -20,6 +20,7 @@ export interface CreationTask {
   userId: number
   username?: string
   type: TaskType
+  typeName?: string
   mode: number
   params?: string
   aigcTaskId?: string

@@ -39,8 +39,8 @@
             {{ task?.taskId || '-' }}
           </a-descriptions-item>
           <a-descriptions-item :label="$t('creationTask.type')">
-            <a-tag v-if="task?.type" :color="typeColorMap[task.type]">
-              {{ typeMap[task.type] || task.type }}
+            <a-tag v-if="task?.type" :color="getTypeColor(task.type)">
+              {{ task.typeName || task.type }}
             </a-tag>
             <span v-else>-</span>
           </a-descriptions-item>
@@ -121,13 +121,13 @@
       >
         <div class="result-preview">
           <a-image
-            v-if="task.type === 'IMAGE' || task.type === 'ECOMMERCE'"
+            v-if="isImageUrl(task.resultUrl)"
             :src="task.resultUrl"
             :alt="$t('creationTask.resultImage')"
             style="max-width: 400px; max-height: 400px"
           />
           <video
-            v-else-if="task.type === 'VIDEO'"
+            v-else-if="isVideoUrl(task.resultUrl)"
             :src="task.resultUrl"
             controls
             style="max-width: 600px; max-height: 400px"
@@ -159,8 +159,8 @@
         >
           <template #bodyCell="{ column, record }">
             <template v-if="column.dataIndex === 'type'">
-              <a-tag :color="typeColorMap[record.type]">
-                {{ typeMap[record.type] || record.type }}
+              <a-tag :color="getTypeColor(record.type)">
+                {{ record.typeName || record.type }}
               </a-tag>
             </template>
             <template v-if="column.dataIndex === 'status'">
@@ -321,16 +321,22 @@ const statusColorMap: Record<number, string> = {
   4: '#d9d9d9',
 }
 
-const typeMap: Record<string, string> = {
-  IMAGE: t('creationTask.typeImage'),
-  VIDEO: t('creationTask.typeVideo'),
-  ECOMMERCE: t('creationTask.typeEcommerce'),
+const TYPE_COLORS = ['blue', 'purple', 'orange', 'green', 'cyan', 'magenta']
+function getTypeColor(type: string, index?: number): string {
+  if (!type) return 'default'
+  if (/image|Image|photo|Photo|picture/i.test(type) || type === 'IMAGE') return 'blue'
+  if (/video|Video|clip|Clip/i.test(type) || type === 'VIDEO') return 'purple'
+  if (/ecommerce|Ecommerce|product|Product/i.test(type) || type === 'ECOMMERCE') return 'orange'
+  return TYPE_COLORS[(index ?? 0) % TYPE_COLORS.length]
 }
 
-const typeColorMap: Record<string, string> = {
-  IMAGE: 'blue',
-  VIDEO: 'purple',
-  ECOMMERCE: 'orange',
+function isImageUrl(url?: string): boolean {
+  if (!url) return false
+  return /\.(jpe?g|png|gif|webp|bmp|svg|avif)(\?.*)?$/i.test(url)
+}
+function isVideoUrl(url?: string): boolean {
+  if (!url) return false
+  return /\.(mp4|webm|mov|avi|mkv|flv)(\?.*)?$/i.test(url)
 }
 
 const billingStatusMap: Record<string, string> = {
