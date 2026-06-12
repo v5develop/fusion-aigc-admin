@@ -548,10 +548,10 @@ export default defineMock([
         items: [
           {
             date: '2025-01-15',
-            grantCount: 2,
+            rechargeCount: 2,
             consumeCount: 2,
             refundCount: 0,
-            grantAmount: 300,
+            rechargeAmount: 500,
             consumeAmount: -60,
             refundAmount: 0,
             difference: 240,

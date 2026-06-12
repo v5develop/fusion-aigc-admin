@@ -27,7 +27,7 @@ export interface CreationTask {
   /** 出口/执行入参：下发执行方（AIGC/第三方 API）的入参快照 */
   params?: string
   /** 执行方任务 ID：执行方返回的任务标识（本地 task_id / 豆包 arkId / wavespeed requestId / comet taskId）*/
-  aigcTaskId?: string
+  executionTaskId?: string
   status: TaskStatus
   statusText?: string
   resultUrl?: string

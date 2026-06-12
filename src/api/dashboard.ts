@@ -11,8 +11,6 @@ export interface DashboardStats {
   todaySuccessTasks: number
   todayFailedTasks: number
   todayConsumption: number
-  todayGrantPoints: number
-  todayGrantCount: number
   todayUnionRequests: number
   todayUnionSuccess: number
   todayPaidOrders: number

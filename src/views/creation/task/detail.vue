@@ -67,7 +67,7 @@
             {{ task?.category || '-' }}
           </a-descriptions-item>
           <a-descriptions-item :label="$t('creationTask.aigcTaskId')">
-            {{ task?.aigcTaskId || '-' }}
+            {{ task?.executionTaskId || '-' }}
           </a-descriptions-item>
           <a-descriptions-item :label="$t('creationTask.mode')">
             <a-tag v-if="task?.mode != null" :color="isCompositeMode(task.mode) ? 'purple' : 'blue'">

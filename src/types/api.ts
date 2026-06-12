@@ -231,7 +231,7 @@ export interface ConsumptionParams extends PageParams {
 
 // Reconciliation Types
 export interface ReconciliationSummary {
-  totalGrant: number
+  totalRecharge: number
   totalConsume: number
   totalRefund: number
   differenceAmount: number
@@ -240,10 +240,10 @@ export interface ReconciliationSummary {
 
 export interface ReconciliationDailyItem {
   date: string
-  grantCount: number
+  rechargeCount: number
   consumeCount: number
   refundCount: number
-  grantAmount: number
+  rechargeAmount: number
   consumeAmount: number
   refundAmount: number
   difference: number
@@ -265,7 +265,7 @@ export interface ReconciliationDifference {
 }
 
 export interface ReconciliationMonthly {
-  totalGrant: number
+  totalRecharge: number
   totalConsume: number
   totalDifference: number
   items: ReconciliationMonthlyItem[]
@@ -273,9 +273,9 @@ export interface ReconciliationMonthly {
 
 export interface ReconciliationMonthlyItem {
   date: string
-  grantCount: number
+  rechargeCount: number
   consumeCount: number
-  grantAmount: number
+  rechargeAmount: number
   consumeAmount: number
   difference: number
 }

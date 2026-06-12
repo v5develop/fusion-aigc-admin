@@ -504,6 +504,40 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
     ],
   },
   {
+    path: '/template-asset',
+    name: 'TemplateAsset',
+    redirect: '/template-asset/list',
+    component: () => import('@/components/Layout/AdminLayout.vue'),
+    meta: {
+      title: 'menu.templateAssetParent',
+      icon: 'PictureOutlined',
+      requiresAuth: true,
+      order: 80.5,
+    },
+    children: [
+      {
+        path: 'list',
+        name: 'TemplateAssetList',
+        component: () => import('@/views/template-asset/index.vue'),
+        meta: {
+          title: 'menu.templateAssetList',
+          requiresAuth: true,
+          requiredPermissions: 'template_filter:view',
+        },
+      },
+      {
+        path: 'filter',
+        name: 'TemplateFilterList',
+        component: () => import('@/views/template-filter/index.vue'),
+        meta: {
+          title: 'menu.templateFilterList',
+          requiresAuth: true,
+          requiredPermissions: 'template_filter:view',
+        },
+      },
+    ],
+  },
+  {
     path: '/prompt',
     name: 'Prompt',
     redirect: '/prompt/list',

@@ -29,8 +29,8 @@
         <a-row :gutter="[16, 16]" class="mb-4">
           <a-col :xs="24" :sm="12" :lg="6">
             <ProStatCard
-              :label="$t('reconciliation.totalGrant')"
-              :value="summary.totalGrant"
+              :label="$t('reconciliation.totalRecharge')"
+              :value="summary.totalRecharge"
               suffix="pts"
               color="#1890ff"
             />
@@ -95,8 +95,8 @@
         <a-row :gutter="[16, 16]" class="mb-4">
           <a-col :xs="24" :sm="12" :lg="8">
             <ProStatCard
-              :label="$t('reconciliation.totalGrant')"
-              :value="monthly.totalGrant"
+              :label="$t('reconciliation.totalRecharge')"
+              :value="monthly.totalRecharge"
               suffix="pts"
               color="#1890ff"
             />
@@ -162,16 +162,16 @@ const trendChartRef = ref<HTMLElement>()
 const monthlyChartRef = ref<HTMLElement>()
 
 const summary = reactive({
-  totalGrant: 0,
+  totalRecharge: 0,
   totalConsume: 0,
   totalRefund: 0,
   differenceAmount: 0,
   items: [] as Array<{
     date: string
-    grantCount: number
+    rechargeCount: number
     consumeCount: number
     refundCount: number
-    grantAmount: number
+    rechargeAmount: number
     consumeAmount: number
     refundAmount: number
     difference: number
@@ -179,14 +179,14 @@ const summary = reactive({
 })
 
 const monthly = reactive({
-  totalGrant: 0,
+  totalRecharge: 0,
   totalConsume: 0,
   totalDifference: 0,
   items: [] as Array<{
     date: string
-    grantCount: number
+    rechargeCount: number
     consumeCount: number
-    grantAmount: number
+    rechargeAmount: number
     consumeAmount: number
     difference: number
   }>,
@@ -194,7 +194,7 @@ const monthly = reactive({
 
 const columns = [
   { title: t('reconciliation.date'), dataIndex: 'date', width: 120 },
-  { title: t('reconciliation.grantCount'), dataIndex: 'grantCount', width: 100, align: 'center' as const },
+  { title: t('reconciliation.rechargeCount'), dataIndex: 'rechargeCount', width: 100, align: 'center' as const },
   { title: t('reconciliation.consumeCount'), dataIndex: 'consumeCount', width: 100, align: 'center' as const },
   { title: t('reconciliation.refundCount'), dataIndex: 'refundCount', width: 100, align: 'center' as const },
   { title: t('reconciliation.differenceValue'), dataIndex: 'difference', width: 120, align: 'center' as const },
@@ -202,8 +202,8 @@ const columns = [
 
 const monthlyColumns = [
   { title: t('reconciliation.date'), dataIndex: 'date', width: 120 },
-  { title: t('reconciliation.grantCount'), dataIndex: 'grantCount', width: 100, align: 'center' as const },
-  { title: t('reconciliation.grantAmount'), dataIndex: 'grantAmount', width: 120, align: 'center' as const },
+  { title: t('reconciliation.rechargeCount'), dataIndex: 'rechargeCount', width: 100, align: 'center' as const },
+  { title: t('reconciliation.rechargeAmount'), dataIndex: 'rechargeAmount', width: 120, align: 'center' as const },
   { title: t('reconciliation.consumeCount'), dataIndex: 'consumeCount', width: 100, align: 'center' as const },
   { title: t('reconciliation.consumeAmount'), dataIndex: 'consumeAmount', width: 120, align: 'center' as const },
   { title: t('reconciliation.differenceValue'), dataIndex: 'difference', width: 120, align: 'center' as const },
@@ -227,7 +227,7 @@ async function loadSummary() {
       startDate: dateRange.value[0].format('YYYY-MM-DD'),
       endDate: dateRange.value[1].format('YYYY-MM-DD'),
     })
-    summary.totalGrant = res?.totalGrant || 0
+    summary.totalRecharge = res?.totalRecharge || 0
     summary.totalConsume = res?.totalConsume || 0
     summary.totalRefund = res?.totalRefund || 0
     summary.differenceAmount = res?.differenceAmount || 0
@@ -247,7 +247,7 @@ async function loadMonthly() {
     const res = await getReconciliationMonthly({
       yearMonth: selectedMonth.value.format('YYYY-MM'),
     })
-    monthly.totalGrant = res?.totalGrant || 0
+    monthly.totalRecharge = res?.totalRecharge || 0
     monthly.totalConsume = res?.totalConsume || 0
     monthly.totalDifference = res?.totalDifference || 0
     monthly.items = res?.items || []
@@ -287,41 +287,49 @@ async function handleExport() {
   }
 }
 
-function renderTrendChart(items: Array<{ date: string; grantAmount: number; consumeAmount: number; difference: number }>) {
+function renderTrendChart(items: Array<{ date: string; rechargeAmount: number; consumeAmount: number; difference: number }>) {
   if (!trendChartRef.value || !items.length) return
-  const maxVal = Math.max(...items.map(i => Math.max(i.grantAmount, i.consumeAmount)), 1)
+  const maxVal = Math.max(...items.map(i => Math.max(i.rechargeAmount, Math.abs(i.consumeAmount))), 1)
   trendChartRef.value.innerHTML = `
     <div class="bar-chart">
-      ${items.map(item => `
+      ${items.map(item => {
+        const consumeVal = Math.abs(item.consumeAmount)
+        return `
         <div class="bar-group">
-          <div class="bar bar-grant" style="height: ${(item.grantAmount / maxVal) * 100}%" title="发放: ${item.grantAmount}"></div>
-          <div class="bar bar-consume" style="height: ${(item.consumeAmount / maxVal) * 100}%" title="消费: ${item.consumeAmount}"></div>
+          <div class="bar-track">
+            <div class="bar bar-recharge" style="height: ${(item.rechargeAmount / maxVal) * 100}%" title="充值: ${item.rechargeAmount}"></div>
+            <div class="bar bar-consume" style="height: ${(consumeVal / maxVal) * 100}%" title="消费: ${consumeVal}"></div>
+          </div>
           <div class="bar-label">${item.date.slice(5)}</div>
         </div>
-      `).join('')}
+      `}).join('')}
     </div>
     <div class="chart-legend">
-      <span class="legend-item"><span class="legend-dot legend-grant"></span>发放</span>
+      <span class="legend-item"><span class="legend-dot legend-recharge"></span>充值</span>
       <span class="legend-item"><span class="legend-dot legend-consume"></span>消费</span>
     </div>
   `
 }
 
-function renderMonthlyChart(items: Array<{ date: string; grantAmount: number; consumeAmount: number }>) {
+function renderMonthlyChart(items: Array<{ date: string; rechargeAmount: number; consumeAmount: number }>) {
   if (!monthlyChartRef.value || !items.length) return
-  const maxVal = Math.max(...items.map(i => Math.max(i.grantAmount, i.consumeAmount)), 1)
+  const maxVal = Math.max(...items.map(i => Math.max(i.rechargeAmount, Math.abs(i.consumeAmount))), 1)
   monthlyChartRef.value.innerHTML = `
     <div class="bar-chart">
-      ${items.map(item => `
+      ${items.map(item => {
+        const consumeVal = Math.abs(item.consumeAmount)
+        return `
         <div class="bar-group">
-          <div class="bar bar-grant" style="height: ${(item.grantAmount / maxVal) * 100}%" title="发放: ${item.grantAmount}"></div>
-          <div class="bar bar-consume" style="height: ${(item.consumeAmount / maxVal) * 100}%" title="消费: ${item.consumeAmount}"></div>
+          <div class="bar-track">
+            <div class="bar bar-recharge" style="height: ${(item.rechargeAmount / maxVal) * 100}%" title="充值: ${item.rechargeAmount}"></div>
+            <div class="bar bar-consume" style="height: ${(consumeVal / maxVal) * 100}%" title="消费: ${consumeVal}"></div>
+          </div>
           <div class="bar-label">${item.date.slice(8)}</div>
         </div>
-      `).join('')}
+      `}).join('')}
     </div>
     <div class="chart-legend">
-      <span class="legend-item"><span class="legend-dot legend-grant"></span>发放</span>
+      <span class="legend-item"><span class="legend-dot legend-recharge"></span>充值</span>
       <span class="legend-item"><span class="legend-dot legend-consume"></span>消费</span>
     </div>
   `
@@ -342,7 +350,7 @@ onMounted(() => {
 
 .chart-container :deep(.bar-chart) {
   display: flex;
-  align-items: flex-end;
+  align-items: stretch;
   justify-content: space-around;
   height: 180px;
   gap: 4px;
@@ -353,7 +361,18 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   flex: 1;
+  height: 100%;
   max-width: 40px;
+}
+
+.chart-container :deep(.bar-track) {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+  min-height: 0;
 }
 
 .chart-container :deep(.bar) {
@@ -364,7 +383,7 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-.chart-container :deep(.bar-grant) {
+.chart-container :deep(.bar-recharge) {
   background: linear-gradient(180deg, #1890ff 0%, #69c0ff 100%);
 }
 
@@ -400,6 +419,6 @@ onMounted(() => {
   border-radius: 50%;
 }
 
-.chart-container :deep(.legend-grant) { background: #1890ff; }
+.chart-container :deep(.legend-recharge) { background: #1890ff; }
 .chart-container :deep(.legend-consume) { background: #52c41a; }
 </style>

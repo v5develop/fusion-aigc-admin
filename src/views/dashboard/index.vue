@@ -104,24 +104,6 @@
       <a-col :xs="24" :sm="12" :lg="6">
         <a-card variant="borderless">
           <a-statistic
-            :title="$t('dashboard.todayGrantPoints')"
-            :value="stats.todayGrantPoints"
-            :value-style="{ color: '#1890ff' }"
-          >
-            <template #prefix>
-              <GiftOutlined />
-            </template>
-            <template #suffix>
-              <span class="stat-suffix" v-if="stats.todayGrantCount > 0">
-                ({{ stats.todayGrantCount }}笔)
-              </span>
-            </template>
-          </a-statistic>
-        </a-card>
-      </a-col>
-      <a-col :xs="24" :sm="12" :lg="6">
-        <a-card variant="borderless">
-          <a-statistic
             :title="$t('dashboard.openDifferences')"
             :value="stats.openDifferences"
             :value-style="{ color: stats.openDifferences > 0 ? '#ff4d4f' : '#52c41a' }"
@@ -177,7 +159,6 @@ import {
   AccountBookOutlined,
   AppstoreOutlined,
   FolderOutlined,
-  GiftOutlined,
   RobotOutlined,
   TeamOutlined,
   ThunderboltOutlined,
@@ -197,8 +178,6 @@ const stats = reactive({
   todaySuccessTasks: 0,
   todayFailedTasks: 0,
   todayConsumption: 0,
-  todayGrantPoints: 0,
-  todayGrantCount: 0,
   todayUnionRequests: 0,
   todayUnionSuccess: 0,
   openDifferences: 0,
@@ -221,8 +200,6 @@ async function loadStats() {
     stats.todaySuccessTasks = res.todaySuccessTasks || 0
     stats.todayFailedTasks = res.todayFailedTasks || 0
     stats.todayConsumption = res.todayConsumption || 0
-    stats.todayGrantPoints = res.todayGrantPoints || 0
-    stats.todayGrantCount = res.todayGrantCount || 0
     stats.todayUnionRequests = res.todayUnionRequests || 0
     stats.todayUnionSuccess = res.todayUnionSuccess || 0
     stats.openDifferences = res.openDifferences || 0
@@ -247,8 +224,10 @@ function renderCharts(trend: Record<string, unknown> | undefined) {
       <div class="bar-chart">
         ${labels.map((label, i) => `
           <div class="bar-item">
-            <div class="bar" style="height: ${(taskCounts[i] / maxTask) * 100}%">
-              <span class="bar-value">${taskCounts[i]}</span>
+            <div class="bar-track">
+              <div class="bar" style="height: ${(taskCounts[i] / maxTask) * 100}%">
+                <span class="bar-value">${taskCounts[i]}</span>
+              </div>
             </div>
             <div class="bar-label">${label.slice(5)}</div>
           </div>
@@ -263,8 +242,10 @@ function renderCharts(trend: Record<string, unknown> | undefined) {
       <div class="bar-chart">
         ${labels.map((label, i) => `
           <div class="bar-item">
-            <div class="bar bar-consume" style="height: ${(consumeAmounts[i] / maxConsume) * 100}%">
-              <span class="bar-value">${consumeAmounts[i]}</span>
+            <div class="bar-track">
+              <div class="bar bar-consume" style="height: ${(consumeAmounts[i] / maxConsume) * 100}%">
+                <span class="bar-value">${consumeAmounts[i]}</span>
+              </div>
             </div>
             <div class="bar-label">${label.slice(5)}</div>
           </div>
@@ -317,8 +298,20 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   flex: 1;
+  height: 100%;
   min-width: 32px;
   max-width: 60px;
+}
+
+.chart-container :deep(.bar-track) {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 0;
+  padding-top: 18px;
+  box-sizing: border-box;
 }
 
 .chart-container :deep(.bar) {
@@ -338,9 +331,11 @@ onMounted(() => {
 }
 
 .chart-container :deep(.bar-value) {
+  position: absolute;
+  top: -16px;
   font-size: 11px;
-  color: #fff;
-  padding: 2px 4px;
+  color: #595959;
+  padding: 0;
   white-space: nowrap;
   line-height: 1;
 }

@@ -10,6 +10,7 @@ import {
   loginWithPassword,
   logout as apiLogout,
   refreshToken as apiRefreshToken,
+  getAdminInfo,
   type UserInfo,
 } from '@/api/auth'
 import { setRefreshToken, getRefreshToken, clearTokens } from '@/utils/storage'
@@ -39,8 +40,33 @@ export const useAuthStore = defineStore('auth', () => {
       if (resp.refreshToken) {
         setRefreshToken(resp.refreshToken)
       }
+      // 登录响应不含权限列表，拉取 /auth/info 填充 roles/permissions，
+      // 否则 v-permission 永远拿到空数组，按钮全被隐藏。
+      await loadUserInfo()
     } else {
       throw new Error('Login failed')
+    }
+  }
+
+  // 从后端拉取当前管理员完整信息（含 roles/permissions）并写入 store。
+  const loadUserInfo = async (): Promise<void> => {
+    if (!token.value) return
+    try {
+      const info = await getAdminInfo()
+      if (info) {
+        const userInfo: UserInfo = {
+          id: info.id,
+          username: info.username,
+          nickname: info.nickname || info.username,
+          avatar: info.avatar || '',
+          roles: info.roles ?? [],
+          permissions: info.permissions ?? [],
+        }
+        user.value = userInfo
+        storeUser(userInfo)
+      }
+    } catch (error) {
+      console.error('Failed to load admin info:', error)
     }
   }
 
@@ -87,6 +113,11 @@ export const useAuthStore = defineStore('auth', () => {
     if (storedUser) {
       user.value = storedUser
     }
+    // 用本地存储的旧 user 先占位，再异步刷新真实 roles/permissions，
+    // 兼容旧会话（早期登录未拉取权限，store 里 permissions 为空）。
+    if (storedToken) {
+      void loadUserInfo()
+    }
   }
 
   return {
@@ -98,5 +129,6 @@ export const useAuthStore = defineStore('auth', () => {
     initAuth,
     setTokens,
     refreshAccessToken,
+    loadUserInfo,
   }
 })
