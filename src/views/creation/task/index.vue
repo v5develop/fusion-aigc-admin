@@ -102,6 +102,7 @@
             :pagination="false"
             row-key="id"
             size="small"
+            :scroll="{ x: 1040 }"
           >
             <template #emptyText>
               <a-empty :description="$t('creationTask.noChildData')" />

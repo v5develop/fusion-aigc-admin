@@ -108,11 +108,11 @@ export function batchTagAssets(assetIds: number[], optionIds: number[]) {
   })
 }
 
-// ---- 筛选元数据（用户端路径，可直接调用）----
+// ---- 筛选元数据（后台 admin 路径，带权限校验）----
 export function getTemplateFilterMeta(params: {
   bizType?: string
   moduleCode?: string
   slotCode?: string
 }) {
-  return request.get<TemplateFilterMeta[]>('/api/v1/asset/public/template/filters', { params })
+  return request.get<TemplateFilterMeta[]>('/api/v1/admin/template/filters/meta', { params })
 }
