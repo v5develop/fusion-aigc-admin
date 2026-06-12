@@ -7,6 +7,7 @@
       :search="{}"
       :toolbar="{}"
       row-key="id"
+      :expandable="expandableConfig"
     >
       <template #emptyText>
         <a-empty :description="$t('creationTask.noTaskData')" />
@@ -91,6 +92,47 @@
           </a-space>
         </template>
       </template>
+
+      <!-- 子任务展开行 -->
+      <template #expandedRowRender="{ record }">
+        <a-spin :spinning="!!childrenLoading[record.taskId]">
+          <a-table
+            :columns="childColumns"
+            :data-source="childrenMap[record.taskId] || []"
+            :pagination="false"
+            row-key="id"
+            size="small"
+          >
+            <template #emptyText>
+              <a-empty :description="$t('creationTask.noChildData')" />
+            </template>
+            <template #bodyCell="{ column, record: child }">
+              <template v-if="column.dataIndex === 'taskId'">
+                <a-button type="link" size="small" @click="handleViewDetail(child)">
+                  {{ child.taskId }}
+                </a-button>
+              </template>
+              <template v-if="column.dataIndex === 'type'">
+                <a-tag :color="getTypeColor(child.type)">
+                  {{ child.typeName || child.type }}
+                </a-tag>
+              </template>
+              <template v-if="column.dataIndex === 'status'">
+                <a-badge :color="statusColorMap[child.status]" :text="statusMap[child.status] || '-'" />
+              </template>
+              <template v-if="column.dataIndex === 'pricePoints'">
+                <span class="points-value">{{ child.pricePoints ?? '-' }}</span>
+              </template>
+              <template v-if="column.dataIndex === 'errorMsg'">
+                <a-tooltip v-if="child.errorMsg" :title="child.errorMsg">
+                  <span class="text-ellipsis">{{ child.errorMsg }}</span>
+                </a-tooltip>
+                <span v-else>-</span>
+              </template>
+            </template>
+          </a-table>
+        </a-spin>
+      </template>
     </ProTable>
 
     <!-- Force Complete Modal -->
@@ -121,6 +163,7 @@ import { message, Modal } from 'antdv-next'
 import ProTable from '@/components/Pro/ProTable/index.vue'
 import {
   getCreationTaskList,
+  getCreationTaskChildren,
   cancelCreationTask,
   retryCreationTask,
   forceCompleteCreationTask,
@@ -134,6 +177,33 @@ const { t } = useI18n()
 const router = useRouter()
 const tableRef = ref()
 const selectedRowKeys = ref<string[]>([])
+
+// ---- 子任务展开行 ----
+const childrenMap = ref<Record<string, CreationTask[]>>({})
+const childrenLoading = ref<Record<string, boolean>>({})
+
+// 仅有子任务的父任务行可展开；展开时按需加载子任务
+const expandableConfig = computed(() => ({
+  rowExpandable: (record: CreationTask) => !!record.hasChildren,
+  onExpand: (expanded: boolean, record: CreationTask) => {
+    if (expanded && !childrenMap.value[record.taskId]) {
+      loadChildren(record.taskId)
+    }
+  },
+}))
+
+async function loadChildren(taskId: string) {
+  childrenLoading.value[taskId] = true
+  try {
+    const res = await getCreationTaskChildren(taskId)
+    childrenMap.value[taskId] = res || []
+  } catch (error) {
+    console.error('Failed to load child tasks:', error)
+    childrenMap.value[taskId] = []
+  } finally {
+    childrenLoading.value[taskId] = false
+  }
+}
 
 // 动态类型筛选选项（从 offer 表加载）
 const typeSearchOptions = ref<{ label: string; value: string }[]>([])
@@ -287,6 +357,17 @@ const columns = computed(() => [
     align: 'center' as const,
     fixed: 'right' as const,
   },
+])
+
+// 子任务表格列（精简版）
+const childColumns = computed(() => [
+  { title: t('creationTask.taskId'), dataIndex: 'taskId', width: 240, ellipsis: true },
+  { title: t('creationTask.type'), dataIndex: 'type', width: 100, align: 'center' as const },
+  { title: t('creationTask.status'), dataIndex: 'status', width: 110 },
+  { title: t('creationTask.modelName'), dataIndex: 'modelName', width: 130, ellipsis: true },
+  { title: t('creationTask.pricePoints'), dataIndex: 'pricePoints', width: 90, align: 'center' as const },
+  { title: t('creationTask.errorMsg'), dataIndex: 'errorMsg', ellipsis: true, width: 200 },
+  { title: t('common.createTime'), dataIndex: 'createTime', width: 170 },
 ])
 
 // Load data

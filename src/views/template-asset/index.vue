@@ -137,21 +137,31 @@
     >
       <a-form :model="assetForm" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
         <a-form-item :label="$t('templateAsset.bizType')">
-          <a-input
+          <a-select
             v-model:value="assetForm.bizType"
-            :placeholder="$t('templateAsset.bizTypePlaceholder')"
+            :options="bizTypeOptions"
+            @change="onAssetModuleChange"
           />
         </a-form-item>
         <a-form-item :label="$t('templateAsset.moduleCode')">
-          <a-input
+          <a-select
             v-model:value="assetForm.moduleCode"
+            :options="moduleOptions"
             :placeholder="$t('templateAsset.moduleCodePlaceholder')"
+            :loading="moduleLoading"
+            show-search
+            option-filter-prop="label"
+            allow-clear
+            @change="onAssetModuleChange"
           />
         </a-form-item>
         <a-form-item :label="$t('templateAsset.slotCode')">
-          <a-input
+          <a-auto-complete
             v-model:value="assetForm.slotCode"
+            :options="assetSlotCodeOptions"
             :placeholder="$t('templateAsset.slotCodePlaceholder')"
+            allow-clear
+            :filter-option="filterSlotOption"
           />
         </a-form-item>
         <a-form-item :label="$t('templateAsset.type')">
@@ -400,10 +410,61 @@ import {
   type TemplateAssetType,
   type TemplateFilterMeta,
 } from '@/api/template-asset'
+import { getModuleCodes, getSlotCodes } from '@/api/template-filter'
 
 const { t } = useI18n()
 
 const assetTableRef = ref<InstanceType<typeof ProTable> | null>(null)
+
+// 业务类型下拉（当前仅电商域）
+const bizTypeOptions = [{ label: 'ecommerce', value: 'ecommerce' }]
+
+// 创作模块下拉（来自计费 Offer）
+const moduleOptions = ref<{ label: string; value: string }[]>([])
+const moduleLoading = ref(false)
+async function loadModuleOptions() {
+  moduleLoading.value = true
+  try {
+    const res = await getModuleCodes()
+    moduleOptions.value = (res || []).map((m) => ({
+      label: `${m.moduleName} (${m.moduleCode})`,
+      value: m.moduleCode,
+    }))
+  } catch (error) {
+    console.error('Failed to load module options:', error)
+    moduleOptions.value = []
+  } finally {
+    moduleLoading.value = false
+  }
+}
+loadModuleOptions()
+
+// 素材表单的页面区块联想下拉（按当前 biz/module 取 distinct slotCode，可手输）
+const assetSlotCodeOptions = ref<{ label: string; value: string }[]>([])
+const assetSlotCodeLoading = ref(false)
+async function loadAssetSlotCodeOptions() {
+  assetSlotCodeLoading.value = true
+  try {
+    const res = await getSlotCodes({
+      bizType: assetForm.bizType || 'ecommerce',
+      moduleCode: assetForm.moduleCode || undefined,
+    })
+    assetSlotCodeOptions.value = (res || []).map((c) => ({ label: c, value: c }))
+  } catch (error) {
+    console.error('Failed to load slot code options:', error)
+    assetSlotCodeOptions.value = []
+  } finally {
+    assetSlotCodeLoading.value = false
+  }
+}
+function onAssetModuleChange() {
+  loadAssetSlotCodeOptions()
+}
+
+// auto-complete 联想过滤（按输入文本匹配候选 value）
+function filterSlotOption(input: string, option: { value: string }) {
+  return option.value.toLowerCase().includes(input.toLowerCase())
+}
 
 // 已打标签列：每行最多展示的标签数
 const MAX_TAGS_PER_ROW = 4
@@ -637,6 +698,7 @@ function handleCreateAsset() {
   isAssetEdit.value = false
   editAssetId.value = null
   resetAssetForm()
+  assetSlotCodeOptions.value = []
   assetModalVisible.value = true
 }
 
@@ -654,6 +716,7 @@ function handleEditAsset(record: TemplateAsset) {
   assetForm.sortOrder = record.sortOrder ?? 0
   assetForm.status = record.status
   assetForm.extra = record.extra ?? ''
+  loadAssetSlotCodeOptions()
   assetModalVisible.value = true
 }
 

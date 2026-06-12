@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard">
-    <!-- 核心指标卡片 -->
+    <!-- 总量指标卡片 -->
     <a-row :gutter="[16, 16]">
       <a-col :xs="24" :sm="12" :lg="6">
         <a-card variant="borderless">
@@ -41,6 +41,38 @@
       <a-col :xs="24" :sm="12" :lg="6">
         <a-card variant="borderless">
           <a-statistic
+            :title="$t('dashboard.totalModels')"
+            :value="stats.totalModels"
+            :value-style="{ color: '#faad14' }"
+            :precision="0"
+          >
+            <template #prefix>
+              <RobotOutlined />
+            </template>
+          </a-statistic>
+        </a-card>
+      </a-col>
+      <a-col :xs="24" :sm="12" :lg="6">
+        <a-card variant="borderless">
+          <a-statistic
+            :title="$t('dashboard.totalFeatures')"
+            :value="stats.totalFeatures"
+            :value-style="{ color: '#52c41a' }"
+            :precision="0"
+          >
+            <template #prefix>
+              <AppstoreOutlined />
+            </template>
+          </a-statistic>
+        </a-card>
+      </a-col>
+    </a-row>
+
+    <!-- 今日指标卡片 -->
+    <a-row :gutter="[16, 16]" style="margin-top: 16px">
+      <a-col :xs="24" :sm="12" :lg="6">
+        <a-card variant="borderless">
+          <a-statistic
             :title="$t('dashboard.todayTasks')"
             :value="stats.todayTasks"
             :value-style="{ color: '#722ed1' }"
@@ -69,34 +101,20 @@
           </a-statistic>
         </a-card>
       </a-col>
-    </a-row>
-
-    <!-- 次要指标卡片 -->
-    <a-row :gutter="[16, 16]" style="margin-top: 16px">
       <a-col :xs="24" :sm="12" :lg="6">
         <a-card variant="borderless">
           <a-statistic
-            :title="$t('dashboard.totalModels')"
-            :value="stats.totalModels"
-            :value-style="{ color: '#faad14' }"
-            :precision="0"
-          >
-            <template #prefix>
-              <RobotOutlined />
-            </template>
-          </a-statistic>
-        </a-card>
-      </a-col>
-      <a-col :xs="24" :sm="12" :lg="6">
-        <a-card variant="borderless">
-          <a-statistic
-            :title="$t('dashboard.totalFeatures')"
-            :value="stats.totalFeatures"
+            :title="$t('dashboard.todayRecharge')"
+            :value="stats.todayRechargePoints"
             :value-style="{ color: '#52c41a' }"
-            :precision="0"
           >
             <template #prefix>
-              <AppstoreOutlined />
+              <WalletOutlined />
+            </template>
+            <template #suffix>
+              <span class="stat-suffix" v-if="stats.todayRechargeAmount > 0">
+                ¥{{ (stats.todayRechargeAmount / 100).toFixed(2) }}
+              </span>
             </template>
           </a-statistic>
         </a-card>
@@ -162,6 +180,7 @@ import {
   RobotOutlined,
   TeamOutlined,
   ThunderboltOutlined,
+  WalletOutlined,
   WarningOutlined,
 } from '@antdv-next/icons'
 import { reactive, ref, onMounted, nextTick } from 'vue'
@@ -178,6 +197,9 @@ const stats = reactive({
   todaySuccessTasks: 0,
   todayFailedTasks: 0,
   todayConsumption: 0,
+  todayPaidOrders: 0,
+  todayRechargeAmount: 0,
+  todayRechargePoints: 0,
   todayUnionRequests: 0,
   todayUnionSuccess: 0,
   openDifferences: 0,
@@ -200,6 +222,9 @@ async function loadStats() {
     stats.todaySuccessTasks = res.todaySuccessTasks || 0
     stats.todayFailedTasks = res.todayFailedTasks || 0
     stats.todayConsumption = res.todayConsumption || 0
+    stats.todayPaidOrders = res.todayPaidOrders || 0
+    stats.todayRechargeAmount = res.todayRechargeAmount || 0
+    stats.todayRechargePoints = res.todayRechargePoints || 0
     stats.todayUnionRequests = res.todayUnionRequests || 0
     stats.todayUnionSuccess = res.todayUnionSuccess || 0
     stats.openDifferences = res.openDifferences || 0

@@ -297,8 +297,8 @@ function renderTrendChart(items: Array<{ date: string; rechargeAmount: number; c
         return `
         <div class="bar-group">
           <div class="bar-track">
-            <div class="bar bar-recharge" style="height: ${(item.rechargeAmount / maxVal) * 100}%" title="充值: ${item.rechargeAmount}"></div>
-            <div class="bar bar-consume" style="height: ${(consumeVal / maxVal) * 100}%" title="消费: ${consumeVal}"></div>
+            <div class="bar bar-recharge" style="height: ${(item.rechargeAmount / maxVal) * 100}%" data-tip="充值 ${item.rechargeAmount}"></div>
+            <div class="bar bar-consume" style="height: ${(consumeVal / maxVal) * 100}%" data-tip="消费 ${consumeVal}"></div>
           </div>
           <div class="bar-label">${item.date.slice(5)}</div>
         </div>
@@ -321,8 +321,8 @@ function renderMonthlyChart(items: Array<{ date: string; rechargeAmount: number;
         return `
         <div class="bar-group">
           <div class="bar-track">
-            <div class="bar bar-recharge" style="height: ${(item.rechargeAmount / maxVal) * 100}%" title="充值: ${item.rechargeAmount}"></div>
-            <div class="bar bar-consume" style="height: ${(consumeVal / maxVal) * 100}%" title="消费: ${consumeVal}"></div>
+            <div class="bar bar-recharge" style="height: ${(item.rechargeAmount / maxVal) * 100}%" data-tip="充值 ${item.rechargeAmount}"></div>
+            <div class="bar bar-consume" style="height: ${(consumeVal / maxVal) * 100}%" data-tip="消费 ${consumeVal}"></div>
           </div>
           <div class="bar-label">${item.date.slice(8)}</div>
         </div>
@@ -381,6 +381,34 @@ onMounted(() => {
   border-radius: 2px 2px 0 0;
   transition: height 0.3s ease;
   flex-shrink: 0;
+  position: relative;
+  cursor: pointer;
+}
+
+.chart-container :deep(.bar::after) {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 4px;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: nowrap;
+  border-radius: 4px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.chart-container :deep(.bar:hover::after) {
+  opacity: 1;
+  visibility: visible;
 }
 
 .chart-container :deep(.bar-recharge) {

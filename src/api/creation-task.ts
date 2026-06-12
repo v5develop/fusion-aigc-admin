@@ -36,6 +36,8 @@ export interface CreationTask {
   ownerType?: number
   ownerId?: number
   parentTaskId?: string
+  /** 是否有子任务（列表可展开标记） */
+  hasChildren?: boolean
   featureCode?: string
   modelId?: number
   modelName?: string
@@ -153,6 +155,11 @@ export function getCreationTaskList(params: CreationTaskQuery) {
 
 export function getCreationTaskDetail(id: number) {
   return request.get<CreationTask>(`/api/v1/admin/creation/tasks/${id}`)
+}
+
+// 按父任务ID查询子任务列表（列表展开行用）
+export function getCreationTaskChildren(taskId: string) {
+  return request.get<CreationTask[]>(`/api/v1/admin/creation/tasks/${taskId}/children`)
 }
 
 export function cancelCreationTask(taskId: string) {
