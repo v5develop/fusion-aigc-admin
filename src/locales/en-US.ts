@@ -3223,6 +3223,12 @@ export default {
     enableExpireNotifyHint: 'Automatically send reminder before points or capabilities expire',
     expireNotifyDays: 'Expiration Reminder Days in Advance',
     expireNotifyDaysHint: 'Number of days before expiration to send reminder',
+    agentModel: 'Agent Model',
+    agentModelHint: 'Model used for backend Agent scenarios such as prompt optimization. This config takes priority; the yaml fallback is used when unset or unavailable.',
+    agentModelSelect: 'Agent Model',
+    agentModelPlaceholder: 'Select an Agent model',
+    agentModelSelectHint: 'Only enabled models can be selected; leave empty to use the yaml fallback config',
+    agentModelSupportVision: 'Vision Supported',
     saveSuccess: 'System parameters saved successfully',
   },
 

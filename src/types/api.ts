@@ -453,6 +453,18 @@ export interface SystemConfig {
   defaultPoints?: string | number
 }
 
+/** Agent 模型配置（用于提示词优化等后端 Agent 场景） */
+export interface AgentModelConfig {
+  /** Agent 模型 ID（关联 afv_ai_model.id），未配置时为 null */
+  modelId: number | null
+  /** 模型名称（只读展示） */
+  modelName?: string | null
+  /** 模型标识 code（只读展示） */
+  modelCode?: string | null
+  /** 是否支持视觉（只读展示） */
+  supportVision?: boolean | null
+}
+
 // Feature Grant Types
 export interface FeatureGrant {
   id: number

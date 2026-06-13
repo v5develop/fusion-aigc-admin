@@ -1,5 +1,5 @@
 import { request } from '@/utils/request'
-import type { UnionConfig, AiProvider, AiProviderPageParams, PageResult, StorageConfig, SystemConfig, SystemStorageConfig } from '@/types/api'
+import type { UnionConfig, AiProvider, AiProviderPageParams, PageResult, StorageConfig, SystemConfig, SystemStorageConfig, AgentModelConfig } from '@/types/api'
 
 export function getUnionConfig() {
   return request.get<UnionConfig>('/api/v1/admin/settings/union')
@@ -87,6 +87,15 @@ export function getSystemConfig() {
 
 export function saveSystemConfig(data: SystemConfig) {
   return request.put('/api/v1/admin/settings/system', data)
+}
+
+/** Agent 模型配置（用于提示词优化等后端 Agent 场景） */
+export function getAgentModelConfig() {
+  return request.get<AgentModelConfig>('/api/v1/admin/settings/agent-model')
+}
+
+export function saveAgentModelConfig(data: Pick<AgentModelConfig, 'modelId'>) {
+  return request.put<boolean>('/api/v1/admin/settings/agent-model', data)
 }
 
 /** 系统级存储（数据库配置 B，双桶 + STS）。覆盖系统文件配置 A，被用户级配置 C 覆盖。 */

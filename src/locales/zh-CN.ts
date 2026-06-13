@@ -3266,6 +3266,12 @@ export default {
     enableExpireNotifyHint: '点数或创作能力到期前自动发送提醒',
     expireNotifyDays: '到期提前提醒天数',
     expireNotifyDaysHint: '在到期前多少天发送提醒',
+    agentModel: 'Agent 模型',
+    agentModelHint: '用于提示词优化等后端 Agent 场景的模型。优先使用此处配置，未配置或不可用时使用 yaml 兜底配置。',
+    agentModelSelect: 'Agent 模型',
+    agentModelPlaceholder: '请选择 Agent 模型',
+    agentModelSelectHint: '仅可选择已启用的模型；清空表示使用 yaml 兜底配置',
+    agentModelSupportVision: '支持视觉',
     saveSuccess: '系统参数保存成功',
   },
 

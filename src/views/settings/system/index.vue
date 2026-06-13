@@ -157,16 +157,60 @@
             </a-form-item>
           </a-form>
         </a-tab-pane>
+
+        <a-tab-pane key="agentModel" :tab="$t('settingsSystem.agentModel')">
+          <a-form layout="vertical" :model="agentModelForm" class="max-w-2xl">
+            <a-alert
+              type="info"
+              show-icon
+              :message="$t('settingsSystem.agentModelHint')"
+              class="agent-model-alert"
+            />
+
+            <a-form-item :label="$t('settingsSystem.agentModelSelect')" name="modelId">
+              <a-select
+                v-model:value="agentModelForm.modelId"
+                :options="modelOptions"
+                :loading="loadingModels"
+                :placeholder="$t('settingsSystem.agentModelPlaceholder')"
+                allow-clear
+                show-search
+                option-filter-prop="label"
+                style="max-width: 360px"
+              />
+              <div class="form-hint">{{ $t('settingsSystem.agentModelSelectHint') }}</div>
+            </a-form-item>
+
+            <a-form-item v-if="agentModelForm.modelId && currentModelMeta">
+              <a-space>
+                <a-tag v-if="currentModelMeta.modelCode" color="blue">
+                  {{ currentModelMeta.modelCode }}
+                </a-tag>
+                <a-tag v-if="currentModelMeta.supportVision" color="green">
+                  {{ $t('settingsSystem.agentModelSupportVision') }}
+                </a-tag>
+              </a-space>
+            </a-form-item>
+
+            <a-form-item>
+              <a-button type="primary" @click="handleSaveAgentModel" :loading="savingAgentModel">
+                {{ $t('common.save') }}
+              </a-button>
+            </a-form-item>
+          </a-form>
+        </a-tab-pane>
       </a-tabs>
     </a-card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { message } from 'antdv-next'
 import { useI18n } from 'vue-i18n'
-import { getSystemConfig, saveSystemConfig } from '@/api/config'
+import { getSystemConfig, saveSystemConfig, getAgentModelConfig, saveAgentModelConfig } from '@/api/config'
+import { getModelOptions } from '@/api/model'
+import type { AIModel } from '@/types/api'
 
 const { t } = useI18n()
 
@@ -209,6 +253,53 @@ const notificationForm = reactive({
   enableExpireNotify: true,
   expireNotifyDays: 7,
 })
+
+// ===== Agent 模型配置 =====
+const savingAgentModel = ref(false)
+const loadingModels = ref(false)
+const models = ref<AIModel[]>([])
+
+const agentModelForm = reactive<{ modelId: number | null }>({
+  modelId: null,
+})
+
+const modelOptions = computed(() =>
+  models.value.map((m) => ({
+    label: m.code ? `${m.name} (${m.code})` : m.name,
+    value: m.id,
+  }))
+)
+
+const currentModelMeta = computed(() => {
+  const model = models.value.find((m) => m.id === agentModelForm.modelId)
+  if (!model) return null
+  return { modelCode: model.code, supportVision: model.supportVision }
+})
+
+async function loadAgentModelConfig() {
+  loadingModels.value = true
+  try {
+    const [options, config] = await Promise.all([getModelOptions(), getAgentModelConfig()])
+    models.value = options ?? []
+    agentModelForm.modelId = config?.modelId ?? null
+  } catch {
+    // Error handled by interceptor
+  } finally {
+    loadingModels.value = false
+  }
+}
+
+async function handleSaveAgentModel() {
+  savingAgentModel.value = true
+  try {
+    await saveAgentModelConfig({ modelId: agentModelForm.modelId })
+    message.success(t('settingsSystem.saveSuccess'))
+  } catch {
+    // Error handled by interceptor
+  } finally {
+    savingAgentModel.value = false
+  }
+}
 
 async function loadConfig() {
   try {
@@ -262,6 +353,7 @@ async function handleSaveNotification() {
 
 onMounted(() => {
   loadConfig()
+  loadAgentModelConfig()
 })
 </script>
 
@@ -274,5 +366,9 @@ onMounted(() => {
   font-size: 12px;
   color: #999;
   margin-top: 4px;
+}
+
+.agent-model-alert {
+  margin-bottom: 16px;
 }
 </style>
