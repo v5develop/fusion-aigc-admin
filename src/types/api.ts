@@ -158,6 +158,7 @@ export interface AIModel {
   supportReasoning?: boolean
   contextWindow?: number
   apiConfigId?: number
+  aiProviderId?: number
   createTime: string
   updateTime: string
 }
@@ -355,6 +356,7 @@ export interface AiProvider {
   id?: number
   name: string
   platform: string
+  apiType?: number
   apiUrl?: string
   autoAppendV1Path?: boolean
   proxyType?: string
@@ -366,6 +368,7 @@ export interface AiProvider {
   appId?: string
   appSecret?: string
   modelId?: number
+  modelIds?: number[]
   status?: number
   remark?: string
   createTime?: string

@@ -73,11 +73,11 @@
             :rows="3"
           />
         </a-form-item>
-        <a-form-item :label="$t('model.apiConfig')">
+        <a-form-item :label="$t('model.aiProvider')">
           <a-select
-            v-model:value="formData.apiConfigId"
+            v-model:value="formData.aiProviderId"
             :options="apiConfigOptions"
-            :placeholder="$t('model.apiConfigPlaceholder')"
+            :placeholder="$t('model.aiProviderPlaceholder')"
             allow-clear
           />
         </a-form-item>
@@ -184,7 +184,7 @@ const formData = reactive({
   name: '',
   modelType: 2,
   description: '',
-  apiConfigId: undefined as number | undefined,
+  aiProviderId: undefined as number | undefined,
   statusChecked: 1,
 })
 
@@ -224,7 +224,7 @@ function handleCreate() {
   formData.name = ''
   formData.modelType = 2
   formData.description = ''
-  formData.apiConfigId = undefined
+  formData.aiProviderId = undefined
   formData.statusChecked = 1
   modalVisible.value = true
 }
@@ -236,7 +236,7 @@ function handleEdit(record: AIModel) {
   formData.name = record.name
   formData.modelType = record.modelType
   formData.description = record.description
-  formData.apiConfigId = record.apiConfigId
+  formData.aiProviderId = record.aiProviderId ?? record.apiConfigId
   formData.statusChecked = record.status
   modalVisible.value = true
 }
@@ -258,7 +258,7 @@ async function handleSubmit() {
       name: formData.name,
       modelType: formData.modelType,
       description: formData.description,
-      apiConfigId: formData.apiConfigId,
+      aiProviderId: formData.aiProviderId,
       status: formData.statusChecked,
     }
 
