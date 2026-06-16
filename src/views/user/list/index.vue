@@ -2,6 +2,7 @@
   <div class="page-container">
     <a-card :title="$t('user.list')">
       <ProTable
+        ref="proTableRef"
         :columns="columns"
         :request="loadData"
         :search="{}"
@@ -18,9 +19,9 @@
             <a-avatar v-else>{{ record.nickname?.charAt(0) }}</a-avatar>
           </template>
 
-          <template v-if="column.dataIndex === 'isUnionBound'">
-            <a-tag :color="record.isUnionBound ? 'green' : 'default'">
-              {{ record.isUnionBound ? $t('user.bound') : $t('user.unbound') }}
+          <template v-if="column.dataIndex === 'unionBound'">
+            <a-tag :color="record.unionBound === 1 ? 'green' : 'default'">
+              {{ record.unionBound === 1 ? $t('user.bound') : $t('user.unbound') }}
             </a-tag>
           </template>
 
@@ -81,11 +82,13 @@ import { message } from 'antdv-next'
 import ProTable from '@/components/Pro/ProTable/index.vue'
 import { getUserList } from '@/api/user'
 import { adjustPoints } from '@/api/points'
+import { uuid } from '@/utils/helpers'
 import { ref } from 'vue'
 
 const { t } = useI18n()
 const router = useRouter()
 
+const proTableRef = ref<InstanceType<typeof ProTable> | null>(null)
 const adjustModalVisible = ref(false)
 const adjustForm = ref({ userId: 0, username: '', amount: 0, reason: '', adjustType: 'ADD' as string })
 
@@ -129,11 +132,11 @@ const columns = [
   },
   {
     title: t('user.unionBound'),
-    dataIndex: 'isUnionBound',
+    dataIndex: 'unionBound',
     searchType: 'select' as const,
     searchOptions: [
-      { label: t('user.bound'), value: true },
-      { label: t('user.unbound'), value: false },
+      { label: t('user.bound'), value: 1 },
+      { label: t('user.unbound'), value: 0 },
     ],
     width: 100,
     align: 'center' as const,
@@ -173,7 +176,7 @@ const columns = [
 async function loadData(params: Record<string, unknown>) {
   const res = await getUserList({
     keyword: params.keyword as string | undefined,
-    isUnionBound: params.isUnionBound as boolean | undefined,
+    unionBound: params.unionBound as number | undefined,
     status: params.status as number | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
@@ -215,9 +218,11 @@ async function handleConfirmAdjust() {
       adjustType: adjustForm.value.adjustType,
       amount: adjustForm.value.amount,
       reason: adjustForm.value.reason,
+      idempotencyKey: uuid(),
     })
     message.success(t('common.success'))
     adjustModalVisible.value = false
+    proTableRef.value?.refresh()
   } catch (error) {
     console.error('Adjust points failed:', error)
   }

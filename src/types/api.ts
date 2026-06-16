@@ -103,7 +103,7 @@ export interface User {
   phone: string
   avatar: string
   unionUserId: string | null
-  isUnionBound: boolean
+  unionBound: number
   status: number
   balance: number
   frozen: number
@@ -115,14 +115,18 @@ export interface User {
 export interface UserFeature {
   id: number
   featureCode: string
-  featureName: Record<string, string>
-  expireTime: string
-  grantTime: string
-  status: number
+  /** 来源类型，如 UNION / MANUAL */
+  source?: string
+  sourceId?: string
+  /** 状态字符串：ACTIVE / EXPIRED / REVOKED */
+  status: string
+  effectiveTime?: string
+  expireTime?: string
+  grantTime?: string
 }
 
 export interface UserListParams extends ListParams {
-  isUnionBound?: boolean
+  unionBound?: number
 }
 
 // Feature Types

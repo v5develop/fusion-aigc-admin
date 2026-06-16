@@ -387,6 +387,11 @@ export default {
     basicInfo: 'Basic Info',
     capabilities: 'Capabilities',
     noCapabilities: 'No capabilities',
+    capabilityStatus: {
+      ACTIVE: 'Active',
+      EXPIRED: 'Expired',
+      REVOKED: 'Revoked',
+    },
     pointsUnit: 'Points',
     grantTime: 'Grant Time',
     expireTime: 'Expire Time',

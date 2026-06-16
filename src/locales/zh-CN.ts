@@ -400,6 +400,11 @@ export default {
     basicInfo: '基本信息',
     capabilities: '创作能力',
     noCapabilities: '暂无创作能力',
+    capabilityStatus: {
+      ACTIVE: '生效中',
+      EXPIRED: '已过期',
+      REVOKED: '已撤销',
+    },
     pointsUnit: '点',
     grantTime: '授权时间',
     expireTime: '过期时间',

@@ -35,8 +35,8 @@
               <span class="text-blue-500 font-medium">{{ selectedUser.pointsBalance }}</span>
             </a-descriptions-item>
             <a-descriptions-item :label="$t('points.isUnionBound')">
-              <a-tag :color="selectedUser.isUnionBound ? 'green' : 'default'">
-                {{ selectedUser.isUnionBound ? $t('common.yes') : $t('common.no') }}
+              <a-tag :color="selectedUser.unionBound === 1 ? 'green' : 'default'">
+                {{ selectedUser.unionBound === 1 ? $t('common.yes') : $t('common.no') }}
               </a-tag>
             </a-descriptions-item>
           </a-descriptions>
@@ -129,6 +129,7 @@ import { useI18n } from 'vue-i18n'
 import { message } from 'antdv-next'
 import { adjustPoints } from '@/api/points'
 import { getUserDetail } from '@/api/user'
+import { uuid } from '@/utils/helpers'
 
 const { t } = useI18n()
 
@@ -143,7 +144,7 @@ const selectedUser = ref<{
   username: string
   nickname: string
   pointsBalance: number
-  isUnionBound: boolean
+  unionBound: number
 } | null>(null)
 
 const formData = reactive({
@@ -206,7 +207,7 @@ async function handleSearchUser() {
       username: res.username,
       nickname: res.nickname,
       pointsBalance: res.balance,
-      isUnionBound: res.isUnionBound,
+      unionBound: res.unionBound,
     }
   } catch {
     message.error(t('points.userNotFound'))
@@ -231,6 +232,7 @@ async function handleConfirmSubmit() {
       adjustType: formData.adjustType,
       amount: formData.adjustAmount as number,
       reason: formData.adjustReason,
+      idempotencyKey: uuid(),
     })
     message.success(t('points.adjustSuccess'))
     confirmModalVisible.value = false

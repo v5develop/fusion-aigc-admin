@@ -1,21 +1,22 @@
 <template>
   <div class="page-container">
-    <a-page-header
-      :title="$t('user.detail')"
-      @back="handleBack"
-    >
-      <template #extra>
-        <a-space>
-          <a-button @click="handleAdjustPoints">
-            <DollarOutlined />
-            {{ $t('user.adjustPoints') }}
-          </a-button>
-          <a-button type="primary" @click="showGrantModal">
-            {{ $t('user.grantCapability') }}
-          </a-button>
-        </a-space>
-      </template>
-    </a-page-header>
+    <div class="detail-header">
+      <div class="detail-header-left">
+        <a-button type="text" class="detail-back-btn" @click="handleBack">
+          <ArrowLeftOutlined />
+        </a-button>
+        <span class="detail-title">{{ $t('user.detail') }}</span>
+      </div>
+      <a-space>
+        <a-button @click="handleAdjustPoints">
+          <DollarOutlined />
+          {{ $t('user.adjustPoints') }}
+        </a-button>
+        <a-button type="primary" @click="showGrantModal">
+          {{ $t('user.grantCapability') }}
+        </a-button>
+      </a-space>
+    </div>
 
     <a-spin :spinning="loading">
       <a-row :gutter="[16, 16]">
@@ -51,8 +52,8 @@
                 {{ userInfo?.phone || '-' }}
               </a-descriptions-item>
               <a-descriptions-item :label="$t('user.unionBound')">
-                <a-tag :color="userInfo?.isUnionBound ? 'green' : 'default'">
-                  {{ userInfo?.isUnionBound ? $t('user.bound') : $t('user.unbound') }}
+                <a-tag :color="userInfo?.unionBound === 1 ? 'green' : 'default'">
+                  {{ userInfo?.unionBound === 1 ? $t('user.bound') : $t('user.unbound') }}
                 </a-tag>
               </a-descriptions-item>
               <a-descriptions-item v-if="userInfo?.unionUserId" :label="$t('user.unionUserId')">
@@ -93,6 +94,11 @@
             class="capabilities-card"
             style="margin-top: 16px"
           >
+            <template #extra>
+              <a-button type="link" size="small" @click="showGrantModal">
+                {{ $t('user.grantCapability') }}
+              </a-button>
+            </template>
             <template v-if="capabilities && capabilities.length > 0">
               <div
                 v-for="item in capabilities"
@@ -100,9 +106,9 @@
                 class="capability-item"
               >
                 <div class="capability-header">
-                  <span class="capability-name">{{ getFeatureName(item.featureName) }}</span>
-                  <a-tag :color="item.status === 1 ? 'blue' : 'default'">
-                    {{ item.status === 1 ? $t('common.enabled') : $t('common.disabled') }}
+                  <span class="capability-name">{{ getCapabilityName(item.featureCode) }}</span>
+                  <a-tag :color="capabilityStatusColor(item.status)">
+                    {{ capabilityStatusText(item.status) }}
                   </a-tag>
                 </div>
                 <div class="capability-meta">
@@ -177,18 +183,15 @@
           <a-input :value="userInfo?.username" disabled />
         </a-form-item>
         <a-form-item :label="$t('user.id')">
-          <a-input :value="userInfo?.id" disabled />
+          <a-input :value="String(userInfo?.id ?? '')" disabled />
         </a-form-item>
         <a-form-item :label="$t('featureGrant.featureCode')" required>
           <a-select
             v-model:value="grantForm.featureCode"
+            :options="featureSelectOptions"
             :placeholder="$t('featureGrant.selectFeature')"
             style="width: 100%"
-          >
-            <a-select-option v-for="f in featureOptions" :key="f.featureCode" :value="f.featureCode">
-              {{ f.featureName?.[currentLocale] || f.featureName?.['zh-CN'] || f.featureCode }}
-            </a-select-option>
-          </a-select>
+          />
         </a-form-item>
         <a-form-item :label="$t('featureGrant.expireTime')">
           <a-date-picker v-model:value="grantForm.expireTime" show-time style="width: 100%" />
@@ -203,12 +206,13 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { message } from 'antdv-next'
-import { DollarOutlined } from '@antdv-next/icons'
+import { DollarOutlined, ArrowLeftOutlined } from '@antdv-next/icons'
 import dayjs from 'dayjs'
 import { getUserDetail, getUserCapabilities } from '@/api/user'
 import { adjustPoints } from '@/api/points'
 import { manualAddFeature, getFeatureOptions } from '@/api/feature'
 import { getLocale } from '@/locales'
+import { uuid } from '@/utils/helpers'
 import type { User, UserFeature, Feature } from '@/types/api'
 
 const { t } = useI18n()
@@ -263,8 +267,8 @@ async function fetchUserDetail() {
     userInfo.value = await getUserDetail(id)
     // 同时获取能力列表
     fetchCapabilities(id)
-  } catch {
-    // 错误已在 request 拦截器中处理
+  } catch (e) {
+    console.error('[UserDetail] 获取用户详情失败:', e)
   } finally {
     loading.value = false
   }
@@ -275,18 +279,49 @@ async function fetchCapabilities(userId: number) {
   capabilitiesLoading.value = true
   try {
     capabilities.value = (await getUserCapabilities(userId)) as UserFeature[]
-  } catch {
-    // 能力获取失败不阻塞主流程
+  } catch (e) {
+    console.error('[UserDetail] 获取用户能力失败:', e)
     capabilities.value = []
   } finally {
     capabilitiesLoading.value = false
   }
 }
 
-// 从 featureName 记录中获取当前语言名称
+// 从 featureName 多语言记录中获取当前语言名称
 function getFeatureName(featureName: Record<string, string>): string {
   const { locale } = useI18n()
   return featureName[locale.value] || featureName['zh-CN'] || featureName['en-US'] || Object.values(featureName)[0] || '-'
+}
+
+// 下拉选项：转成 antdv-next a-select 的 {label,value} 数组形式
+// （slot 形式 a-select-option 在本组件库+modal 下不渲染，与 model-mapping 页保持一致用 :options）
+const featureSelectOptions = computed(() =>
+  featureOptions.value.map((f) => ({
+    label: f.featureName?.[currentLocale.value] || f.featureName?.['zh-CN'] || f.featureCode,
+    value: f.featureCode,
+  })),
+)
+
+// 能力列表项只返回 featureCode，这里从能力选项（含多语言名称）解析展示名
+function getCapabilityName(featureCode: string): string {
+  const matched = featureOptions.value.find((f) => f.featureCode === featureCode)
+  return matched?.featureName ? getFeatureName(matched.featureName) : featureCode
+}
+
+// 能力状态（后端返回字符串：ACTIVE / EXPIRED / REVOKED）
+function capabilityStatusColor(status: string): string {
+  const map: Record<string, string> = {
+    ACTIVE: 'blue',
+    EXPIRED: 'orange',
+    REVOKED: 'red',
+  }
+  return map[status] || 'default'
+}
+
+function capabilityStatusText(status: string): string {
+  const key = `user.capabilityStatus.${status}`
+  const text = t(key)
+  return text === key ? status : text
 }
 
 // 返回列表
@@ -322,6 +357,7 @@ async function handleConfirmAdjust() {
       adjustType: adjustForm.value.adjustType,
       amount: adjustForm.value.amount,
       reason: adjustForm.value.reason,
+      idempotencyKey: uuid(),
     })
     message.success(t('common.success'))
     adjustModalVisible.value = false
@@ -335,12 +371,23 @@ async function handleConfirmAdjust() {
 }
 
 // 显示授权创作能力弹窗
+async function loadFeatureOptions() {
+  try {
+    const res = await getFeatureOptions()
+    featureOptions.value = res || []
+  } catch (e) {
+    console.error('[UserDetail] 获取能力选项失败:', e)
+  }
+}
+
 function showGrantModal() {
   grantForm.value = {
     featureCode: undefined,
     expireTime: undefined,
   }
   grantModalVisible.value = true
+  // 打开弹窗时强制拉取能力选项，避免依赖挂载时机（onMounted 时若 token/接口未就绪会拿不到数据）
+  loadFeatureOptions()
 }
 
 // 确认授权创作能力
@@ -371,19 +418,37 @@ async function handleConfirmGrant() {
   }
 }
 
-onMounted(async () => {
+onMounted(() => {
   fetchUserDetail()
-  // 加载创作能力选项
-  try {
-    const res = await getFeatureOptions()
-    featureOptions.value = res || []
-  } catch {
-    // 能力选项获取失败不阻塞主流程
-  }
+  loadFeatureOptions()
 })
 </script>
 
 <style scoped lang="scss">
+.detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+
+  .detail-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .detail-back-btn {
+    padding: 0 4px;
+    font-size: 16px;
+  }
+
+  .detail-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.85);
+  }
+}
+
 .user-header {
   display: flex;
   align-items: center;
