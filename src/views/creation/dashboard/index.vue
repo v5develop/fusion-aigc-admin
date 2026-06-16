@@ -199,6 +199,7 @@ import type {
   RealtimeData,
   TrendDataPoint,
 } from '@/api/creation-dashboard'
+import { decodeUnicode } from '@/utils/helpers'
 
 // 注册 ECharts 组件
 use([
@@ -637,7 +638,11 @@ async function loadDurationStats() {
 
 async function loadFailureAnalysis() {
   try {
-    failureData.value = await getFailureAnalysis()
+    const data = await getFailureAnalysis()
+    failureData.value = (data ?? []).map((item) => ({
+      ...item,
+      errorMsg: decodeUnicode(item.errorMsg),
+    }))
   } catch (e) {
     console.error('Failed to load failure analysis:', e)
   }

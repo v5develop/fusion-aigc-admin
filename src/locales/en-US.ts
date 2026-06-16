@@ -402,6 +402,8 @@ export default {
     adjustAmountInvalid: 'Amount must be greater than 0',
     userNotFound: 'User not found',
     loadFailed: 'Failed to load user info',
+    grantCapability: 'Grant Capability',
+    unionUserIdRequired: 'User not bound to union account, cannot grant capability',
   },
   role: {
     title: 'Role Management',

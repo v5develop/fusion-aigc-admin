@@ -307,3 +307,16 @@ export function getContrastColor(hexColor: string): string {
   const brightness = (r * 299 + g * 587 + b * 114) / 1000;
   return brightness > 128 ? '#000000' : '#ffffff';
 }
+
+/**
+ * 解码字符串中的 \uXXXX 转义序列（后端日志/错误信息里中文常被存为 unicode 转义，
+ * 如 "下载" -> "下载"）。仅替换合法的 \uXXXX 片段，其余内容原样保留；
+ * 非字符串或无转义时按原值返回。
+ */
+export function decodeUnicode(text?: string | null): string {
+  if (!text) return '';
+  if (!text.includes('\\u')) return text;
+  return text.replace(/\\u([0-9a-fA-F]{4})/g, (_, hex) =>
+    String.fromCharCode(parseInt(hex, 16)),
+  );
+}

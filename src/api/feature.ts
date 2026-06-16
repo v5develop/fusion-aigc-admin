@@ -37,7 +37,7 @@ export function revokeFeature(grantId: number) {
   return request.post(`/api/v1/admin/creation/feature-grants/${grantId}/revoke`)
 }
 
-export function manualAddFeature(data: { unionUserId: string; featureCode: string; expireTime?: string }) {
+export function manualAddFeature(data: { userId?: number; unionUserId?: string; featureCode: string; expireTime?: string }) {
   return request.post('/api/v1/admin/creation/feature-grants', data)
 }
 

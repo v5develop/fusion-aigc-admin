@@ -415,6 +415,8 @@ export default {
     adjustAmountInvalid: '调整点数必须大于0',
     userNotFound: '用户不存在',
     loadFailed: '加载用户信息失败',
+    grantCapability: '授权创作能力',
+    unionUserIdRequired: '用户未绑定联盟账号，无法授权创作能力',
   },
 
   role: {

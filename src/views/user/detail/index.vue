@@ -10,6 +10,9 @@
             <DollarOutlined />
             {{ $t('user.adjustPoints') }}
           </a-button>
+          <a-button type="primary" @click="showGrantModal">
+            {{ $t('user.grantCapability') }}
+          </a-button>
         </a-space>
       </template>
     </a-page-header>
@@ -18,7 +21,7 @@
       <a-row :gutter="[16, 16]">
         <!-- 基本信息 -->
         <a-col :span="24" :lg="14">
-          <a-card :title="$t('user.basicInfo')" :bordered="false">
+          <a-card :title="$t('user.basicInfo')" :variant="'borderless'">
             <template #extra>
               <a-tag :color="statusColorMap[userInfo?.status ?? -1]">
                 {{ statusMap[userInfo?.status ?? -1] || '-' }}
@@ -71,7 +74,7 @@
         <!-- 右侧信息 -->
         <a-col :span="24" :lg="10">
           <!-- 点数信息 -->
-          <a-card :title="$t('user.pointsBalance')" :bordered="false" class="points-card">
+          <a-card :title="$t('user.pointsBalance')" :variant="'borderless'" class="points-card">
             <div class="points-display">
               <span class="points-number">{{ userInfo?.balance ?? 0 }}</span>
               <span class="points-unit">{{ $t('user.pointsUnit') }}</span>
@@ -86,7 +89,7 @@
           <!-- 创作能力 -->
           <a-card
             :title="$t('user.capabilities')"
-            :bordered="false"
+            :variant="'borderless'"
             class="capabilities-card"
             style="margin-top: 16px"
           >
@@ -161,22 +164,57 @@
         </a-form-item>
       </a-form>
     </a-modal>
+
+    <!-- 授权创作能力弹窗 -->
+    <a-modal
+      v-model:open="grantModalVisible"
+      :title="$t('user.grantCapability')"
+      @ok="handleConfirmGrant"
+      :confirm-loading="grantLoading"
+    >
+      <a-form layout="vertical">
+        <a-form-item :label="$t('user.username')">
+          <a-input :value="userInfo?.username" disabled />
+        </a-form-item>
+        <a-form-item :label="$t('user.id')">
+          <a-input :value="userInfo?.id" disabled />
+        </a-form-item>
+        <a-form-item :label="$t('featureGrant.featureCode')" required>
+          <a-select
+            v-model:value="grantForm.featureCode"
+            :placeholder="$t('featureGrant.selectFeature')"
+            style="width: 100%"
+          >
+            <a-select-option v-for="f in featureOptions" :key="f.featureCode" :value="f.featureCode">
+              {{ f.featureName?.[currentLocale] || f.featureName?.['zh-CN'] || f.featureCode }}
+            </a-select-option>
+          </a-select>
+        </a-form-item>
+        <a-form-item :label="$t('featureGrant.expireTime')">
+          <a-date-picker v-model:value="grantForm.expireTime" show-time style="width: 100%" />
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { message } from 'antdv-next'
 import { DollarOutlined } from '@antdv-next/icons'
+import dayjs from 'dayjs'
 import { getUserDetail, getUserCapabilities } from '@/api/user'
 import { adjustPoints } from '@/api/points'
-import type { User, UserFeature } from '@/types/api'
+import { manualAddFeature, getFeatureOptions } from '@/api/feature'
+import { getLocale } from '@/locales'
+import type { User, UserFeature, Feature } from '@/types/api'
 
 const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
+const currentLocale = computed(() => getLocale())
 
 const loading = ref(false)
 const capabilitiesLoading = ref(false)
@@ -192,6 +230,15 @@ const adjustForm = ref({
   reason: '',
   adjustType: 'ADD' as string,
 })
+
+// 授权创作能力相关
+const grantModalVisible = ref(false)
+const grantLoading = ref(false)
+const grantForm = ref({
+  featureCode: undefined as string | undefined,
+  expireTime: undefined as dayjs.Dayjs | undefined,
+})
+const featureOptions = ref<Feature[]>([])
 
 // 状态映射
 const statusMap: Record<number, string> = {
@@ -287,8 +334,52 @@ async function handleConfirmAdjust() {
   }
 }
 
-onMounted(() => {
+// 显示授权创作能力弹窗
+function showGrantModal() {
+  grantForm.value = {
+    featureCode: undefined,
+    expireTime: undefined,
+  }
+  grantModalVisible.value = true
+}
+
+// 确认授权创作能力
+async function handleConfirmGrant() {
+  if (!grantForm.value.featureCode) {
+    message.error(t('featureGrant.featureCodeRequired'))
+    return
+  }
+  if (!userInfo.value?.id) {
+    message.error(t('user.userNotFound'))
+    return
+  }
+  grantLoading.value = true
+  try {
+    await manualAddFeature({
+      userId: userInfo.value.id,
+      featureCode: grantForm.value.featureCode,
+      expireTime: grantForm.value.expireTime?.format('YYYY-MM-DD HH:mm:ss'),
+    })
+    message.success(t('featureGrant.manualAddSuccess'))
+    grantModalVisible.value = false
+    // 刷新能力列表
+    fetchCapabilities(userInfo.value.id)
+  } catch {
+    // 错误已在 request 拦截器中处理
+  } finally {
+    grantLoading.value = false
+  }
+}
+
+onMounted(async () => {
   fetchUserDetail()
+  // 加载创作能力选项
+  try {
+    const res = await getFeatureOptions()
+    featureOptions.value = res || []
+  } catch {
+    // 能力选项获取失败不阻塞主流程
+  }
 })
 </script>
 

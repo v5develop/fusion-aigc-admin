@@ -152,7 +152,7 @@
       >
         <a-alert type="error" show-icon>
           <template #message>
-            <span>{{ task.errorMsg }}</span>
+            <span>{{ decodeUnicode(task.errorMsg) }}</span>
             <a-button type="link" size="small" style="padding: 0 4px" @click="showApiLogs">
               {{ $t('creationTask.errorDetail') }}
             </a-button>
@@ -193,13 +193,13 @@
                 <span class="api-log-break">{{ log.requestUrl }}</span>
               </a-descriptions-item>
               <a-descriptions-item v-if="log.errorMessage" :label="$t('creationTask.apiLogError')">
-                <span class="api-log-error">{{ log.errorMessage }}</span>
+                <span class="api-log-error">{{ decodeUnicode(log.errorMessage) }}</span>
               </a-descriptions-item>
               <a-descriptions-item v-if="log.responseBody" :label="$t('creationTask.apiLogResponse')">
-                <pre class="api-log-pre">{{ log.responseBody }}</pre>
+                <pre class="api-log-pre">{{ decodeUnicode(log.responseBody) }}</pre>
               </a-descriptions-item>
               <a-descriptions-item v-if="log.requestBody" :label="$t('creationTask.apiLogRequest')">
-                <pre class="api-log-pre">{{ log.requestBody }}</pre>
+                <pre class="api-log-pre">{{ decodeUnicode(log.requestBody) }}</pre>
               </a-descriptions-item>
             </a-descriptions>
           </div>
@@ -329,6 +329,7 @@ import { useI18n } from 'vue-i18n'
 import { message, Modal } from 'antdv-next'
 import { getCreationTaskDetail, cancelCreationTask, retryCreationTask, forceCompleteCreationTask, getCompositeCostSummary, getCreationTaskApiLogs } from '@/api/creation-task'
 import type { CreationTask, CompositeCostSummary, ApiRequestLog } from '@/api/creation-task'
+import { decodeUnicode } from '@/utils/helpers'
 
 const { t } = useI18n()
 const router = useRouter()
