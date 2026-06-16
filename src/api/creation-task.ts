@@ -157,6 +157,30 @@ export function getCreationTaskDetail(id: number) {
   return request.get<CreationTask>(`/api/v1/admin/creation/tasks/${id}`)
 }
 
+// API 请求日志（afv_api_request_log），用于错误信息详情展示
+export interface ApiRequestLog {
+  id: number
+  /** 客户端名称：AIGC/COMET/WAVESPEED */
+  clientName: string
+  /** 请求类型：SUBMIT/POLL */
+  requestType: string
+  /** 外部任务ID */
+  taskId?: string
+  requestUrl?: string
+  httpMethod?: string
+  requestBody?: string
+  responseStatus?: number
+  responseBody?: string
+  success: boolean
+  errorMessage?: string
+  costTime?: number
+  createTime: string
+}
+
+export function getCreationTaskApiLogs(id: number) {
+  return request.get<ApiRequestLog[]>(`/api/v1/admin/creation/tasks/${id}/api-logs`)
+}
+
 // 按父任务ID查询子任务列表（列表展开行用）
 export function getCreationTaskChildren(taskId: string) {
   return request.get<CreationTask[]>(`/api/v1/admin/creation/tasks/${taskId}/children`)

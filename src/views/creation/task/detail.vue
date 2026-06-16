@@ -150,8 +150,61 @@
         :title="$t('creationTask.errorInfo')"
         style="margin-bottom: 16px"
       >
-        <a-alert type="error" :message="task.errorMsg" show-icon />
+        <a-alert type="error" show-icon>
+          <template #message>
+            <span>{{ task.errorMsg }}</span>
+            <a-button type="link" size="small" style="padding: 0 4px" @click="showApiLogs">
+              {{ $t('creationTask.errorDetail') }}
+            </a-button>
+          </template>
+        </a-alert>
       </a-card>
+
+      <!-- API Request Log Modal (错误信息详情) -->
+      <a-modal
+        v-model:open="apiLogModalOpen"
+        :title="$t('creationTask.apiLogTitle')"
+        width="860px"
+        :footer="null"
+      >
+        <a-spin :spinning="apiLogLoading">
+          <a-empty v-if="!apiLogLoading && apiLogs.length === 0" :description="$t('creationTask.apiLogEmpty')" />
+          <div v-for="log in apiLogs" :key="log.id" class="api-log-item">
+            <div class="api-log-head">
+              <a-space wrap>
+                <a-tag :color="log.success ? 'green' : 'red'">
+                  {{ log.success ? $t('creationTask.apiLogSuccess') : $t('creationTask.apiLogFailed') }}
+                </a-tag>
+                <a-tag color="blue">{{ log.clientName }}</a-tag>
+                <a-tag>{{ log.requestType }}</a-tag>
+                <a-tag v-if="log.httpMethod">{{ log.httpMethod }}</a-tag>
+                <a-tag v-if="log.responseStatus != null" :color="log.responseStatus >= 400 ? 'red' : 'default'">
+                  HTTP {{ log.responseStatus }}
+                </a-tag>
+                <span v-if="log.costTime != null" class="api-log-cost">{{ log.costTime }} ms</span>
+                <span class="api-log-time">{{ log.createTime }}</span>
+              </a-space>
+            </div>
+            <a-descriptions :column="1" size="small" bordered class="api-log-desc">
+              <a-descriptions-item v-if="log.taskId" :label="$t('creationTask.apiLogTaskId')">
+                <code>{{ log.taskId }}</code>
+              </a-descriptions-item>
+              <a-descriptions-item v-if="log.requestUrl" :label="$t('creationTask.apiLogUrl')">
+                <span class="api-log-break">{{ log.requestUrl }}</span>
+              </a-descriptions-item>
+              <a-descriptions-item v-if="log.errorMessage" :label="$t('creationTask.apiLogError')">
+                <span class="api-log-error">{{ log.errorMessage }}</span>
+              </a-descriptions-item>
+              <a-descriptions-item v-if="log.responseBody" :label="$t('creationTask.apiLogResponse')">
+                <pre class="api-log-pre">{{ log.responseBody }}</pre>
+              </a-descriptions-item>
+              <a-descriptions-item v-if="log.requestBody" :label="$t('creationTask.apiLogRequest')">
+                <pre class="api-log-pre">{{ log.requestBody }}</pre>
+              </a-descriptions-item>
+            </a-descriptions>
+          </div>
+        </a-spin>
+      </a-modal>
 
       <!-- Children Tasks -->
       <a-card
@@ -274,8 +327,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { message, Modal } from 'antdv-next'
-import { getCreationTaskDetail, cancelCreationTask, retryCreationTask, forceCompleteCreationTask, getCompositeCostSummary } from '@/api/creation-task'
-import type { CreationTask, CompositeCostSummary } from '@/api/creation-task'
+import { getCreationTaskDetail, cancelCreationTask, retryCreationTask, forceCompleteCreationTask, getCompositeCostSummary, getCreationTaskApiLogs } from '@/api/creation-task'
+import type { CreationTask, CompositeCostSummary, ApiRequestLog } from '@/api/creation-task'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -284,6 +337,24 @@ const route = useRoute()
 const loading = ref(false)
 const task = ref<CreationTask | null>(null)
 const costSummary = ref<CompositeCostSummary | null>(null)
+
+// API 请求日志（错误信息详情）
+const apiLogModalOpen = ref(false)
+const apiLogLoading = ref(false)
+const apiLogs = ref<ApiRequestLog[]>([])
+
+async function showApiLogs() {
+  if (!task.value) return
+  apiLogModalOpen.value = true
+  apiLogLoading.value = true
+  try {
+    apiLogs.value = (await getCreationTaskApiLogs(task.value.id)) ?? []
+  } catch {
+    apiLogs.value = []
+  } finally {
+    apiLogLoading.value = false
+  }
+}
 
 // Composite modes (MODE_999 = hitVideo, MODE_1000 = hitVideoReplication)
 function isCompositeMode(mode: number) {
@@ -515,5 +586,42 @@ onMounted(() => {
   align-items: flex-start;
   justify-content: center;
   padding: 8px;
+}
+
+.api-log-item {
+  margin-bottom: 16px;
+}
+
+.api-log-item:last-child {
+  margin-bottom: 0;
+}
+
+.api-log-head {
+  margin-bottom: 8px;
+}
+
+.api-log-cost,
+.api-log-time {
+  font-size: 12px;
+  color: #999;
+}
+
+.api-log-break {
+  word-break: break-all;
+}
+
+.api-log-error {
+  color: var(--color-error, #ff4d4f);
+  word-break: break-all;
+}
+
+.api-log-pre {
+  margin: 0;
+  max-height: 240px;
+  overflow: auto;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 </style>
