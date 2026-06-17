@@ -126,7 +126,10 @@ export interface UserFeature {
 }
 
 export interface UserListParams extends ListParams {
+  username?: string
   unionBound?: number
+  startTime?: string
+  endTime?: string
 }
 
 // Feature Types

@@ -70,11 +70,11 @@
           <a-input v-model:value="manualAddForm.unionUserId" :placeholder="$t('featureGrant.unionUserIdPlaceholder')" />
         </a-form-item>
         <a-form-item :label="$t('featureGrant.featureCode')" required>
-          <a-select v-model:value="manualAddForm.featureCode" :placeholder="$t('featureGrant.selectFeature')">
-            <a-select-option v-for="f in featureOptions" :key="f.featureCode" :value="f.featureCode">
-              {{ f.featureName?.[currentLocale] || f.featureName?.['zh-CN'] || f.featureCode }}
-            </a-select-option>
-          </a-select>
+          <a-select
+            v-model:value="manualAddForm.featureCode"
+            :placeholder="$t('featureGrant.selectFeature')"
+            :options="featureSelectOptions"
+          />
         </a-form-item>
         <a-form-item :label="$t('featureGrant.expireTime')">
           <a-date-picker v-model:value="manualAddForm.expireTime" show-time style="width: 100%" />
@@ -217,6 +217,12 @@ const manualAddForm = ref({
   expireTime: undefined as dayjs.Dayjs | undefined,
 })
 const featureOptions = ref<Feature[]>([])
+const featureSelectOptions = computed(() =>
+  featureOptions.value.map((f) => ({
+    label: f.featureName?.[currentLocale.value] || f.featureName?.['zh-CN'] || f.featureCode,
+    value: f.featureCode,
+  }))
+)
 
 function showManualAddModal() {
   manualAddForm.value = {

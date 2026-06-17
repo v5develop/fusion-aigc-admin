@@ -333,6 +333,8 @@ export default {
   },
   user: {
     title: 'User Management',
+    keyword: 'Keyword',
+    keywordPlaceholder: 'Username / Nickname / Phone / Email',
     username: 'Username',
     nickname: 'Nickname',
     email: 'Email',

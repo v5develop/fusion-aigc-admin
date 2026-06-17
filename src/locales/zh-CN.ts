@@ -346,6 +346,8 @@ export default {
 
   user: {
     title: '用户管理',
+    keyword: '关键词',
+    keywordPlaceholder: '用户名 / 昵称 / 手机号 / 邮箱',
     username: '用户名',
     nickname: '昵称',
     email: '邮箱',

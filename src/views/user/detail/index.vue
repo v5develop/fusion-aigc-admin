@@ -30,7 +30,10 @@
             </template>
 
             <div class="user-header">
-              <a-avatar :size="72" :src="userInfo?.avatar">
+              <a-avatar v-if="userInfo?.avatar && !avatarFailed" :size="72" :src="userInfo?.avatar" @error="avatarFailed = true">
+                {{ userInfo?.nickname?.charAt(0) }}
+              </a-avatar>
+              <a-avatar v-else :size="72">
                 {{ userInfo?.nickname?.charAt(0) }}
               </a-avatar>
               <div class="user-header-text">
@@ -224,6 +227,7 @@ const loading = ref(false)
 const capabilitiesLoading = ref(false)
 const userInfo = ref<User | null>(null)
 const capabilities = ref<UserFeature[]>([])
+const avatarFailed = ref(false)
 
 // 调整点数相关
 const adjustModalVisible = ref(false)
@@ -265,6 +269,7 @@ async function fetchUserDetail() {
   loading.value = true
   try {
     userInfo.value = await getUserDetail(id)
+    avatarFailed.value = false
     // 同时获取能力列表
     fetchCapabilities(id)
   } catch (e) {
