@@ -123,6 +123,7 @@ export default {
     modelList: '模型列表',
     modelPricing: '模型定价',
     modelCost: '模型成本',
+    modelQueueMonitor: '生成队列监控',
     billingManagement: '计费管理',
     billingConsumption: '消耗明细',
     billingPointsLog: '点数流水',
@@ -2401,6 +2402,17 @@ export default {
   },
 
   // Model Management
+  generationMonitor: {
+    title: '生成队列监控',
+    queueName: '队列',
+    queueLength: '积压数',
+    concurrent: '当前并发',
+    maxConcurrent: '并发上限',
+    availableSlots: '可用槽位',
+    autoRefreshOn: '自动',
+    autoRefreshOff: '手动',
+    noQueue: '暂无活跃队列',
+  },
   model: {
     list: '模型列表',
     pricing: '模型定价',
@@ -2410,6 +2422,10 @@ export default {
     deleteModel: '删除模型',
     confirmDeleteModel: '确定要删除该模型吗？',
     modelCode: '模型编码',
+    maxConcurrency: '最大并发数',
+    maxConcurrencyHint: '该模型同时处理的最大任务数，留空使用系统默认',
+    generationTimeout: '生成超时（秒）',
+    generationTimeoutHint: '单个生成任务的最长等待时间，留空则使用系统默认超时',
     modelName: '模型名称',
     modelType: '模型类型',
     provider: '提供商',

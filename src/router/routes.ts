@@ -325,6 +325,17 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
           requiredPermissions: 'cost:view',
         },
       },
+      {
+        path: 'queue-monitor',
+        name: 'ModelQueueMonitor',
+        component: () => import('@/views/model/queue-monitor/index.vue'),
+        meta: {
+          title: 'menu.modelQueueMonitor',
+          icon: 'DashboardOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'model:view',
+        },
+      },
     ],
   },
   {

@@ -119,6 +119,7 @@ export default {
     modelList: 'Model List',
     modelPricing: 'Model Pricing',
     modelCost: 'Model Cost',
+    modelQueueMonitor: 'Generation Queue Monitor',
     billingManagement: 'Billing Management',
     billingConsumption: 'Consumption Details',
     billingPointsLog: 'Points Log',
@@ -2380,6 +2381,17 @@ export default {
   },
 
   // Model Management
+  generationMonitor: {
+    title: 'Generation Queue Monitor',
+    queueName: 'Queue',
+    queueLength: 'Backlog',
+    concurrent: 'Concurrent',
+    maxConcurrent: 'Max Concurrent',
+    availableSlots: 'Available Slots',
+    autoRefreshOn: 'Auto',
+    autoRefreshOff: 'Manual',
+    noQueue: 'No active queues',
+  },
   model: {
     list: 'Model List',
     pricing: 'Model Pricing',
@@ -2389,6 +2401,10 @@ export default {
     deleteModel: 'Delete Model',
     confirmDeleteModel: 'Are you sure you want to delete this model?',
     modelCode: 'Model Code',
+    maxConcurrency: 'Max Concurrency',
+    maxConcurrencyHint: 'Maximum tasks processed concurrently by this model. Leave empty for system default.',
+    generationTimeout: 'Generation Timeout (s)',
+    generationTimeoutHint: 'Maximum wall-clock time for a single generation task. Leave empty to use the system default.',
     modelName: 'Model Name',
     modelType: 'Model Type',
     provider: 'Provider',

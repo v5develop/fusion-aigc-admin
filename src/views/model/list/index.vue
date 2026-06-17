@@ -88,6 +88,24 @@
             :unchecked-value="0"
           />
         </a-form-item>
+        <a-form-item :label="$t('model.maxConcurrency')">
+          <a-input-number
+            v-model:value="formData.maxConcurrency"
+            :min="1"
+            :precision="0"
+            style="width: 200px"
+          />
+          <div class="form-hint">{{ $t('model.maxConcurrencyHint') }}</div>
+        </a-form-item>
+        <a-form-item :label="$t('model.generationTimeout')">
+          <a-input-number
+            v-model:value="formData.generationTimeoutSeconds"
+            :min="1"
+            :precision="0"
+            style="width: 200px"
+          />
+          <div class="form-hint">{{ $t('model.generationTimeoutHint') }}</div>
+        </a-form-item>
       </a-form>
     </a-modal>
   </div>
@@ -186,6 +204,8 @@ const formData = reactive({
   description: '',
   aiProviderId: undefined as number | undefined,
   statusChecked: 1,
+  maxConcurrency: undefined as number | undefined,
+  generationTimeoutSeconds: undefined as number | undefined,
 })
 
 const apiConfigOptions = ref<{ label: string; value: number }[]>([])
@@ -226,6 +246,8 @@ function handleCreate() {
   formData.description = ''
   formData.aiProviderId = undefined
   formData.statusChecked = 1
+  formData.maxConcurrency = undefined
+  formData.generationTimeoutSeconds = undefined
   modalVisible.value = true
 }
 
@@ -238,6 +260,8 @@ function handleEdit(record: AIModel) {
   formData.description = record.description
   formData.aiProviderId = record.aiProviderId ?? record.apiConfigId
   formData.statusChecked = record.status
+  formData.maxConcurrency = record.maxConcurrency ?? undefined
+  formData.generationTimeoutSeconds = record.generationTimeoutSeconds ?? undefined
   modalVisible.value = true
 }
 
@@ -260,6 +284,8 @@ async function handleSubmit() {
       description: formData.description,
       aiProviderId: formData.aiProviderId,
       status: formData.statusChecked,
+      maxConcurrency: formData.maxConcurrency,
+      generationTimeoutSeconds: formData.generationTimeoutSeconds,
     }
 
     if (isEdit.value && editId.value) {

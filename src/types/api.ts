@@ -160,6 +160,7 @@ export interface AIModel {
   sort?: number
   config?: string
   maxConcurrency?: number
+  generationTimeoutSeconds?: number
   defaultModel?: boolean
   supportVision?: boolean
   supportReasoning?: boolean
