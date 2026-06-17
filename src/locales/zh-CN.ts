@@ -3068,6 +3068,8 @@ export default {
       downgrade: '降级',
       manualAdd: '手动添加',
       manualRemove: '手动移除',
+      manualRenew: '修改有效期',
+      supersede: '替换旧授权',
       expire: '到期失效',
     },
     sourceMap: {

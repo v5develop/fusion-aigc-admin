@@ -49,6 +49,8 @@ const featureChangeLogChangeTypeMap: Record<string, string> = {
   downgrade: t('featureChangeLog.changeTypeMap.downgrade'),
   manualAdd: t('featureChangeLog.changeTypeMap.manualAdd'),
   manualRemove: t('featureChangeLog.changeTypeMap.manualRemove'),
+  manualRenew: t('featureChangeLog.changeTypeMap.manualRenew'),
+  supersede: t('featureChangeLog.changeTypeMap.supersede'),
   expire: t('featureChangeLog.changeTypeMap.expire'),
 }
 
@@ -66,6 +68,8 @@ const changeTypeColorMap: Record<string, string> = {
   downgrade: 'orange',
   manualAdd: 'purple',
   manualRemove: 'volcano',
+  manualRenew: 'cyan',
+  supersede: 'gold',
   expire: 'default',
 }
 
@@ -105,6 +109,8 @@ const columns = [
       { label: t('featureChangeLog.changeTypeMap.downgrade'), value: 'downgrade' },
       { label: t('featureChangeLog.changeTypeMap.manualAdd'), value: 'manualAdd' },
       { label: t('featureChangeLog.changeTypeMap.manualRemove'), value: 'manualRemove' },
+      { label: t('featureChangeLog.changeTypeMap.manualRenew'), value: 'manualRenew' },
+      { label: t('featureChangeLog.changeTypeMap.supersede'), value: 'supersede' },
       { label: t('featureChangeLog.changeTypeMap.expire'), value: 'expire' },
     ],
     width: 120,

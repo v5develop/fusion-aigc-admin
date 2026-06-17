@@ -3033,6 +3033,8 @@ export default {
       downgrade: 'Downgrade',
       manualAdd: 'Manual Add',
       manualRemove: 'Manual Remove',
+      manualRenew: 'Renew',
+      supersede: 'Supersede',
       expire: 'Expired',
     },
     sourceMap: {
