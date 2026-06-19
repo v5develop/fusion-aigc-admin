@@ -8,9 +8,11 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd());
   const proxyTarget = env.VITE_PROXY_TARGET || 'http://localhost:9090';
+  // 部署在 /admin/ 二级目录下访问，可通过 VITE_BASE 环境变量覆盖
+  const base = env.VITE_BASE || "/admin/";
 
   return {
-    base: "/",
+    base,
     define: {
       __APP_VERSION__: JSON.stringify(pkg.version),
     },

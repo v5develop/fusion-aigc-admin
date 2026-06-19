@@ -25,7 +25,9 @@ export function getAdminInfo() {
 }
 
 export function changePassword(params: { oldPassword: string; newPassword: string }) {
-  return request.put('/api/v1/admin/auth/password', params)
+  return request.put('/api/v1/admin/auth/password', params, {
+    silentError: true,
+  } as AxiosRequestConfig & { silentError: boolean })
 }
 
 // Storage helpers for auth store compatibility

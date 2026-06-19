@@ -75,6 +75,16 @@ export const basicRoutes: AppRouteRecordRaw[] = [
           order: 1,
         },
       },
+      {
+        path: '/profile',
+        name: 'Profile',
+        component: () => import('@/views/profile/index.vue'),
+        meta: {
+          title: 'profile.title',
+          requiresAuth: true,
+          hidden: true,
+        },
+      },
     ],
   },
 ];

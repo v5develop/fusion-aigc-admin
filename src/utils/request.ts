@@ -162,6 +162,12 @@ service.interceptors.response.use(
     // If no config (e.g. network error) or not 401, handle normally
     if (!originalRequest || error.response?.status !== 401) {
       handleHttpError(error)
+      // 透传后端业务 msg，避免上层 catch 只拿到 "Request failed with status code 400"
+      const data = error.response?.data as { msg?: string; message?: string } | undefined
+      const backendMsg = data?.msg || data?.message
+      if (backendMsg) {
+        return Promise.reject(new Error(backendMsg))
+      }
       return Promise.reject(error)
     }
 
@@ -228,12 +234,22 @@ service.interceptors.response.use(
 function handleHttpError(error: AxiosError) {
   console.error('Response error:', error)
 
+  // 请求显式声明静默时，不弹全局错误，交由上层自行处理
+  const silentError = (error.config as AxiosRequestConfig & { silentError?: boolean })?.silentError
+
   if (error.response) {
     const { status, data } = error.response as {
       status: number
-      data?: { message?: string }
+      data?: { msg?: string; message?: string }
     }
-    const errorMsg = data?.message || getHttpErrorMessage(status)
+    const errorMsg = data?.msg || data?.message || getHttpErrorMessage(status)
+
+    if (silentError) {
+      // 静默：仅对需要跳转的状态码做路由跳转，不弹 message
+      if (status === 403) router.push('/403')
+      if (status === 500) router.push('/500')
+      return
+    }
 
     switch (status) {
       case 400:
@@ -273,10 +289,10 @@ function handleHttpError(error: AxiosError) {
     }
   } else if (error.request) {
     console.error('No response received:', error.request)
-    message.error('网络连接失败，请检查网络')
+    if (!silentError) message.error('网络连接失败，请检查网络')
   } else {
     console.error('Request setup error:', error.message)
-    message.error('请求配置错误')
+    if (!silentError) message.error('请求配置错误')
   }
 }
 
