@@ -45,21 +45,9 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',
       open: false,
       proxy: {
-        '^/admin(?:/|$)': {
-          target: proxyTarget,
-          changeOrigin: true,
-          bypass: (req) => {
-            const accept = req.headers.accept || ''
-            if (accept.includes('text/html')) {
-              return '/index.html'
-            }
-          },
-          configure: (proxy) => {
-            proxy.on('proxyReq', (proxyReq) => {
-              proxyReq.removeHeader('Origin')
-            })
-          },
-        },
+        // 注意：SPA 静态资源由 Vite 通过 base: '/admin/' 直接托管，
+        // 不要再对 /admin 做代理，否则会与后端形成重定向循环。
+        // 仅代理后端接口前缀 /api。
         '/api': {
           target: proxyTarget,
           changeOrigin: true,
