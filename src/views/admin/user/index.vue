@@ -2,6 +2,7 @@
   <div class="page-container">
     <a-card :title="$t('admin.user.management')">
       <ProTable
+        ref="tableRef"
         :columns="columns"
         :request="loadData"
         :search="{}"
@@ -128,6 +129,8 @@ import { getAdminRoleList } from '@/api/admin-role'
 import type { AdminRole } from '@/types/api'
 
 const { t } = useI18n()
+
+const tableRef = ref()
 
 const statusMap: Record<number, string> = {
   1: t('common.enabled'),
@@ -303,6 +306,7 @@ async function handleSubmit() {
       message.success(t('admin.user.createSuccess'))
     }
     modalVisible.value = false
+    tableRef.value?.refresh()
   } catch (error) {
     console.error('Failed to save user:', error)
   } finally {
@@ -341,6 +345,7 @@ function handleToggleStatus(record: Record<string, unknown>) {
       try {
         await toggleAdminStatus(record.id as number, newStatus)
         message.success(t('common.success'))
+        tableRef.value?.refresh()
       } catch (error) {
         console.error('Toggle status failed:', error)
       }
@@ -359,6 +364,7 @@ function handleDelete(record: Record<string, unknown>) {
       try {
         await deleteAdminUser(record.id as number)
         message.success(t('common.success'))
+        tableRef.value?.reload()
       } catch (error) {
         console.error('Delete failed:', error)
       }
