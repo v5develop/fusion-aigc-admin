@@ -1,99 +1,111 @@
 <template>
   <div class="page-container">
-    <a-card :title="$t('generationMonitor.title')">
-      <template #extra>
-        <a-space>
-          <a-switch
-            v-model:checked="autoRefresh"
-            :checked-children="$t('generationMonitor.autoRefreshOn')"
-            :un-checked-children="$t('generationMonitor.autoRefreshOff')"
-          />
-          <a-button :loading="loading" @click="loadData">
-            {{ $t('common.refresh') }}
-          </a-button>
-        </a-space>
-      </template>
+    <!-- 顶部控制栏 -->
+    <a-card size="small" style="margin-bottom: 16px">
+      <a-row justify="space-between" align="middle">
+        <a-col>
+          <a-typography-title :level="5" style="margin: 0">{{ $t('generationMonitor.title') }}</a-typography-title>
+        </a-col>
+        <a-col>
+          <a-space>
+            <a-switch
+              v-model:checked="autoRefresh"
+              :checked-children="$t('generationMonitor.autoRefreshOn')"
+              :un-checked-children="$t('generationMonitor.autoRefreshOff')"
+            />
+            <a-button :loading="loading" @click="loadData">
+              {{ $t('common.refresh') }}
+            </a-button>
+          </a-space>
+        </a-col>
+      </a-row>
+    </a-card>
 
-      <a-typography-title :level="5">{{ $t('generationMonitor.redisQueueSection') }}</a-typography-title>
-      <a-table
-        :columns="queueColumns"
-        :data-source="queueRows"
-        :loading="loading"
-        :pagination="false"
-        row-key="queueName"
-        size="middle"
-      >
-        <template #emptyText>
-          <a-empty :description="$t('generationMonitor.noQueue')" />
-        </template>
-      </a-table>
+    <!-- Redis 队列 + 创作任务概览 -->
+    <a-row :gutter="16" style="margin-bottom: 16px">
+      <a-col :span="12">
+        <a-card :title="$t('generationMonitor.redisQueueSection')" size="small">
+          <a-table
+            :columns="queueColumns"
+            :data-source="queueRows"
+            :loading="loading"
+            :pagination="false"
+            row-key="queueName"
+            size="small"
+          >
+            <template #emptyText>
+              <a-empty :description="$t('generationMonitor.noQueue')" />
+            </template>
+          </a-table>
+        </a-card>
+      </a-col>
+      <a-col :span="12">
+        <a-card :title="$t('generationMonitor.creationSection')" size="small">
+          <a-table
+            :columns="creationColumns"
+            :data-source="creationRows"
+            :loading="loading"
+            :pagination="false"
+            row-key="type"
+            size="small"
+          >
+            <template #emptyText>
+              <a-empty :description="$t('generationMonitor.noCreation')" />
+            </template>
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.dataIndex === 'recentFailed'">
+                <a-tag v-if="record.recentFailed > 0" color="error">{{ record.recentFailed }}</a-tag>
+                <span v-else>0</span>
+              </template>
+            </template>
+          </a-table>
+        </a-card>
+      </a-col>
+    </a-row>
 
-      <a-typography-title :level="5" style="margin-top: 24px">
-        {{ $t('generationMonitor.creationSection') }}
-      </a-typography-title>
-      <a-table
-        :columns="creationColumns"
-        :data-source="creationRows"
-        :loading="loading"
-        :pagination="false"
-        row-key="type"
-        size="middle"
-      >
-        <template #emptyText>
-          <a-empty :description="$t('generationMonitor.noCreation')" />
-        </template>
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.dataIndex === 'recentFailed'">
-            <a-tag v-if="record.recentFailed > 0" color="error">{{ record.recentFailed }}</a-tag>
-            <span v-else>0</span>
-          </template>
-        </template>
-      </a-table>
-
-      <a-typography-title :level="5" style="margin-top: 24px">
-        {{ $t('generationMonitor.pipelineSection') }}
-      </a-typography-title>
-      <a-descriptions :column="2" bordered>
-        <a-descriptions-item :label="$t('generationMonitor.pipelineInflight')">
-          <a-statistic :value="pipelineMetrics?.inflightCount || 0" />
-        </a-descriptions-item>
-        <a-descriptions-item :label="$t('generationMonitor.pipelineInflightWithProgress')">
-          <a-statistic :value="pipelineMetrics?.inflightWithProgress || 0">
+    <!-- Pipeline 指标 -->
+    <a-card :title="$t('generationMonitor.pipelineSection')" size="small" style="margin-bottom: 16px">
+      <a-row :gutter="16">
+        <a-col :span="6">
+          <a-statistic :title="$t('generationMonitor.pipelineInflight')" :value="pipelineMetrics?.inflightCount || 0" />
+        </a-col>
+        <a-col :span="6">
+          <a-statistic :title="$t('generationMonitor.pipelineInflightWithProgress')" :value="pipelineMetrics?.inflightWithProgress || 0">
             <template #suffix>
               <span style="font-size: 14px; color: #999">{{ $t('generationMonitor.times') }}</span>
             </template>
           </a-statistic>
-        </a-descriptions-item>
-        <a-descriptions-item :label="$t('generationMonitor.pipelineAvgStepDuration')">
-          <a-statistic :value="pipelineMetrics?.avgStepDurationMs || 0">
+        </a-col>
+        <a-col :span="6">
+          <a-statistic :title="$t('generationMonitor.pipelineAvgStepDuration')" :value="pipelineMetrics?.avgStepDurationMs || 0">
             <template #suffix>
               <span style="font-size: 14px; color: #999">ms</span>
             </template>
           </a-statistic>
-        </a-descriptions-item>
-        <a-descriptions-item :label="$t('generationMonitor.pipelineTypeDistribution')">
-          <span>{{ pipelineMetrics?.typeDistribution || '-' }}</span>
-        </a-descriptions-item>
-      </a-descriptions>
+        </a-col>
+        <a-col :span="6">
+          <a-statistic :title="$t('generationMonitor.pipelineTypeDistribution')" :value="pipelineMetrics?.typeDistribution || '-'" />
+        </a-col>
+      </a-row>
+    </a-card>
 
-      <a-typography-title :level="5" style="margin-top: 24px">
-        {{ $t('generationMonitor.stepDurationDistribution') }}
-      </a-typography-title>
-      <a-space style="margin-bottom: 12px">
-        <a-select v-model:value="durationHours" style="width: 120px" @change="loadStepDuration">
+    <!-- 步骤耗时分布 -->
+    <a-card :title="$t('generationMonitor.stepDurationDistribution')" size="small" style="margin-bottom: 16px">
+      <template #extra>
+        <a-select v-model:value="durationHours" size="small" style="width: 100px" @change="loadStepDuration">
           <a-select-option :value="1">{{ $t('generationMonitor.hours1') }}</a-select-option>
           <a-select-option :value="6">{{ $t('generationMonitor.hours6') }}</a-select-option>
           <a-select-option :value="24">{{ $t('generationMonitor.hours24') }}</a-select-option>
           <a-select-option :value="72">{{ $t('generationMonitor.hours72') }}</a-select-option>
         </a-select>
-      </a-space>
+      </template>
       <a-table
         :columns="durationColumns"
         :data-source="stepDurationData"
         :loading="durationLoading"
         :pagination="false"
         row-key="stepCode"
-        size="middle"
+        size="small"
       >
         <template #emptyText>
           <a-empty :description="$t('generationMonitor.noStepDurationData')" />
@@ -110,76 +122,89 @@
           </template>
         </template>
       </a-table>
+    </a-card>
 
-      <a-typography-title :level="5" style="margin-top: 24px">
-        {{ $t('generationMonitor.slowStepTrend') }}
-      </a-typography-title>
-      <a-space style="margin-bottom: 12px">
-        <a-select v-model:value="trendHours" style="width: 120px" @change="loadSlowStepTrend">
-          <a-select-option :value="1">{{ $t('generationMonitor.hours1') }}</a-select-option>
-          <a-select-option :value="6">{{ $t('generationMonitor.hours6') }}</a-select-option>
-          <a-select-option :value="24">{{ $t('generationMonitor.hours24') }}</a-select-option>
-          <a-select-option :value="72">{{ $t('generationMonitor.hours72') }}</a-select-option>
-        </a-select>
-        <a-input-number
-          v-model:value="trendThresholdMs"
-          :min="1000"
-          :step="1000"
-          style="width: 150px"
-          addon-after="ms"
-          @change="loadSlowStepTrend"
-        />
-        <a-select v-model:value="trendBucketMinutes" style="width: 120px" @change="loadSlowStepTrend">
-          <a-select-option :value="5">5 min</a-select-option>
-          <a-select-option :value="15">15 min</a-select-option>
-          <a-select-option :value="30">30 min</a-select-option>
-          <a-select-option :value="60">1 hour</a-select-option>
-        </a-select>
-      </a-space>
-      <div ref="slowStepTrendChartRef" style="height: 300px; margin-bottom: 24px"></div>
+    <!-- 图表区域 -->
+    <a-row :gutter="16" style="margin-bottom: 16px">
+      <a-col :span="12">
+        <a-card :title="$t('generationMonitor.slowStepTrend')" size="small">
+          <template #extra>
+            <a-space size="small">
+              <a-select v-model:value="trendHours" size="small" style="width: 80px" @change="loadSlowStepTrend">
+                <a-select-option :value="1">{{ $t('generationMonitor.hours1') }}</a-select-option>
+                <a-select-option :value="6">{{ $t('generationMonitor.hours6') }}</a-select-option>
+                <a-select-option :value="24">{{ $t('generationMonitor.hours24') }}</a-select-option>
+                <a-select-option :value="72">{{ $t('generationMonitor.hours72') }}</a-select-option>
+              </a-select>
+              <a-space-compact>
+                <a-input-number
+                  v-model:value="trendThresholdMs"
+                  :min="1000"
+                  :step="1000"
+                  size="small"
+                  style="width: 100px"
+                  @change="loadSlowStepTrend"
+                />
+                <a-button size="small" disabled>ms</a-button>
+              </a-space-compact>
+              <a-select v-model:value="trendBucketMinutes" size="small" style="width: 80px" @change="loadSlowStepTrend">
+                <a-select-option :value="5">5min</a-select-option>
+                <a-select-option :value="15">15min</a-select-option>
+                <a-select-option :value="30">30min</a-select-option>
+                <a-select-option :value="60">1h</a-select-option>
+              </a-select>
+            </a-space>
+          </template>
+          <div ref="slowStepTrendChartRef" style="height: 300px"></div>
+        </a-card>
+      </a-col>
+      <a-col :span="12">
+        <a-card :title="$t('generationMonitor.stepDurationTrend')" size="small">
+          <template #extra>
+            <a-space size="small">
+              <a-select v-model:value="durationTrendHours" size="small" style="width: 80px" @change="loadStepDurationTrend">
+                <a-select-option :value="1">{{ $t('generationMonitor.hours1') }}</a-select-option>
+                <a-select-option :value="6">{{ $t('generationMonitor.hours6') }}</a-select-option>
+                <a-select-option :value="24">{{ $t('generationMonitor.hours24') }}</a-select-option>
+                <a-select-option :value="72">{{ $t('generationMonitor.hours72') }}</a-select-option>
+              </a-select>
+              <a-select v-model:value="durationTrendBucketMinutes" size="small" style="width: 80px" @change="loadStepDurationTrend">
+                <a-select-option :value="5">5min</a-select-option>
+                <a-select-option :value="15">15min</a-select-option>
+                <a-select-option :value="30">30min</a-select-option>
+                <a-select-option :value="60">1h</a-select-option>
+              </a-select>
+            </a-space>
+          </template>
+          <div ref="stepDurationTrendChartRef" style="height: 300px"></div>
+        </a-card>
+      </a-col>
+    </a-row>
 
-      <a-typography-title :level="5" style="margin-top: 24px">
-        {{ $t('generationMonitor.stepDurationTrend') }}
-      </a-typography-title>
-      <a-space style="margin-bottom: 12px">
-        <a-select v-model:value="durationTrendHours" style="width: 120px" @change="loadStepDurationTrend">
-          <a-select-option :value="1">{{ $t('generationMonitor.hours1') }}</a-select-option>
-          <a-select-option :value="6">{{ $t('generationMonitor.hours6') }}</a-select-option>
-          <a-select-option :value="24">{{ $t('generationMonitor.hours24') }}</a-select-option>
-          <a-select-option :value="72">{{ $t('generationMonitor.hours72') }}</a-select-option>
-        </a-select>
-        <a-select v-model:value="durationTrendBucketMinutes" style="width: 120px" @change="loadStepDurationTrend">
-          <a-select-option :value="5">5 min</a-select-option>
-          <a-select-option :value="15">15 min</a-select-option>
-          <a-select-option :value="30">30 min</a-select-option>
-          <a-select-option :value="60">1 hour</a-select-option>
-        </a-select>
-      </a-space>
-      <div ref="stepDurationTrendChartRef" style="height: 350px"></div>
-
-      <a-typography-title :level="5" style="margin-top: 24px">
-        {{ $t('generationMonitor.alertHistory') }}
-      </a-typography-title>
-      <a-space style="margin-bottom: 12px">
-        <a-select v-model:value="alertHours" style="width: 120px" @change="loadAlertHistory">
-          <a-select-option :value="1">{{ $t('generationMonitor.hours1') }}</a-select-option>
-          <a-select-option :value="6">{{ $t('generationMonitor.hours6') }}</a-select-option>
-          <a-select-option :value="24">{{ $t('generationMonitor.hours24') }}</a-select-option>
-          <a-select-option :value="72">{{ $t('generationMonitor.hours72') }}</a-select-option>
-        </a-select>
-        <a-select v-model:value="alertTypeFilter" style="width: 150px" allow-clear @change="loadAlertHistory">
-          <a-select-option value="INFLIGHT">{{ $t('generationMonitor.alertTypeInflight') }}</a-select-option>
-          <a-select-option value="RECOVERY">{{ $t('generationMonitor.alertTypeRecovery') }}</a-select-option>
-          <a-select-option value="SLOW_STEP">{{ $t('generationMonitor.alertTypeSlowStep') }}</a-select-option>
-        </a-select>
-      </a-space>
+    <!-- 告警历史 -->
+    <a-card :title="$t('generationMonitor.alertHistory')" size="small">
+      <template #extra>
+        <a-space size="small">
+          <a-select v-model:value="alertHours" size="small" style="width: 80px" @change="loadAlertHistory">
+            <a-select-option :value="1">{{ $t('generationMonitor.hours1') }}</a-select-option>
+            <a-select-option :value="6">{{ $t('generationMonitor.hours6') }}</a-select-option>
+            <a-select-option :value="24">{{ $t('generationMonitor.hours24') }}</a-select-option>
+            <a-select-option :value="72">{{ $t('generationMonitor.hours72') }}</a-select-option>
+          </a-select>
+          <a-select v-model:value="alertTypeFilter" size="small" style="width: 120px" allow-clear @change="loadAlertHistory">
+            <a-select-option value="INFLIGHT">{{ $t('generationMonitor.alertTypeInflight') }}</a-select-option>
+            <a-select-option value="RECOVERY">{{ $t('generationMonitor.alertTypeRecovery') }}</a-select-option>
+            <a-select-option value="SLOW_STEP">{{ $t('generationMonitor.alertTypeSlowStep') }}</a-select-option>
+          </a-select>
+        </a-space>
+      </template>
       <a-table
         :columns="alertColumns"
         :data-source="alertHistoryData"
         :loading="alertLoading"
         :pagination="false"
         row-key="id"
-        size="middle"
+        size="small"
       >
         <template #emptyText>
           <a-empty :description="$t('generationMonitor.noAlertHistory')" />
@@ -252,19 +277,19 @@ let slowStepTrendChart: echarts.ECharts | null = null
 let stepDurationTrendChart: echarts.ECharts | null = null
 
 const queueColumns = [
-  { title: t('generationMonitor.queueName'), dataIndex: 'queueName', width: 280 },
-  { title: t('generationMonitor.queueLength'), dataIndex: 'queueLength', width: 120, align: 'center' as const },
-  { title: t('generationMonitor.concurrent'), dataIndex: 'concurrent', width: 120, align: 'center' as const },
-  { title: t('generationMonitor.maxConcurrent'), dataIndex: 'maxConcurrent', width: 120, align: 'center' as const },
-  { title: t('generationMonitor.availableSlots'), dataIndex: 'availableSlots', width: 120, align: 'center' as const },
+  { title: t('generationMonitor.queueName'), dataIndex: 'queueName', width: 200 },
+  { title: t('generationMonitor.queueLength'), dataIndex: 'queueLength', width: 80, align: 'center' as const },
+  { title: t('generationMonitor.concurrent'), dataIndex: 'concurrent', width: 80, align: 'center' as const },
+  { title: t('generationMonitor.maxConcurrent'), dataIndex: 'maxConcurrent', width: 80, align: 'center' as const },
+  { title: t('generationMonitor.availableSlots'), dataIndex: 'availableSlots', width: 80, align: 'center' as const },
 ]
 
 const creationColumns = [
-  { title: t('generationMonitor.creationType'), dataIndex: 'type', width: 280 },
-  { title: t('generationMonitor.queued'), dataIndex: 'queued', width: 120, align: 'center' as const },
-  { title: t('generationMonitor.processing'), dataIndex: 'processing', width: 120, align: 'center' as const },
-  { title: t('generationMonitor.inflight'), dataIndex: 'inflight', width: 120, align: 'center' as const },
-  { title: t('generationMonitor.recentFailed'), dataIndex: 'recentFailed', width: 120, align: 'center' as const },
+  { title: t('generationMonitor.creationType'), dataIndex: 'type', width: 200 },
+  { title: t('generationMonitor.queued'), dataIndex: 'queued', width: 80, align: 'center' as const },
+  { title: t('generationMonitor.processing'), dataIndex: 'processing', width: 80, align: 'center' as const },
+  { title: t('generationMonitor.inflight'), dataIndex: 'inflight', width: 80, align: 'center' as const },
+  { title: t('generationMonitor.recentFailed'), dataIndex: 'recentFailed', width: 80, align: 'center' as const },
 ]
 
 const durationColumns = [
@@ -272,7 +297,7 @@ const durationColumns = [
   { title: 'P50', dataIndex: 'p50', width: 120, align: 'center' as const },
   { title: 'P90', dataIndex: 'p90', width: 120, align: 'center' as const },
   { title: 'P99', dataIndex: 'p99', width: 120, align: 'center' as const },
-  { title: t('generationMonitor.sampleCount'), dataIndex: 'count', width: 120, align: 'center' as const },
+  { title: t('generationMonitor.sampleCount'), dataIndex: 'count', width: 100, align: 'center' as const },
 ]
 
 const alertColumns = [
@@ -300,7 +325,6 @@ async function loadData() {
     const overview = await getGenerationMetricsOverview()
     queueRows.value = overview?.redisQueues || []
     creationRows.value = overview?.creationTasks || []
-
     pipelineMetrics.value = await getPipelineMetrics()
   } catch (error) {
     console.error('Failed to load generation metrics:', error)
@@ -359,113 +383,51 @@ async function loadStepDurationTrend() {
 
 function renderSlowStepTrendChart() {
   if (!slowStepTrendChartRef.value) return
-
   if (!slowStepTrendChart) {
     slowStepTrendChart = echarts.init(slowStepTrendChartRef.value)
   }
-
   const timeBuckets = slowStepTrendData.value.map(d => d.timeBucket)
   const slowCounts = slowStepTrendData.value.map(d => d.slowCount)
-
   slowStepTrendChart.setOption({
-    title: {
-      text: t('generationMonitor.slowStepTrendChart'),
-      left: 'center',
-    },
-    tooltip: {
-      trigger: 'axis',
-    },
-    xAxis: {
-      type: 'category',
-      data: timeBuckets,
-      axisLabel: {
-        rotate: 45,
-      },
-    },
-    yAxis: {
-      type: 'value',
+    tooltip: { trigger: 'axis' },
+    xAxis: { type: 'category', data: timeBuckets, axisLabel: { rotate: 45 } },
+    yAxis: { type: 'value', name: t('generationMonitor.slowStepCount') },
+    series: [{
       name: t('generationMonitor.slowStepCount'),
-    },
-    series: [
-      {
-        name: t('generationMonitor.slowStepCount'),
-        type: 'line',
-        data: slowCounts,
-        smooth: true,
-        areaStyle: {
-          opacity: 0.3,
-        },
-        itemStyle: {
-          color: '#ff4d4f',
-        },
-      },
-    ],
-    grid: {
-      left: '3%',
-      right: '4%',
-      bottom: '15%',
-      containLabel: true,
-    },
+      type: 'line',
+      data: slowCounts,
+      smooth: true,
+      areaStyle: { opacity: 0.3 },
+      itemStyle: { color: '#ff4d4f' },
+    }],
+    grid: { left: '3%', right: '4%', bottom: '15%', containLabel: true },
   })
 }
 
 function renderStepDurationTrendChart() {
   if (!stepDurationTrendChartRef.value) return
-
   if (!stepDurationTrendChart) {
     stepDurationTrendChart = echarts.init(stepDurationTrendChartRef.value)
   }
-
-  // 按步骤编码分组
   const stepCodes = Array.from(new Set(stepDurationTrendData.value.map(d => d.stepCode)))
   const timeBuckets = Array.from(new Set(stepDurationTrendData.value.map(d => d.timeBucket))).sort()
-
   const series = stepCodes.map((stepCode) => {
     const data = timeBuckets.map(timeBucket => {
       const item = stepDurationTrendData.value.find(d => d.stepCode === stepCode && d.timeBucket === timeBucket)
       return item ? item.avgDurationMs : null
     })
-
-    return {
-      name: stepCode,
-      type: 'line',
-      data,
-      smooth: true,
-    }
+    return { name: stepCode, type: 'line', data, smooth: true }
   })
-
   stepDurationTrendChart.setOption({
-    title: {
-      text: t('generationMonitor.stepDurationTrendChart'),
-      left: 'center',
-    },
     tooltip: {
       trigger: 'axis',
       valueFormatter: (value: number | null) => (value ? `${value} ms` : '-'),
     },
-    legend: {
-      data: stepCodes,
-      top: 30,
-    },
-    xAxis: {
-      type: 'category',
-      data: timeBuckets,
-      axisLabel: {
-        rotate: 45,
-      },
-    },
-    yAxis: {
-      type: 'value',
-      name: t('generationMonitor.avgDuration'),
-    },
+    legend: { data: stepCodes, top: 0 },
+    xAxis: { type: 'category', data: timeBuckets, axisLabel: { rotate: 45 } },
+    yAxis: { type: 'value', name: t('generationMonitor.avgDuration') },
     series,
-    grid: {
-      left: '3%',
-      right: '4%',
-      bottom: '15%',
-      top: '15%',
-      containLabel: true,
-    },
+    grid: { left: '3%', right: '4%', bottom: '15%', top: '15%', containLabel: true },
   })
 }
 
@@ -503,4 +465,3 @@ onUnmounted(() => {
   stepDurationTrendChart?.dispose()
 })
 </script>
-
