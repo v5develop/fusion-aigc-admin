@@ -284,6 +284,67 @@
         </a-table>
       </a-card>
 
+      <!-- Pipeline Steps (交付 B) -->
+      <a-card
+        v-if="pipelineSteps && pipelineSteps.steps.length > 0"
+        :title="$t('creationTask.pipelineSteps')"
+        style="margin-bottom: 16px"
+      >
+        <a-descriptions :column="2" size="small" style="margin-bottom: 12px">
+          <a-descriptions-item :label="$t('creationTask.pipelineType')">
+            <a-tag color="purple">{{ pipelineSteps.parentTask.pipelineType }}</a-tag>
+          </a-descriptions-item>
+          <a-descriptions-item :label="$t('creationTask.pipelineTopology')">
+            <a-tag color="blue">{{ pipelineSteps.parentTask.topology }}</a-tag>
+          </a-descriptions-item>
+          <a-descriptions-item :label="$t('creationTask.pipelineSettlement')">
+            <a-tag color="green">{{ pipelineSteps.parentTask.settlementType }}</a-tag>
+          </a-descriptions-item>
+          <a-descriptions-item :label="$t('creationTask.pipelineCurrentStep')">
+            {{ pipelineSteps.parentTask.orchestrationStep }}
+          </a-descriptions-item>
+        </a-descriptions>
+        <a-table
+          :columns="pipelineStepColumns"
+          :data-source="pipelineSteps.steps"
+          :pagination="false"
+          row-key="code"
+          size="small"
+        >
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.dataIndex === 'code'">
+              <code>{{ record.code }}</code>
+            </template>
+            <template v-if="column.dataIndex === 'kind'">
+              <a-tag :color="record.kind === 'LOCAL' ? 'blue' : 'orange'">{{ record.kind }}</a-tag>
+            </template>
+            <template v-if="column.dataIndex === 'status'">
+              <a-badge :color="pipelineStepStatusColor[record.status]" :text="record.status" />
+            </template>
+            <template v-if="column.dataIndex === 'mode'">
+              <a-tag v-if="record.mode != null" color="blue">MODE_{{ record.mode }}</a-tag>
+              <span v-else>-</span>
+            </template>
+            <template v-if="column.dataIndex === 'handler'">
+              <code v-if="record.handler">{{ record.handler }}</code>
+              <span v-else>-</span>
+            </template>
+            <template v-if="column.dataIndex === 'externalTaskId'">
+              <code v-if="record.externalTaskId">{{ record.externalTaskId }}</code>
+              <span v-else>-</span>
+            </template>
+            <template v-if="column.dataIndex === 'resultUrl'">
+              <a v-if="record.resultUrl" :href="record.resultUrl" target="_blank">{{ record.resultUrl }}</a>
+              <span v-else>-</span>
+            </template>
+            <template v-if="column.dataIndex === 'errorMsg'">
+              <span v-if="record.errorMsg" class="error-text">{{ decodeUnicode(record.errorMsg) }}</span>
+              <span v-else>-</span>
+            </template>
+          </template>
+        </a-table>
+      </a-card>
+
       <!-- Reservation Lines -->
       <a-card
         v-if="task?.reservationLines && task.reservationLines.length > 0"
@@ -327,8 +388,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { message, Modal } from 'antdv-next'
-import { getCreationTaskDetail, cancelCreationTask, retryCreationTask, forceCompleteCreationTask, getCompositeCostSummary, getCreationTaskApiLogs } from '@/api/creation-task'
-import type { CreationTask, CompositeCostSummary, ApiRequestLog } from '@/api/creation-task'
+import { getCreationTaskDetail, cancelCreationTask, retryCreationTask, forceCompleteCreationTask, getCompositeCostSummary, getCreationTaskApiLogs, getPipelineSteps } from '@/api/creation-task'
+import type { CreationTask, CompositeCostSummary, ApiRequestLog, PipelineStepsResponse } from '@/api/creation-task'
 import { decodeUnicode } from '@/utils/helpers'
 
 const { t } = useI18n()
@@ -338,6 +399,7 @@ const route = useRoute()
 const loading = ref(false)
 const task = ref<CreationTask | null>(null)
 const costSummary = ref<CompositeCostSummary | null>(null)
+const pipelineSteps = ref<PipelineStepsResponse | null>(null)
 
 // API 请求日志（错误信息详情）
 const apiLogModalOpen = ref(false)
@@ -361,6 +423,26 @@ async function showApiLogs() {
 function isCompositeMode(mode: number) {
   return mode === 999 || mode === 1000
 }
+
+// Pipeline 步骤状态颜色映射
+const pipelineStepStatusColor: Record<string, string> = {
+  PENDING: '#d9d9d9',
+  RUNNING: '#1890ff',
+  DONE: '#52c41a',
+  FAILED: '#ff4d4f',
+}
+
+// Pipeline 步骤表格列定义
+const pipelineStepColumns = [
+  { title: t('creationTask.stepCode'), dataIndex: 'code', width: 120 },
+  { title: t('creationTask.stepKind'), dataIndex: 'kind', width: 100, align: 'center' as const },
+  { title: t('creationTask.status'), dataIndex: 'status', width: 100 },
+  { title: t('creationTask.mode'), dataIndex: 'mode', width: 100, align: 'center' as const },
+  { title: t('creationTask.handler'), dataIndex: 'handler', width: 140 },
+  { title: t('creationTask.externalTaskId'), dataIndex: 'externalTaskId', width: 180, ellipsis: true },
+  { title: t('creationTask.resultUrl'), dataIndex: 'resultUrl', width: 200, ellipsis: true },
+  { title: t('creationTask.errorMsg'), dataIndex: 'errorMsg', width: 200, ellipsis: true },
+]
 
 const reservationColumns = [
   { title: t('creationTask.stepCode'), dataIndex: 'stepCode', width: 140 },
@@ -484,11 +566,15 @@ async function loadTask() {
   loading.value = true
   try {
     task.value = await getCreationTaskDetail(id)
-    // 组合任务加载成本明细
+    // 组合任务加载成本明细和 pipeline steps
     if (task.value?.mode != null && isCompositeMode(task.value.mode) && task.value.taskId) {
       try {
         costSummary.value = await getCompositeCostSummary(task.value.taskId)
       } catch { costSummary.value = null }
+
+      try {
+        pipelineSteps.value = await getPipelineSteps(task.value.taskId)
+      } catch { pipelineSteps.value = null }
     }
   } catch (error) {
     console.error('Failed to load task detail:', error)

@@ -237,3 +237,34 @@ export function getCompositeCostSummary(parentTaskId: string) {
     params: { parentTaskId },
   })
 }
+
+// ======================== Pipeline Steps (交付 B) ========================
+
+export interface PipelineParentTask {
+  taskId: string
+  status: number
+  orchestrationStep: number
+  pipelineType: string
+  topology: string
+  settlementType: string
+}
+
+export interface PipelineStep {
+  code: string
+  kind: string
+  status: string
+  externalTaskId?: string
+  resultUrl?: string
+  errorMsg?: string
+  mode?: number
+  handler?: string
+}
+
+export interface PipelineStepsResponse {
+  parentTask: PipelineParentTask
+  steps: PipelineStep[]
+}
+
+export function getPipelineSteps(taskId: string) {
+  return request.get<PipelineStepsResponse>(`/api/v1/admin/creation/tasks/${taskId}/steps`)
+}

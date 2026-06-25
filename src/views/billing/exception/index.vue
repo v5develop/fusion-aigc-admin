@@ -76,8 +76,20 @@
         row-key="reservationNo"
         :pagination="false"
       >
+        <template #title>
+          <a-button type="primary" size="small" :loading="recoverLoading" @click="handleRecover">
+            手动恢复
+          </a-button>
+        </template>
         <template #emptyText>
           <a-empty description="暂无过期占用扣费单" />
+        </template>
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.dataIndex === 'classificationReason'">
+            <a-tag :color="getClassificationColor(record.classificationReason)">
+              {{ record.classificationReason || '-' }}
+            </a-tag>
+          </template>
         </template>
       </a-table>
     </a-card>
@@ -106,7 +118,8 @@
 import { ref, computed } from 'vue'
 import { message } from 'antdv-next'
 import ProTable from '@/components/Pro/ProTable/index.vue'
-import { getExceptionTasks, getAgedHeldReservations, executeCompensation } from '@/api/billing-exception'
+import { getExceptionTasks, getAgedHeldReservations, executeCompensation, recoverAgedHeldReservations } from '@/api/billing-exception'
+import { uuid } from '@/utils/helpers'
 
 const activeTab = ref('tasks')
 
@@ -200,6 +213,11 @@ const taskColumns = [
     width: 200,
   },
   {
+    title: '审核原因',
+    dataIndex: 'reviewReason',
+    width: 180,
+  },
+  {
     title: '创建时间',
     dataIndex: 'createTime',
     width: 180,
@@ -222,9 +240,33 @@ const agedColumns = [
   { title: '预扣点数', dataIndex: 'pricePoints', width: 100, align: 'center' as const },
   { title: '业务类型', dataIndex: 'bizType', width: 120 },
   { title: '业务ID', dataIndex: 'bizId', width: 180 },
+  { title: '分类原因', dataIndex: 'classificationReason', width: 200 },
   { title: '过期时间', dataIndex: 'expireTime', width: 180 },
   { title: '创建时间', dataIndex: 'createTime', width: 180 },
 ]
+
+const recoverLoading = ref(false)
+
+function getClassificationColor(reason: string): string {
+  if (!reason) return 'default'
+  if (reason.includes('FAILED')) return 'red'
+  if (reason.includes('UNSETTLED')) return 'orange'
+  if (reason.includes('RUNNING')) return 'blue'
+  return 'default'
+}
+
+async function handleRecover() {
+  try {
+    recoverLoading.value = true
+    const count = await recoverAgedHeldReservations()
+    message.success(`恢复成功，共处理 ${count} 条记录`)
+    await loadAgedReservations()
+  } catch (error) {
+    console.error('Failed to recover aged held reservations:', error)
+  } finally {
+    recoverLoading.value = false
+  }
+}
 
 async function loadTasks(params: Record<string, unknown>) {
   const res = await getExceptionTasks({
@@ -280,6 +322,7 @@ async function handleConfirmCompensation() {
     await executeCompensation({
       actionType: compensationAction.value,
       reservationNo: compensationReservationNo.value,
+      requestId: uuid(),
       reason: compensationForm.value.reason,
     })
     message.success('操作成功')

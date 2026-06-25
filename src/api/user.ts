@@ -17,6 +17,4 @@ export function getUserPoints(userId: number) {
   return request.get(`/api/v1/admin/app-users/${userId}/points`)
 }
 
-export function adjustUserPoints(userId: number, data: { amount: number; reason: string }) {
-  return request.post(`/api/v1/admin/app-users/${userId}/points/adjust`, data)
-}
+

@@ -321,6 +321,7 @@ export interface BillingExceptionTask {
   pricePoints: number
   status: number
   errorMsg: string
+  reviewReason: string
   createTime: string
   updateTime: string
 }
@@ -334,6 +335,8 @@ export interface AgedHeldReservation {
   bizType: string
   bizId: string
   status: string
+  taskStatus: number | null
+  classificationReason: string
   expireTime: string
   createTime: string
 }
@@ -520,8 +523,8 @@ export interface PointsAdjustParams {
 export interface CompensationParams {
   actionType: 'RETRY' | 'IGNORE' | 'REFUND'
   reservationNo: string
-  requestId?: string
-  reason?: string
+  requestId: string
+  reason: string
 }
 
 // Action Type Types

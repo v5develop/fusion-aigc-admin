@@ -38,3 +38,79 @@ export function getGenerationMetricsOverview(failedWindowMinutes = 60) {
     params: { failedWindowMinutes },
   })
 }
+
+/** Pipeline 监控指标（交付 B 多步成片任务） */
+export interface PipelineMetric {
+  inflightCount: number
+  avgStepDurationMs: number
+  inflightWithProgress: number
+  typeDistribution: string
+}
+
+/** 获取 Pipeline 监控指标 */
+export function getPipelineMetrics() {
+  return request.get<PipelineMetric>('/api/v1/admin/generation/metrics/pipeline')
+}
+
+/** 步骤耗时分布（P50/P90/P99） */
+export interface StepDurationDistribution {
+  stepCode: string
+  p50: number
+  p90: number
+  p99: number
+  count: number
+}
+
+/** 获取 Pipeline 步骤耗时分布 */
+export function getPipelineStepDuration(hours = 24) {
+  return request.get<StepDurationDistribution[]>('/api/v1/admin/generation/metrics/pipeline/step-duration', {
+    params: { hours },
+  })
+}
+
+/** 告警历史记录 */
+export interface PipelineAlertHistory {
+  id: number
+  alertType: string
+  alertLevel: string
+  message: string
+  currentValue: number
+  threshold: number
+  extraData?: string
+  alertTime: string
+}
+
+/** 获取 Pipeline 告警历史 */
+export function getPipelineAlertHistory(hours = 24, limit = 100, alertType?: string) {
+  return request.get<PipelineAlertHistory[]>('/api/v1/admin/generation/metrics/pipeline/alert-history', {
+    params: { hours, limit, alertType },
+  })
+}
+
+/** 慢步骤趋势数据点 */
+export interface SlowStepTrend {
+  timeBucket: string
+  slowCount: number
+}
+
+/** 获取慢步骤趋势分析 */
+export function getSlowStepTrend(hours = 24, thresholdMs = 60000, bucketMinutes = 60) {
+  return request.get<SlowStepTrend[]>('/api/v1/admin/generation/metrics/pipeline/slow-step-trend', {
+    params: { hours, thresholdMs, bucketMinutes },
+  })
+}
+
+/** 步骤耗时趋势数据点 */
+export interface StepDurationTrend {
+  timeBucket: string
+  stepCode: string
+  avgDurationMs: number
+  count: number
+}
+
+/** 获取步骤耗时趋势分析 */
+export function getStepDurationTrend(hours = 24, bucketMinutes = 60) {
+  return request.get<StepDurationTrend[]>('/api/v1/admin/generation/metrics/pipeline/duration-trend', {
+    params: { hours, bucketMinutes },
+  })
+}
