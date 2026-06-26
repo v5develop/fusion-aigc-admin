@@ -317,13 +317,22 @@ function handleOpenCompensation(record: { reservationNo: string }, action: 'RETR
 }
 
 async function handleConfirmCompensation() {
+  const reason = compensationForm.value.reason.trim()
+  if (!reason) {
+    message.warning('请输入操作原因')
+    return
+  }
+  if (/^\d+$/.test(reason) || reason.length < 2) {
+    message.warning('操作原因不能为纯数字且至少2个字符')
+    return
+  }
   try {
     submitting.value = true
     await executeCompensation({
       actionType: compensationAction.value,
       reservationNo: compensationReservationNo.value,
       requestId: uuid(),
-      reason: compensationForm.value.reason,
+      reason,
     })
     message.success('操作成功')
     compensationVisible.value = false

@@ -282,8 +282,13 @@ function handleAdjustPoints(record: Record<string, unknown>) {
 }
 
 async function handleConfirmAdjust() {
-  if (!adjustForm.value.reason) {
+  const reason = adjustForm.value.reason.trim()
+  if (!reason) {
     message.warning('请输入调整原因')
+    return
+  }
+  if (/^\d+$/.test(reason) || reason.length < 2) {
+    message.warning('调整原因不能为纯数字且至少2个字符')
     return
   }
   if (adjustForm.value.amount <= 0) {

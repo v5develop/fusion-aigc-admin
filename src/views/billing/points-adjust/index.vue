@@ -178,7 +178,16 @@ const rules = {
   adjustAmount: [{ required: true, message: t('points.adjustAmount') + t('common.required'), trigger: 'blur' }],
   adjustReason: [
     { required: true, message: t('points.adjustReason') + t('common.required'), trigger: 'blur' },
-    { min: 5, message: t('points.adjustReason') + '至少5个字符', trigger: 'blur' },
+    { min: 2, message: t('points.adjustReason') + '至少2个字符', trigger: 'blur' },
+    {
+      validator: (_rule: unknown, value: string) => {
+        if (/^\d+$/.test(value)) {
+          return Promise.reject(new Error(t('points.adjustReason') + '不能为纯数字'))
+        }
+        return Promise.resolve()
+      },
+      trigger: 'blur',
+    },
   ],
   approvalTicketId: [
     {
