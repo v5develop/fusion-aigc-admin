@@ -2912,6 +2912,9 @@ export default {
     forceCompleteSuccess: '強制完了成功',
     batchCancelSuccess: '一括キャンセル成功',
     selectTaskFirst: 'まずタスクを選択してください',
+    fixContentType: 'Content-Type修正',
+    fixContentTypeSuccess: 'Content-Type修正成功、ページを更新して再生してください',
+    fixContentTypeFailed: 'Content-Type修正失敗',
 
     // Dashboard
     todayTasks: '今日のタスク',

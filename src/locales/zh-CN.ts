@@ -3467,6 +3467,9 @@ export default {
     forceCompleteSuccess: '强制完成成功',
     batchCancelSuccess: '批量取消成功',
     selectTaskFirst: '请先选择任务',
+    fixContentType: '修复Content-Type',
+    fixContentTypeSuccess: 'Content-Type 修复成功，请刷新页面重试播放',
+    fixContentTypeFailed: 'Content-Type 修复失败',
 
     // Dashboard
     todayTasks: '今日任务',

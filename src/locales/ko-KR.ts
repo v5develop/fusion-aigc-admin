@@ -2900,6 +2900,9 @@ export default {
     forceCompleteSuccess: '강제 완료 성공',
     batchCancelSuccess: '일괄 취소 성공',
     selectTaskFirst: '먼저 작업을 선택하세요',
+    fixContentType: 'Content-Type 수정',
+    fixContentTypeSuccess: 'Content-Type 수정 성공, 페이지를 새로고침하여 재생하세요',
+    fixContentTypeFailed: 'Content-Type 수정 실패',
 
     // Dashboard
     todayTasks: '오늘 작업',

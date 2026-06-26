@@ -127,6 +127,16 @@
         :title="$t('creationTask.resultInfo')"
         style="margin-bottom: 16px"
       >
+        <template #extra>
+          <a-button
+            v-if="task.resultUrl && isVideoUrl(task.resultUrl)"
+            size="small"
+            :loading="fixingContentType"
+            @click="handleFixContentType"
+          >
+            {{ $t('creationTask.fixContentType') }}
+          </a-button>
+        </template>
         <div class="result-preview">
           <a-image
             v-if="isImageUrl(task.resultUrl)"
@@ -136,10 +146,13 @@
           />
           <video
             v-else-if="isVideoUrl(task.resultUrl)"
-            :src="task.resultUrl"
             controls
+            playsinline
+            preload="metadata"
             style="max-width: 600px; max-height: 400px"
-          />
+          >
+            <source :src="task.resultUrl" :type="getVideoMimeType(task.resultUrl)" />
+          </video>
           <a v-else :href="task.resultUrl" target="_blank">{{ task.resultUrl }}</a>
         </div>
       </a-card>
@@ -388,7 +401,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { message, Modal } from 'antdv-next'
-import { getCreationTaskDetail, cancelCreationTask, retryCreationTask, forceCompleteCreationTask, getCompositeCostSummary, getCreationTaskApiLogs, getPipelineSteps } from '@/api/creation-task'
+import { getCreationTaskDetail, cancelCreationTask, retryCreationTask, forceCompleteCreationTask, getCompositeCostSummary, getCreationTaskApiLogs, getPipelineSteps, fixTaskContentType } from '@/api/creation-task'
 import type { CreationTask, CompositeCostSummary, ApiRequestLog, PipelineStepsResponse } from '@/api/creation-task'
 import { decodeUnicode } from '@/utils/helpers'
 
@@ -499,6 +512,14 @@ function isImageUrl(url?: string): boolean {
 function isVideoUrl(url?: string): boolean {
   if (!url) return false
   return /\.(mp4|webm|mov|avi|mkv|flv)(\?.*)?$/i.test(url)
+}
+
+function getVideoMimeType(url: string): string {
+  const lower = url.toLowerCase()
+  if (lower.endsWith('.mp4') || lower.includes('.mp4?')) return 'video/mp4'
+  if (lower.endsWith('.webm') || lower.includes('.webm?')) return 'video/webm'
+  if (lower.endsWith('.mov') || lower.includes('.mov?')) return 'video/quicktime'
+  return 'video/mp4'
 }
 
 const billingStatusMap: Record<string, string> = {
@@ -638,6 +659,21 @@ async function handleForceCompleteConfirm() {
     console.error('Force complete failed:', error)
   } finally {
     forceCompleteLoading.value = false
+  }
+}
+
+// Fix Content-Type for existing OSS objects (historical videos uploaded without Content-Type)
+const fixingContentType = ref(false)
+async function handleFixContentType() {
+  if (!task.value) return
+  fixingContentType.value = true
+  try {
+    await fixTaskContentType(task.value.id)
+    message.success(t('creationTask.fixContentTypeSuccess'))
+  } catch {
+    message.error(t('creationTask.fixContentTypeFailed'))
+  } finally {
+    fixingContentType.value = false
   }
 }
 

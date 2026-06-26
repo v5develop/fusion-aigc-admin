@@ -198,6 +198,10 @@ export function forceCompleteCreationTask(taskId: string, resultUrl?: string) {
   return request.post(`/api/v1/admin/creation/tasks/${taskId}/force-complete`, { resultUrl })
 }
 
+export function fixTaskContentType(id: number) {
+  return request.post(`/api/v1/admin/creation/tasks/${id}/fix-content-type`)
+}
+
 export function exportCreationTasks(params: CreationTaskQuery) {
   return request.get('/api/v1/admin/creation/tasks/export', {
     params,
