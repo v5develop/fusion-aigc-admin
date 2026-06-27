@@ -121,6 +121,23 @@
               <template v-if="column.dataIndex === 'status'">
                 <a-badge :color="statusColorMap[child.status]" :text="statusMap[child.status] || '-'" />
               </template>
+              <template v-if="column.dataIndex === 'result'">
+                <a-image
+                  v-if="isImageUrl(child.resultUrl)"
+                  :src="child.resultUrl"
+                  :width="56"
+                  :height="56"
+                  style="object-fit: cover; border-radius: 4px"
+                />
+                <video
+                  v-else-if="isVideoUrl(child.resultUrl)"
+                  :src="child.resultUrl"
+                  controls
+                  style="width: 88px; height: 56px; border-radius: 4px"
+                />
+                <a v-else-if="child.resultUrl" :href="child.resultUrl" target="_blank">{{ $t('creationTask.previewResult') }}</a>
+                <span v-else>-</span>
+              </template>
               <template v-if="column.dataIndex === 'pricePoints'">
                 <span class="points-value">{{ child.pricePoints ?? '-' }}</span>
               </template>
@@ -371,11 +388,25 @@ const childColumns = computed(() => [
   { title: t('creationTask.taskId'), dataIndex: 'taskId', width: 240, ellipsis: true },
   { title: t('creationTask.type'), dataIndex: 'type', width: 100, align: 'center' as const },
   { title: t('creationTask.status'), dataIndex: 'status', width: 110 },
+  { title: t('creationTask.resultImage'), dataIndex: 'result', width: 110, align: 'center' as const },
   { title: t('creationTask.modelName'), dataIndex: 'modelName', width: 130, ellipsis: true },
   { title: t('creationTask.pricePoints'), dataIndex: 'pricePoints', width: 90, align: 'center' as const },
   { title: t('creationTask.errorMsg'), dataIndex: 'errorMsg', ellipsis: true, width: 200 },
   { title: t('common.createTime'), dataIndex: 'createTime', width: 170 },
 ])
+
+/** 结果 URL 是否为图片（按扩展名粗判，签名 URL 去掉 query 再判） */
+function isImageUrl(url?: string): boolean {
+  if (!url) return false
+  const path = url.split('?')[0].toLowerCase()
+  return /\.(png|jpe?g|gif|webp|bmp|svg)$/.test(path)
+}
+/** 结果 URL 是否为视频 */
+function isVideoUrl(url?: string): boolean {
+  if (!url) return false
+  const path = url.split('?')[0].toLowerCase()
+  return /\.(mp4|mov|webm|avi|mkv)$/.test(path)
+}
 
 // Load data
 async function loadData(params: Record<string, unknown>) {

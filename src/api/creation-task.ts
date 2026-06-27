@@ -49,6 +49,8 @@ export interface CreationTask {
   createTime: string
   updateTime: string
   children?: CreationTask[]
+  /** 子任务列表：详情接口 GET /{id} 返回的子任务挂在 subTasks（非 children） */
+  subTasks?: CreationTask[]
   // ---- 子任务成本字段（组合任务子任务列表）----
   costSource?: string
   estimatedCost?: number

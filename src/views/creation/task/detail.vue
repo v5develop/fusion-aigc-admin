@@ -221,12 +221,12 @@
 
       <!-- Children Tasks -->
       <a-card
-        v-if="task?.children && task.children.length > 0"
+        v-if="task?.subTasks && task.subTasks.length > 0"
         :title="$t('creationTask.childrenTasks')"
       >
         <a-table
           :columns="childColumns"
-          :data-source="task.children"
+          :data-source="task.subTasks"
           :pagination="false"
           row-key="id"
           size="small"
@@ -242,6 +242,23 @@
                 :color="statusColorMap[record.status]"
                 :text="statusMap[record.status] || '-'"
               />
+            </template>
+            <template v-if="column.dataIndex === 'result'">
+              <a-image
+                v-if="isImageUrl(record.resultUrl)"
+                :src="record.resultUrl"
+                :width="64"
+                :height="64"
+                style="object-fit: cover; border-radius: 4px"
+              />
+              <video
+                v-else-if="isVideoUrl(record.resultUrl)"
+                :src="record.resultUrl"
+                controls
+                style="width: 96px; height: 64px; border-radius: 4px"
+              />
+              <a v-else-if="record.resultUrl" :href="record.resultUrl" target="_blank">{{ record.resultUrl }}</a>
+              <span v-else>-</span>
             </template>
             <template v-if="column.dataIndex === 'estimatedCost'">
               <span v-if="record.estimatedCost != null" class="points-value">
@@ -550,6 +567,7 @@ const childColumns = [
   { title: t('creationTask.taskId'), dataIndex: 'taskId', width: 200, ellipsis: true },
   { title: t('creationTask.type'), dataIndex: 'type', width: 100, align: 'center' as const },
   { title: t('creationTask.status'), dataIndex: 'status', width: 100 },
+  { title: t('creationTask.resultImage'), dataIndex: 'result', width: 110, align: 'center' as const },
   { title: t('creationTask.modelName'), dataIndex: 'modelName', width: 120 },
   { title: t('creationTask.providerModel'), dataIndex: 'providerModel', width: 110 },
   { title: t('creationTask.estimatedCost'), dataIndex: 'estimatedCost', width: 100, align: 'right' as const },
