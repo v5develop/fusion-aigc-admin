@@ -91,6 +91,7 @@ const columns = [
   {
     title: t('points.userId'),
     dataIndex: 'userId',
+    search: true,
     searchType: 'input' as const,
     width: 100,
   },
@@ -114,6 +115,7 @@ const columns = [
   {
     title: t('points.changeType'),
     dataIndex: 'changeType',
+    search: true,
     searchType: 'select' as const,
     searchOptions: [
       { label: t('points.typeMap.grant'), value: 'GRANT' },
@@ -131,6 +133,7 @@ const columns = [
   {
     title: t('points.bizType'),
     dataIndex: 'bizType',
+    search: true,
     searchType: 'select' as const,
     searchOptions: [
       { label: t('points.bizTypeMap.creation'), value: 'CREATION' },
@@ -164,6 +167,7 @@ async function loadData(params: Record<string, unknown>) {
   const res = await getPointsLogList({
     userId: params.userId as number | undefined,
     changeType: params.changeType as string | undefined,
+    bizType: params.bizType as string | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
   })

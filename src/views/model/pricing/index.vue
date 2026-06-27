@@ -162,6 +162,7 @@ const columns = computed(() => [
   {
     title: t('pricing.actionType'),
     dataIndex: 'actionType',
+    search: true,
     searchType: 'select' as const,
     searchOptions: actionTypeOptions.value,
     width: 120,
@@ -190,6 +191,7 @@ const columns = computed(() => [
   {
     title: t('model.status'),
     dataIndex: 'status',
+    search: true,
     searchType: 'select' as const,
     searchOptions: [
       { label: t('common.enabled'), value: 1 },
@@ -246,6 +248,7 @@ async function loadData(params: Record<string, unknown>) {
   const res = await getPricingList({
     modelId: params.modelId as number | undefined,
     actionType: params.actionType as string | undefined,
+    status: params.status as number | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
   })

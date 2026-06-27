@@ -78,6 +78,7 @@ const columns = [
   {
     title: t('billing.userId'),
     dataIndex: 'userId',
+    search: true,
     searchType: 'input' as const,
     width: 100,
   },
@@ -106,6 +107,8 @@ const columns = [
   {
     title: t('billing.bizId'),
     dataIndex: 'bizId',
+    search: true,
+    searchType: 'input' as const,
     width: 180,
   },
   {
@@ -123,7 +126,7 @@ const columns = [
 async function loadData(params: Record<string, unknown>) {
   const res = await getConsumptionList({
     userId: params.userId as number | undefined,
-    bizKeyword: params.bizKeyword as string | undefined,
+    bizKeyword: params.bizId as string | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
   })

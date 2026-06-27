@@ -78,6 +78,9 @@ export interface SlotFilterFormData {
 // ---- 维度 filter ----
 export function getTemplateFilterList(params: {
   bizType?: string
+  filterCode?: string
+  filterName?: string
+  uiType?: string
   status?: number
   page?: number
   pageSize?: number

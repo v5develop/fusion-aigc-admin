@@ -118,12 +118,14 @@ const columns = [
   {
     title: t('featureGrant.userId'),
     dataIndex: 'userId',
+    search: true,
     searchType: 'input' as const,
     width: 100,
   },
   {
     title: t('featureGrant.username'),
     dataIndex: 'username',
+    search: true,
     searchType: 'input' as const,
     width: 120,
   },
@@ -135,6 +137,7 @@ const columns = [
   {
     title: t('featureGrant.source'),
     dataIndex: 'source',
+    search: true,
     searchType: 'select' as const,
     searchOptions: [
       { label: t('featureGrant.sourceMap.union'), value: 'union' },
@@ -177,6 +180,8 @@ const columns = [
 async function loadData(params: Record<string, unknown>) {
   const res = await getFeatureGrantList({
     userId: params.userId as number | undefined,
+    username: params.username as string | undefined,
+    source: params.source as string | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
   })

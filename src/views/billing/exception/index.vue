@@ -159,6 +159,7 @@ const taskColumns = [
   {
     title: '任务类型',
     dataIndex: 'taskType',
+    search: true,
     searchType: 'select' as const,
     searchOptions: [
       { label: '图片', value: 'IMAGE' },
@@ -180,12 +181,14 @@ const taskColumns = [
   {
     title: '用户ID',
     dataIndex: 'userId',
+    search: true,
     searchType: 'input' as const,
     width: 100,
   },
   {
     title: '计费状态',
     dataIndex: 'billingStatus',
+    search: true,
     searchType: 'select' as const,
     searchOptions: [
       { label: '结算失败', value: 'SETTLEMENT_FAILED' },
@@ -271,6 +274,7 @@ async function handleRecover() {
 async function loadTasks(params: Record<string, unknown>) {
   const res = await getExceptionTasks({
     taskType: params.taskType as string | undefined,
+    userId: params.userId as number | undefined,
     billingStatus: params.billingStatus as string | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,

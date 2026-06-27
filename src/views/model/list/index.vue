@@ -88,6 +88,14 @@
             :unchecked-value="0"
           />
         </a-form-item>
+        <a-form-item v-if="formData.modelType === 1" :label="$t('model.supportVision')">
+          <a-switch v-model:checked="formData.supportVision" />
+          <div class="form-hint">{{ $t('model.supportVisionHint') }}</div>
+        </a-form-item>
+        <a-form-item v-if="formData.modelType === 1" :label="$t('model.supportReasoning')">
+          <a-switch v-model:checked="formData.supportReasoning" />
+          <div class="form-hint">{{ $t('model.supportReasoningHint') }}</div>
+        </a-form-item>
         <a-form-item :label="$t('model.maxConcurrency')">
           <a-input-number
             v-model:value="formData.maxConcurrency"
@@ -143,18 +151,21 @@ const columns = [
   {
     title: t('model.modelCode'),
     dataIndex: 'code',
+    search: true,
     searchType: 'input' as const,
     width: 150,
   },
   {
     title: t('model.modelName'),
     dataIndex: 'name',
+    search: true,
     searchType: 'input' as const,
     width: 180,
   },
   {
     title: t('model.modelType'),
     dataIndex: 'modelType',
+    search: true,
     searchType: 'select' as const,
     searchOptions: [
       { label: t('model.modelTypes.chat'), value: 1 },
@@ -168,6 +179,7 @@ const columns = [
   {
     title: t('model.status'),
     dataIndex: 'status',
+    search: true,
     searchType: 'select' as const,
     searchOptions: [
       { label: t('common.enabled'), value: 1 },
@@ -206,6 +218,8 @@ const formData = reactive({
   statusChecked: 1,
   maxConcurrency: undefined as number | undefined,
   generationTimeoutSeconds: undefined as number | undefined,
+  supportVision: false,
+  supportReasoning: false,
 })
 
 const apiConfigOptions = ref<{ label: string; value: number }[]>([])
@@ -248,6 +262,8 @@ function handleCreate() {
   formData.statusChecked = 1
   formData.maxConcurrency = undefined
   formData.generationTimeoutSeconds = undefined
+  formData.supportVision = false
+  formData.supportReasoning = false
   modalVisible.value = true
 }
 
@@ -262,6 +278,8 @@ function handleEdit(record: AIModel) {
   formData.statusChecked = record.status
   formData.maxConcurrency = record.maxConcurrency ?? undefined
   formData.generationTimeoutSeconds = record.generationTimeoutSeconds ?? undefined
+  formData.supportVision = record.supportVision ?? false
+  formData.supportReasoning = record.supportReasoning ?? false
   modalVisible.value = true
 }
 
@@ -286,6 +304,8 @@ async function handleSubmit() {
       status: formData.statusChecked,
       maxConcurrency: formData.maxConcurrency,
       generationTimeoutSeconds: formData.generationTimeoutSeconds,
+      supportVision: formData.supportVision,
+      supportReasoning: formData.supportReasoning,
     }
 
     if (isEdit.value && editId.value) {

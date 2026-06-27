@@ -3,6 +3,7 @@ import type { BillingExceptionTask, AgedHeldReservation, CompensationParams, Pag
 
 export function getExceptionTasks(params: {
   taskType?: string
+  userId?: number
   billingStatus?: string
   page: number
   pageSize: number

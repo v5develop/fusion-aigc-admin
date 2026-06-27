@@ -2,6 +2,7 @@ import { request } from '@/utils/request'
 import type { ModelCost, ModelCostStats, PageResult } from '@/types/api'
 
 export function getCostList(params: {
+  taskId?: string
   modelId?: number
   userId?: number
   startDate?: string

@@ -65,12 +65,14 @@ const columns = [
   {
     title: t('cost.taskId'),
     dataIndex: 'taskId',
+    search: true,
     searchType: 'input' as const,
     width: 150,
   },
   {
     title: t('cost.userId'),
     dataIndex: 'userId',
+    search: true,
     searchType: 'input' as const,
     width: 100,
   },
@@ -124,6 +126,7 @@ const columns = [
 
 async function loadData(params: Record<string, unknown>) {
   const res = await getCostList({
+    taskId: params.taskId as string | undefined,
     modelId: params.modelId as number | undefined,
     userId: params.userId as number | undefined,
     startDate: params.startDate as string | undefined,

@@ -163,6 +163,7 @@ const columns = [
   {
     title: t('reconciliation.type'),
     dataIndex: 'differenceType',
+    search: true,
     searchType: 'select' as const,
     searchOptions: Object.entries(typeMap).map(([value, label]) => ({ label, value })),
     width: 120,
@@ -193,6 +194,7 @@ const columns = [
   {
     title: t('reconciliation.status'),
     dataIndex: 'status',
+    search: true,
     searchType: 'select' as const,
     searchOptions: [
       { label: t('reconciliation.statusMap.pending'), value: 'OPEN' },

@@ -77,30 +77,35 @@ const columns = [
   {
     title: t('featureChangeLog.userId'),
     dataIndex: 'userId',
+    search: true,
     searchType: 'input' as const,
     width: 100,
   },
   {
     title: t('featureChangeLog.username'),
     dataIndex: 'username',
+    search: true,
     searchType: 'input' as const,
     width: 120,
   },
   {
     title: t('featureChangeLog.featureCode'),
     dataIndex: 'featureCode',
+    search: true,
     searchType: 'input' as const,
     width: 120,
   },
   {
     title: t('featureChangeLog.unionUserId'),
     dataIndex: 'unionUserId',
+    search: true,
     searchType: 'input' as const,
     width: 150,
   },
   {
     title: t('featureChangeLog.changeType'),
     dataIndex: 'changeType',
+    search: true,
     searchType: 'select' as const,
     searchOptions: [
       { label: t('featureChangeLog.changeTypeMap.grant'), value: 'grant' },
@@ -134,7 +139,11 @@ const columns = [
 
 async function loadData(params: Record<string, unknown>) {
   const res = await getFeatureChangeLog({
-    featureId: params.featureId as number | undefined,
+    userId: params.userId as number | undefined,
+    username: params.username as string | undefined,
+    featureCode: params.featureCode as string | undefined,
+    unionUserId: params.unionUserId as string | undefined,
+    changeType: params.changeType as string | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
   })

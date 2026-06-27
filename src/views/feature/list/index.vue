@@ -124,12 +124,14 @@ const columns = [
   {
     title: t('feature.featureCode'),
     dataIndex: 'featureCode',
+    search: true,
     searchType: 'input' as const,
     width: 150,
   },
   {
     title: t('feature.featureName'),
     dataIndex: 'featureName',
+    search: true,
     searchType: 'input' as const,
     width: 200,
   },
@@ -141,6 +143,7 @@ const columns = [
   {
     title: t('feature.actionType'),
     dataIndex: 'actionType',
+    search: true,
     searchType: 'select' as const,
     searchOptions: actionTypeOptions,
     width: 120,
@@ -154,6 +157,7 @@ const columns = [
   {
     title: t('feature.status'),
     dataIndex: 'status',
+    search: true,
     searchType: 'select' as const,
     searchOptions: [
       { label: t('common.enabled'), value: 1 },
@@ -194,6 +198,10 @@ const formData = reactive({
 
 async function loadData(params: Record<string, unknown>) {
   const res = await getFeatureList({
+    featureCode: params.featureCode as string | undefined,
+    featureName: params.featureName as string | undefined,
+    actionType: params.actionType as string | undefined,
+    status: params.status as number | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
   })

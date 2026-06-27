@@ -118,12 +118,14 @@ const columns = [
   {
     title: t('admin.role.roleCode'),
     dataIndex: 'roleCode',
+    search: true,
     searchType: 'input' as const,
     width: 180,
   },
   {
     title: t('admin.role.roleName'),
     dataIndex: 'roleName',
+    search: true,
     searchType: 'input' as const,
     width: 180,
   },
@@ -135,6 +137,7 @@ const columns = [
   {
     title: t('model.status'),
     dataIndex: 'status',
+    search: true,
     searchType: 'select' as const,
     searchOptions: [
       { label: t('common.enabled'), value: 1 },

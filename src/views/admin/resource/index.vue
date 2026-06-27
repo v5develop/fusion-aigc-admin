@@ -121,6 +121,7 @@ const columns = [
   {
     title: t('admin.resource.resourceCode'),
     dataIndex: 'resourceCode',
+    search: true,
     searchType: 'input' as const,
     width: 180,
   },
@@ -143,6 +144,7 @@ const columns = [
   {
     title: t('model.status'),
     dataIndex: 'status',
+    search: true,
     searchType: 'select' as const,
     searchOptions: [
       { label: t('common.enabled'), value: 1 },

@@ -123,6 +123,7 @@ const columns = [
   {
     title: t('admin.permission.permissionCode'),
     dataIndex: 'permissionCode',
+    search: true,
     searchType: 'input' as const,
     width: 200,
   },
@@ -139,12 +140,14 @@ const columns = [
   {
     title: t('admin.permission.resourceCode'),
     dataIndex: 'resource',
+    search: true,
     searchType: 'input' as const,
     width: 120,
   },
   {
     title: t('admin.permission.action'),
     dataIndex: 'action',
+    search: true,
     searchType: 'input' as const,
     width: 100,
   },
@@ -170,6 +173,7 @@ const columns = [
 
 async function loadData(params: Record<string, unknown>) {
   const res = await getAdminPermissionList({
+    permissionCode: params.permissionCode as string | undefined,
     resource: params.resource as string | undefined,
     action: params.action as string | undefined,
     page: (params.current as number) || 1,

@@ -146,6 +146,7 @@ const columns = [
   {
     title: t('admin.user.username'),
     dataIndex: 'username',
+    search: true,
     searchType: 'input' as const,
     width: 120,
   },
@@ -172,6 +173,7 @@ const columns = [
   {
     title: t('common.status'),
     dataIndex: 'status',
+    search: true,
     searchType: 'select' as const,
     searchOptions: [
       { label: t('common.enabled'), value: 1 },

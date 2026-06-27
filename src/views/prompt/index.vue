@@ -104,11 +104,13 @@ const columns = [
     dataIndex: 'name',
     width: 200,
     ellipsis: true,
+    search: true,
     searchType: 'input' as const,
   },
   {
     title: t('prompt.category'),
     dataIndex: 'category',
+    search: true,
     searchType: 'select' as const,
     searchOptions: categoryOptions,
     width: 110,
@@ -127,6 +129,7 @@ const columns = [
   {
     title: t('common.status'),
     dataIndex: 'enabled',
+    search: true,
     searchType: 'select' as const,
     searchOptions: [
       { label: t('common.enabled'), value: 1 },

@@ -505,6 +505,7 @@ const assetColumns = [
   {
     title: t('templateAsset.moduleCode'),
     dataIndex: 'moduleCode',
+    search: true,
     searchType: 'input' as const,
     width: 140,
     ellipsis: true,
@@ -512,6 +513,7 @@ const assetColumns = [
   {
     title: t('templateAsset.slotCode'),
     dataIndex: 'slotCode',
+    search: true,
     searchType: 'input' as const,
     width: 130,
     ellipsis: true,
@@ -519,6 +521,7 @@ const assetColumns = [
   {
     title: t('templateAsset.type'),
     dataIndex: 'type',
+    search: true,
     searchType: 'select' as const,
     searchOptions: [
       { label: t('templateAsset.typeImage'), value: 'image' },
@@ -542,6 +545,7 @@ const assetColumns = [
   {
     title: t('common.status'),
     dataIndex: 'status',
+    search: true,
     searchType: 'select' as const,
     searchOptions: [
       { label: t('common.enabled'), value: 1 },

@@ -91,6 +91,7 @@ const columns = [
   {
     title: t('template.category'),
     dataIndex: 'category',
+    search: true,
     searchType: 'select' as const,
     searchOptions: [
       { label: '电商', value: 'ecommerce' },
@@ -103,6 +104,7 @@ const columns = [
   {
     title: t('template.mode'),
     dataIndex: 'mode',
+    search: true,
     searchType: 'select' as const,
     searchOptions: [
       { label: 'Agent', value: 'agent' },
@@ -114,6 +116,7 @@ const columns = [
   {
     title: t('common.status'),
     dataIndex: 'enabled',
+    search: true,
     searchType: 'select' as const,
     searchOptions: [
       { label: t('common.enabled'), value: 1 },

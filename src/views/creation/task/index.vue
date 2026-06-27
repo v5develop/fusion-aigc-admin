@@ -212,7 +212,7 @@ onMounted(async () => {
   try {
     const offers = await getAllOffers()
     typeSearchOptions.value = (offers || [])
-      .filter((o: any) => o.entryCode && o.status === 'ACTIVE')
+      .filter((o: any) => o.entryCode && o.status === 'ENABLED')
       .map((o: any) => ({ label: o.name || o.entryCode, value: o.entryCode }))
   } catch {
     // 加载失败时留空，不影响主流程
@@ -272,12 +272,14 @@ const columns = computed(() => [
   {
     title: t('creationTask.taskId'),
     dataIndex: 'taskId',
+    search: true,
     searchType: 'input' as const,
     width: 200,
   },
   {
     title: t('creationTask.userId'),
     dataIndex: 'userId',
+    search: true,
     searchType: 'input' as const,
     width: 100,
     align: 'center' as const,
@@ -290,6 +292,7 @@ const columns = computed(() => [
   {
     title: t('creationTask.type'),
     dataIndex: 'type',
+    search: true,
     searchType: 'select' as const,
     searchOptions: typeSearchOptions.value,
     width: 100,
@@ -298,6 +301,7 @@ const columns = computed(() => [
   {
     title: t('creationTask.status'),
     dataIndex: 'status',
+    search: true,
     searchType: 'select' as const,
     searchOptions: [
       { label: t('creationTask.statusQueuing'), value: 0 },
@@ -316,12 +320,14 @@ const columns = computed(() => [
   {
     title: t('creationTask.featureCode'),
     dataIndex: 'featureCode',
+    search: true,
     searchType: 'input' as const,
     width: 140,
   },
   {
     title: t('creationTask.billingStatus'),
     dataIndex: 'billingStatus',
+    search: true,
     searchType: 'select' as const,
     searchOptions: [
       { label: t('creationTask.billingHeld'), value: 'HELD' },
@@ -379,7 +385,7 @@ async function loadData(params: Record<string, unknown>) {
     userId: params.userId as number | string | undefined,
     featureCode: params.featureCode as string | undefined,
     billingStatus: params.billingStatus as string | undefined,
-    keyword: params.keyword as string | undefined,
+    keyword: (params.taskId as string) || (params.keyword as string | undefined),
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
   })

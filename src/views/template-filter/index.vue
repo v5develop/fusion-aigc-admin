@@ -494,18 +494,30 @@ const filterColumns = [
   {
     title: t('templateFilter.filterCode'),
     dataIndex: 'filterCode',
+    search: true,
+    searchType: 'input' as const,
     width: 140,
     ellipsis: true,
   },
   {
     title: t('templateFilter.filterName'),
     dataIndex: 'filterName',
+    search: true,
+    searchType: 'input' as const,
     width: 140,
     ellipsis: true,
   },
   {
     title: t('templateFilter.uiType'),
     dataIndex: 'uiType',
+    search: true,
+    searchType: 'select' as const,
+    searchOptions: [
+      { label: 'Select', value: 'select' },
+      { label: 'Radio', value: 'radio' },
+      { label: 'Checkbox', value: 'checkbox' },
+      { label: 'Slider', value: 'slider' },
+    ],
     width: 120,
     align: 'center' as const,
   },
@@ -518,6 +530,7 @@ const filterColumns = [
   {
     title: t('common.status'),
     dataIndex: 'status',
+    search: true,
     searchType: 'select' as const,
     searchOptions: [
       { label: t('common.enabled'), value: 1 },
@@ -537,6 +550,9 @@ const filterColumns = [
 
 async function loadFilters(params: Record<string, unknown>) {
   const res = await getTemplateFilterList({
+    filterCode: params.filterCode as string | undefined,
+    filterName: params.filterName as string | undefined,
+    uiType: params.uiType as string | undefined,
     status: params.status as number | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,

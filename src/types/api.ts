@@ -145,7 +145,12 @@ export interface Feature {
   updateTime: string
 }
 
-export interface FeatureListParams extends ListParams {}
+export interface FeatureListParams extends ListParams {
+  featureCode?: string
+  featureName?: string
+  actionType?: string
+  status?: number
+}
 
 // AI Model Types
 export interface AIModel {
@@ -216,6 +221,7 @@ export interface PointsLog {
 export interface PointsLogParams extends PageParams {
   userId?: number
   changeType?: string
+  bizType?: string
   startTime?: string
   endTime?: string
 }
