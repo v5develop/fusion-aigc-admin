@@ -631,6 +631,17 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
+        path: 'open-app',
+        name: 'SettingsOpenApp',
+        component: () => import('@/views/settings/open-app/index.vue'),
+        meta: {
+          title: 'menu.settingsOpenApp',
+          icon: 'ApiOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'system:open_app',
+        },
+      },
+      {
         path: 'ai-provider',
         name: 'SettingsAIProvider',
         component: () => import('@/views/settings/ai-provider/index.vue'),
