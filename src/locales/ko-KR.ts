@@ -183,7 +183,9 @@ export default {
     modelPricing: '모델 가격',
     modelCost: '모델 비용',
     systemSettings: '시스템 설정',
-    settingsOpenApp: '오픈 플랫폼',
+    openPlatform: '오픈 플랫폼',
+    openPlatformApps: '애플리케이션 관리',
+    openPlatformUnion: '얼라이언스 연동',
     templateManagement: '템플릿 관리',
     templateAssetManagement: 'Template Asset Management',
     templateAssetParent: 'Template Assets',
@@ -2584,7 +2586,7 @@ export default {
   },
 
   // Settings
-  settingsUnion: {
+  openPlatformUnion: {
     title: '얼라이언스 설정',
     openapi: '공개 API',
     baseUrl: '얼라이언스 API 주소',
@@ -2696,7 +2698,7 @@ export default {
     appName: '애플리케이션 이름',
     appNamePlaceholder: '애플리케이션 이름을 입력하세요',
     appNameRequired: '애플리케이션 이름은 비워둘 수 없습니다',
-    appId: '애플리케이션 식별자',
+    appKey: '애플리케이션 키',
     appSecret: '애플리케이션 시크릿',
     keyVersion: '키 버전',
     scopes: '권한 도메인',

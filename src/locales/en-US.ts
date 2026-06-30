@@ -132,8 +132,9 @@ export default {
     reconciliationSummary: 'Reconciliation Summary',
     reconciliationDifference: 'Difference Handling',
     systemSettings: 'System Settings',
-    settingsUnion: 'Alliance Config',
-    settingsOpenApp: 'Open Platform',
+    openPlatform: 'Open Platform',
+    openPlatformApps: 'App Management',
+    openPlatformUnion: 'Alliance Integration',
     settingsAIProvider: 'AI Provider Config',
     settingsStorage: 'Storage Config',
     settingsStorageSystem: 'System Storage',
@@ -2804,7 +2805,7 @@ export default {
   },
 
   // Settings
-  settingsUnion: {
+  openPlatformUnion: {
     title: 'Alliance Config',
     openapi: 'Open APIs',
     baseUrl: 'Alliance API Base URL',
@@ -2950,7 +2951,7 @@ export default {
     appName: 'App Name',
     appNamePlaceholder: 'Please enter app name',
     appNameRequired: 'App name cannot be empty',
-    appId: 'App ID',
+    appKey: 'App Key',
     appSecret: 'App Secret',
     keyVersion: 'Key Version',
     scopes: 'Scopes',

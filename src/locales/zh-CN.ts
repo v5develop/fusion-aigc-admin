@@ -136,8 +136,9 @@ export default {
     reconciliationSummary: '对账汇总',
     reconciliationDifference: '差异处理',
     systemSettings: '系统设置',
-    settingsUnion: '联盟配置',
-    settingsOpenApp: '开放平台',
+    openPlatform: '开放平台',
+    openPlatformApps: '应用管理',
+    openPlatformUnion: '联盟对接',
     settingsAIProvider: 'AI 提供商配置',
     settingsStorage: '存储配置',
     settingsStorageSystem: '系统存储',
@@ -2837,7 +2838,7 @@ export default {
   },
 
   // Settings
-  settingsUnion: {
+  openPlatformUnion: {
     title: '联盟配置',
     openapi: '开放接口',
     baseUrl: '联盟接口地址',
@@ -2983,7 +2984,7 @@ export default {
     appName: '应用名称',
     appNamePlaceholder: '请输入应用名称',
     appNameRequired: '应用名称不能为空',
-    appId: '应用标识',
+    appKey: '应用标识',
     appSecret: '应用密钥',
     keyVersion: '密钥版本',
     scopes: '授权域',

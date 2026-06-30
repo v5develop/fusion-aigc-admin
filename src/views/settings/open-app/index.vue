@@ -7,7 +7,7 @@
       :search="{}"
       row-key="id"
     >
-      <template #toolBar>
+      <template #toolbar>
         <a-button type="primary" @click="showCreateModal">
           {{ $t('openApp.create') }}
         </a-button>
@@ -16,8 +16,8 @@
         <a-empty :description="$t('openApp.noData')" />
       </template>
       <template #bodyCell="{ column, record }">
-        <template v-if="column.dataIndex === 'appId'">
-          <a-typography-text copyable>{{ record.appId }}</a-typography-text>
+        <template v-if="column.dataIndex === 'appKey'">
+          <a-typography-text copyable>{{ record.appKey }}</a-typography-text>
           <a-tag v-if="record.isBuiltin === 1" color="purple" style="margin-left: 8px">
             {{ $t('openApp.builtin') }}
           </a-tag>
@@ -125,8 +125,8 @@
     >
       <a-alert type="warning" show-icon :message="$t('openApp.secretWarning')" style="margin-bottom: 16px" />
       <a-descriptions :column="1" bordered size="small">
-        <a-descriptions-item :label="$t('openApp.appId')">
-          <a-typography-text copyable>{{ secretResult?.appId }}</a-typography-text>
+        <a-descriptions-item :label="$t('openApp.appKey')">
+          <a-typography-text copyable>{{ secretResult?.appKey }}</a-typography-text>
         </a-descriptions-item>
         <a-descriptions-item :label="$t('openApp.appSecret')">
           <a-typography-text copyable>{{ secretResult?.appSecret }}</a-typography-text>
@@ -181,7 +181,7 @@ const scopeOptions = [
 
 const columns = [
   { title: t('openApp.appName'), dataIndex: 'appName', search: true, searchType: 'input' as const, width: 160 },
-  { title: t('openApp.appId'), dataIndex: 'appId', width: 220 },
+  { title: t('openApp.appKey'), dataIndex: 'appKey', width: 220 },
   { title: t('openApp.scopes'), dataIndex: 'scopes', width: 160 },
   { title: t('openApp.keyVersion'), dataIndex: 'keyVersion', width: 90, align: 'center' as const },
   { title: t('openApp.rateLimit'), dataIndex: 'rateLimit', width: 90, align: 'center' as const },
@@ -289,6 +289,8 @@ function handleApprove(record: OpenApp) {
   Modal.confirm({
     title: t('common.warning'),
     content: t('openApp.confirmApprove'),
+    okText: t('common.ok'),
+    cancelText: t('common.cancel'),
     onOk: async () => {
       const result = await approveOpenApp(record.id)
       message.success(t('openApp.approveSuccess'))
@@ -302,6 +304,8 @@ function handleReject(record: OpenApp) {
   Modal.confirm({
     title: t('common.warning'),
     content: t('openApp.confirmReject'),
+    okText: t('common.ok'),
+    cancelText: t('common.cancel'),
     onOk: async () => {
       await rejectOpenApp(record.id)
       message.success(t('openApp.rejectSuccess'))
@@ -314,6 +318,8 @@ function handleDisable(record: OpenApp) {
   Modal.confirm({
     title: t('common.warning'),
     content: t('openApp.confirmDisable'),
+    okText: t('common.ok'),
+    cancelText: t('common.cancel'),
     onOk: async () => {
       await disableOpenApp(record.id)
       message.success(t('openApp.disableSuccess'))
@@ -326,6 +332,8 @@ function handleEnable(record: OpenApp) {
   Modal.confirm({
     title: t('common.warning'),
     content: t('openApp.confirmEnable'),
+    okText: t('common.ok'),
+    cancelText: t('common.cancel'),
     onOk: async () => {
       await enableOpenApp(record.id)
       message.success(t('openApp.enableSuccess'))
@@ -338,6 +346,8 @@ function handleRotate(record: OpenApp) {
   Modal.confirm({
     title: t('common.warning'),
     content: t('openApp.confirmRotate'),
+    okText: t('common.ok'),
+    cancelText: t('common.cancel'),
     onOk: async () => {
       const result = await rotateOpenAppSecret(record.id)
       message.success(t('openApp.rotateSuccess'))

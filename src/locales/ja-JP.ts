@@ -183,7 +183,9 @@ export default {
     modelPricing: 'モデル料金',
     modelCost: 'モデルコスト',
     systemSettings: 'システム設定',
-    settingsOpenApp: '開放プラットフォーム',
+    openPlatform: '開放プラットフォーム',
+    openPlatformApps: 'アプリ管理',
+    openPlatformUnion: 'アライアンス連携',
     templateManagement: 'テンプレート管理',
     templateAssetManagement: 'Template Asset Management',
     templateAssetParent: 'Template Assets',
@@ -2596,7 +2598,7 @@ export default {
   },
 
   // Settings
-  settingsUnion: {
+  openPlatformUnion: {
     title: 'アライアンス設定',
     openapi: '公開API',
     baseUrl: 'アライアンスAPIアドレス',
@@ -2708,7 +2710,7 @@ export default {
     appName: 'アプリ名',
     appNamePlaceholder: 'アプリ名を入力してください',
     appNameRequired: 'アプリ名は必須です',
-    appId: 'アプリ識別子',
+    appKey: 'アプリキー',
     appSecret: 'アプリシークレット',
     keyVersion: 'キーバージョン',
     scopes: '認可スコープ',

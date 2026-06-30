@@ -608,9 +608,44 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
     ],
   },
   {
+    path: '/open-platform',
+    name: 'OpenPlatform',
+    redirect: '/open-platform/apps',
+    component: () => import('@/components/Layout/AdminLayout.vue'),
+    meta: {
+      title: 'menu.openPlatform',
+      icon: 'ApiOutlined',
+      requiresAuth: true,
+      order: 68,
+    },
+    children: [
+      {
+        path: 'apps',
+        name: 'OpenPlatformApps',
+        component: () => import('@/views/settings/open-app/index.vue'),
+        meta: {
+          title: 'menu.openPlatformApps',
+          icon: 'AppstoreOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'open:app:query',
+        },
+      },
+      {
+        path: 'union',
+        name: 'OpenPlatformUnion',
+        component: () => import('@/views/settings/union/index.vue'),
+        meta: {
+          title: 'menu.openPlatformUnion',
+          icon: 'LinkOutlined',
+          requiresAuth: true,
+        },
+      },
+    ],
+  },
+  {
     path: '/settings',
     name: 'Settings',
-    redirect: '/settings/union',
+    redirect: '/settings/ai-provider',
     component: () => import('@/components/Layout/AdminLayout.vue'),
     meta: {
       title: 'menu.systemSettings',
@@ -619,28 +654,6 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
       order: 70,
     },
     children: [
-      {
-        path: 'union',
-        name: 'SettingsUnion',
-        component: () => import('@/views/settings/union/index.vue'),
-        meta: {
-          title: 'menu.settingsUnion',
-          icon: 'LinkOutlined',
-          requiresAuth: true,
-          requiredPermissions: 'system:union_config',
-        },
-      },
-      {
-        path: 'open-app',
-        name: 'SettingsOpenApp',
-        component: () => import('@/views/settings/open-app/index.vue'),
-        meta: {
-          title: 'menu.settingsOpenApp',
-          icon: 'ApiOutlined',
-          requiresAuth: true,
-          requiredPermissions: 'system:open_app',
-        },
-      },
       {
         path: 'ai-provider',
         name: 'SettingsAIProvider',

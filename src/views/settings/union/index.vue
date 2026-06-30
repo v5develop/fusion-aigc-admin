@@ -2,7 +2,7 @@
   <div class="page-container">
     <a-card :bordered="false">
       <a-tabs v-model:activeKey="activeTab">
-        <a-tab-pane key="config" :tab="$t('settingsUnion.title')">
+        <a-tab-pane key="config" :tab="$t('openPlatformUnion.title')">
           <a-form
             layout="vertical"
             :model="formData"
@@ -10,92 +10,92 @@
             ref="formRef"
             class="max-w-2xl"
           >
-            <a-form-item :label="$t('settingsUnion.baseUrl')" name="baseUrl">
+            <a-form-item :label="$t('openPlatformUnion.baseUrl')" name="baseUrl">
               <a-input
                 v-model:value="formData.baseUrl"
-                :placeholder="$t('settingsUnion.baseUrlPlaceholder')"
+                :placeholder="$t('openPlatformUnion.baseUrlPlaceholder')"
               />
             </a-form-item>
 
-            <a-form-item :label="$t('settingsUnion.appKey')" name="appKey">
+            <a-form-item :label="$t('openPlatformUnion.appKey')" name="appKey">
               <a-input
                 v-model:value="formData.appKey"
-                :placeholder="$t('settingsUnion.appKeyPlaceholder')"
+                :placeholder="$t('openPlatformUnion.appKeyPlaceholder')"
               />
             </a-form-item>
 
-            <a-form-item :label="$t('settingsUnion.appSecret')" name="appSecret">
+            <a-form-item :label="$t('openPlatformUnion.appSecret')" name="appSecret">
               <a-input-password
                 v-model:value="formData.appSecret"
-                :placeholder="$t('settingsUnion.appSecretPlaceholder')"
+                :placeholder="$t('openPlatformUnion.appSecretPlaceholder')"
               />
             </a-form-item>
 
-            <a-form-item :label="$t('settingsUnion.tokenUrl')" name="tokenUrl">
+            <a-form-item :label="$t('openPlatformUnion.tokenUrl')" name="tokenUrl">
               <a-input
                 v-model:value="formData.tokenUrl"
-                :placeholder="$t('settingsUnion.tokenUrlPlaceholder')"
+                :placeholder="$t('openPlatformUnion.tokenUrlPlaceholder')"
               />
             </a-form-item>
 
-            <a-form-item :label="$t('settingsUnion.callbackUrl')" name="callbackUrl">
+            <a-form-item :label="$t('openPlatformUnion.callbackUrl')" name="callbackUrl">
               <a-input
                 v-model:value="formData.callbackUrl"
-                :placeholder="$t('settingsUnion.callbackUrlPlaceholder')"
+                :placeholder="$t('openPlatformUnion.callbackUrlPlaceholder')"
               />
             </a-form-item>
 
             <a-divider />
 
-            <a-form-item :label="$t('settingsUnion.signatureEnabled')">
+            <a-form-item :label="$t('openPlatformUnion.signatureEnabled')">
               <a-switch
                 v-model:checked="formData.signatureEnabled"
                 :checked-children="$t('common.enabled')"
                 :un-checked-children="$t('common.disabled')"
                 @change="handleSignatureChange"
               />
-              <div class="form-tip">{{ $t('settingsUnion.signatureEnabledTip') }}</div>
+              <div class="form-tip">{{ $t('openPlatformUnion.signatureEnabledTip') }}</div>
             </a-form-item>
 
-            <a-form-item :label="$t('settingsUnion.whitelistEnabled')">
+            <a-form-item :label="$t('openPlatformUnion.whitelistEnabled')">
               <a-switch
                 v-model:checked="formData.whitelistEnabled"
                 :checked-children="$t('common.enabled')"
                 :un-checked-children="$t('common.disabled')"
                 @change="handleWhitelistChange"
               />
-              <div class="form-tip">{{ $t('settingsUnion.whitelistEnabledTip') }}</div>
+              <div class="form-tip">{{ $t('openPlatformUnion.whitelistEnabledTip') }}</div>
             </a-form-item>
 
-            <a-form-item :label="$t('settingsUnion.whitelistIps')" name="whitelistIps" v-if="formData.whitelistEnabled">
+            <a-form-item :label="$t('openPlatformUnion.whitelistIps')" name="whitelistIps" v-if="formData.whitelistEnabled">
               <a-textarea
                 v-model:value="whitelistIpsText"
-                :placeholder="$t('settingsUnion.whitelistIpsPlaceholder')"
+                :placeholder="$t('openPlatformUnion.whitelistIpsPlaceholder')"
                 :rows="4"
               />
-              <div class="form-tip">{{ $t('settingsUnion.whitelistIpsTip') }}</div>
+              <div class="form-tip">{{ $t('openPlatformUnion.whitelistIpsTip') }}</div>
             </a-form-item>
 
             <a-form-item name="trustedProxies" v-if="formData.whitelistEnabled" class="advanced-item">
               <template #label>
                 <span class="advanced-label">
-                  {{ $t('settingsUnion.trustedProxies') }}
-                  <a-tag size="small" color="default">{{ $t('settingsUnion.advancedTag') }}</a-tag>
+                  {{ $t('openPlatformUnion.trustedProxies') }}
+                  <a-tag size="small" color="default">{{ $t('openPlatformUnion.advancedTag') }}</a-tag>
                 </span>
               </template>
               <a-textarea
                 v-model:value="trustedProxiesText"
-                :placeholder="$t('settingsUnion.trustedProxiesPlaceholder')"
+                :placeholder="$t('openPlatformUnion.trustedProxiesPlaceholder')"
                 :rows="3"
               />
-              <div class="form-tip">{{ $t('settingsUnion.trustedProxiesTip') }}</div>
+              <div class="form-tip">{{ $t('openPlatformUnion.trustedProxiesTip') }}</div>
             </a-form-item>
 
             <a-form-item v-if="formData.whitelistEnabled" class="advanced-item">
               <template #label>
                 <span class="advanced-label">
-                  {{ $t('settingsUnion.offlineRequireTimestamp') }}
-                  <a-tag size="small" color="default">{{ $t('settingsUnion.advancedTag') }}</a-tag>
+                  {{ $t('openPlatformUnion.offlineRequireTimestamp') }}
+                  <a-tag size="small" color="default">{{ $t('openPlatformUnion.advancedTag') }}</a-tag>
                 </span>
               </template>
               <a-switch
@@ -103,7 +103,7 @@
                 :checked-children="$t('common.enabled')"
                 :un-checked-children="$t('common.disabled')"
               />
-              <div class="form-tip">{{ $t('settingsUnion.offlineRequireTimestampTip') }}</div>
+              <div class="form-tip">{{ $t('openPlatformUnion.offlineRequireTimestampTip') }}</div>
             </a-form-item>
 
             <a-form-item>
@@ -112,19 +112,19 @@
                   {{ $t('common.save') }}
                 </a-button>
                 <a-button @click="handleTest" :loading="testing">
-                  {{ $t('settingsUnion.testConnection') }}
+                  {{ $t('openPlatformUnion.testConnection') }}
                 </a-button>
               </a-space>
             </a-form-item>
           </a-form>
         </a-tab-pane>
 
-        <a-tab-pane key="openapi" :tab="$t('settingsUnion.openapi')">
+        <a-tab-pane key="openapi" :tab="$t('openPlatformUnion.openapi')">
           <a-card size="small" class="signature-guide">
-            <template #title>{{ $t('settingsUnion.signatureGuideTitle') }}</template>
-            <a-alert type="info" show-icon :message="$t('settingsUnion.signatureGuideIntro')" style="margin-bottom: 12px" />
+            <template #title>{{ $t('openPlatformUnion.signatureGuideTitle') }}</template>
+            <a-alert type="info" show-icon :message="$t('openPlatformUnion.signatureGuideIntro')" style="margin-bottom: 12px" />
 
-            <div class="section-title">{{ $t('settingsUnion.authModesTitle') }}</div>
+            <div class="section-title">{{ $t('openPlatformUnion.authModesTitle') }}</div>
             <div class="auth-modes">
               <div v-for="mode in authModes" :key="mode.key" class="auth-mode-item">
                 <div class="auth-mode-head">
@@ -132,13 +132,13 @@
                 </div>
                 <div class="auth-mode-desc">{{ mode.desc }}</div>
                 <div class="auth-mode-headers">
-                  <span class="auth-mode-headers-label">{{ $t('settingsUnion.authModeHeaders') }}</span>
+                  <span class="auth-mode-headers-label">{{ $t('openPlatformUnion.authModeHeaders') }}</span>
                   <code>{{ mode.headers }}</code>
                 </div>
               </div>
             </div>
 
-            <div class="section-title" style="margin-top: 12px">{{ $t('settingsUnion.signatureHeaders') }}</div>
+            <div class="section-title" style="margin-top: 12px">{{ $t('openPlatformUnion.signatureHeaders') }}</div>
             <a-table
               :columns="signatureHeaderColumns"
               :data-source="signatureHeaders"
@@ -149,14 +149,14 @@
               <template #bodyCell="{ column, record }">
                 <template v-if="column.dataIndex === 'required'">
                   <a-tag :color="record.required ? 'red' : 'default'" size="small">
-                    {{ record.required ? $t('settingsUnion.paramRequired') : $t('settingsUnion.paramOptional') }}
+                    {{ record.required ? $t('openPlatformUnion.paramRequired') : $t('openPlatformUnion.paramOptional') }}
                   </a-tag>
                 </template>
               </template>
             </a-table>
-            <div class="section-title" style="margin-top: 12px">{{ $t('settingsUnion.signatureSteps') }}</div>
+            <div class="section-title" style="margin-top: 12px">{{ $t('openPlatformUnion.signatureSteps') }}</div>
             <pre class="code-block"><code>{{ signatureAlgoText }}</code></pre>
-            <div class="section-title" style="margin-top: 12px">{{ $t('settingsUnion.signatureParamsTitle') }}</div>
+            <div class="section-title" style="margin-top: 12px">{{ $t('openPlatformUnion.signatureParamsTitle') }}</div>
             <a-table
               :columns="signatureParamColumns"
               :data-source="signatureParams"
@@ -170,7 +170,7 @@
                 </template>
               </template>
             </a-table>
-            <div class="form-tip">{{ $t('settingsUnion.signatureGuideNote') }}</div>
+            <div class="form-tip">{{ $t('openPlatformUnion.signatureGuideNote') }}</div>
           </a-card>
 
           <div class="api-list">
@@ -185,7 +185,7 @@
               <div class="api-desc">{{ api.description }}</div>
 
               <div class="api-section">
-                <div class="section-title">{{ $t('settingsUnion.requestParams') }}</div>
+                <div class="section-title">{{ $t('openPlatformUnion.requestParams') }}</div>
                 <a-table
                   :columns="paramColumns"
                   :data-source="api.requestParams"
@@ -196,7 +196,7 @@
                   <template #bodyCell="{ column, record }">
                     <template v-if="column.dataIndex === 'required'">
                       <a-tag :color="record.required ? 'red' : 'default'" size="small">
-                        {{ record.required ? $t('settingsUnion.paramRequired') : $t('settingsUnion.paramOptional') }}
+                        {{ record.required ? $t('openPlatformUnion.paramRequired') : $t('openPlatformUnion.paramOptional') }}
                       </a-tag>
                     </template>
                     <template v-if="column.dataIndex === 'type'">
@@ -207,7 +207,7 @@
               </div>
 
               <div class="api-section">
-                <div class="section-title">{{ $t('settingsUnion.responseParams') }}</div>
+                <div class="section-title">{{ $t('openPlatformUnion.responseParams') }}</div>
                 <a-table
                   :columns="paramColumns"
                   :data-source="api.responseParams"
@@ -218,7 +218,7 @@
                   <template #bodyCell="{ column, record }">
                     <template v-if="column.dataIndex === 'required'">
                       <a-tag :color="record.required ? 'red' : 'default'" size="small">
-                        {{ record.required ? $t('settingsUnion.paramRequired') : $t('settingsUnion.paramOptional') }}
+                        {{ record.required ? $t('openPlatformUnion.paramRequired') : $t('openPlatformUnion.paramOptional') }}
                       </a-tag>
                     </template>
                     <template v-if="column.dataIndex === 'type'">
@@ -229,12 +229,12 @@
               </div>
 
               <div class="api-section" v-if="api.requestExample">
-                <div class="section-title">{{ $t('settingsUnion.requestExample') }}</div>
+                <div class="section-title">{{ $t('openPlatformUnion.requestExample') }}</div>
                 <pre class="code-block"><code>{{ api.requestExample }}</code></pre>
               </div>
 
               <div class="api-section" v-if="api.responseExample">
-                <div class="section-title">{{ $t('settingsUnion.responseExample') }}</div>
+                <div class="section-title">{{ $t('openPlatformUnion.responseExample') }}</div>
                 <pre class="code-block"><code>{{ api.responseExample }}</code></pre>
               </div>
             </div>
@@ -315,7 +315,7 @@ const rules = {
     {
       validator: (_rule: any, _value: any, callback: any) => {
         if (isSignatureRequired() && !formData.baseUrl) {
-          callback(new Error(t('settingsUnion.baseUrl') + t('common.required')))
+          callback(new Error(t('openPlatformUnion.baseUrl') + t('common.required')))
         } else {
           callback()
         }
@@ -327,7 +327,7 @@ const rules = {
     {
       validator: (_rule: any, _value: any, callback: any) => {
         if (isSignatureRequired() && !formData.appKey) {
-          callback(new Error(t('settingsUnion.appKey') + t('common.required')))
+          callback(new Error(t('openPlatformUnion.appKey') + t('common.required')))
         } else {
           callback()
         }
@@ -339,7 +339,7 @@ const rules = {
     {
       validator: (_rule: any, _value: any, callback: any) => {
         if (isSignatureRequired() && !formData.appSecret) {
-          callback(new Error(t('settingsUnion.appSecret') + t('common.required')))
+          callback(new Error(t('openPlatformUnion.appSecret') + t('common.required')))
         } else {
           callback()
         }
@@ -351,7 +351,7 @@ const rules = {
     {
       validator: (_rule: any, _value: any, callback: any) => {
         if (isSignatureRequired() && !formData.tokenUrl) {
-          callback(new Error(t('settingsUnion.tokenUrl') + t('common.required')))
+          callback(new Error(t('openPlatformUnion.tokenUrl') + t('common.required')))
         } else {
           callback()
         }
@@ -363,7 +363,7 @@ const rules = {
     {
       validator: (_rule: any, _value: any, callback: any) => {
         if (isSignatureRequired() && !formData.callbackUrl) {
-          callback(new Error(t('settingsUnion.callbackUrl') + t('common.required')))
+          callback(new Error(t('openPlatformUnion.callbackUrl') + t('common.required')))
         } else {
           callback()
         }
@@ -376,7 +376,7 @@ const rules = {
       validator: (_rule: any, _value: any, callback: any) => {
         if (formData.whitelistEnabled) {
           if (!formData.whitelistIps || formData.whitelistIps.length === 0) {
-            callback(new Error(t('settingsUnion.whitelistIps') + t('common.required')))
+            callback(new Error(t('openPlatformUnion.whitelistIps') + t('common.required')))
             return
           }
           const invalidIp = formData.whitelistIps.find(ip => !isValidIpOrCidr(ip))
@@ -408,39 +408,39 @@ const rules = {
 }
 
 const paramColumns = computed(() => [
-  { title: t('settingsUnion.paramName'), dataIndex: 'name', width: 160 },
-  { title: t('settingsUnion.paramType'), dataIndex: 'type', width: 180 },
-  { title: t('settingsUnion.paramRequired'), dataIndex: 'required', width: 80, align: 'center' as const },
-  { title: t('settingsUnion.paramDesc'), dataIndex: 'description', ellipsis: true },
+  { title: t('openPlatformUnion.paramName'), dataIndex: 'name', width: 160 },
+  { title: t('openPlatformUnion.paramType'), dataIndex: 'type', width: 180 },
+  { title: t('openPlatformUnion.paramRequired'), dataIndex: 'required', width: 80, align: 'center' as const },
+  { title: t('openPlatformUnion.paramDesc'), dataIndex: 'description', ellipsis: true },
 ])
 
 const signatureHeaderColumns = computed(() => [
-  { title: t('settingsUnion.paramName'), dataIndex: 'name', width: 200 },
-  { title: t('settingsUnion.paramRequired'), dataIndex: 'required', width: 80, align: 'center' as const },
-  { title: t('settingsUnion.paramDesc'), dataIndex: 'description', ellipsis: true },
+  { title: t('openPlatformUnion.paramName'), dataIndex: 'name', width: 200 },
+  { title: t('openPlatformUnion.paramRequired'), dataIndex: 'required', width: 80, align: 'center' as const },
+  { title: t('openPlatformUnion.paramDesc'), dataIndex: 'description', ellipsis: true },
 ])
 
 const authModes = computed(() => [
   {
     key: 'signed',
-    title: t('settingsUnion.authModeSignedTitle'),
-    desc: t('settingsUnion.authModeSignedDesc'),
+    title: t('openPlatformUnion.authModeSignedTitle'),
+    desc: t('openPlatformUnion.authModeSignedDesc'),
     headers: 'X-Union-App-Key, X-Union-Timestamp, X-Union-Nonce, X-Union-Signature',
   },
   {
     key: 'unsigned',
-    title: t('settingsUnion.authModeUnsignedTitle'),
-    desc: t('settingsUnion.authModeUnsignedDesc'),
+    title: t('openPlatformUnion.authModeUnsignedTitle'),
+    desc: t('openPlatformUnion.authModeUnsignedDesc'),
     headers: 'X-Union-App-Key, X-Union-Timestamp, X-Union-Nonce',
   },
 ])
 
 const signatureHeaders = computed(() => [
-  { name: 'X-Union-App-Key', required: true, description: t('settingsUnion.headerAppKeyDesc') },
-  { name: 'X-Union-Timestamp', required: true, description: t('settingsUnion.headerTimestampDesc') },
-  { name: 'X-Union-Nonce', required: true, description: t('settingsUnion.headerNonceDesc') },
-  { name: 'X-Union-Signature', required: true, description: t('settingsUnion.headerSignatureDesc') },
-  { name: 'X-Union-Key-Version', required: false, description: t('settingsUnion.headerKeyVersionDesc') },
+  { name: 'X-Union-App-Key', required: true, description: t('openPlatformUnion.headerAppKeyDesc') },
+  { name: 'X-Union-Timestamp', required: true, description: t('openPlatformUnion.headerTimestampDesc') },
+  { name: 'X-Union-Nonce', required: true, description: t('openPlatformUnion.headerNonceDesc') },
+  { name: 'X-Union-Signature', required: true, description: t('openPlatformUnion.headerSignatureDesc') },
+  { name: 'X-Union-Key-Version', required: false, description: t('openPlatformUnion.headerKeyVersionDesc') },
 ])
 
 const signatureAlgoText = [
@@ -457,20 +457,20 @@ const signatureAlgoText = [
 ].join('\n')
 
 const signatureParamColumns = computed(() => [
-  { title: t('settingsUnion.signatureParamField'), dataIndex: 'field', width: 200 },
-  { title: t('settingsUnion.paramDesc'), dataIndex: 'description', ellipsis: true },
+  { title: t('openPlatformUnion.signatureParamField'), dataIndex: 'field', width: 200 },
+  { title: t('openPlatformUnion.paramDesc'), dataIndex: 'description', ellipsis: true },
 ])
 
 const signatureParams = computed(() => [
-  { field: 'httpMethod', description: t('settingsUnion.sigParamMethodDesc') },
-  { field: 'requestUri', description: t('settingsUnion.sigParamUriDesc') },
-  { field: 'canonicalQuery', description: t('settingsUnion.sigParamQueryDesc') },
-  { field: 'bodyHash', description: t('settingsUnion.sigParamBodyDesc') },
-  { field: 'timestamp', description: t('settingsUnion.sigParamTimestampDesc') },
-  { field: 'nonce', description: t('settingsUnion.sigParamNonceDesc') },
-  { field: 'appKey', description: t('settingsUnion.sigParamAppKeyDesc') },
-  { field: 'appSecret', description: t('settingsUnion.sigParamAppSecretDesc') },
-  { field: 'signature', description: t('settingsUnion.sigParamSignatureDesc') },
+  { field: 'httpMethod', description: t('openPlatformUnion.sigParamMethodDesc') },
+  { field: 'requestUri', description: t('openPlatformUnion.sigParamUriDesc') },
+  { field: 'canonicalQuery', description: t('openPlatformUnion.sigParamQueryDesc') },
+  { field: 'bodyHash', description: t('openPlatformUnion.sigParamBodyDesc') },
+  { field: 'timestamp', description: t('openPlatformUnion.sigParamTimestampDesc') },
+  { field: 'nonce', description: t('openPlatformUnion.sigParamNonceDesc') },
+  { field: 'appKey', description: t('openPlatformUnion.sigParamAppKeyDesc') },
+  { field: 'appSecret', description: t('openPlatformUnion.sigParamAppSecretDesc') },
+  { field: 'signature', description: t('openPlatformUnion.sigParamSignatureDesc') },
 ])
 
 const apiDocs = computed(() => {
@@ -479,12 +479,12 @@ const apiDocs = computed(() => {
       method: 'POST',
       methodColor: 'green',
       path: '/api/v1/union/feature-grants',
-      description: t('settingsUnion.grantDesc'),
+      description: t('openPlatformUnion.grantDesc'),
       requestParams: [
-        { name: 'grantId', type: 'String', required: true, description: t('settingsUnion.grantIdDesc') },
-        { name: 'unionUserId', type: 'String', required: true, description: t('settingsUnion.unionUserIdDesc') },
-        { name: 'featureCodes', type: 'List<String>', required: true, description: t('settingsUnion.featureCodesDesc') },
-        { name: 'expireTime', type: 'LocalDateTime', required: false, description: t('settingsUnion.expireTimeDesc') },
+        { name: 'grantId', type: 'String', required: true, description: t('openPlatformUnion.grantIdDesc') },
+        { name: 'unionUserId', type: 'String', required: true, description: t('openPlatformUnion.unionUserIdDesc') },
+        { name: 'featureCodes', type: 'List<String>', required: true, description: t('openPlatformUnion.featureCodesDesc') },
+        { name: 'expireTime', type: 'LocalDateTime', required: false, description: t('openPlatformUnion.expireTimeDesc') },
       ],
       requestExample: JSON.stringify({
         grantId: 'GRANT-20260528-001',
@@ -493,9 +493,9 @@ const apiDocs = computed(() => {
         expireTime: '2026-12-31T23:59:59',
       }, null, 2),
       responseParams: [
-        { name: 'externalId', type: 'String', required: false, description: t('settingsUnion.externalIdDesc') },
-        { name: 'userId', type: 'Long', required: false, description: t('settingsUnion.userIdDesc') },
-        { name: 'status', type: 'String', required: false, description: t('settingsUnion.statusDesc') },
+        { name: 'externalId', type: 'String', required: false, description: t('openPlatformUnion.externalIdDesc') },
+        { name: 'userId', type: 'Long', required: false, description: t('openPlatformUnion.userIdDesc') },
+        { name: 'status', type: 'String', required: false, description: t('openPlatformUnion.statusDesc') },
       ],
       responseExample: JSON.stringify({
         code: 0,
@@ -511,12 +511,12 @@ const apiDocs = computed(() => {
       method: 'POST',
       methodColor: 'green',
       path: '/api/v1/union/point-recharges',
-      description: t('settingsUnion.rechargeDesc'),
+      description: t('openPlatformUnion.rechargeDesc'),
       requestParams: [
-        { name: 'rechargeId', type: 'String', required: true, description: t('settingsUnion.rechargeIdDesc') },
-        { name: 'unionUserId', type: 'String', required: true, description: t('settingsUnion.unionUserIdDesc') },
-        { name: 'pointsAmount', type: 'Long', required: true, description: t('settingsUnion.pointsAmountDesc') },
-        { name: 'expireTime', type: 'LocalDateTime', required: false, description: t('settingsUnion.expireTimeDesc') },
+        { name: 'rechargeId', type: 'String', required: true, description: t('openPlatformUnion.rechargeIdDesc') },
+        { name: 'unionUserId', type: 'String', required: true, description: t('openPlatformUnion.unionUserIdDesc') },
+        { name: 'pointsAmount', type: 'Long', required: true, description: t('openPlatformUnion.pointsAmountDesc') },
+        { name: 'expireTime', type: 'LocalDateTime', required: false, description: t('openPlatformUnion.expireTimeDesc') },
       ],
       requestExample: JSON.stringify({
         rechargeId: 'RECHARGE-20260528-001',
@@ -525,9 +525,9 @@ const apiDocs = computed(() => {
         expireTime: '2026-12-31T23:59:59',
       }, null, 2),
       responseParams: [
-        { name: 'externalId', type: 'String', required: false, description: t('settingsUnion.externalIdDesc') },
-        { name: 'userId', type: 'Long', required: false, description: t('settingsUnion.userIdDesc') },
-        { name: 'status', type: 'String', required: false, description: t('settingsUnion.statusDesc') },
+        { name: 'externalId', type: 'String', required: false, description: t('openPlatformUnion.externalIdDesc') },
+        { name: 'userId', type: 'Long', required: false, description: t('openPlatformUnion.userIdDesc') },
+        { name: 'status', type: 'String', required: false, description: t('openPlatformUnion.statusDesc') },
       ],
       responseExample: JSON.stringify({
         code: 0,
@@ -543,12 +543,12 @@ const apiDocs = computed(() => {
       method: 'POST',
       methodColor: 'green',
       path: '/api/v1/union/feature-revokes',
-      description: t('settingsUnion.revokeDesc'),
+      description: t('openPlatformUnion.revokeDesc'),
       requestParams: [
-        { name: 'revokeId', type: 'String', required: true, description: t('settingsUnion.revokeIdDesc') },
-        { name: 'unionUserId', type: 'String', required: true, description: t('settingsUnion.unionUserIdDesc') },
-        { name: 'featureCodes', type: 'List<String>', required: true, description: t('settingsUnion.featureCodesDesc') },
-        { name: 'sourceGrantId', type: 'String', required: false, description: t('settingsUnion.sourceGrantIdDesc') },
+        { name: 'revokeId', type: 'String', required: true, description: t('openPlatformUnion.revokeIdDesc') },
+        { name: 'unionUserId', type: 'String', required: true, description: t('openPlatformUnion.unionUserIdDesc') },
+        { name: 'featureCodes', type: 'List<String>', required: true, description: t('openPlatformUnion.featureCodesDesc') },
+        { name: 'sourceGrantId', type: 'String', required: false, description: t('openPlatformUnion.sourceGrantIdDesc') },
       ],
       requestExample: JSON.stringify({
         revokeId: 'REVOKE-20260528-001',
@@ -557,9 +557,9 @@ const apiDocs = computed(() => {
         sourceGrantId: 'GRANT-20260528-001',
       }, null, 2),
       responseParams: [
-        { name: 'externalId', type: 'String', required: false, description: t('settingsUnion.externalIdDesc') },
-        { name: 'userId', type: 'Long', required: false, description: t('settingsUnion.userIdDesc') },
-        { name: 'status', type: 'String', required: false, description: t('settingsUnion.statusDesc') },
+        { name: 'externalId', type: 'String', required: false, description: t('openPlatformUnion.externalIdDesc') },
+        { name: 'userId', type: 'Long', required: false, description: t('openPlatformUnion.userIdDesc') },
+        { name: 'status', type: 'String', required: false, description: t('openPlatformUnion.statusDesc') },
       ],
       responseExample: JSON.stringify({
         code: 0,
@@ -575,13 +575,13 @@ const apiDocs = computed(() => {
       method: 'POST',
       methodColor: 'green',
       path: '/api/v1/union/point-refunds',
-      description: t('settingsUnion.refundDesc'),
+      description: t('openPlatformUnion.refundDesc'),
       requestParams: [
-        { name: 'refundId', type: 'String', required: true, description: t('settingsUnion.refundIdDesc') },
-        { name: 'unionUserId', type: 'String', required: true, description: t('settingsUnion.unionUserIdDesc') },
-        { name: 'sourceBizType', type: 'String', required: true, description: t('settingsUnion.sourceBizTypeDesc') },
-        { name: 'sourceBizId', type: 'String', required: true, description: t('settingsUnion.sourceBizIdDesc') },
-        { name: 'amount', type: 'Long', required: true, description: t('settingsUnion.refundAmountDesc') },
+        { name: 'refundId', type: 'String', required: true, description: t('openPlatformUnion.refundIdDesc') },
+        { name: 'unionUserId', type: 'String', required: true, description: t('openPlatformUnion.unionUserIdDesc') },
+        { name: 'sourceBizType', type: 'String', required: true, description: t('openPlatformUnion.sourceBizTypeDesc') },
+        { name: 'sourceBizId', type: 'String', required: true, description: t('openPlatformUnion.sourceBizIdDesc') },
+        { name: 'amount', type: 'Long', required: true, description: t('openPlatformUnion.refundAmountDesc') },
       ],
       requestExample: JSON.stringify({
         refundId: 'REFUND-20260528-001',
@@ -591,9 +591,9 @@ const apiDocs = computed(() => {
         amount: 100,
       }, null, 2),
       responseParams: [
-        { name: 'externalId', type: 'String', required: false, description: t('settingsUnion.externalIdDesc') },
-        { name: 'userId', type: 'Long', required: false, description: t('settingsUnion.userIdDesc') },
-        { name: 'status', type: 'String', required: false, description: t('settingsUnion.statusDesc') },
+        { name: 'externalId', type: 'String', required: false, description: t('openPlatformUnion.externalIdDesc') },
+        { name: 'userId', type: 'Long', required: false, description: t('openPlatformUnion.userIdDesc') },
+        { name: 'status', type: 'String', required: false, description: t('openPlatformUnion.statusDesc') },
       ],
       responseExample: JSON.stringify({
         code: 0,
@@ -609,14 +609,14 @@ const apiDocs = computed(() => {
       method: 'GET',
       methodColor: 'blue',
       path: '/api/v1/union/features',
-      description: t('settingsUnion.featuresDesc'),
+      description: t('openPlatformUnion.featuresDesc'),
       requestParams: [],
       requestExample: null,
       responseParams: [
         { name: 'code', type: 'String', required: false, description: '创作能力编码' },
-        { name: 'name', type: 'Map<String, String>', required: false, description: t('settingsUnion.featureNameDesc') },
-        { name: 'description', type: 'Map<String, String>', required: false, description: t('settingsUnion.featureDescDesc') },
-        { name: 'status', type: 'String', required: false, description: t('settingsUnion.featureStatusDesc') },
+        { name: 'name', type: 'Map<String, String>', required: false, description: t('openPlatformUnion.featureNameDesc') },
+        { name: 'description', type: 'Map<String, String>', required: false, description: t('openPlatformUnion.featureDescDesc') },
+        { name: 'status', type: 'String', required: false, description: t('openPlatformUnion.featureStatusDesc') },
       ],
       responseExample: JSON.stringify({
         code: 0,
@@ -641,20 +641,20 @@ const apiDocs = computed(() => {
       method: 'POST',
       methodColor: 'green',
       path: '/api/v1/auth/union-login',
-      description: t('settingsUnion.unionLoginDesc'),
+      description: t('openPlatformUnion.unionLoginDesc'),
       requestParams: [
-        { name: 'loginTicket', type: 'String', required: true, description: t('settingsUnion.loginTicketDesc') },
+        { name: 'loginTicket', type: 'String', required: true, description: t('openPlatformUnion.loginTicketDesc') },
       ],
       requestExample: JSON.stringify({
         loginTicket: 'ticket_abc123xyz',
       }, null, 2),
       responseParams: [
-        { name: 'accessToken', type: 'String', required: false, description: t('settingsUnion.accessTokenDesc') },
-        { name: 'refreshToken', type: 'String', required: false, description: t('settingsUnion.refreshTokenDesc') },
-        { name: 'expiresIn', type: 'Long', required: false, description: t('settingsUnion.expiresInDesc') },
-        { name: 'userId', type: 'Long', required: false, description: t('settingsUnion.userIdDesc') },
-        { name: 'username', type: 'String', required: false, description: t('settingsUnion.usernameDesc') },
-        { name: 'nickname', type: 'String', required: false, description: t('settingsUnion.nicknameDesc') },
+        { name: 'accessToken', type: 'String', required: false, description: t('openPlatformUnion.accessTokenDesc') },
+        { name: 'refreshToken', type: 'String', required: false, description: t('openPlatformUnion.refreshTokenDesc') },
+        { name: 'expiresIn', type: 'Long', required: false, description: t('openPlatformUnion.expiresInDesc') },
+        { name: 'userId', type: 'Long', required: false, description: t('openPlatformUnion.userIdDesc') },
+        { name: 'username', type: 'String', required: false, description: t('openPlatformUnion.usernameDesc') },
+        { name: 'nickname', type: 'String', required: false, description: t('openPlatformUnion.nicknameDesc') },
       ],
       responseExample: JSON.stringify({
         code: 0,
@@ -673,17 +673,17 @@ const apiDocs = computed(() => {
       method: 'POST',
       methodColor: 'green',
       path: '/api/v1/user/bind-union',
-      description: t('settingsUnion.bindUnionDesc'),
+      description: t('openPlatformUnion.bindUnionDesc'),
       requestParams: [
-        { name: 'bindToken', type: 'String', required: true, description: t('settingsUnion.bindTokenDesc') },
-        { name: 'unionUserId', type: 'String', required: true, description: t('settingsUnion.unionUserIdDesc') },
+        { name: 'bindToken', type: 'String', required: true, description: t('openPlatformUnion.bindTokenDesc') },
+        { name: 'unionUserId', type: 'String', required: true, description: t('openPlatformUnion.unionUserIdDesc') },
       ],
       requestExample: JSON.stringify({
         bindToken: 'bind_token_xyz789',
         unionUserId: 'union_user_12345',
       }, null, 2),
       responseParams: [
-        { name: 'success', type: 'Boolean', required: false, description: t('settingsUnion.bindSuccessDesc') },
+        { name: 'success', type: 'Boolean', required: false, description: t('openPlatformUnion.bindSuccessDesc') },
       ],
       responseExample: JSON.stringify({
         code: 0,
@@ -697,13 +697,13 @@ const apiDocs = computed(() => {
       method: 'GET',
       methodColor: 'blue',
       path: '/api/v1/union/user-exists',
-      description: t('settingsUnion.checkUserExistsDesc'),
+      description: t('openPlatformUnion.checkUserExistsDesc'),
       requestParams: [
-        { name: 'unionUserId', type: 'String', required: true, description: t('settingsUnion.unionUserIdDesc') },
+        { name: 'unionUserId', type: 'String', required: true, description: t('openPlatformUnion.unionUserIdDesc') },
       ],
       requestExample: null,
       responseParams: [
-        { name: 'data', type: 'Boolean', required: false, description: t('settingsUnion.checkUserExistsResultDesc') },
+        { name: 'data', type: 'Boolean', required: false, description: t('openPlatformUnion.checkUserExistsResultDesc') },
       ],
       responseExample: JSON.stringify({
         code: 0,
@@ -715,20 +715,20 @@ const apiDocs = computed(() => {
       method: 'POST',
       methodColor: 'green',
       path: '/api/v1/union/recharge-consumption-summary',
-      description: t('settingsUnion.rechargeConsumptionDesc'),
+      description: t('openPlatformUnion.rechargeConsumptionDesc'),
       requestParams: [
-        { name: 'rechargeIds', type: 'List<String>', required: true, description: t('settingsUnion.rechargeIdsDesc') },
+        { name: 'rechargeIds', type: 'List<String>', required: true, description: t('openPlatformUnion.rechargeIdsDesc') },
       ],
       requestExample: JSON.stringify({
         rechargeIds: ['RECHARGE-20260528-001', 'RECHARGE-20260528-002'],
       }, null, 2),
       responseParams: [
-        { name: 'rechargeId', type: 'String', required: false, description: t('settingsUnion.rechargeIdDesc') },
-        { name: 'pointsAmount', type: 'Long', required: false, description: t('settingsUnion.rechargePointsAmountDesc') },
-        { name: 'consumedAmount', type: 'Long', required: false, description: t('settingsUnion.consumedAmountDesc') },
-        { name: 'remainingAmount', type: 'Long', required: false, description: t('settingsUnion.remainingAmountDesc') },
-        { name: 'expireTime', type: 'String', required: false, description: t('settingsUnion.expireTimeDesc') },
-        { name: 'expired', type: 'Boolean', required: false, description: t('settingsUnion.expiredDesc') },
+        { name: 'rechargeId', type: 'String', required: false, description: t('openPlatformUnion.rechargeIdDesc') },
+        { name: 'pointsAmount', type: 'Long', required: false, description: t('openPlatformUnion.rechargePointsAmountDesc') },
+        { name: 'consumedAmount', type: 'Long', required: false, description: t('openPlatformUnion.consumedAmountDesc') },
+        { name: 'remainingAmount', type: 'Long', required: false, description: t('openPlatformUnion.remainingAmountDesc') },
+        { name: 'expireTime', type: 'String', required: false, description: t('openPlatformUnion.expireTimeDesc') },
+        { name: 'expired', type: 'Boolean', required: false, description: t('openPlatformUnion.expiredDesc') },
       ],
       responseExample: JSON.stringify({
         code: 0,
@@ -749,24 +749,24 @@ const apiDocs = computed(() => {
       method: 'GET',
       methodColor: 'blue',
       path: '/api/v1/union/user-points-transactions',
-      description: t('settingsUnion.userPointsLogDesc'),
+      description: t('openPlatformUnion.userPointsLogDesc'),
       requestParams: [
-        { name: 'unionUserId', type: 'Long', required: true, description: t('settingsUnion.unionUserIdDesc') },
-        { name: 'page', type: 'Integer', required: false, description: t('settingsUnion.pageDesc') },
-        { name: 'pageSize', type: 'Integer', required: false, description: t('settingsUnion.pageSizeDesc') },
-        { name: 'changeType', type: 'String', required: false, description: t('settingsUnion.changeTypeFilterDesc') },
+        { name: 'unionUserId', type: 'Long', required: true, description: t('openPlatformUnion.unionUserIdDesc') },
+        { name: 'page', type: 'Integer', required: false, description: t('openPlatformUnion.pageDesc') },
+        { name: 'pageSize', type: 'Integer', required: false, description: t('openPlatformUnion.pageSizeDesc') },
+        { name: 'changeType', type: 'String', required: false, description: t('openPlatformUnion.changeTypeFilterDesc') },
       ],
       requestExample: null,
       responseParams: [
-        { name: 'total', type: 'Long', required: false, description: t('settingsUnion.totalDesc') },
-        { name: 'list', type: 'List', required: false, description: t('settingsUnion.listDesc') },
-        { name: '  list.changeType', type: 'String', required: false, description: t('settingsUnion.changeTypeDesc') },
-        { name: '  list.amount', type: 'Long', required: false, description: t('settingsUnion.amountDesc') },
-        { name: '  list.balanceAfter', type: 'Long', required: false, description: t('settingsUnion.balanceAfterDesc') },
-        { name: '  list.bizType', type: 'String', required: false, description: t('settingsUnion.bizTypeDesc') },
-        { name: '  list.bizId', type: 'String', required: false, description: t('settingsUnion.bizIdDesc') },
-        { name: '  list.description', type: 'String', required: false, description: t('settingsUnion.descriptionDesc') },
-        { name: '  list.createTime', type: 'String', required: false, description: t('settingsUnion.createTimeDesc') },
+        { name: 'total', type: 'Long', required: false, description: t('openPlatformUnion.totalDesc') },
+        { name: 'list', type: 'List', required: false, description: t('openPlatformUnion.listDesc') },
+        { name: '  list.changeType', type: 'String', required: false, description: t('openPlatformUnion.changeTypeDesc') },
+        { name: '  list.amount', type: 'Long', required: false, description: t('openPlatformUnion.amountDesc') },
+        { name: '  list.balanceAfter', type: 'Long', required: false, description: t('openPlatformUnion.balanceAfterDesc') },
+        { name: '  list.bizType', type: 'String', required: false, description: t('openPlatformUnion.bizTypeDesc') },
+        { name: '  list.bizId', type: 'String', required: false, description: t('openPlatformUnion.bizIdDesc') },
+        { name: '  list.description', type: 'String', required: false, description: t('openPlatformUnion.descriptionDesc') },
+        { name: '  list.createTime', type: 'String', required: false, description: t('openPlatformUnion.createTimeDesc') },
       ],
       responseExample: JSON.stringify({
         code: 0,
@@ -800,24 +800,24 @@ const apiDocs = computed(() => {
       method: 'GET',
       methodColor: 'blue',
       path: '/api/v1/union/user-info',
-      description: t('settingsUnion.getUnionUserInfoDesc'),
+      description: t('openPlatformUnion.getUnionUserInfoDesc'),
       requestParams: [
-        { name: 'unionUserId', type: 'String', required: true, description: t('settingsUnion.unionUserIdDesc') },
+        { name: 'unionUserId', type: 'String', required: true, description: t('openPlatformUnion.unionUserIdDesc') },
       ],
       requestExample: null,
       responseParams: [
-        { name: 'userId', type: 'Long', required: false, description: t('settingsUnion.userIdDesc') },
-        { name: 'avatar', type: 'String', required: false, description: t('settingsUnion.avatarDesc') },
-        { name: 'nickname', type: 'String', required: false, description: t('settingsUnion.nicknameDesc') },
-        { name: 'phone', type: 'String', required: false, description: t('settingsUnion.maskPhoneDesc') },
-        { name: 'birthday', type: 'String', required: false, description: t('settingsUnion.birthdayDesc') },
-        { name: 'gender', type: 'Integer', required: false, description: t('settingsUnion.genderDesc') },
-        { name: 'province', type: 'String', required: false, description: t('settingsUnion.provinceDesc') },
-        { name: 'city', type: 'String', required: false, description: t('settingsUnion.cityDesc') },
-        { name: 'realNameStatus', type: 'String', required: false, description: t('settingsUnion.realNameStatusDesc') },
-        { name: 'roles', type: 'List<String>', required: false, description: t('settingsUnion.rolesDesc') },
-        { name: 'status', type: 'String', required: false, description: t('settingsUnion.unionUserStatusDesc') },
-        { name: 'createdAt', type: 'String', required: false, description: t('settingsUnion.createdAtDesc') },
+        { name: 'userId', type: 'Long', required: false, description: t('openPlatformUnion.userIdDesc') },
+        { name: 'avatar', type: 'String', required: false, description: t('openPlatformUnion.avatarDesc') },
+        { name: 'nickname', type: 'String', required: false, description: t('openPlatformUnion.nicknameDesc') },
+        { name: 'phone', type: 'String', required: false, description: t('openPlatformUnion.maskPhoneDesc') },
+        { name: 'birthday', type: 'String', required: false, description: t('openPlatformUnion.birthdayDesc') },
+        { name: 'gender', type: 'Integer', required: false, description: t('openPlatformUnion.genderDesc') },
+        { name: 'province', type: 'String', required: false, description: t('openPlatformUnion.provinceDesc') },
+        { name: 'city', type: 'String', required: false, description: t('openPlatformUnion.cityDesc') },
+        { name: 'realNameStatus', type: 'String', required: false, description: t('openPlatformUnion.realNameStatusDesc') },
+        { name: 'roles', type: 'List<String>', required: false, description: t('openPlatformUnion.rolesDesc') },
+        { name: 'status', type: 'String', required: false, description: t('openPlatformUnion.unionUserStatusDesc') },
+        { name: 'createdAt', type: 'String', required: false, description: t('openPlatformUnion.createdAtDesc') },
       ],
       responseExample: JSON.stringify({
         code: 0,
@@ -836,26 +836,26 @@ const apiDocs = computed(() => {
           status: 'active',
           createdAt: '2026-05-28T10:00:00',
         },
-        _note_userNotFound: t('settingsUnion.userNotFoundDesc'),
+        _note_userNotFound: t('openPlatformUnion.userNotFoundDesc'),
       }, null, 2),
     },
     {
       method: 'POST',
       methodColor: 'green',
       path: '/api/v1/union/user-register',
-      description: t('settingsUnion.registerUnionUserDesc'),
+      description: t('openPlatformUnion.registerUnionUserDesc'),
       requestParams: [
-        { name: 'unionUserId', type: 'String', required: true, description: t('settingsUnion.unionUserIdDesc') },
-        { name: 'nickname', type: 'String', required: true, description: t('settingsUnion.nicknameDesc') },
-        { name: 'avatar', type: 'String', required: true, description: t('settingsUnion.avatarDesc') },
-        { name: 'phone', type: 'String', required: false, description: t('settingsUnion.phoneDesc') },
-        { name: 'birthday', type: 'String', required: false, description: t('settingsUnion.birthdayDesc') },
-        { name: 'gender', type: 'Integer', required: true, description: t('settingsUnion.genderDesc') },
-        { name: 'province', type: 'String', required: false, description: t('settingsUnion.provinceDesc') },
-        { name: 'city', type: 'String', required: false, description: t('settingsUnion.cityDesc') },
-        { name: 'realNameStatus', type: 'String', required: false, description: t('settingsUnion.realNameStatusDesc') },
-        { name: 'roles', type: 'List<String>', required: true, description: t('settingsUnion.rolesDesc') },
-        { name: 'status', type: 'String', required: false, description: t('settingsUnion.unionUserStatusDesc') },
+        { name: 'unionUserId', type: 'String', required: true, description: t('openPlatformUnion.unionUserIdDesc') },
+        { name: 'nickname', type: 'String', required: true, description: t('openPlatformUnion.nicknameDesc') },
+        { name: 'avatar', type: 'String', required: true, description: t('openPlatformUnion.avatarDesc') },
+        { name: 'phone', type: 'String', required: false, description: t('openPlatformUnion.phoneDesc') },
+        { name: 'birthday', type: 'String', required: false, description: t('openPlatformUnion.birthdayDesc') },
+        { name: 'gender', type: 'Integer', required: true, description: t('openPlatformUnion.genderDesc') },
+        { name: 'province', type: 'String', required: false, description: t('openPlatformUnion.provinceDesc') },
+        { name: 'city', type: 'String', required: false, description: t('openPlatformUnion.cityDesc') },
+        { name: 'realNameStatus', type: 'String', required: false, description: t('openPlatformUnion.realNameStatusDesc') },
+        { name: 'roles', type: 'List<String>', required: true, description: t('openPlatformUnion.rolesDesc') },
+        { name: 'status', type: 'String', required: false, description: t('openPlatformUnion.unionUserStatusDesc') },
       ],
       requestExample: JSON.stringify({
         unionUserId: 'union_user_12345',
@@ -871,18 +871,18 @@ const apiDocs = computed(() => {
         status: 'active',
       }, null, 2),
       responseParams: [
-        { name: 'userId', type: 'Long', required: false, description: t('settingsUnion.userIdDesc') },
-        { name: 'avatar', type: 'String', required: false, description: t('settingsUnion.avatarDesc') },
-        { name: 'nickname', type: 'String', required: false, description: t('settingsUnion.nicknameDesc') },
-        { name: 'phone', type: 'String', required: false, description: t('settingsUnion.maskPhoneDesc') },
-        { name: 'birthday', type: 'String', required: false, description: t('settingsUnion.birthdayDesc') },
-        { name: 'gender', type: 'Integer', required: false, description: t('settingsUnion.genderDesc') },
-        { name: 'province', type: 'String', required: false, description: t('settingsUnion.provinceDesc') },
-        { name: 'city', type: 'String', required: false, description: t('settingsUnion.cityDesc') },
-        { name: 'realNameStatus', type: 'String', required: false, description: t('settingsUnion.realNameStatusDesc') },
-        { name: 'roles', type: 'List<String>', required: false, description: t('settingsUnion.rolesDesc') },
-        { name: 'status', type: 'String', required: false, description: t('settingsUnion.unionUserStatusDesc') },
-        { name: 'createdAt', type: 'String', required: false, description: t('settingsUnion.createdAtDesc') },
+        { name: 'userId', type: 'Long', required: false, description: t('openPlatformUnion.userIdDesc') },
+        { name: 'avatar', type: 'String', required: false, description: t('openPlatformUnion.avatarDesc') },
+        { name: 'nickname', type: 'String', required: false, description: t('openPlatformUnion.nicknameDesc') },
+        { name: 'phone', type: 'String', required: false, description: t('openPlatformUnion.maskPhoneDesc') },
+        { name: 'birthday', type: 'String', required: false, description: t('openPlatformUnion.birthdayDesc') },
+        { name: 'gender', type: 'Integer', required: false, description: t('openPlatformUnion.genderDesc') },
+        { name: 'province', type: 'String', required: false, description: t('openPlatformUnion.provinceDesc') },
+        { name: 'city', type: 'String', required: false, description: t('openPlatformUnion.cityDesc') },
+        { name: 'realNameStatus', type: 'String', required: false, description: t('openPlatformUnion.realNameStatusDesc') },
+        { name: 'roles', type: 'List<String>', required: false, description: t('openPlatformUnion.rolesDesc') },
+        { name: 'status', type: 'String', required: false, description: t('openPlatformUnion.unionUserStatusDesc') },
+        { name: 'createdAt', type: 'String', required: false, description: t('openPlatformUnion.createdAtDesc') },
       ],
       responseExample: JSON.stringify({
         code: 0,
@@ -920,27 +920,27 @@ async function loadConfig() {
 function handleSignatureChange(checked: boolean) {
   if (!checked && !formData.whitelistEnabled) {
     formData.whitelistEnabled = true
-    message.warning(t('settingsUnion.authMethodSwitchedTip'))
+    message.warning(t('openPlatformUnion.authMethodSwitchedTip'))
   }
 }
 
 function handleWhitelistChange(checked: boolean) {
   if (!checked && !formData.signatureEnabled) {
     formData.signatureEnabled = true
-    message.warning(t('settingsUnion.authMethodSwitchedTip'))
+    message.warning(t('openPlatformUnion.authMethodSwitchedTip'))
   }
 }
 
 async function handleSubmit() {
   if (!formData.signatureEnabled && !formData.whitelistEnabled) {
-    message.error(t('settingsUnion.authMethodRequiredTip'))
+    message.error(t('openPlatformUnion.authMethodRequiredTip'))
     return
   }
   try {
     await formRef.value?.validateFields()
     submitting.value = true
     await saveUnionConfig(formData)
-    message.success(t('settingsUnion.saveSuccess'))
+    message.success(t('openPlatformUnion.saveSuccess'))
   } catch {
     // Validation error or API error handled by interceptor
   } finally {
@@ -953,10 +953,10 @@ async function handleTest() {
     await formRef.value?.validateFields()
     testing.value = true
     await testUnionConnection(formData)
-    message.success(t('settingsUnion.testConnectionSuccess'))
+    message.success(t('openPlatformUnion.testConnectionSuccess'))
   } catch (error) {
     console.error('Test connection failed:', error)
-    message.error(t('settingsUnion.testConnectionFailed'))
+    message.error(t('openPlatformUnion.testConnectionFailed'))
   } finally {
     testing.value = false
   }
@@ -965,9 +965,9 @@ async function handleTest() {
 function copyText(text: string) {
   if (!text) return
   navigator.clipboard.writeText(text).then(() => {
-    message.success(t('settingsUnion.copySuccess'))
+    message.success(t('openPlatformUnion.copySuccess'))
   }).catch(() => {
-    message.error(t('settingsUnion.copyFailed'))
+    message.error(t('openPlatformUnion.copyFailed'))
   })
 }
 

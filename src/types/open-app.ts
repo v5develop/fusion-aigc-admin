@@ -4,7 +4,8 @@ export type OpenAppStatus = 0 | 1 | 2 | 3
 /** 开放平台应用（响应，绝不含 secret 明文） */
 export interface OpenApp {
   id: number
-  appId: string
+  /** 对外应用标识 appKey */
+  appKey: string
   appName: string
   keyVersion: string
   status: OpenAppStatus
@@ -36,7 +37,7 @@ export interface OpenAppCreateReq {
 
 /** 审批 / 轮换返回的一次性明文密钥 */
 export interface OpenAppSecretResp {
-  appId: string
+  appKey: string
   appSecret: string
   keyVersion: string
 }
