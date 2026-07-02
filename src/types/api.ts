@@ -125,6 +125,32 @@ export interface UserFeature {
   grantTime?: string
 }
 
+/** 多应用账号池成员（绑定关系） */
+export interface UserPoolMember {
+  userId: number
+  nickname: string | null
+  /** 来源应用 appKey */
+  appKey: string | null
+  /** 该成员在其应用内的外部用户 ID */
+  externalUserId: string | null
+  unionUserId: string | null
+  /** 是否池主（余额/能力归属方） */
+  main: boolean
+  /** 绑定来源：pool_bind / union_backfill */
+  bindSource: string | null
+  balance: number
+  frozenBalance: number
+}
+
+/** 用户多应用账号池（绑定关系） */
+export interface UserPool {
+  /** 用户池标识（= 池主 userId） */
+  poolId: number
+  /** 是否已加入某账号池（false = 未绑定，仅自身单成员） */
+  bound: boolean
+  members: UserPoolMember[]
+}
+
 export interface UserListParams extends ListParams {
   username?: string
   unionBound?: number

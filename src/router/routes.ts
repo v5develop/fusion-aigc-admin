@@ -608,41 +608,6 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
     ],
   },
   {
-    path: '/open-platform',
-    name: 'OpenPlatform',
-    redirect: '/open-platform/apps',
-    component: () => import('@/components/Layout/AdminLayout.vue'),
-    meta: {
-      title: 'menu.openPlatform',
-      icon: 'ApiOutlined',
-      requiresAuth: true,
-      order: 68,
-    },
-    children: [
-      {
-        path: 'apps',
-        name: 'OpenPlatformApps',
-        component: () => import('@/views/settings/open-app/index.vue'),
-        meta: {
-          title: 'menu.openPlatformApps',
-          icon: 'AppstoreOutlined',
-          requiresAuth: true,
-          requiredPermissions: 'open:app:query',
-        },
-      },
-      {
-        path: 'union',
-        name: 'OpenPlatformUnion',
-        component: () => import('@/views/settings/union/index.vue'),
-        meta: {
-          title: 'menu.openPlatformUnion',
-          icon: 'LinkOutlined',
-          requiresAuth: true,
-        },
-      },
-    ],
-  },
-  {
     path: '/settings',
     name: 'Settings',
     redirect: '/settings/ai-provider',
@@ -696,6 +661,41 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
           icon: 'ToolOutlined',
           requiresAuth: true,
           requiredPermissions: 'system:param_config',
+        },
+      },
+    ],
+  },
+  {
+    path: '/open-platform',
+    name: 'OpenPlatform',
+    redirect: '/open-platform/apps',
+    component: () => import('@/components/Layout/AdminLayout.vue'),
+    meta: {
+      title: 'menu.openPlatform',
+      icon: 'ApiOutlined',
+      requiresAuth: true,
+      order: 1000,
+    },
+    children: [
+      {
+        path: 'apps',
+        name: 'OpenPlatformApps',
+        component: () => import('@/views/settings/open-app/index.vue'),
+        meta: {
+          title: 'menu.openPlatformApps',
+          icon: 'AppstoreOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'open:app:query',
+        },
+      },
+      {
+        path: 'union',
+        name: 'OpenPlatformUnion',
+        component: () => import('@/views/settings/union/index.vue'),
+        meta: {
+          title: 'menu.openPlatformUnion',
+          icon: 'LinkOutlined',
+          requiresAuth: true,
         },
       },
     ],

@@ -134,6 +134,48 @@
               </div>
             </template>
           </a-card>
+
+          <!-- 多应用账号池（绑定关系） -->
+          <a-card
+            :title="$t('user.accountPool')"
+            :variant="'borderless'"
+            class="pool-card"
+            style="margin-top: 16px"
+          >
+            <template #extra>
+              <a-tag :color="pool?.bound ? 'blue' : 'default'">
+                {{ pool?.bound ? $t('user.poolBound') : $t('user.poolUnbound') }}
+              </a-tag>
+            </template>
+            <a-table
+              :data-source="pool?.members ?? []"
+              :columns="poolColumns"
+              :loading="poolLoading"
+              :pagination="false"
+              row-key="userId"
+              size="small"
+            >
+              <template #bodyCell="{ column, record }">
+                <template v-if="column.key === 'member'">
+                  <a-tag v-if="record.main" color="gold">{{ $t('user.poolMain') }}</a-tag>
+                  <span>{{ record.nickname || record.externalUserId || record.userId }}</span>
+                </template>
+                <template v-else-if="column.key === 'app'">
+                  <span>{{ record.appKey || '-' }}</span>
+                  <div class="pool-ext-id">{{ record.externalUserId || record.unionUserId || '-' }}</div>
+                </template>
+                <template v-else-if="column.key === 'balance'">
+                  {{ record.balance ?? 0 }}
+                  <span v-if="record.frozenBalance" class="pool-frozen">
+                    ({{ $t('user.frozen') }} {{ record.frozenBalance }})
+                  </span>
+                </template>
+                <template v-else-if="column.key === 'bindSource'">
+                  {{ record.bindSource || '-' }}
+                </template>
+              </template>
+            </a-table>
+          </a-card>
         </a-col>
       </a-row>
     </a-spin>
@@ -211,12 +253,12 @@ import { useI18n } from 'vue-i18n'
 import { message } from 'antdv-next'
 import { DollarOutlined, ArrowLeftOutlined } from '@antdv-next/icons'
 import dayjs from 'dayjs'
-import { getUserDetail, getUserCapabilities } from '@/api/user'
+import { getUserDetail, getUserCapabilities, getUserPool } from '@/api/user'
 import { adjustPoints } from '@/api/points'
 import { manualAddFeature, getFeatureOptions } from '@/api/feature'
 import { getLocale } from '@/locales'
 import { uuid } from '@/utils/helpers'
-import type { User, UserFeature, Feature } from '@/types/api'
+import type { User, UserFeature, Feature, UserPool } from '@/types/api'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -227,6 +269,15 @@ const loading = ref(false)
 const capabilitiesLoading = ref(false)
 const userInfo = ref<User | null>(null)
 const capabilities = ref<UserFeature[]>([])
+const pool = ref<UserPool | null>(null)
+const poolLoading = ref(false)
+
+const poolColumns = computed(() => [
+  { title: t('user.poolMember'), key: 'member', dataIndex: 'nickname' },
+  { title: t('user.poolApp'), key: 'app', dataIndex: 'appKey' },
+  { title: t('user.pointsBalance'), key: 'balance', dataIndex: 'balance' },
+  { title: t('user.poolBindSource'), key: 'bindSource', dataIndex: 'bindSource' },
+])
 const avatarFailed = ref(false)
 
 // 调整点数相关
@@ -272,6 +323,7 @@ async function fetchUserDetail() {
     avatarFailed.value = false
     // 同时获取能力列表
     fetchCapabilities(id)
+    fetchPool(id)
   } catch (e) {
     console.error('[UserDetail] 获取用户详情失败:', e)
   } finally {
@@ -289,6 +341,19 @@ async function fetchCapabilities(userId: number) {
     capabilities.value = []
   } finally {
     capabilitiesLoading.value = false
+  }
+}
+
+// 获取用户多应用账号池（绑定关系）
+async function fetchPool(userId: number) {
+  poolLoading.value = true
+  try {
+    pool.value = await getUserPool(userId)
+  } catch (e) {
+    console.error('[UserDetail] 获取用户账号池失败:', e)
+    pool.value = null
+  } finally {
+    poolLoading.value = false
   }
 }
 
