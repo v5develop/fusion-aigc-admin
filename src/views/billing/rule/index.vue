@@ -1,13 +1,5 @@
 <template>
   <div class="page-container">
-    <a-page-header :title="$t('billingRule.title')" style="padding: 0 0 16px">
-      <template #extra>
-        <a-button @click="handleRefresh" :loading="refreshing">
-          <ReloadOutlined /> {{ $t('billingRule.refreshCache') }}
-        </a-button>
-      </template>
-    </a-page-header>
-
     <ProTable
       ref="tableRef"
       :columns="columns"
@@ -17,6 +9,9 @@
       <template #toolbar>
         <a-button type="primary" @click="openModal(null)">
           <PlusOutlined /> {{ $t('billingRule.create') }}
+        </a-button>
+        <a-button style="margin-left: 8px" :loading="refreshing" @click="handleRefresh">
+          <ReloadOutlined /> {{ $t('billingRule.refreshCache') }}
         </a-button>
       </template>
       <template #bodyCell="{ column, record }">

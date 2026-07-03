@@ -1,13 +1,5 @@
 <template>
   <div class="page-container">
-    <a-page-header :title="$t('billingOffer.title')" style="padding: 0 0 16px">
-      <template #extra>
-        <a-button @click="handleRefreshCache" :loading="refreshing">
-          <ReloadOutlined /> {{ $t('billingOffer.refreshCache') }}
-        </a-button>
-      </template>
-    </a-page-header>
-
     <!-- Offer Table -->
     <ProTable
       ref="tableRef"
@@ -19,6 +11,9 @@
       <template #toolbar>
         <a-button type="primary" @click="openOfferModal(null)">
           <PlusOutlined /> {{ $t('billingOffer.createOffer') }}
+        </a-button>
+        <a-button style="margin-left: 8px" :loading="refreshing" @click="handleRefreshCache">
+          <ReloadOutlined /> {{ $t('billingOffer.refreshCache') }}
         </a-button>
       </template>
       <template #bodyCell="{ column, record }">
@@ -322,12 +317,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { message } from 'antdv-next'
 import { getFeatureOptions } from '@/api/feature'
 import { getModelOptions } from '@/api/model'
-import type { Feature, AIModel } from '@/types/api'
+import { getActionTypesAll } from '@/api/action-type'
+import type { Feature, AIModel, ActionType } from '@/types/api'
 import { PlusOutlined, ReloadOutlined } from '@antdv-next/icons'
 import ProTable from '@/components/Pro/ProTable/index.vue'
 import {
@@ -581,10 +577,17 @@ const statusOptions = ['ENABLED','DISABLED','DRAFT'].map(v => ({ label: v, value
 const componentTypeOptions = ['BASE','OUTPUT','MODULE','DURATION','QUALITY'].map(v => ({ label: v, value: v }))
 const costTypeOptions = ['BILLED','COST_ONLY'].map(v => ({ label: v, value: v }))
 // 分段计费该步计价口径：图按张 / 视频按秒；空=用 basePoints 固定单价
-const componentActionTypeOptions = [
-  { label: t('billingOffer.actionTypeImage'), value: 'IMAGE_GEN' },
-  { label: t('billingOffer.actionTypeVideo'), value: 'VIDEO_GEN' },
-]
+// 操作类型下拉：读 /api/v1/admin/action-types/all，作分段计费选定价维度的键
+const actionTypeList = ref<ActionType[]>([])
+const componentActionTypeOptions = computed(() =>
+  actionTypeList.value.map(a => ({ label: `${a.actionName} (${a.actionCode})`, value: a.actionCode }))
+)
+async function loadActionTypeOptions() {
+  try {
+    actionTypeList.value = await getActionTypesAll()
+  } catch { /* ignore */ }
+}
+loadActionTypeOptions()
 </script>
 
 <style scoped>

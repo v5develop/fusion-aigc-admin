@@ -15,6 +15,9 @@
         <a-button type="primary" @click="handleCreate">
           <PlusOutlined /> {{ $t('pricing.createPricing') }}
         </a-button>
+        <a-button style="margin-left: 8px" :loading="refreshing" @click="handleRefreshCache">
+          <ReloadOutlined /> {{ $t('pricing.refreshCache') }}
+        </a-button>
       </template>
 
       <template #bodyCell="{ column, record }">
@@ -155,11 +158,12 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
-import { PlusOutlined } from '@antdv-next/icons'
+import { PlusOutlined, ReloadOutlined } from '@antdv-next/icons'
 import { message, Modal } from 'antdv-next'
 import { useI18n } from 'vue-i18n'
 import ProTable from '@/components/Pro/ProTable/index.vue'
 import { getPricingList, createPricing, updatePricing, deletePricing } from '@/api/pricing'
+import { refreshOfferCache } from '@/api/billing-offer'
 import { getModelOptions } from '@/api/model'
 import { getActionTypesAll } from '@/api/action-type'
 import type { ModelPricing, ActionType, AIModel } from '@/types/api'
@@ -273,6 +277,18 @@ const modalVisible = ref(false)
 const submitLoading = ref(false)
 const isEdit = ref(false)
 const editId = ref<number | null>(null)
+const refreshing = ref(false)
+
+// 刷新计费缓存（OfferService）：改完定价/组件后同步内核缓存，避免报价用旧配置
+async function handleRefreshCache() {
+  refreshing.value = true
+  try {
+    await refreshOfferCache()
+    message.success(t('pricing.cacheRefreshed'))
+  } catch { /* 拦截器已处理 */ } finally {
+    refreshing.value = false
+  }
+}
 
 const formData = reactive({
   modelId: undefined as number | undefined,

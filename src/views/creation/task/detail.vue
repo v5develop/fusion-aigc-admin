@@ -1,35 +1,35 @@
 <template>
   <div class="page-container">
-    <a-page-header
-      :title="$t('creationTask.taskDetail')"
-      @back="handleBack"
-      style="padding: 0 0 16px"
-    >
-      <template #extra>
-        <a-space>
-          <a-button
-            v-if="task && (task.status === 0 || task.status === 1)"
-            danger
-            @click="handleCancel"
-          >
-            {{ $t('common.cancel') }}
-          </a-button>
-          <a-button
-            v-if="task && task.status === 3"
-            @click="handleRetry"
-          >
-            {{ $t('creationTask.retry') }}
-          </a-button>
-          <a-button
-            v-if="task && (task.status === 3 || task.status === 1)"
-            type="primary"
-            @click="handleForceComplete"
-          >
-            {{ $t('creationTask.forceComplete') }}
-          </a-button>
-        </a-space>
-      </template>
-    </a-page-header>
+    <div class="detail-page-header">
+      <div class="detail-page-header__left">
+        <a-button type="text" class="detail-page-header__back" @click="handleBack">
+          <ArrowLeftOutlined />
+        </a-button>
+        <span class="detail-page-header__title">{{ $t('creationTask.taskDetail') }}</span>
+      </div>
+      <a-space>
+        <a-button
+          v-if="task && (task.status === 0 || task.status === 1)"
+          danger
+          @click="handleCancel"
+        >
+          {{ $t('common.cancel') }}
+        </a-button>
+        <a-button
+          v-if="task && task.status === 3"
+          @click="handleRetry"
+        >
+          {{ $t('creationTask.retry') }}
+        </a-button>
+        <a-button
+          v-if="task && (task.status === 3 || task.status === 1)"
+          type="primary"
+          @click="handleForceComplete"
+        >
+          {{ $t('creationTask.forceComplete') }}
+        </a-button>
+      </a-space>
+    </div>
 
     <a-spin :spinning="loading">
       <!-- Basic Info -->
@@ -418,6 +418,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { message, Modal } from 'antdv-next'
+import { ArrowLeftOutlined } from '@antdv-next/icons'
 import { getCreationTaskDetail, cancelCreationTask, retryCreationTask, forceCompleteCreationTask, getCompositeCostSummary, getCreationTaskApiLogs, getPipelineSteps, fixTaskContentType } from '@/api/creation-task'
 import type { CreationTask, CompositeCostSummary, ApiRequestLog, PipelineStepsResponse } from '@/api/creation-task'
 import { decodeUnicode } from '@/utils/helpers'
@@ -701,6 +702,21 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.detail-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0 16px;
+}
+.detail-page-header__left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.detail-page-header__title {
+  font-size: 16px;
+  font-weight: 600;
+}
 .json-viewer {
   max-height: 400px;
   overflow: auto;
