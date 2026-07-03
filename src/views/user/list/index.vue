@@ -25,6 +25,22 @@
             </a-tag>
           </template>
 
+          <template v-if="column.dataIndex === 'poolMain'">
+            <a-tag v-if="record.poolMain" color="gold">{{ $t('user.poolMain') }}</a-tag>
+            <span v-else>-</span>
+          </template>
+
+          <template v-if="column.dataIndex === 'sourceAppKey'">
+            {{ record.sourceAppKey || '-' }}
+          </template>
+
+          <template v-if="column.dataIndex === 'bindSource'">
+            <a-tag v-if="record.bindSource" :color="bindSourceColorMap[record.bindSource] || 'default'">
+              {{ bindSourceMap[record.bindSource] || record.bindSource }}
+            </a-tag>
+            <span v-else>-</span>
+          </template>
+
           <template v-if="column.dataIndex === 'status'">
             <a-tag :color="statusColorMap[record.status]">
               {{ statusMap[record.status] || '-' }}
@@ -153,6 +169,16 @@ const statusColorMap: Record<number, string> = {
   0: 'red',
 }
 
+// 绑定来源展示：pool_bind = 多应用主动绑定；union_backfill = 联盟收编存量
+const bindSourceMap: Record<string, string> = {
+  pool_bind: t('user.bindSourcePoolBind'),
+  union_backfill: t('user.bindSourceUnionBackfill'),
+}
+const bindSourceColorMap: Record<string, string> = {
+  pool_bind: 'blue',
+  union_backfill: 'purple',
+}
+
 const columns = [
   {
     title: t('user.avatar'),
@@ -200,6 +226,23 @@ const columns = [
       { label: t('user.unbound'), value: 0 },
     ],
     width: 100,
+    align: 'center' as const,
+  },
+  {
+    title: t('user.poolMain'),
+    dataIndex: 'poolMain',
+    width: 90,
+    align: 'center' as const,
+  },
+  {
+    title: t('user.poolApp'),
+    dataIndex: 'sourceAppKey',
+    width: 140,
+  },
+  {
+    title: t('user.poolBindSource'),
+    dataIndex: 'bindSource',
+    width: 120,
     align: 'center' as const,
   },
   {

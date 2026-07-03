@@ -34,6 +34,16 @@
           <a-tag>{{ priceUnitMap[record.priceUnit] || record.priceUnit || '-' }}</a-tag>
         </template>
 
+        <template v-if="column.dataIndex === 'resolution'">
+          <span v-if="record.resolution">{{ record.resolution }}</span>
+          <a-tag v-else color="default">{{ $t('pricing.generic') }}</a-tag>
+        </template>
+
+        <template v-if="column.dataIndex === 'durationSeconds'">
+          <span v-if="record.durationSeconds != null">{{ record.durationSeconds }}s</span>
+          <a-tag v-else color="default">{{ $t('pricing.generic') }}</a-tag>
+        </template>
+
         <template v-if="column.dataIndex === 'effectiveTimeRange'">
           <span v-if="record.effectiveTime">{{ record.effectiveTime }}</span>
           <span v-else>-</span>
@@ -93,8 +103,43 @@
         <a-form-item :label="$t('pricing.priceUnit')">
           <a-select v-model:value="formData.priceUnit" :options="priceUnitOptions" allow-clear />
         </a-form-item>
+        <a-form-item :label="$t('pricing.resolution')">
+          <a-input
+            v-model:value="formData.resolution"
+            allow-clear
+            :placeholder="$t('pricing.resolutionPlaceholder')"
+          />
+          <div class="form-hint">{{ $t('pricing.resolutionHint') }}</div>
+        </a-form-item>
+        <a-form-item :label="$t('pricing.durationSeconds')">
+          <a-input-number
+            v-model:value="formData.durationSeconds"
+            :min="0"
+            :precision="0"
+            style="width: 100%"
+            :placeholder="$t('pricing.durationPlaceholder')"
+          />
+          <div class="form-hint">
+            {{ formData.priceUnit === 'PER_SECOND' ? $t('pricing.durationHintPerSecond') : $t('pricing.durationHint') }}
+          </div>
+        </a-form-item>
         <a-form-item :label="$t('pricing.effectiveTime')">
-          <a-date-picker v-model:value="formData.effectiveTime" style="width: 100%" />
+          <a-date-picker
+            v-model:value="formData.effectiveTime"
+            show-time
+            value-format="YYYY-MM-DD HH:mm:ss"
+            style="width: 100%"
+          />
+        </a-form-item>
+        <a-form-item :label="$t('pricing.expireTime')">
+          <a-date-picker
+            v-model:value="formData.expireTime"
+            show-time
+            value-format="YYYY-MM-DD HH:mm:ss"
+            style="width: 100%"
+            :placeholder="$t('pricing.expireTimePlaceholder')"
+          />
+          <div class="form-hint">{{ $t('pricing.expireTimeHint') }}</div>
         </a-form-item>
         <a-form-item :label="$t('model.status')">
           <a-switch
@@ -113,7 +158,6 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { PlusOutlined } from '@antdv-next/icons'
 import { message, Modal } from 'antdv-next'
 import { useI18n } from 'vue-i18n'
-import dayjs from 'dayjs'
 import ProTable from '@/components/Pro/ProTable/index.vue'
 import { getPricingList, createPricing, updatePricing, deletePricing } from '@/api/pricing'
 import { getModelOptions } from '@/api/model'
@@ -179,6 +223,18 @@ const columns = computed(() => [
     width: 150,
   },
   {
+    title: t('pricing.resolution'),
+    dataIndex: 'resolution',
+    width: 110,
+    align: 'center' as const,
+  },
+  {
+    title: t('pricing.durationSeconds'),
+    dataIndex: 'durationSeconds',
+    width: 110,
+    align: 'center' as const,
+  },
+  {
     title: t('pricing.effectiveTime'),
     dataIndex: 'effectiveTime',
     width: 180,
@@ -224,7 +280,10 @@ const formData = reactive({
   actionType: '' as string,
   pricePoints: 0,
   priceUnit: 'PER_REQUEST',
-  effectiveTime: null as dayjs.Dayjs | null,
+  resolution: '' as string,
+  durationSeconds: undefined as number | undefined,
+  effectiveTime: undefined as string | undefined,
+  expireTime: undefined as string | undefined,
   statusChecked: 1,
 })
 
@@ -267,7 +326,10 @@ function handleCreate() {
   formData.actionType = actionTypeList.value[0]?.actionCode || ''
   formData.pricePoints = 0
   formData.priceUnit = 'PER_REQUEST'
-  formData.effectiveTime = null
+  formData.resolution = ''
+  formData.durationSeconds = undefined
+  formData.effectiveTime = undefined
+  formData.expireTime = undefined
   formData.statusChecked = 1
   modalVisible.value = true
 }
@@ -280,7 +342,10 @@ function handleEdit(record: ModelPricing) {
   formData.actionType = record.actionType || ''
   formData.pricePoints = record.pricePoints || 0
   formData.priceUnit = record.priceUnit || 'PER_REQUEST'
-  formData.effectiveTime = record.effectiveTime ? dayjs(record.effectiveTime) : null
+  formData.resolution = record.resolution || ''
+  formData.durationSeconds = record.durationSeconds ?? undefined
+  formData.effectiveTime = record.effectiveTime || undefined
+  formData.expireTime = record.expireTime || undefined
   formData.statusChecked = record.status
   modalVisible.value = true
 }
@@ -301,19 +366,38 @@ async function handleSubmit() {
 
   submitLoading.value = true
   try {
-    const data = {
-      modelId: formData.modelId,
-      actionType: formData.actionType,
-      pricePoints: formData.pricePoints,
-      priceUnit: formData.priceUnit,
-      effectiveTime: formData.effectiveTime ? formData.effectiveTime.format('YYYY-MM-DD HH:mm:ss') : undefined,
-      status: formData.statusChecked,
-    }
+    const resolution = (formData.resolution || '').trim()
+    const hasDuration = formData.durationSeconds != null && formData.durationSeconds >= 0
 
     if (isEdit.value && editId.value) {
+      // 编辑：显式发送分档键/过期时间，支持清回通用档/永久有效。
+      // 后端契约：resolution 空串=清 NULL；durationSeconds 负数(-1)=清 NULL；expireTime 空串=清 NULL。
+      const data = {
+        modelId: formData.modelId,
+        actionType: formData.actionType,
+        pricePoints: formData.pricePoints,
+        priceUnit: formData.priceUnit,
+        resolution, // '' 表示清回通用档
+        durationSeconds: hasDuration ? formData.durationSeconds : -1, // -1 表示清回通用档
+        effectiveTime: formData.effectiveTime || undefined,
+        expireTime: formData.expireTime ?? '', // '' 表示清回永久有效
+        status: formData.statusChecked,
+      }
       await updatePricing(editId.value, data)
       message.success(t('pricing.updateSuccess'))
     } else {
+      // 新增：空分档键直接省略，由后端归一为通用档（NULL）。
+      const data = {
+        modelId: formData.modelId,
+        actionType: formData.actionType,
+        pricePoints: formData.pricePoints,
+        priceUnit: formData.priceUnit,
+        resolution: resolution || undefined,
+        durationSeconds: hasDuration ? formData.durationSeconds : undefined,
+        effectiveTime: formData.effectiveTime || undefined,
+        expireTime: formData.expireTime || undefined,
+        status: formData.statusChecked,
+      }
       await createPricing(data)
       message.success(t('pricing.createSuccess'))
     }
@@ -349,3 +433,12 @@ onMounted(() => {
   loadActionTypes()
 })
 </script>
+
+<style scoped>
+.form-hint {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: rgba(0, 0, 0, 0.45);
+}
+</style>

@@ -213,10 +213,33 @@
         </a-row>
         <a-row :gutter="16">
           <a-col :span="8">
-            <a-form-item :label="$t('billingOffer.includedOutputs')">
-              <a-input-number v-model:value="variantForm.includedOutputs" :min="1" />
+            <a-form-item :label="$t('billingOffer.defaultResolution')">
+              <a-input
+                v-model:value="variantForm.defaultResolution"
+                allow-clear
+                :placeholder="$t('billingOffer.defaultResolutionPlaceholder')"
+              />
             </a-form-item>
           </a-col>
+          <a-col :span="8">
+            <a-form-item :label="$t('billingOffer.defaultDurationSeconds')">
+              <a-input-number
+                v-model:value="variantForm.defaultDurationSeconds"
+                :min="0"
+                :precision="0"
+                style="width: 100%"
+                :placeholder="$t('billingOffer.defaultDurationPlaceholder')"
+              />
+              <div class="form-hint">{{ $t('billingOffer.defaultDurationHint') }}</div>
+            </a-form-item>
+          </a-col>
+          <a-col :span="8">
+            <a-form-item :label="$t('billingOffer.includedOutputs')">
+              <a-input-number v-model:value="variantForm.includedOutputs" :min="1" style="width: 100%" />
+            </a-form-item>
+          </a-col>
+        </a-row>
+        <a-row :gutter="16">
           <a-col :span="8">
             <a-form-item :label="$t('billingOffer.status')">
               <a-select v-model:value="variantForm.status" :options="statusOptions" />
@@ -271,15 +294,28 @@
           </a-col>
           <a-col :span="8">
             <a-form-item :label="$t('billingOffer.repeatCount')">
-              <a-input-number v-model:value="componentForm.repeatCount" :min="1" />
+              <a-input-number v-model:value="componentForm.repeatCount" :min="1" style="width: 100%" />
             </a-form-item>
           </a-col>
           <a-col :span="8">
             <a-form-item :label="$t('billingOffer.sort')">
-              <a-input-number v-model:value="componentForm.sort" :min="0" />
+              <a-input-number v-model:value="componentForm.sort" :min="0" style="width: 100%" />
             </a-form-item>
           </a-col>
         </a-row>
+        <a-row :gutter="16">
+          <a-col :span="8">
+            <a-form-item :label="$t('billingOffer.actionType')">
+              <a-select v-model:value="componentForm.actionType" allow-clear :options="componentActionTypeOptions" :placeholder="$t('billingOffer.actionTypePlaceholder')" />
+            </a-form-item>
+          </a-col>
+          <a-col :span="8">
+            <a-form-item :label="$t('billingOffer.basePoints')">
+              <a-input-number v-model:value="componentForm.basePoints" :min="0" style="width: 100%" :placeholder="$t('billingOffer.basePointsPlaceholder')" />
+            </a-form-item>
+          </a-col>
+        </a-row>
+        <div class="form-hint" style="margin-top: -8px">{{ $t('billingOffer.actionTypeHint') }}</div>
       </a-form>
     </a-modal>
   </div>
@@ -430,6 +466,9 @@ const variantColumns = [
   { title: t('billingOffer.qualityTier'), dataIndex: 'qualityTier', width: 100 },
   { title: t('billingOffer.settlementType'), dataIndex: 'settlementType', width: 130 },
   { title: t('billingOffer.defaultModelId'), dataIndex: 'defaultModelId', width: 100 },
+  { title: t('billingOffer.defaultResolution'), dataIndex: 'defaultResolution', width: 110 },
+  { title: t('billingOffer.defaultDurationSeconds'), dataIndex: 'defaultDurationSeconds', width: 110 },
+  { title: t('billingOffer.includedOutputs'), dataIndex: 'includedOutputs', width: 90 },
   { title: t('billingOffer.status'), dataIndex: 'status', width: 90 },
   { title: t('common.action'), dataIndex: 'operation', key: 'operation', width: 140 },
 ]
@@ -439,14 +478,14 @@ const editingVariant = ref<BillingOfferVariant | null>(null)
 const currentOffer = ref<BillingOffer | null>(null)
 const variantForm = reactive<Partial<BillingOfferVariant>>({
   variantCode: '', name: '', qualityTier: 'standard', settlementType: 'ALL_OR_NOTHING', defaultModelId: undefined,
-  includedOutputs: 1, status: 'ENABLED',
+  defaultResolution: '', defaultDurationSeconds: undefined, includedOutputs: 1, status: 'ENABLED',
 })
 
 function openVariantModal(offer: BillingOffer, record: BillingOfferVariant | null) {
   currentOffer.value = offer
   editingVariant.value = record
   if (record) Object.assign(variantForm, record)
-  else Object.assign(variantForm, { variantCode: '', name: '', qualityTier: 'standard', settlementType: 'ALL_OR_NOTHING', defaultModelId: undefined, includedOutputs: 1, status: 'ENABLED' })
+  else Object.assign(variantForm, { variantCode: '', name: '', qualityTier: 'standard', settlementType: 'ALL_OR_NOTHING', defaultModelId: undefined, defaultResolution: '', defaultDurationSeconds: undefined, includedOutputs: 1, status: 'ENABLED' })
   variantModalVisible.value = true
 }
 
@@ -479,6 +518,8 @@ const componentColumns = [
   { title: t('billingOffer.mode'), dataIndex: 'mode', width: 70 },
   { title: t('billingOffer.componentType'), dataIndex: 'componentType', width: 100 },
   { title: t('billingOffer.costType'), dataIndex: 'costType', width: 100 },
+  { title: t('billingOffer.actionType'), dataIndex: 'actionType', width: 110 },
+  { title: t('billingOffer.basePoints'), dataIndex: 'basePoints', width: 90 },
   { title: t('billingOffer.repeatCount'), dataIndex: 'repeatCount', width: 80 },
   { title: t('billingOffer.sort'), dataIndex: 'sort', width: 60 },
   { title: t('common.action'), dataIndex: 'operation', key: 'operation', width: 140 },
@@ -489,6 +530,7 @@ const editingComponent = ref<ChargeComponent | null>(null)
 const currentVariant = ref<BillingOfferVariant | null>(null)
 const componentForm = reactive<Partial<ChargeComponent>>({
   componentCode: '', stepCode: '', componentType: 'BASE', mode: 103, costType: 'BILLED',
+  actionType: undefined, basePoints: undefined,
   modelId: undefined, repeatCount: 1, sort: 0,
 })
 
@@ -496,7 +538,7 @@ function openComponentModal(_offer: BillingOffer, variant: BillingOfferVariant, 
   currentVariant.value = variant
   editingComponent.value = record
   if (record) Object.assign(componentForm, record)
-  else Object.assign(componentForm, { componentCode: '', stepCode: '', componentType: 'BASE', mode: 103, costType: 'BILLED', modelId: undefined, repeatCount: 1, sort: 0 })
+  else Object.assign(componentForm, { componentCode: '', stepCode: '', componentType: 'BASE', mode: 103, costType: 'BILLED', actionType: undefined, basePoints: undefined, modelId: undefined, repeatCount: 1, sort: 0 })
   componentModalVisible.value = true
 }
 
@@ -538,4 +580,18 @@ const settlementTypeOptions = ['ALL_OR_NOTHING','PARTIAL'].map(v => ({ label: v,
 const statusOptions = ['ENABLED','DISABLED','DRAFT'].map(v => ({ label: v, value: v }))
 const componentTypeOptions = ['BASE','OUTPUT','MODULE','DURATION','QUALITY'].map(v => ({ label: v, value: v }))
 const costTypeOptions = ['BILLED','COST_ONLY'].map(v => ({ label: v, value: v }))
+// 分段计费该步计价口径：图按张 / 视频按秒；空=用 basePoints 固定单价
+const componentActionTypeOptions = [
+  { label: t('billingOffer.actionTypeImage'), value: 'IMAGE_GEN' },
+  { label: t('billingOffer.actionTypeVideo'), value: 'VIDEO_GEN' },
+]
 </script>
+
+<style scoped>
+.form-hint {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: rgba(0, 0, 0, 0.45);
+}
+</style>

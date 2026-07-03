@@ -107,6 +107,14 @@ export interface User {
   status: number
   balance: number
   frozen: number
+  /** 是否已加入某账号池（有有效绑定行） */
+  pooled?: boolean
+  /** 是否池主（余额/能力归属方） */
+  poolMain?: boolean
+  /** 来源应用 appKey（绑定行来源，回退用户自身 source_app_key） */
+  sourceAppKey?: string | null
+  /** 绑定来源：pool_bind / union_backfill；未绑定为 null */
+  bindSource?: string | null
   capabilities: UserFeature[]
   createTime: string
   updateTime: string
@@ -218,6 +226,10 @@ export interface ModelPricing {
   actionType: string
   pricePoints: number
   priceUnit?: string
+  // 分辨率分档键：空表示通用档（后端 resolution IS NULL）
+  resolution?: string
+  // 时长分档秒数：空表示通用档；PER_SECOND 每秒单价档一般留空，总价由内核按时长乘算
+  durationSeconds?: number
   effectiveTime?: string
   expireTime?: string
   status: number

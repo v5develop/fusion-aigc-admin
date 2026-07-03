@@ -42,6 +42,8 @@ export interface ChargeComponent {
   componentType?: string
   mode: number
   costType?: string
+  /** 分段计费该步计价口径：IMAGE_GEN(按张)/VIDEO_GEN(按秒)；空=用 basePoints 固定单价 */
+  actionType?: string | null
   modelId?: number
   basePoints?: number
   repeatCount?: number
@@ -132,6 +134,8 @@ export interface VariantTreeNode {
   qualityTier?: string
   settlementType?: string
   defaultModelId?: number
+  defaultResolution?: string
+  defaultDurationSeconds?: number
   includedOutputs?: number
   status: string
   createTime?: string
