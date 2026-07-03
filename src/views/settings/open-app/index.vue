@@ -140,8 +140,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { message, Modal } from 'antdv-next'
+import { ref, h } from 'vue'
+import { message, Modal, Checkbox } from 'antdv-next'
 import { useI18n } from 'vue-i18n'
 import ProTable from '@/components/Pro/ProTable/index.vue'
 import {
@@ -343,13 +343,31 @@ function handleEnable(record: OpenApp) {
 }
 
 function handleRotate(record: OpenApp) {
+  // 默认原地替换（版本号不变、旧密钥立即失效）；勾选后走平滑轮换（生成新版本、旧密钥保留宽限期）。
+  const graceful = ref(false)
   Modal.confirm({
     title: t('common.warning'),
-    content: t('openApp.confirmRotate'),
+    content: () =>
+      h('div', [
+        h('p', { style: 'margin-bottom:12px' }, t('openApp.confirmRotate')),
+        h(
+          Checkbox,
+          {
+            checked: graceful.value,
+            'onUpdate:checked': (v: boolean) => (graceful.value = v),
+          },
+          () => t('openApp.rotateGraceful'),
+        ),
+        h(
+          'div',
+          { style: 'margin-top:4px;margin-left:24px;font-size:12px;line-height:1.5;color:var(--color-text-tertiary,#999)' },
+          t('openApp.rotateGracefulHint'),
+        ),
+      ]),
     okText: t('common.ok'),
     cancelText: t('common.cancel'),
     onOk: async () => {
-      const result = await rotateOpenAppSecret(record.id)
+      const result = await rotateOpenAppSecret(record.id, graceful.value)
       message.success(t('openApp.rotateSuccess'))
       showSecret(result)
       reload()

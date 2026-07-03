@@ -2988,7 +2988,9 @@ export default {
     confirmReject: 'Confirm rejecting this app request?',
     confirmDisable: 'Once disabled, the app cannot verify signatures immediately. Continue?',
     confirmEnable: 'Confirm re-enabling this app?',
-    confirmRotate: 'After rotation, the old secret enters a grace period. Continue?',
+    confirmRotate: 'Rotation generates a new secret (plaintext shown once). Continue?',
+    rotateGraceful: 'Graceful rotation',
+    rotateGracefulHint: 'Keep the old secret in a grace period for zero-downtime clients; otherwise replaces in place and revokes the old secret immediately',
     secretTitle: 'App Secret (shown only this time)',
     secretWarning: 'The plaintext secret is shown only once. Please save it immediately. It cannot be retrieved again after closing.',
     statusMap: {

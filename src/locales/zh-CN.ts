@@ -3021,7 +3021,9 @@ export default {
     confirmReject: '确认驳回该应用申请？',
     confirmDisable: '禁用后该应用将立即无法验签，确认继续？',
     confirmEnable: '确认重新启用该应用？',
-    confirmRotate: '轮换后旧密钥进入宽限期，确认继续？',
+    confirmRotate: '轮换将生成新密钥（明文仅显示一次），确认继续？',
+    rotateGraceful: '平滑轮换',
+    rotateGracefulHint: '保留旧密钥宽限期，供需零中断过渡的客户端；不勾选则原地替换、旧密钥立即失效',
     secretTitle: '应用密钥（仅此次显示）',
     secretWarning: '密钥明文仅展示这一次，请立即妥善保存。关闭后无法再次获取。',
     statusMap: {

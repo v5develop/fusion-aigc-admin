@@ -32,7 +32,9 @@ export function enableOpenApp(id: number) {
   return request.post(`/api/v1/admin/open-apps/${id}/enable`)
 }
 
-/** 轮换密钥：旧密钥进入宽限期，明文仅此次返回 */
-export function rotateOpenAppSecret(id: number) {
-  return request.post<OpenAppSecretResp>(`/api/v1/admin/open-apps/${id}/rotate-secret`)
+/** 轮换密钥：默认原地替换（版本号不变、旧密钥立即失效）；graceful=true 生成新版本并让旧密钥进入宽限期。明文仅此次返回 */
+export function rotateOpenAppSecret(id: number, graceful = false) {
+  return request.post<OpenAppSecretResp>(`/api/v1/admin/open-apps/${id}/rotate-secret`, null, {
+    params: { graceful },
+  })
 }
