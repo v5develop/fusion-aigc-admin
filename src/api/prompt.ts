@@ -42,7 +42,8 @@ export interface PromptRecord {
   version?: number
   usageCount?: number
   enabled?: number
-  sort?: number
+  /** 排序值，越大越靠前 */
+  sortOrder?: number
   createTime?: string
   updateTime?: string
 }
@@ -61,13 +62,15 @@ export interface PromptFormData {
   variables?: PromptVariable[]
   tags?: string[]
   enabled?: number
-  sort?: number
+  sortOrder?: number
 }
 
 export function getPromptList(params: {
   keyword?: string
   category?: string
   enabled?: number
+  sortField?: string
+  sortOrder?: 'ascend' | 'descend'
   page?: number
   pageSize?: number
 }) {
@@ -88,4 +91,9 @@ export function updatePrompt(id: string, data: PromptFormData) {
 
 export function deletePrompt(id: string) {
   return request.delete(`/api/v1/admin/creation/prompts/${id}`)
+}
+
+/** 调整提示词排序值（越大越靠前） */
+export function updatePromptSort(id: string, sortOrder: number) {
+  return request.patch(`/api/v1/admin/creation/prompts/${id}/sort`, { sortOrder })
 }

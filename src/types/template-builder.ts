@@ -683,8 +683,16 @@ export interface PromptInputWidgetConfig extends WidgetBase {
 export interface PromptSlot {
   /** 槽位 key (对应 template 中的 {{slotKey}}) */
   key: string
-  /** 槽位类型 */
-  slotType: 'text' | 'select' | 'image' | 'chip' | 'number'
+  /**
+   * 槽位类型：
+   * - text: 文本输入
+   * - select: 下拉单选
+   * - chip: 标签多选（value 为数组，渲染时以「、」连接）
+   * - image: 图片上传
+   * - number: 数字输入
+   * - separator: 分隔标识（不可交互，渲染为 `label：`，用于标记文本分段，如 卖点：xxx 要求：xxx）
+   */
+  slotType: 'text' | 'select' | 'image' | 'chip' | 'number' | 'separator'
   /** 占位组件显示名 (用于 builder 中标识) */
   label: string
   /** 占位提示 */

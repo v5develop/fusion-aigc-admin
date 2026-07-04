@@ -146,9 +146,12 @@ function replacePromptInputSlots(prompt: string, slotValues: Record<string, unkn
   for (const [slotKey, slotValue] of Object.entries(slotValues)) {
     if (slotValue === null || slotValue === undefined) continue
     const regex = new RegExp(`\\{\\{${slotKey}\\}\\}`, 'g')
-    const strValue = typeof slotValue === 'object'
-      ? extractObjectValue(slotValue)
-      : String(slotValue)
+    // chip 多选值为数组 → 以「、」连接（与 PromptEditor 渲染一致）
+    const strValue = Array.isArray(slotValue)
+      ? slotValue.map(v => String(v)).join('、')
+      : typeof slotValue === 'object'
+        ? extractObjectValue(slotValue)
+        : String(slotValue)
     prompt = prompt.replace(regex, strValue)
   }
   return prompt
@@ -174,12 +177,12 @@ function getTextFromChipValue(value: unknown): string {
   return ''
 }
 
-/** 多选 select 值 → 逗号拼接 */
+/** 多选 select/chip 值 → 「、」拼接（与 PromptEditor 渲染一致） */
 function extractTextValue(raw: string): string {
   if (raw.startsWith('[') && raw.endsWith(']')) {
     try {
       const arr = JSON.parse(raw)
-      if (Array.isArray(arr)) return arr.join(', ')
+      if (Array.isArray(arr)) return arr.join('、')
     } catch { /* ignore */ }
   }
   return raw

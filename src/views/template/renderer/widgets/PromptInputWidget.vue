@@ -90,19 +90,24 @@
             </div>
           </template>
 
-          <!-- chip: 内联标签选择 -->
+          <!-- chip: 内联标签多选 -->
           <template v-else-if="segment.slot.slotType === 'chip'">
             <a-select
               :value="slotValue(segment.slot.key)"
               :placeholder="segment.slot.placeholder || segment.slot.label"
               :disabled="mode === 'builder'"
               :options="slotChipOptions(segment.slot)"
-              :mode="segment.slot.multiple ? 'multiple' : undefined"
+              :mode="segment.slot.multiple === false ? undefined : 'multiple'"
               size="small"
               class="slot-chip-select"
-              :max-tag-count="1"
+              :max-tag-count="2"
               @update:value="onSlotChange(segment.slot.key, $event)"
             />
+          </template>
+
+          <!-- separator: 分隔标识（不可交互），渲染为 “label：” -->
+          <template v-else-if="segment.slot.slotType === 'separator'">
+            <span class="prompt-separator">{{ segment.slot.label }}：</span>
           </template>
 
           <!-- number: 内联数字输入 -->
@@ -305,11 +310,12 @@ onBeforeUnmount(() => {
 // ─── Chip 选项转换 ─────────────────────────────────────────
 
 function slotChipOptions(slot: PromptSlot): SelectOption[] {
+  // 优先 presetChips（模板构建器路径），回退 options（提示词编辑器路径）
   const chips = slot.presetChips || []
-  return chips.map((c: ChipOption) => ({
-    label: c.label,
-    value: c.key,
-  }))
+  if (chips.length) {
+    return chips.map((c: ChipOption) => ({ label: c.label, value: c.key }))
+  }
+  return (slot.options || []).map((o) => ({ label: o.label, value: o.value }))
 }
 </script>
 
@@ -363,6 +369,12 @@ function slotChipOptions(slot: PromptSlot): SelectOption[] {
   font-size: var(--font-size-base);
   color: var(--color-text-primary);
   white-space: pre-wrap;
+}
+
+.prompt-separator {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
 }
 
 .prompt-slot {
