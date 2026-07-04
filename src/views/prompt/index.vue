@@ -1,6 +1,7 @@
 <template>
   <div class="page-container">
     <ProTable
+      ref="tableRef"
       :columns="columns"
       :request="loadData"
       :search="{}"
@@ -35,12 +36,22 @@
           </a-space>
         </template>
 
-        <template v-if="column.dataIndex === 'variables'">
-          {{ (record.variables || []).length }}
+        <template v-if="column.dataIndex === 'slotCount'">
+          {{ (record.slots || record.variables || []).length }}
         </template>
 
         <template v-if="column.dataIndex === 'usageCount'">
           {{ record.usageCount || 0 }}
+        </template>
+
+        <template v-if="column.dataIndex === 'sortOrder'">
+          <a-input-number
+            :value="record.sortOrder ?? 0"
+            :min="0"
+            size="small"
+            style="width: 84px"
+            @change="(value: number | string | null) => handleSortChange(record, value)"
+          />
         </template>
 
         <template v-if="column.dataIndex === 'version'">
@@ -71,14 +82,16 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'antdv-next'
 import { useI18n } from 'vue-i18n'
 import ProTable from '@/components/Pro/ProTable/index.vue'
-import { getPromptList, deletePrompt, type PromptRecord } from '@/api/prompt'
+import { getPromptList, deletePrompt, updatePromptSort, type PromptRecord } from '@/api/prompt'
 
 const router = useRouter()
 const { t } = useI18n()
+const tableRef = ref<InstanceType<typeof ProTable>>()
 
 const categoryOptions = [
   { label: t('prompt.categoryEcommerce'), value: 'ecommerce' },
@@ -121,8 +134,8 @@ const columns = [
     width: 160,
   },
   {
-    title: t('prompt.variableCount'),
-    dataIndex: 'variables',
+    title: t('prompt.slotCount'),
+    dataIndex: 'slotCount',
     width: 90,
     align: 'center' as const,
   },
@@ -143,17 +156,28 @@ const columns = [
     dataIndex: 'usageCount',
     width: 90,
     align: 'center' as const,
+    sorter: true,
   },
   {
     title: t('prompt.version'),
     dataIndex: 'version',
     width: 80,
     align: 'center' as const,
+    sorter: true,
+  },
+  {
+    title: t('prompt.sortOrder'),
+    dataIndex: 'sortOrder',
+    width: 110,
+    align: 'center' as const,
+    sorter: true,
   },
   {
     title: t('common.updateTime'),
     dataIndex: 'updateTime',
     width: 180,
+    sorter: true,
+    defaultSortOrder: 'descend' as const,
   },
   {
     title: t('common.action'),
@@ -165,11 +189,20 @@ const columns = [
   },
 ]
 
+interface SorterParam {
+  field?: string
+  order?: 'ascend' | 'descend'
+}
+
 async function loadData(params: Record<string, unknown>) {
+  const rawSorter = params.sorter as SorterParam | SorterParam[] | undefined
+  const sorter = Array.isArray(rawSorter) ? rawSorter[0] : rawSorter
   const res = await getPromptList({
     keyword: params.name as string | undefined,
     category: params.category as string | undefined,
     enabled: params.enabled as number | undefined,
+    sortField: sorter?.field,
+    sortOrder: sorter?.order,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
   })
@@ -196,8 +229,23 @@ async function handleDelete(record: PromptRecord) {
   try {
     await deletePrompt(record.id)
     message.success(t('common.deleteSuccess'))
+    tableRef.value?.refresh()
   } catch {
     message.error(t('common.deleteFailed'))
+  }
+}
+
+async function handleSortChange(record: PromptRecord, value: number | string | null) {
+  const next = Number(value)
+  if (!Number.isFinite(next) || next === record.sortOrder) {
+    return
+  }
+  try {
+    await updatePromptSort(record.id, next)
+    record.sortOrder = next
+    message.success(t('prompt.sortUpdateSuccess'))
+  } catch {
+    message.error(t('prompt.sortUpdateFailed'))
   }
 }
 </script>
