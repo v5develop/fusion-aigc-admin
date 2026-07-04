@@ -1,6 +1,6 @@
 <template>
   <div class="page-container">
-    <a-card :title="$t('templateAsset.listTitle')" :bordered="false">
+    <a-card :title="$t('templateAsset.listTitle')" variant="borderless">
       <ProTable
         ref="assetTableRef"
         :columns="assetColumns"
@@ -224,8 +224,8 @@
     <a-drawer
       v-model:open="tagDrawerVisible"
       :title="$t('templateAsset.tagDrawerTitle')"
-      width="480"
-      :body-style="{ paddingBottom: '80px' }"
+      :size="480"
+      :styles="{ body: { paddingBottom: '80px' } }"
     >
       <a-spin :spinning="tagLoading">
         <div v-if="tagAsset" class="tag-asset-head">
@@ -313,8 +313,8 @@
     <a-drawer
       v-model:open="batchTagDrawerVisible"
       :title="$t('templateAsset.batchTagTitle')"
-      width="480"
-      :body-style="{ paddingBottom: '80px' }"
+      :size="480"
+      :styles="{ body: { paddingBottom: '80px' } }"
     >
       <a-spin :spinning="batchMetaLoading">
         <a-alert

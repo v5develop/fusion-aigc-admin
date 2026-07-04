@@ -1,6 +1,6 @@
 <template>
   <div class="page-container">
-    <a-card :bordered="false">
+    <a-card variant="borderless">
       <a-alert class="storage-alert" type="info" show-icon :message="$t('settingsStorageSystem.tip')" />
 
       <a-form layout="vertical" :model="formData" class="max-w-3xl">

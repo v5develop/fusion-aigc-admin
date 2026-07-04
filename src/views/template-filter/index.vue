@@ -3,7 +3,7 @@
     <a-row :gutter="16" class="filter-layout">
       <!-- 维度字典区 -->
       <a-col :span="24">
-        <a-card :title="$t('templateFilter.filterListTitle')" :bordered="false">
+        <a-card :title="$t('templateFilter.filterListTitle')" variant="borderless">
           <ProTable
             ref="filterTableRef"
             :columns="filterColumns"
@@ -72,7 +72,7 @@
 
       <!-- 选项字典区 -->
       <a-col :span="24" style="margin-top: 16px">
-        <a-card :bordered="false">
+        <a-card variant="borderless">
           <template #title>
             <span v-if="currentFilter">
               {{ $t('templateFilter.optionListTitle') }}
@@ -141,7 +141,7 @@
 
       <!-- slot 绑定区 -->
       <a-col :span="24" style="margin-top: 16px">
-        <a-card :title="$t('templateFilter.slotBindTitle')" :bordered="false">
+        <a-card :title="$t('templateFilter.slotBindTitle')" variant="borderless">
           <a-form layout="inline" style="margin-bottom: 16px">
             <a-form-item :label="$t('templateFilter.bizType')">
               <a-select

@@ -1,6 +1,6 @@
 <template>
   <div class="page-container">
-    <a-card :bordered="false">
+    <a-card variant="borderless">
       <a-tabs v-model:activeKey="activeTab">
         <a-tab-pane key="config" :tab="$t('openPlatformUnion.title')">
           <a-form
