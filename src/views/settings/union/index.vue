@@ -1106,4 +1106,16 @@ onMounted(() => {
   padding: 1px 4px;
   border-radius: 3px;
 }
+
+:deep(.ant-tag-default) {
+  background: var(--color-fill-quaternary);
+  border-color: var(--color-border-secondary);
+  color: var(--color-text-secondary);
+}
+
+:deep(.ant-tag-red) {
+  background: rgba(255, 77, 79, 0.12);
+  border-color: rgba(255, 77, 79, 0.3);
+  color: rgba(255, 77, 79, 0.85);
+}
 </style>
