@@ -2479,6 +2479,8 @@ export default {
     supportVisionHint: '开启后该模型可接收图片输入（提示词优化、识图等场景会传图）',
     supportReasoning: '支持深度思考',
     supportReasoningHint: '开启后该模型启用 reasoning/思考模式',
+    enableSearch: '联网搜索',
+    enableSearchHint: '控制模型是否联网检索。开启后响应更慢，默认关闭以加快提示词优化等场景。目前仅百炼(DashScope)模型已接入该开关，其它供应商暂不受此项控制。',
     modelName: '模型名称',
     modelType: '模型类型',
     provider: '提供商',

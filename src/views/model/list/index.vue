@@ -96,6 +96,10 @@
           <a-switch v-model:checked="formData.supportReasoning" />
           <div class="form-hint">{{ $t('model.supportReasoningHint') }}</div>
         </a-form-item>
+        <a-form-item v-if="formData.modelType === 1" :label="$t('model.enableSearch')">
+          <a-switch v-model:checked="formData.enableSearch" />
+          <div class="form-hint">{{ $t('model.enableSearchHint') }}</div>
+        </a-form-item>
         <a-form-item :label="$t('model.maxConcurrency')">
           <a-input-number
             v-model:value="formData.maxConcurrency"
@@ -220,7 +224,33 @@ const formData = reactive({
   generationTimeoutSeconds: undefined as number | undefined,
   supportVision: false,
   supportReasoning: false,
+  enableSearch: false,
 })
+
+// 保存编辑前的 config JSON 其它键（temperature/top_p 等），提交时只覆盖 enableSearch，不丢失
+let configExtras: Record<string, unknown> = {}
+
+function parseConfig(config?: string): Record<string, unknown> {
+  if (!config) return {}
+  try {
+    const parsed = JSON.parse(config)
+    return parsed && typeof parsed === 'object' ? parsed : {}
+  } catch {
+    return {}
+  }
+}
+
+// 合并 enableSearch 到 config JSON，保留其它键；结果为空对象时返回 undefined 不落库空串
+function buildConfig(): string | undefined {
+  const merged: Record<string, unknown> = { ...configExtras }
+  if (formData.enableSearch) {
+    merged.enableSearch = true
+  } else {
+    delete merged.enableSearch
+    delete merged.enable_search
+  }
+  return Object.keys(merged).length > 0 ? JSON.stringify(merged) : undefined
+}
 
 const apiConfigOptions = ref<{ label: string; value: number }[]>([])
 
@@ -264,6 +294,8 @@ function handleCreate() {
   formData.generationTimeoutSeconds = undefined
   formData.supportVision = false
   formData.supportReasoning = false
+  formData.enableSearch = false
+  configExtras = {}
   modalVisible.value = true
 }
 
@@ -280,6 +312,9 @@ function handleEdit(record: AIModel) {
   formData.generationTimeoutSeconds = record.generationTimeoutSeconds ?? undefined
   formData.supportVision = record.supportVision ?? false
   formData.supportReasoning = record.supportReasoning ?? false
+  configExtras = parseConfig(record.config)
+  formData.enableSearch =
+    configExtras.enableSearch === true || configExtras.enable_search === true
   modalVisible.value = true
 }
 
@@ -306,6 +341,7 @@ async function handleSubmit() {
       generationTimeoutSeconds: formData.generationTimeoutSeconds,
       supportVision: formData.supportVision,
       supportReasoning: formData.supportReasoning,
+      config: buildConfig(),
     }
 
     if (isEdit.value && editId.value) {

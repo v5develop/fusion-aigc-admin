@@ -2449,6 +2449,8 @@ export default {
     supportVisionHint: 'When enabled, this model can accept image input (images are passed in scenarios like prompt optimization and image recognition).',
     supportReasoning: 'Reasoning Support',
     supportReasoningHint: 'When enabled, this model uses reasoning/thinking mode.',
+    enableSearch: 'Web Search',
+    enableSearchHint: 'Controls whether the model searches the web. When enabled, responses are slower; disabled by default to speed up prompt optimization and similar scenarios. Currently only Bailian (DashScope) models honor this toggle; other providers are not yet controlled by it.',
     modelName: 'Model Name',
     modelType: 'Model Type',
     provider: 'Provider',
