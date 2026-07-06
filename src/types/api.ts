@@ -511,9 +511,11 @@ export interface SystemConfig {
   defaultPoints?: string | number
 }
 
-/** Agent 模型配置（用于提示词优化等后端 Agent 场景） */
-export interface AgentModelConfig {
-  /** Agent 模型 ID（关联 afv_ai_model.id），未配置时为 null */
+/** Agent 模型档位绑定（提示词优化按是否带图自动路由 TEXT/VISION 档；与用户权限角色无关） */
+export interface AgentModelProfile {
+  /** 档位标识：TEXT-纯文本 VISION-视觉 */
+  profile: string
+  /** 绑定的模型 ID（关联 afv_ai_model.id），null=未绑定走 yaml 兜底 */
   modelId: number | null
   /** 模型名称（只读展示） */
   modelName?: string | null
@@ -521,6 +523,8 @@ export interface AgentModelConfig {
   modelCode?: string | null
   /** 是否支持视觉（只读展示） */
   supportVision?: boolean | null
+  /** 状态：1-启用 0-停用 */
+  status?: number | null
 }
 
 // Feature Grant Types

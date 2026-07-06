@@ -159,7 +159,7 @@
         </a-tab-pane>
 
         <a-tab-pane key="agentModel" :tab="$t('settingsSystem.agentModel')">
-          <a-form layout="vertical" :model="agentModelForm" class="max-w-2xl">
+          <div class="max-w-2xl">
             <a-alert
               type="info"
               show-icon
@@ -167,37 +167,51 @@
               class="agent-model-alert"
             />
 
-            <a-form-item :label="$t('settingsSystem.agentModelSelect')" name="modelId">
-              <a-select
-                v-model:value="agentModelForm.modelId"
-                :options="modelOptions"
-                :loading="loadingModels"
-                :placeholder="$t('settingsSystem.agentModelPlaceholder')"
-                allow-clear
-                show-search
-                option-filter-prop="label"
-                style="max-width: 360px"
-              />
-              <div class="form-hint">{{ $t('settingsSystem.agentModelSelectHint') }}</div>
-            </a-form-item>
+            <a-form
+              v-for="item in agentProfiles"
+              :key="item.profile"
+              layout="vertical"
+              class="agent-profile-block"
+            >
+              <a-form-item :label="profileLabel(item.profile)">
+                <div class="form-hint" style="margin-bottom: 8px">{{ profileHint(item.profile) }}</div>
+                <a-select
+                  v-model:value="item.modelId"
+                  :options="modelOptionsFor(item.profile)"
+                  :loading="loadingModels"
+                  :placeholder="$t('settingsSystem.agentModelPlaceholder')"
+                  allow-clear
+                  show-search
+                  option-filter-prop="label"
+                  style="max-width: 360px"
+                />
+                <div class="form-hint">
+                  {{ item.profile === 'VISION' ? $t('settingsSystem.agentProfileVisionSelectHint') : $t('settingsSystem.agentModelSelectHint') }}
+                </div>
+              </a-form-item>
 
-            <a-form-item v-if="agentModelForm.modelId && currentModelMeta">
-              <a-space>
-                <a-tag v-if="currentModelMeta.modelCode" color="blue">
-                  {{ currentModelMeta.modelCode }}
-                </a-tag>
-                <a-tag v-if="currentModelMeta.supportVision" color="green">
-                  {{ $t('settingsSystem.agentModelSupportVision') }}
-                </a-tag>
-              </a-space>
-            </a-form-item>
+              <a-form-item v-if="item.modelId && metaFor(item.modelId)">
+                <a-space>
+                  <a-tag v-if="metaFor(item.modelId)?.code" color="blue">
+                    {{ metaFor(item.modelId)?.code }}
+                  </a-tag>
+                  <a-tag v-if="metaFor(item.modelId)?.supportVision" color="green">
+                    {{ $t('settingsSystem.agentModelSupportVision') }}
+                  </a-tag>
+                </a-space>
+              </a-form-item>
 
-            <a-form-item>
-              <a-button type="primary" @click="handleSaveAgentModel" :loading="savingAgentModel">
-                {{ $t('common.save') }}
-              </a-button>
-            </a-form-item>
-          </a-form>
+              <a-form-item>
+                <a-button
+                  type="primary"
+                  @click="handleSaveProfile(item)"
+                  :loading="savingProfile === item.profile"
+                >
+                  {{ $t('common.save') }}
+                </a-button>
+              </a-form-item>
+            </a-form>
+          </div>
         </a-tab-pane>
       </a-tabs>
     </a-card>
@@ -208,9 +222,9 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { message } from 'antdv-next'
 import { useI18n } from 'vue-i18n'
-import { getSystemConfig, saveSystemConfig, getAgentModelConfig, saveAgentModelConfig } from '@/api/config'
+import { getSystemConfig, saveSystemConfig, getAgentModelProfiles, bindAgentModelProfile } from '@/api/config'
 import { getModelOptions } from '@/api/model'
-import type { AIModel } from '@/types/api'
+import type { AIModel, AgentModelProfile } from '@/types/api'
 
 const { t } = useI18n()
 
@@ -254,34 +268,58 @@ const notificationForm = reactive({
   expireNotifyDays: 7,
 })
 
-// ===== Agent 模型配置 =====
-const savingAgentModel = ref(false)
+// ===== Agent 模型档位路由配置（提示词优化按是否带图自动路由 TEXT/VISION 档；与用户权限角色无关）=====
 const loadingModels = ref(false)
 const models = ref<AIModel[]>([])
+const savingProfile = ref<string | null>(null)
+// 后端返回 TEXT/VISION 两档；modelId 可被 v-model 就地编辑，保存时按档提交
+const agentProfiles = ref<AgentModelProfile[]>([])
 
-const agentModelForm = reactive<{ modelId: number | null }>({
-  modelId: null,
-})
-
-const modelOptions = computed(() =>
+// 全部启用模型的下拉项（label 含 code）
+const allModelOptions = computed(() =>
   models.value.map((m) => ({
     label: m.code ? `${m.name} (${m.code})` : m.name,
     value: m.id,
+    supportVision: !!m.supportVision,
   }))
 )
 
-const currentModelMeta = computed(() => {
-  const model = models.value.find((m) => m.id === agentModelForm.modelId)
+// VISION 档仅可选支持视觉的模型；TEXT 档不限
+function modelOptionsFor(profile: string) {
+  if (profile === 'VISION') {
+    return allModelOptions.value.filter((o) => o.supportVision)
+  }
+  return allModelOptions.value
+}
+
+function metaFor(modelId: number | null) {
+  const model = models.value.find((m) => m.id === modelId)
   if (!model) return null
-  return { modelCode: model.code, supportVision: model.supportVision }
-})
+  return { code: model.code, supportVision: model.supportVision }
+}
+
+function profileLabel(profile: string) {
+  return profile === 'VISION'
+    ? t('settingsSystem.agentProfileVision')
+    : t('settingsSystem.agentProfileText')
+}
+
+function profileHint(profile: string) {
+  return profile === 'VISION'
+    ? t('settingsSystem.agentProfileVisionHint')
+    : t('settingsSystem.agentProfileTextHint')
+}
 
 async function loadAgentModelConfig() {
   loadingModels.value = true
   try {
-    const [options, config] = await Promise.all([getModelOptions(), getAgentModelConfig()])
+    const [options, profiles] = await Promise.all([getModelOptions(), getAgentModelProfiles()])
     models.value = options ?? []
-    agentModelForm.modelId = config?.modelId ?? null
+    // 保证 TEXT 在前、VISION 在后的稳定顺序
+    const order = ['TEXT', 'VISION']
+    agentProfiles.value = (profiles ?? [])
+      .slice()
+      .sort((a, b) => order.indexOf(a.profile) - order.indexOf(b.profile))
   } catch {
     // Error handled by interceptor
   } finally {
@@ -289,15 +327,15 @@ async function loadAgentModelConfig() {
   }
 }
 
-async function handleSaveAgentModel() {
-  savingAgentModel.value = true
+async function handleSaveProfile(item: AgentModelProfile) {
+  savingProfile.value = item.profile
   try {
-    await saveAgentModelConfig({ modelId: agentModelForm.modelId })
+    await bindAgentModelProfile(item.profile, item.modelId ?? null)
     message.success(t('settingsSystem.saveSuccess'))
   } catch {
     // Error handled by interceptor
   } finally {
-    savingAgentModel.value = false
+    savingProfile.value = null
   }
 }
 
