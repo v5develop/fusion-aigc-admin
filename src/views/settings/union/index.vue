@@ -1102,7 +1102,7 @@ onMounted(() => {
 .auth-mode-headers code {
   font-family: 'SF Mono', 'Fira Code', monospace;
   color: var(--color-primary-5);
-  background: var(--color-primary-1);
+  background: var(--color-bg-container);
   padding: 1px 4px;
   border-radius: 3px;
 }
