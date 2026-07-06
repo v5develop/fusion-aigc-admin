@@ -988,10 +988,10 @@ onMounted(() => {
 }
 
 .api-item {
-  border: 1px solid #f0f0f0;
+  border: 1px solid var(--color-border-secondary);
   border-radius: 8px;
   padding: 16px 20px;
-  background: #fafafa;
+  background: var(--color-fill-quaternary);
 }
 
 .api-header {
@@ -1011,13 +1011,13 @@ onMounted(() => {
 .api-path {
   font-family: 'SF Mono', 'Fira Code', monospace;
   font-size: 14px;
-  color: #1a1a1a;
+  color: var(--color-text-primary);
   word-break: break-all;
 }
 
 .api-desc {
   font-size: 13px;
-  color: #666;
+  color: var(--color-text-secondary);
   margin-bottom: 16px;
 }
 
@@ -1028,18 +1028,18 @@ onMounted(() => {
 .section-title {
   font-size: 13px;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text-primary);
   margin-bottom: 8px;
 }
 
 .form-tip {
   font-size: 12px;
-  color: #999;
+  color: var(--color-text-tertiary);
   margin-top: 4px;
 }
 
 .advanced-item :deep(.ant-form-item-label) > label {
-  color: #888;
+  color: var(--color-text-tertiary);
 }
 
 .advanced-label {
@@ -1073,10 +1073,10 @@ onMounted(() => {
 
 .auth-mode-item {
   flex: 1 1 280px;
-  border: 1px solid #f0f0f0;
+  border: 1px solid var(--color-border-secondary);
   border-radius: 6px;
   padding: 10px 12px;
-  background: #fafafa;
+  background: var(--color-fill-quaternary);
 }
 
 .auth-mode-head {
@@ -1085,7 +1085,7 @@ onMounted(() => {
 
 .auth-mode-desc {
   font-size: 13px;
-  color: #555;
+  color: var(--color-text-secondary);
   line-height: 1.5;
   margin-bottom: 8px;
 }
@@ -1095,14 +1095,14 @@ onMounted(() => {
 }
 
 .auth-mode-headers-label {
-  color: #888;
+  color: var(--color-text-tertiary);
   margin-right: 6px;
 }
 
 .auth-mode-headers code {
   font-family: 'SF Mono', 'Fira Code', monospace;
-  color: #c41d7f;
-  background: #fff0f6;
+  color: var(--color-primary-5);
+  background: var(--color-primary-1);
   padding: 1px 4px;
   border-radius: 3px;
 }
