@@ -288,8 +288,8 @@
             </a-form-item>
           </a-col>
           <a-col :span="8">
-            <a-form-item :label="$t('billingOffer.repeatCount')">
-              <a-input-number v-model:value="componentForm.repeatCount" :min="1" style="width: 100%" />
+            <a-form-item :label="$t('billingOffer.priceMultiplier')">
+              <a-input-number v-model:value="componentForm.priceMultiplier" :min="0" :step="0.1" :precision="3" style="width: 100%" />
             </a-form-item>
           </a-col>
           <a-col :span="8">
@@ -516,7 +516,7 @@ const componentColumns = [
   { title: t('billingOffer.costType'), dataIndex: 'costType', width: 100 },
   { title: t('billingOffer.actionType'), dataIndex: 'actionType', width: 110 },
   { title: t('billingOffer.basePoints'), dataIndex: 'basePoints', width: 90 },
-  { title: t('billingOffer.repeatCount'), dataIndex: 'repeatCount', width: 80 },
+  { title: t('billingOffer.priceMultiplier'), dataIndex: 'priceMultiplier', width: 80 },
   { title: t('billingOffer.sort'), dataIndex: 'sort', width: 60 },
   { title: t('common.action'), dataIndex: 'operation', key: 'operation', width: 140 },
 ]
@@ -527,14 +527,14 @@ const currentVariant = ref<BillingOfferVariant | null>(null)
 const componentForm = reactive<Partial<ChargeComponent>>({
   componentCode: '', stepCode: '', componentType: 'BASE', mode: 103, costType: 'BILLED',
   actionType: undefined, basePoints: undefined,
-  modelId: undefined, repeatCount: 1, sort: 0,
+  modelId: undefined, priceMultiplier: 1, sort: 0,
 })
 
 function openComponentModal(_offer: BillingOffer, variant: BillingOfferVariant, record: ChargeComponent | null) {
   currentVariant.value = variant
   editingComponent.value = record
   if (record) Object.assign(componentForm, record)
-  else Object.assign(componentForm, { componentCode: '', stepCode: '', componentType: 'BASE', mode: 103, costType: 'BILLED', actionType: undefined, basePoints: undefined, modelId: undefined, repeatCount: 1, sort: 0 })
+  else Object.assign(componentForm, { componentCode: '', stepCode: '', componentType: 'BASE', mode: 103, costType: 'BILLED', actionType: undefined, basePoints: undefined, modelId: undefined, priceMultiplier: 1, sort: 0 })
   componentModalVisible.value = true
 }
 

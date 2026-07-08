@@ -46,7 +46,8 @@ export interface ChargeComponent {
   actionType?: string | null
   modelId?: number
   basePoints?: number
-  repeatCount?: number
+  /** 计价乘数（支持小数）：最终点数 = round(单价 × 张数 × 本值, HALF_UP)；默认 1 无影响 */
+  priceMultiplier?: number
   sort?: number
   createTime?: string
   updateTime?: string
