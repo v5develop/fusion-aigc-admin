@@ -336,6 +336,28 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
+        path: 'cost-pricing',
+        name: 'ModelCostPricing',
+        component: () => import('@/views/model/cost-pricing/index.vue'),
+        meta: {
+          title: 'menu.modelCostPricing',
+          icon: 'ProfileOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'cost_pricing:view',
+        },
+      },
+      {
+        path: 'margin',
+        name: 'ModelMargin',
+        component: () => import('@/views/model/margin/index.vue'),
+        meta: {
+          title: 'menu.modelMargin',
+          icon: 'FundOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'cost:view',
+        },
+      },
+      {
         path: 'queue-monitor',
         name: 'ModelQueueMonitor',
         component: () => import('@/views/model/queue-monitor/index.vue'),

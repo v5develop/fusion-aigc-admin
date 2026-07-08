@@ -341,6 +341,7 @@ export interface ModelCost {
   userId: number
   username?: string
   modelId: number
+  modelName?: string
   pricingId: number
   pointsConsumed: number
   actualCostAmount: number
@@ -349,10 +350,76 @@ export interface ModelCost {
   createTime: string
 }
 
+// Cost Pricing Types
+export interface ModelCostPricing {
+  id: number
+  modelId: number
+  modelName?: string
+  modelCode?: string
+  meterType?: string
+  actionType?: string
+  costAmount?: number
+  costCurrency?: string
+  costUnit?: string
+  provider?: string
+  providerModel?: string
+  effectiveTime?: string
+  expireTime?: string
+  status: number
+  createTime?: string
+}
+
+export interface CostPricingListParams extends ListParams {
+  modelId?: number
+  meterType?: string
+  status?: number
+}
+
+// Margin Types
+export interface MarginSummary {
+  rate?: string | null
+  paidPoints: number
+  revenueCny: number | string
+  costCny: number | string
+  marginCny: number | string
+  marginRate?: number | string | null
+}
+
+export interface MarginByModel {
+  modelId: number
+  modelName?: string
+  revenueCny: number | string
+  costCny: number | string
+  marginCny: number | string
+  marginRate: number | string
+}
+
+export interface MarginTrendPoint {
+  date: string
+  revenueCny: number | string
+  costCny: number | string
+  marginCny: number | string
+}
+
+export interface MarginByReservation {
+  reservationNo: string
+  rate?: string | null
+  paidPoints: number
+  revenueCny: number | string
+  costCny: number | string
+  marginCny: number | string
+  costLines: ModelCost[]
+}
+
+export interface MarginConfig {
+  pointsToCostCnyRate?: string
+}
+
 export interface ModelCostStats {
   todayCost: number
   totalCount: number
   costByModel: Record<string, number>
+  costBySource?: Record<string, number>
 }
 
 // Billing Exception Types
