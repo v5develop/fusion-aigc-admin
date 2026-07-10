@@ -256,6 +256,7 @@ const STATUS_COLORS: Record<string, string> = {
   排队中: CHART_COLORS.warning,
   处理中: CHART_COLORS.primary,
   已完成: CHART_COLORS.success,
+  部分成功: '#faad14',
   失败: CHART_COLORS.error,
   已取消: '#8c8c8c',
 }

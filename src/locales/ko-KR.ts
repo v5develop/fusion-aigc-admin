@@ -2925,6 +2925,7 @@ export default {
     statusCompleted: '완료됨',
     statusFailed: '실패',
     statusCancelled: '취소됨',
+    statusPartialSuccess: '부분 성공',
 
     // Type
     typeImage: '이미지',

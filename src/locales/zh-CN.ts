@@ -3592,6 +3592,7 @@ export default {
     statusCompleted: '已完成',
     statusFailed: '失败',
     statusCancelled: '已取消',
+    statusPartialSuccess: '部分成功',
 
     // Type
     typeImage: '图片',

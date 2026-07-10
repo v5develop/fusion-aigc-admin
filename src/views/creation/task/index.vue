@@ -223,6 +223,7 @@ const statusMap: Record<number, string> = {
   2: t('creationTask.statusCompleted'),
   3: t('creationTask.statusFailed'),
   4: t('creationTask.statusCancelled'),
+  5: t('creationTask.statusPartialSuccess'),
 }
 
 const statusColorMap: Record<number, string> = {
@@ -231,6 +232,7 @@ const statusColorMap: Record<number, string> = {
   2: '#52c41a',
   3: '#ff4d4f',
   4: '#d9d9d9',
+  5: '#faad14',
 }
 
 // Type color map — 尝试匹配已知大类意图，未匹配时根据名称选择
@@ -306,6 +308,7 @@ const columns = computed(() => [
       { label: t('creationTask.statusCompleted'), value: 2 },
       { label: t('creationTask.statusFailed'), value: 3 },
       { label: t('creationTask.statusCancelled'), value: 4 },
+      { label: t('creationTask.statusPartialSuccess'), value: 5 },
     ],
     width: 120,
   },

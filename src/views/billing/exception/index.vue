@@ -146,6 +146,7 @@ const processStatusMap: Record<string, string> = {
   1: '处理中',
   2: '已完成',
   3: '失败',
+  5: '部分成功',
 }
 
 const processStatusColorMap: Record<string, string> = {
@@ -153,6 +154,7 @@ const processStatusColorMap: Record<string, string> = {
   1: 'processing',
   2: 'success',
   3: 'error',
+  5: 'warning',
 }
 
 const taskColumns = [

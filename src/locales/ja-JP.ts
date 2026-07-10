@@ -2937,6 +2937,7 @@ export default {
     statusCompleted: '完了',
     statusFailed: '失敗',
     statusCancelled: 'キャンセル済',
+    statusPartialSuccess: '一部成功',
 
     // Type
     typeImage: '画像',

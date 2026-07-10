@@ -3536,6 +3536,7 @@ export default {
     statusCompleted: 'Completed',
     statusFailed: 'Failed',
     statusCancelled: 'Cancelled',
+    statusPartialSuccess: 'Partial Success',
     typeImage: 'Image',
     typeVideo: 'Video',
     typeEcommerce: 'E-commerce',

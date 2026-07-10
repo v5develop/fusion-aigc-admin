@@ -39,3 +39,6 @@ pnpm-lock.yaml
 /skills-lock.json
 
 /release/
+# CocoIndex Code (ccc)
+/.cocoindex_code/
+/.rtk/

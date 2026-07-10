@@ -504,6 +504,7 @@ const statusMap: Record<number, string> = {
   2: t('creationTask.statusCompleted'),
   3: t('creationTask.statusFailed'),
   4: t('creationTask.statusCancelled'),
+  5: t('creationTask.statusPartialSuccess'),
 }
 
 const statusColorMap: Record<number, string> = {
@@ -512,6 +513,7 @@ const statusColorMap: Record<number, string> = {
   2: '#52c41a',
   3: '#ff4d4f',
   4: '#d9d9d9',
+  5: '#faad14',
 }
 
 const TYPE_COLORS = ['blue', 'purple', 'orange', 'green', 'cyan', 'magenta']
