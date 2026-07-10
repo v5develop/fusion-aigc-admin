@@ -42,7 +42,7 @@ function recordMenuHistory(route: RouteLocationNormalized) {
  */
 export function setupRouterGuards(router: Router) {
   // Before each route navigation
-  router.beforeEach(async (to, _from, next) => {
+  router.beforeEach(async (to, _from) => {
     const authStore = useAuthStore();
     const tabsStore = useTabsStore();
 
@@ -73,11 +73,10 @@ export function setupRouterGuards(router: Router) {
       // Check if user is logged in
       if (!authStore.isLoggedIn) {
         // Redirect to login page
-        next({
+        return {
           path: '/login',
           query: { redirect: to.fullPath },
-        });
-        return;
+        };
       }
 
       // Generate routes and menu tree if not already done
@@ -95,8 +94,7 @@ export function setupRouterGuards(router: Router) {
           })
           
           // Retry the current navigation with newly added routes
-          next({ ...to, replace: true })
-          return
+          return { ...to, replace: true }
         } catch (error) {
           console.error('Failed to generate routes:', error);
         }
@@ -111,7 +109,7 @@ export function setupRouterGuards(router: Router) {
       tabsStore.addTab(to);
     }
 
-    next();
+    return true;
   });
 
   // After each route navigation

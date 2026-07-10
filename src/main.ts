@@ -7,7 +7,6 @@ import { createApp } from 'vue';
 dayjs.locale('zh-cn');
 
 import App from './App.vue';
-import { registerDefaultComponentProps } from './components/Global/defaultComponentProps';
 import { setupDirectives } from './directives';
 import i18n from './locales';
 import router from './router';
@@ -39,7 +38,6 @@ app.use(pinia);
 app.use(AntdvNext);
 app.use(router);
 app.use(i18n);
-registerDefaultComponentProps(app);
 
 // Register custom directives
 setupDirectives(app);

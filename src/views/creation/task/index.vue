@@ -95,15 +95,16 @@
 
       <!-- 子任务展开行 -->
       <template #expandedRowRender="{ record }">
-        <a-spin :spinning="!!childrenLoading[record.taskId]">
-          <a-table
-            :columns="childColumns"
-            :data-source="childrenMap[record.taskId] || []"
-            :pagination="false"
-            row-key="id"
-            size="small"
-            :scroll="{ x: 1040 }"
-          >
+        <ChildTaskExpand :task-id="record.taskId">
+          <template #default="{ data }">
+            <a-table
+              :columns="childColumns"
+              :data-source="data"
+              :pagination="false"
+              row-key="id"
+              size="small"
+              :scroll="{ x: 1040 }"
+            >
             <template #emptyText>
               <a-empty :description="$t('creationTask.noChildData')" />
             </template>
@@ -149,7 +150,8 @@
               </template>
             </template>
           </a-table>
-        </a-spin>
+          </template>
+        </ChildTaskExpand>
       </template>
     </ProTable>
 
@@ -181,7 +183,6 @@ import { message, Modal } from 'antdv-next'
 import ProTable from '@/components/Pro/ProTable/index.vue'
 import {
   getCreationTaskList,
-  getCreationTaskChildren,
   cancelCreationTask,
   retryCreationTask,
   forceCompleteCreationTask,
@@ -190,38 +191,17 @@ import {
 } from '@/api/creation-task'
 import type { CreationTask } from '@/api/creation-task'
 import { getAllOffers } from '@/api/billing-offer'
+import ChildTaskExpand from './ChildTaskExpand.vue'
 
 const { t } = useI18n()
 const router = useRouter()
 const tableRef = ref()
 const selectedRowKeys = ref<string[]>([])
 
-// ---- 子任务展开行 ----
-const childrenMap = ref<Record<string, CreationTask[]>>({})
-const childrenLoading = ref<Record<string, boolean>>({})
-
-// 仅有子任务的父任务行可展开；展开时按需加载子任务
+// 仅有子任务的父任务行可展开；展开行内容由 ChildTaskExpand 组件自管理
 const expandableConfig = computed(() => ({
   rowExpandable: (record: CreationTask) => !!record.hasChildren,
-  onExpand: (expanded: boolean, record: CreationTask) => {
-    if (expanded && !childrenMap.value[record.taskId]) {
-      loadChildren(record.taskId)
-    }
-  },
 }))
-
-async function loadChildren(taskId: string) {
-  childrenLoading.value[taskId] = true
-  try {
-    const res = await getCreationTaskChildren(taskId)
-    childrenMap.value[taskId] = res || []
-  } catch (error) {
-    console.error('Failed to load child tasks:', error)
-    childrenMap.value[taskId] = []
-  } finally {
-    childrenLoading.value[taskId] = false
-  }
-}
 
 // 动态类型筛选选项（从 offer 表加载）
 const typeSearchOptions = ref<{ label: string; value: string }[]>([])

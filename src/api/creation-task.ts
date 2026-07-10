@@ -1,4 +1,5 @@
 import { request } from '@/utils/request'
+import type { AxiosRequestConfig } from 'axios'
 import type { PageResult } from '@/types/api'
 
 // Task status enum
@@ -184,8 +185,11 @@ export function getCreationTaskApiLogs(id: number) {
 }
 
 // 按父任务ID查询子任务列表（列表展开行用）
-export function getCreationTaskChildren(taskId: string) {
-  return request.get<CreationTask[]>(`/api/v1/admin/creation/tasks/${taskId}/children`)
+export function getCreationTaskChildren(taskId: string, config?: AxiosRequestConfig) {
+  return request.get<CreationTask[]>(
+    `/api/v1/admin/creation/tasks/${encodeURIComponent(taskId)}/children`,
+    config,
+  )
 }
 
 export function cancelCreationTask(taskId: string) {

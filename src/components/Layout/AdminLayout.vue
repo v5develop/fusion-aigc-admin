@@ -1,6 +1,6 @@
 <template>
   <a-watermark v-bind="watermarkStore.watermarkProps" class="global-watermark">
-    <a-skip-to-content target="#main-content" />
+    <a href="#main-content" class="skip-to-content-link">跳转到主要内容</a>
     <a-layout
       class="admin-layout"
       :class="[settingsStore.layoutMode, { mobile: layoutStore.isMobile }]"
@@ -601,6 +601,25 @@ watch(
 </script>
 
 <style scoped lang="scss">
+.skip-to-content-link {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10001;
+  padding: 8px 16px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 14px;
+  text-decoration: none;
+  border-radius: 0 0 4px 0;
+  transform: translateY(-100%);
+  transition: transform 0.2s ease;
+
+  &:focus {
+    transform: translateY(0);
+  }
+}
+
 .admin-layout {
   height: 100vh;
   min-height: 100vh;
