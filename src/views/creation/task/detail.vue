@@ -100,6 +100,21 @@
           <a-descriptions-item :label="$t('creationTask.reservationNo')">
             {{ task?.reservationNo || '-' }}
           </a-descriptions-item>
+          <!-- 子任务计费聚合（FAN_OUT 批量任务计费落在子任务上，父任务本身可能无预扣）-->
+          <template v-if="hasSubTasks">
+            <a-descriptions-item :label="$t('creationTask.childCount')">
+              {{ task?.childCount ?? '-' }}
+            </a-descriptions-item>
+            <a-descriptions-item :label="$t('creationTask.aggregatedBillingStatus')">
+              <a-tag v-if="task?.aggregatedBillingStatus" :color="billingStatusColorMap[task.aggregatedBillingStatus]">
+                {{ billingStatusMap[task.aggregatedBillingStatus] || task.aggregatedBillingStatus }}
+              </a-tag>
+              <span v-else>-</span>
+            </a-descriptions-item>
+            <a-descriptions-item :label="$t('creationTask.totalPricePoints')">
+              <span class="points-value">{{ task?.totalPricePoints ?? '-' }}</span>
+            </a-descriptions-item>
+          </template>
         </a-descriptions>
       </a-card>
 
@@ -428,6 +443,9 @@ const loading = ref(false)
 const task = ref<CreationTask | null>(null)
 const costSummary = ref<CompositeCostSummary | null>(null)
 const pipelineSteps = ref<PipelineStepsResponse | null>(null)
+
+// 是否存在子任务：存在则展示父任务计费聚合（合计消耗积分 / 折叠计费状态 / 子任务数）
+const hasSubTasks = computed(() => (task.value?.subTasks?.length ?? 0) > 0)
 
 // API 请求日志（错误信息详情）
 const apiLogModalOpen = ref(false)

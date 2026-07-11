@@ -43,13 +43,27 @@
         </template>
 
         <template v-if="column.dataIndex === 'billingStatus'">
-          <a-tag :color="billingStatusColorMap[record.billingStatus]">
+          <template v-if="record.hasChildren">
+            <a-tag :color="billingStatusColorMap[record.aggregatedBillingStatus]">
+              {{ billingStatusMap[record.aggregatedBillingStatus] || record.aggregatedBillingStatus || '-' }}
+            </a-tag>
+            <a-tooltip :title="$t('creationTask.aggregatedHint', { count: record.childCount })">
+              <a-tag color="purple">{{ $t('creationTask.aggregatedTag') }}</a-tag>
+            </a-tooltip>
+          </template>
+          <a-tag v-else :color="billingStatusColorMap[record.billingStatus]">
             {{ billingStatusMap[record.billingStatus] || record.billingStatus || '-' }}
           </a-tag>
         </template>
 
         <template v-if="column.dataIndex === 'pricePoints'">
-          <span class="points-value">{{ record.pricePoints ?? '-' }}</span>
+          <template v-if="record.hasChildren">
+            <a-tooltip :title="$t('creationTask.aggregatedHint', { count: record.childCount })">
+              <span class="points-value">{{ record.totalPricePoints ?? '-' }}</span>
+              <span class="agg-badge">{{ $t('creationTask.aggregatedTag') }}</span>
+            </a-tooltip>
+          </template>
+          <span v-else class="points-value">{{ record.pricePoints ?? '-' }}</span>
         </template>
 
         <template v-if="column.dataIndex === 'errorMsg'">
@@ -517,6 +531,16 @@ async function handleExport() {
 .points-value {
   font-weight: 600;
   color: var(--color-primary);
+}
+
+.agg-badge {
+  margin-left: 4px;
+  padding: 0 4px;
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--color-text-tertiary, #999);
+  border: 1px solid var(--color-border, #d9d9d9);
+  border-radius: 4px;
 }
 
 .text-ellipsis {
