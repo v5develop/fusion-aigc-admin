@@ -45,11 +45,9 @@
             <span v-else>-</span>
           </a-descriptions-item>
           <a-descriptions-item :label="$t('creationTask.status')">
-            <a-badge
-              v-if="task"
-              :color="statusColorMap[task.status]"
-              :text="statusMap[task.status] || '-'"
-            />
+            <a-tag v-if="task" :color="statusColorMap[task.status]">
+              {{ statusMap[task.status] || '-' }}
+            </a-tag>
           </a-descriptions-item>
           <a-descriptions-item :label="$t('creationTask.userId')">
             {{ task?.userId || '-' }}
@@ -238,10 +236,9 @@
               </a-tag>
             </template>
             <template v-if="column.dataIndex === 'status'">
-              <a-badge
-                :color="statusColorMap[record.status]"
-                :text="statusMap[record.status] || '-'"
-              />
+              <a-tag :color="statusColorMap[record.status]">
+                {{ statusMap[record.status] || '-' }}
+              </a-tag>
             </template>
             <template v-if="column.dataIndex === 'result'">
               <a-image
@@ -508,12 +505,12 @@ const statusMap: Record<number, string> = {
 }
 
 const statusColorMap: Record<number, string> = {
-  0: '#1890ff',
-  1: '#fa8c16',
-  2: '#52c41a',
-  3: '#ff4d4f',
-  4: '#d9d9d9',
-  5: '#faad14',
+  0: 'blue',
+  1: 'gold',
+  2: 'green',
+  3: 'red',
+  4: 'default',
+  5: 'orange',
 }
 
 const TYPE_COLORS = ['blue', 'purple', 'orange', 'green', 'cyan', 'magenta']

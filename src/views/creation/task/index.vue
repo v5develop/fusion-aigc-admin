@@ -39,7 +39,7 @@
         </template>
 
         <template v-if="column.dataIndex === 'status'">
-          <a-badge :color="statusColorMap[record.status]" :text="statusMap[record.status] || '-'" />
+          <a-tag :color="statusColorMap[record.status]">{{ statusMap[record.status] || '-' }}</a-tag>
         </template>
 
         <template v-if="column.dataIndex === 'billingStatus'">
@@ -120,7 +120,7 @@
                 </a-tag>
               </template>
               <template v-if="column.dataIndex === 'status'">
-                <a-badge :color="statusColorMap[child.status]" :text="statusMap[child.status] || '-'" />
+                <a-tag :color="statusColorMap[child.status]">{{ statusMap[child.status] || '-' }}</a-tag>
               </template>
               <template v-if="column.dataIndex === 'result'">
                 <a-image
@@ -227,12 +227,12 @@ const statusMap: Record<number, string> = {
 }
 
 const statusColorMap: Record<number, string> = {
-  0: '#1890ff',
-  1: '#fa8c16',
-  2: '#52c41a',
-  3: '#ff4d4f',
-  4: '#d9d9d9',
-  5: '#faad14',
+  0: 'blue',
+  1: 'gold',
+  2: 'green',
+  3: 'red',
+  4: 'default',
+  5: 'orange',
 }
 
 // Type color map — 尝试匹配已知大类意图，未匹配时根据名称选择
