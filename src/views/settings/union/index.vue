@@ -516,15 +516,15 @@ const apiDocs = computed(() => {
         { name: 'rechargeId', type: 'String', required: true, description: t('openPlatformUnion.rechargeIdDesc') },
         { name: 'unionUserId', type: 'String', required: true, description: t('openPlatformUnion.unionUserIdDesc') },
         { name: 'pointsAmount', type: 'Long', required: true, description: t('openPlatformUnion.pointsAmountDesc') },
-        { name: 'expireTime', type: 'LocalDateTime', required: false, description: t('openPlatformUnion.expireTimeDesc') },
         { name: 'bizType', type: 'String', required: false, description: t('openPlatformUnion.rechargeBizTypeDesc') },
+        { name: 'expireTime', type: 'LocalDateTime', required: false, description: t('openPlatformUnion.rechargeExpireTimeDesc') },
       ],
       requestExample: JSON.stringify({
         rechargeId: 'RECHARGE-20260528-001',
         unionUserId: 'union_user_12345',
         pointsAmount: 1000,
-        expireTime: '2026-12-31T23:59:59',
         bizType: 'subscription',
+        expireTime: '2026-12-31T23:59:59',
       }, null, 2),
       responseParams: [
         { name: 'externalId', type: 'String', required: false, description: t('openPlatformUnion.externalIdDesc') },
@@ -729,7 +729,7 @@ const apiDocs = computed(() => {
         { name: 'pointsAmount', type: 'Long', required: false, description: t('openPlatformUnion.rechargePointsAmountDesc') },
         { name: 'consumedAmount', type: 'Long', required: false, description: t('openPlatformUnion.consumedAmountDesc') },
         { name: 'remainingAmount', type: 'Long', required: false, description: t('openPlatformUnion.remainingAmountDesc') },
-        { name: 'expireTime', type: 'String', required: false, description: t('openPlatformUnion.expireTimeDesc') },
+        { name: 'expireTime', type: 'String', required: false, description: t('openPlatformUnion.rechargeExpireTimeDesc') },
         { name: 'expired', type: 'Boolean', required: false, description: t('openPlatformUnion.expiredDesc') },
       ],
       responseExample: JSON.stringify({

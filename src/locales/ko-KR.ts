@@ -2635,6 +2635,7 @@ export default {
     pointsAmountDesc: '부여 포인트 수량',
     expireTimeDesc: '능력 만료 시간',
     sourceGrantIdDesc: '원본 부여 번호, 취소 시 해당 부여 기록 지정',
+    rechargeExpireTimeDesc: '포인트 만료 시간(해당 충전 배치 포인트의 만료 시각, 만료 후 미사용분은 소멸; 미지정 시 무기한)',
     rechargeBizTypeDesc: '소스 비즈니스 타입: subscription(구독 지급) / recharge(일반 충전), 대소문자 구분 없음; 미지정 시 일반 충전으로 기장',
     sourceBizTypeDesc: '원본 비즈니스 타입, 충전 bizType과 일치: subscription(구독 지급) / recharge(일반 충전)',
     sourceBizIdDesc: '원본 비즈니스 번호',

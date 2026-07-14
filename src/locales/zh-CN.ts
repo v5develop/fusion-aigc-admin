@@ -2993,6 +2993,7 @@ export default {
     pointsAmountDesc: '下发点数数量',
     expireTimeDesc: '创作能力过期时间',
     sourceGrantIdDesc: '原下发单号，撤回时需指定对应的下发记录',
+    rechargeExpireTimeDesc: '点数过期时间（该批次充值点数的到期时间，到期未用作废；不传则不过期）',
     rechargeBizTypeDesc: '来源业务类型：subscription-订阅赠送 / recharge-普通充值（大小写不敏感）；不传默认按普通充值记账，用于区分订阅赠送与普通充值',
     sourceBizTypeDesc: '原业务类型，与充值 bizType 对齐：subscription-订阅赠送 / recharge-普通充值',
     sourceBizIdDesc: '原业务单号',

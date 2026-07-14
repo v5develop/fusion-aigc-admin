@@ -2647,6 +2647,7 @@ export default {
     pointsAmountDesc: '付与ポイント数',
     expireTimeDesc: '创作能力有効期限',
     sourceGrantIdDesc: '元の付与番号、取消時に対応する付与記録を指定',
+    rechargeExpireTimeDesc: 'ポイント有効期限（当該チャージバッチのポイント期限、期限切れの未使用分は失効；未指定時は無期限）',
     rechargeBizTypeDesc: 'ソース業務タイプ：subscription（サブスク付与）/ recharge（通常チャージ）、大文字小文字を区別しない；未指定時は通常チャージとして計上',
     sourceBizTypeDesc: '元の業務タイプ、チャージ bizType と一致：subscription（サブスク付与）/ recharge（通常チャージ）',
     sourceBizIdDesc: '元の業務番号',

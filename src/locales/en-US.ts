@@ -2960,6 +2960,7 @@ export default {
     pointsAmountDesc: 'Points amount to grant',
     expireTimeDesc: 'Feature expiration time',
     sourceGrantIdDesc: 'Original grant ID, required when revoking',
+    rechargeExpireTimeDesc: 'Points expiry time (expiry of this recharged points batch; unused points are voided after expiry; never expires if omitted)',
     rechargeBizTypeDesc: 'Source business type: subscription (subscription grant) / recharge (normal recharge), case-insensitive; defaults to normal recharge when omitted',
     sourceBizTypeDesc: 'Original business type, aligned with recharge bizType: subscription (subscription grant) / recharge (normal recharge)',
     sourceBizIdDesc: 'Original business ID',
