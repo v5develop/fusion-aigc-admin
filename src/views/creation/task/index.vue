@@ -34,7 +34,7 @@
 
         <template v-if="column.dataIndex === 'type'">
           <a-tag :color="getTypeColor(record.type)">
-            {{ record.typeName || record.type }}
+            {{ typeLabel(record) }}
           </a-tag>
         </template>
 
@@ -130,7 +130,7 @@
               </template>
               <template v-if="column.dataIndex === 'type'">
                 <a-tag :color="getTypeColor(child.type)">
-                  {{ child.typeName || child.type }}
+                  {{ typeLabel(child) }}
                 </a-tag>
               </template>
               <template v-if="column.dataIndex === 'status'">
@@ -247,6 +247,14 @@ const statusColorMap: Record<number, string> = {
   3: 'red',
   4: 'default',
   5: 'orange',
+}
+
+// 任务类型展示：优先后端中文名(typeName，来自计费 Offer)，通用 image/video 无 Offer 时回退到本地词条
+function typeLabel(r: { typeName?: string; type?: string }): string {
+  if (r.typeName) return r.typeName
+  if (r.type === 'image') return t('creationTask.typeGenericImage')
+  if (r.type === 'video') return t('creationTask.typeGenericVideo')
+  return r.type || '-'
 }
 
 // Type color map — 尝试匹配已知大类意图，未匹配时根据名称选择

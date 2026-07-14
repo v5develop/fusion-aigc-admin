@@ -517,12 +517,14 @@ const apiDocs = computed(() => {
         { name: 'unionUserId', type: 'String', required: true, description: t('openPlatformUnion.unionUserIdDesc') },
         { name: 'pointsAmount', type: 'Long', required: true, description: t('openPlatformUnion.pointsAmountDesc') },
         { name: 'expireTime', type: 'LocalDateTime', required: false, description: t('openPlatformUnion.expireTimeDesc') },
+        { name: 'bizType', type: 'String', required: false, description: t('openPlatformUnion.rechargeBizTypeDesc') },
       ],
       requestExample: JSON.stringify({
         rechargeId: 'RECHARGE-20260528-001',
         unionUserId: 'union_user_12345',
         pointsAmount: 1000,
         expireTime: '2026-12-31T23:59:59',
+        bizType: 'subscription',
       }, null, 2),
       responseParams: [
         { name: 'externalId', type: 'String', required: false, description: t('openPlatformUnion.externalIdDesc') },

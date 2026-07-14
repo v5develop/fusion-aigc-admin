@@ -2635,7 +2635,8 @@ export default {
     pointsAmountDesc: '부여 포인트 수량',
     expireTimeDesc: '능력 만료 시간',
     sourceGrantIdDesc: '원본 부여 번호, 취소 시 해당 부여 기록 지정',
-    sourceBizTypeDesc: '원본 비즈니스 타입, 예: recharge/consume',
+    rechargeBizTypeDesc: '소스 비즈니스 타입: subscription(구독 지급) / recharge(일반 충전), 대소문자 구분 없음; 미지정 시 일반 충전으로 기장',
+    sourceBizTypeDesc: '원본 비즈니스 타입, 충전 bizType과 일치: subscription(구독 지급) / recharge(일반 충전)',
     sourceBizIdDesc: '원본 비즈니스 번호',
     refundAmountDesc: '환불 포인트 수량',
     externalIdDesc: '외부 거래 번호, 얼라이언스 측 요청 고유 식별자',
@@ -2924,6 +2925,15 @@ export default {
     parentTaskId: '상위 작업 ID',
     reservationNo: '예약 번호',
 
+    // Cost source
+    costSourceMap: {
+      estimated: '예상',
+      billed: '공급사 실제',
+      configured: '설정가',
+      returned: '반환',
+      unknown: '알 수 없음',
+    },
+
     // Status
     statusQueuing: '대기 중',
     statusProcessing: '처리 중',
@@ -2936,6 +2946,8 @@ export default {
     typeImage: '이미지',
     typeVideo: '비디오',
     typeEcommerce: '이커머스',
+    typeGenericImage: '일반 이미지',
+    typeGenericVideo: '일반 비디오',
 
     // Billing status
     billingHeld: '선공제됨',

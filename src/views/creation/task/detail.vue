@@ -40,7 +40,7 @@
           </a-descriptions-item>
           <a-descriptions-item :label="$t('creationTask.type')">
             <a-tag v-if="task?.type" :color="getTypeColor(task.type)">
-              {{ task.typeName || task.type }}
+              {{ typeLabel(task) }}
             </a-tag>
             <span v-else>-</span>
           </a-descriptions-item>
@@ -247,7 +247,7 @@
           <template #bodyCell="{ column, record }">
             <template v-if="column.dataIndex === 'type'">
               <a-tag :color="getTypeColor(record.type)">
-                {{ record.typeName || record.type }}
+                {{ typeLabel(record) }}
               </a-tag>
             </template>
             <template v-if="column.dataIndex === 'status'">
@@ -315,9 +315,10 @@
         >
           <template #bodyCell="{ column, record }">
             <template v-if="column.dataIndex === 'costSource'">
-              <a-tag :color="costSourceColorMap[record.costSource] || 'default'">
-                {{ record.costSource }}
+              <a-tag v-if="record.costSource" :color="costSourceColorMap[record.costSource] || 'default'">
+                {{ t('creationTask.costSourceMap.' + record.costSource) || record.costSource }}
               </a-tag>
+              <span v-else>-</span>
             </template>
             <template v-if="column.dataIndex === 'stepCode'">
               <code>{{ record.stepCode }}</code>
@@ -531,6 +532,14 @@ const statusColorMap: Record<number, string> = {
   5: 'orange',
 }
 
+// 任务类型展示：优先后端中文名(typeName，来自计费 Offer)，通用 image/video 无 Offer 时回退到本地词条
+function typeLabel(r: { typeName?: string; type?: string }): string {
+  if (r.typeName) return r.typeName
+  if (r.type === 'image') return t('creationTask.typeGenericImage')
+  if (r.type === 'video') return t('creationTask.typeGenericVideo')
+  return r.type || '-'
+}
+
 const TYPE_COLORS = ['blue', 'purple', 'orange', 'green', 'cyan', 'magenta']
 function getTypeColor(type: string, index?: number): string {
   if (!type) return 'default'
@@ -574,10 +583,11 @@ const billingStatusColorMap: Record<string, string> = {
 }
 
 const costSourceColorMap: Record<string, string> = {
-  ESTIMATED: 'orange',
-  BILLED: 'green',
-  RETURNED: 'blue',
-  UNKNOWN: 'default',
+  estimated: 'orange',
+  billed: 'green',
+  configured: 'blue',
+  returned: 'cyan',
+  unknown: 'default',
 }
 
 // Child task columns

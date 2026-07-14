@@ -2647,7 +2647,8 @@ export default {
     pointsAmountDesc: '付与ポイント数',
     expireTimeDesc: '创作能力有効期限',
     sourceGrantIdDesc: '元の付与番号、取消時に対応する付与記録を指定',
-    sourceBizTypeDesc: '元の業務タイプ、例: recharge/consume',
+    rechargeBizTypeDesc: 'ソース業務タイプ：subscription（サブスク付与）/ recharge（通常チャージ）、大文字小文字を区別しない；未指定時は通常チャージとして計上',
+    sourceBizTypeDesc: '元の業務タイプ、チャージ bizType と一致：subscription（サブスク付与）/ recharge（通常チャージ）',
     sourceBizIdDesc: '元の業務番号',
     refundAmountDesc: '返金ポイント数',
     externalIdDesc: '外部取引番号、アライアンス側リクエストの一意識別子',
@@ -2936,6 +2937,15 @@ export default {
     parentTaskId: '親タスクID',
     reservationNo: '予約番号',
 
+    // Cost source
+    costSourceMap: {
+      estimated: '見積',
+      billed: 'サプライヤー実費',
+      configured: '設定価格',
+      returned: '返却',
+      unknown: '不明',
+    },
+
     // Status
     statusQueuing: '待機中',
     statusProcessing: '処理中',
@@ -2948,6 +2958,8 @@ export default {
     typeImage: '画像',
     typeVideo: '動画',
     typeEcommerce: 'EC',
+    typeGenericImage: '汎用画像',
+    typeGenericVideo: '汎用動画',
 
     // Billing status
     billingHeld: '仮確保済',
