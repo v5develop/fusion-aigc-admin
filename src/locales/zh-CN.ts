@@ -3813,6 +3813,7 @@ export default {
     sortOrder: '排序',
     extra: '扩展信息',
     extraPlaceholder: '可选，JSON 或备注',
+    sharedMaterialHint: '素材本体（URL/标题/尺寸/扩展）按 URL 全局去重，同一素材被多个模块/槽位共享；修改这些字段会同步影响所有引用它的位置。模块/槽位/排序/状态仅作用于当前位置。',
     tagDrawerTitle: '素材打标',
     multiSelect: '多选',
     clear: '清空',

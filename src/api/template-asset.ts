@@ -3,9 +3,12 @@ import type { PageResult } from '@/types/api'
 
 export type TemplateAssetType = 'image' | 'video'
 
-// 模板素材
+// 模板素材（拆分后：id=投放位ID，materialId=物料ID）
 export interface TemplateAsset {
+  /** 投放位ID：增删改/详情的目标 */
   id: number
+  /** 物料ID：打标接口(getAssetTags/setAssetTags/batchTagAssets)使用；同一物料被多投放位共享 */
+  materialId: number
   bizType: string
   moduleCode: string
   slotCode: string
@@ -89,21 +92,21 @@ export function deleteTemplateAsset(id: number) {
   return request.delete(`/api/v1/admin/template/assets/${id}`)
 }
 
-// ---- 打标 ----
-export function getAssetTags(assetId: number) {
+// ---- 打标（入参为物料ID materialId，非投放位ID）----
+export function getAssetTags(materialId: number) {
   return request.get<TemplateAssetTag[]>(
-    `/api/v1/admin/template/filters/assets/${assetId}/tags`,
+    `/api/v1/admin/template/filters/assets/${materialId}/tags`,
   )
 }
 
-export function setAssetTags(assetId: number, optionIds: number[]) {
-  return request.put(`/api/v1/admin/template/filters/assets/${assetId}/tags`, { optionIds })
+export function setAssetTags(materialId: number, optionIds: number[]) {
+  return request.put(`/api/v1/admin/template/filters/assets/${materialId}/tags`, { optionIds })
 }
 
-// 批量打标（追加模式）：对每个 asset 追加这些 option，返回插入数
-export function batchTagAssets(assetIds: number[], optionIds: number[]) {
+// 批量打标（追加模式）：对每个物料追加这些 option，返回插入数
+export function batchTagAssets(materialIds: number[], optionIds: number[]) {
   return request.post<number>('/api/v1/admin/template/filters/assets/tags/batch', {
-    assetIds,
+    assetIds: materialIds,
     optionIds,
   })
 }

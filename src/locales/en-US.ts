@@ -3748,6 +3748,7 @@ export default {
     sortOrder: 'Sort',
     extra: 'Extra',
     extraPlaceholder: 'Optional, JSON or note',
+    sharedMaterialHint: 'The material itself (URL/title/size/extra) is globally deduplicated by URL and shared across every module/slot that references it; editing these fields affects all placements. Module/slot/sort/status apply only to this placement.',
     tagDrawerTitle: 'Asset Tagging',
     multiSelect: 'Multi',
     clear: 'Clear',

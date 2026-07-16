@@ -67,22 +67,22 @@
           <template v-if="column.dataIndex === 'tagged'">
             <a-spin v-if="taggedLoading" size="small" />
             <template v-else>
-              <span v-if="(taggedMap[record.id] || []).length === 0" class="tagged-empty">
+              <span v-if="(taggedMap[record.materialId] || []).length === 0" class="tagged-empty">
                 {{ $t('templateAsset.notTagged') }}
               </span>
               <a-space v-else :size="[4, 4]" wrap>
                 <a-tag
-                  v-for="tag in (taggedMap[record.id] || []).slice(0, MAX_TAGS_PER_ROW)"
+                  v-for="tag in (taggedMap[record.materialId] || []).slice(0, MAX_TAGS_PER_ROW)"
                   :key="tag.optionId"
                   :color="tag.color"
                 >
                   {{ tag.label }}
                 </a-tag>
                 <a-tag
-                  v-if="(taggedMap[record.id] || []).length > MAX_TAGS_PER_ROW"
+                  v-if="(taggedMap[record.materialId] || []).length > MAX_TAGS_PER_ROW"
                   color="default"
                 >
-                  +{{ (taggedMap[record.id] || []).length - MAX_TAGS_PER_ROW }}
+                  +{{ (taggedMap[record.materialId] || []).length - MAX_TAGS_PER_ROW }}
                 </a-tag>
               </a-space>
             </template>
@@ -136,6 +136,13 @@
       @ok="handleAssetSubmit"
     >
       <a-form :model="assetForm" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
+        <a-alert
+          v-if="isAssetEdit"
+          type="warning"
+          show-icon
+          :message="$t('templateAsset.sharedMaterialHint')"
+          style="margin-bottom: 16px"
+        />
         <a-form-item :label="$t('templateAsset.bizType')">
           <a-select
             v-model:value="assetForm.bizType"
@@ -571,7 +578,7 @@ const currentQuery = reactive({
   slotCode: undefined as string | undefined,
 })
 
-// 已打标签：assetId -> [{optionId, label, color}]
+// 已打标签：materialId -> [{optionId, label, color}]（打标挂物料，多投放位共享）
 interface TaggedChip {
   optionId: number
   label: string
@@ -579,6 +586,8 @@ interface TaggedChip {
 }
 const taggedMap = reactive<Record<number, TaggedChip[]>>({})
 const taggedLoading = ref(false)
+// 投放位ID -> 物料ID（批量打标需把选中行换算成物料ID）
+const placementMaterial = reactive<Record<number, number>>({})
 // optionId -> {filterId, filterName, optionName}
 const optionDict = ref<Map<number, { filterId: number; filterName: string; optionName: string }>>(
   new Map(),
@@ -612,22 +621,23 @@ async function ensureOptionDict() {
   }
 }
 
-// 批量加载当前页素材的已打标签
+// 批量加载当前页素材的已打标签（按物料去重拉取，键=materialId）
 async function loadTaggedForAssets(assets: TemplateAsset[]) {
   Object.keys(taggedMap).forEach((k) => delete taggedMap[Number(k)])
   if (assets.length === 0) return
   taggedLoading.value = true
   try {
     await ensureOptionDict()
+    const materialIds = [...new Set(assets.map((a) => a.materialId))]
     const results = await Promise.all(
-      assets.map((a) =>
-        getAssetTags(a.id)
-          .then((tags) => ({ id: a.id, tags: tags || [] }))
-          .catch(() => ({ id: a.id, tags: [] })),
+      materialIds.map((mid) =>
+        getAssetTags(mid)
+          .then((tags) => ({ mid, tags: tags || [] }))
+          .catch(() => ({ mid, tags: [] })),
       ),
     )
-    results.forEach(({ id, tags }) => {
-      taggedMap[id] = tags.map((tg) => {
+    results.forEach(({ mid, tags }) => {
+      taggedMap[mid] = tags.map((tg) => {
         const dictEntry = optionDict.value.get(tg.optionId)
         return {
           optionId: tg.optionId,
@@ -655,6 +665,10 @@ async function loadAssets(params: Record<string, unknown>) {
     pageSize: (params.pageSize as number) || 10,
   })
   const list = res.list || []
+  // 记录本页 投放位ID -> 物料ID 映射（供批量打标换算）
+  list.forEach((a) => {
+    placementMaterial[a.id] = a.materialId
+  })
   // 异步加载本页素材已打标签（不阻塞表格渲染）
   loadTaggedForAssets(list)
   return {
@@ -782,7 +796,7 @@ async function handleOpenTagDrawer(record: TemplateAsset) {
         moduleCode: record.moduleCode,
         slotCode: record.slotCode,
       }),
-      getAssetTags(record.id),
+      getAssetTags(record.materialId),
     ])
     filterMetaList.value = meta || []
     const selectedOptionIds = new Set((tags || []).map((tg) => tg.optionId))
@@ -818,7 +832,7 @@ async function handleSaveTags() {
         if (v != null) optionIds.push(v)
       }
     })
-    await setAssetTags(tagAsset.value.id, optionIds)
+    await setAssetTags(tagAsset.value.materialId, optionIds)
     message.success(t('templateAsset.saveTagsSuccess'))
     tagDrawerVisible.value = false
     assetTableRef.value?.refresh()
@@ -894,9 +908,16 @@ async function handleSubmitBatchTag() {
   }
   batchSubmitLoading.value = true
   try {
-    const assetIds = [...selectedRowKeys.value]
-    await batchTagAssets(assetIds, optionIds)
-    message.success(t('templateAsset.batchTagSuccess', { count: assetIds.length }))
+    // 选中的是投放位行，换算成去重物料ID再打标（同物料只打一次）
+    const materialIds = [
+      ...new Set(
+        selectedRowKeys.value
+          .map((k) => placementMaterial[k])
+          .filter((v): v is number => v != null),
+      ),
+    ]
+    await batchTagAssets(materialIds, optionIds)
+    message.success(t('templateAsset.batchTagSuccess', { count: materialIds.length }))
     batchTagDrawerVisible.value = false
     selectedRowKeys.value = []
     assetTableRef.value?.refresh()
