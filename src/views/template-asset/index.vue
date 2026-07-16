@@ -64,34 +64,39 @@
             </a-tag>
           </template>
 
+          <template v-if="column.dataIndex === 'placementCount'">
+            <a-button type="link" size="small" @click="handleOpenPlacements(record)">
+              <a-badge
+                :count="record.placementCount || 0"
+                :number-style="{ backgroundColor: (record.placementCount || 0) > 0 ? '#52c41a' : '#bfbfbf' }"
+                show-zero
+              />
+              <span style="margin-left: 6px">{{ $t('templateAsset.managePlacements') }}</span>
+            </a-button>
+          </template>
+
           <template v-if="column.dataIndex === 'tagged'">
             <a-spin v-if="taggedLoading" size="small" />
             <template v-else>
-              <span v-if="(taggedMap[record.materialId] || []).length === 0" class="tagged-empty">
+              <span v-if="(taggedMap[record.id] || []).length === 0" class="tagged-empty">
                 {{ $t('templateAsset.notTagged') }}
               </span>
               <a-space v-else :size="[4, 4]" wrap>
                 <a-tag
-                  v-for="tag in (taggedMap[record.materialId] || []).slice(0, MAX_TAGS_PER_ROW)"
+                  v-for="tag in (taggedMap[record.id] || []).slice(0, MAX_TAGS_PER_ROW)"
                   :key="tag.optionId"
                   :color="tag.color"
                 >
                   {{ tag.label }}
                 </a-tag>
                 <a-tag
-                  v-if="(taggedMap[record.materialId] || []).length > MAX_TAGS_PER_ROW"
+                  v-if="(taggedMap[record.id] || []).length > MAX_TAGS_PER_ROW"
                   color="default"
                 >
-                  +{{ (taggedMap[record.materialId] || []).length - MAX_TAGS_PER_ROW }}
+                  +{{ (taggedMap[record.id] || []).length - MAX_TAGS_PER_ROW }}
                 </a-tag>
               </a-space>
             </template>
-          </template>
-
-          <template v-if="column.dataIndex === 'status'">
-            <a-tag :color="record.status === 1 ? 'green' : 'red'">
-              {{ record.status === 1 ? $t('common.enabled') : $t('common.disabled') }}
-            </a-tag>
           </template>
 
           <template v-if="column.key === 'operation'">
@@ -127,7 +132,7 @@
       </ProTable>
     </a-card>
 
-    <!-- 素材 新增/编辑 弹窗 -->
+    <!-- 物料 新增/编辑 弹窗 -->
     <a-modal
       v-model:open="assetModalVisible"
       :title="isAssetEdit ? $t('templateAsset.editAsset') : $t('templateAsset.createAsset')"
@@ -144,32 +149,7 @@
           style="margin-bottom: 16px"
         />
         <a-form-item :label="$t('templateAsset.bizType')">
-          <a-select
-            v-model:value="assetForm.bizType"
-            :options="bizTypeOptions"
-            @change="onAssetModuleChange"
-          />
-        </a-form-item>
-        <a-form-item :label="$t('templateAsset.moduleCode')">
-          <a-select
-            v-model:value="assetForm.moduleCode"
-            :options="moduleOptions"
-            :placeholder="$t('templateAsset.moduleCodePlaceholder')"
-            :loading="moduleLoading"
-            show-search
-            option-filter-prop="label"
-            allow-clear
-            @change="onAssetModuleChange"
-          />
-        </a-form-item>
-        <a-form-item :label="$t('templateAsset.slotCode')">
-          <a-auto-complete
-            v-model:value="assetForm.slotCode"
-            :options="assetSlotCodeOptions"
-            :placeholder="$t('templateAsset.slotCodePlaceholder')"
-            allow-clear
-            :filter-option="filterSlotOption"
-          />
+          <a-select v-model:value="assetForm.bizType" :options="bizTypeOptions" />
         </a-form-item>
         <a-form-item :label="$t('templateAsset.type')">
           <a-select v-model:value="assetForm.type" :options="typeOptions" />
@@ -207,9 +187,6 @@
             />
           </a-space>
         </a-form-item>
-        <a-form-item :label="$t('templateAsset.sortOrder')">
-          <a-input-number v-model:value="assetForm.sortOrder" :min="0" style="width: 100%" />
-        </a-form-item>
         <a-form-item :label="$t('templateAsset.extra')">
           <a-textarea
             v-model:value="assetForm.extra"
@@ -217,15 +194,115 @@
             :placeholder="$t('templateAsset.extraPlaceholder')"
           />
         </a-form-item>
-        <a-form-item :label="$t('common.status')">
+      </a-form>
+    </a-modal>
+
+    <!-- 投放位管理抽屉 -->
+    <a-drawer
+      v-model:open="placementDrawerVisible"
+      :title="$t('templateAsset.placementDrawerTitle')"
+      :size="640"
+      :styles="{ body: { paddingBottom: '24px' } }"
+    >
+      <div v-if="placementMaterial" class="tag-asset-head">
+        <a-image
+          v-if="placementMaterial.type === 'image' && placementMaterial.url"
+          :src="placementMaterial.url"
+          :width="64"
+          :height="64"
+          style="object-fit: cover; border-radius: 4px"
+        />
+        <div class="tag-asset-meta">
+          <div class="tag-asset-title">{{ placementMaterial.title || '-' }}</div>
+          <div class="tag-asset-sub">
+            {{ $t('templateAsset.placementCountCol') }}: {{ placements.length }}
+          </div>
+        </div>
+      </div>
+
+      <!-- 新增投放位 -->
+      <div class="placement-add">
+        <a-space wrap>
+          <a-select
+            v-model:value="placementAddForm.moduleCode"
+            :options="moduleOptions"
+            :placeholder="$t('templateAsset.moduleCodePlaceholder')"
+            :loading="moduleLoading"
+            show-search
+            option-filter-prop="label"
+            style="width: 200px"
+            @change="onPlacementModuleChange"
+          />
+          <a-auto-complete
+            v-model:value="placementAddForm.slotCode"
+            :options="placementSlotOptions"
+            :placeholder="$t('templateAsset.slotCodePlaceholder')"
+            :filter-option="filterSlotOption"
+            style="width: 150px"
+          />
+          <a-input-number
+            v-model:value="placementAddForm.sortOrder"
+            :min="0"
+            :placeholder="$t('templateAsset.sortOrder')"
+            style="width: 90px"
+          />
           <a-switch
-            v-model:checked="assetForm.status"
+            v-model:checked="placementAddForm.status"
             :checked-value="1"
             :unchecked-value="0"
           />
-        </a-form-item>
-      </a-form>
-    </a-modal>
+          <a-button
+            v-permission="'template_filter:edit'"
+            type="primary"
+            :loading="placementAddLoading"
+            @click="handleAddPlacement"
+          >
+            {{ $t('templateAsset.addPlacement') }}
+          </a-button>
+        </a-space>
+      </div>
+
+      <a-divider style="margin: 16px 0" />
+
+      <a-spin :spinning="placementLoading">
+        <a-empty
+          v-if="!placementLoading && placements.length === 0"
+          :description="$t('templateAsset.noPlacement')"
+        />
+        <div v-for="p in placements" :key="p.id" class="placement-row">
+          <a-select
+            v-model:value="p.moduleCode"
+            :options="moduleOptions"
+            show-search
+            option-filter-prop="label"
+            style="width: 190px"
+          />
+          <a-auto-complete
+            v-model:value="p.slotCode"
+            :options="placementSlotOptions"
+            :filter-option="filterSlotOption"
+            style="width: 140px"
+          />
+          <a-input-number v-model:value="p.sortOrder" :min="0" style="width: 80px" />
+          <a-switch v-model:checked="p.status" :checked-value="1" :unchecked-value="0" />
+          <a-button
+            v-permission="'template_filter:edit'"
+            type="link"
+            size="small"
+            @click="handleSavePlacement(p)"
+          >
+            {{ $t('common.save') }}
+          </a-button>
+          <a-popconfirm
+            v-permission="'template_filter:delete'"
+            :title="$t('templateAsset.confirmDeletePlacement')"
+            @confirm="handleDeletePlacement(p)"
+          >
+            <a-button type="link" size="small" danger>{{ $t('common.delete') }}</a-button>
+          </a-popconfirm>
+        </div>
+      </a-spin>
+    </a-drawer>
 
     <!-- 打标抽屉 -->
     <a-drawer
@@ -245,9 +322,7 @@
           />
           <div class="tag-asset-meta">
             <div class="tag-asset-title">{{ tagAsset.title || '-' }}</div>
-            <div class="tag-asset-sub">
-              {{ tagAsset.moduleCode }} / {{ tagAsset.slotCode }}
-            </div>
+            <div class="tag-asset-sub">{{ tagAsset.url }}</div>
           </div>
         </div>
 
@@ -405,15 +480,20 @@ import { useI18n } from 'vue-i18n'
 import { PlayCircleOutlined } from '@antdv-next/icons'
 import ProTable from '@/components/Pro/ProTable/index.vue'
 import {
-  getTemplateAssetList,
-  createTemplateAsset,
-  updateTemplateAsset,
-  deleteTemplateAsset,
+  getTemplateMaterialList,
+  createTemplateMaterial,
+  updateTemplateMaterial,
+  deleteTemplateMaterial,
+  getPlacements,
+  addPlacement,
+  updatePlacement,
+  deletePlacement,
   getAssetTags,
   setAssetTags,
   batchTagAssets,
   getTemplateFilterMeta,
-  type TemplateAsset,
+  type TemplateMaterial,
+  type TemplatePlacement,
   type TemplateAssetType,
   type TemplateFilterMeta,
 } from '@/api/template-asset'
@@ -446,28 +526,6 @@ async function loadModuleOptions() {
 }
 loadModuleOptions()
 
-// 素材表单的页面区块联想下拉（按当前 biz/module 取 distinct slotCode，可手输）
-const assetSlotCodeOptions = ref<{ label: string; value: string }[]>([])
-const assetSlotCodeLoading = ref(false)
-async function loadAssetSlotCodeOptions() {
-  assetSlotCodeLoading.value = true
-  try {
-    const res = await getSlotCodes({
-      bizType: assetForm.bizType || 'ecommerce',
-      moduleCode: assetForm.moduleCode || undefined,
-    })
-    assetSlotCodeOptions.value = (res || []).map((c) => ({ label: c, value: c }))
-  } catch (error) {
-    console.error('Failed to load slot code options:', error)
-    assetSlotCodeOptions.value = []
-  } finally {
-    assetSlotCodeLoading.value = false
-  }
-}
-function onAssetModuleChange() {
-  loadAssetSlotCodeOptions()
-}
-
 // auto-complete 联想过滤（按输入文本匹配候选 value）
 function filterSlotOption(input: string, option: { value: string }) {
   return option.value.toLowerCase().includes(input.toLowerCase())
@@ -475,7 +533,6 @@ function filterSlotOption(input: string, option: { value: string }) {
 
 // 已打标签列：每行最多展示的标签数
 const MAX_TAGS_PER_ROW = 4
-// 标签色板：按 filterId 循环取色
 const TAG_COLORS = [
   'blue',
   'green',
@@ -494,7 +551,7 @@ const typeOptions = [
   { label: t('templateAsset.typeVideo'), value: 'video' },
 ]
 
-// ---- 素材列表 ----
+// ---- 物料列表 ----
 const assetColumns = [
   {
     title: t('templateAsset.preview'),
@@ -506,24 +563,10 @@ const assetColumns = [
   {
     title: t('templateAsset.title'),
     dataIndex: 'title',
-    ellipsis: true,
-    width: 160,
-  },
-  {
-    title: t('templateAsset.moduleCode'),
-    dataIndex: 'moduleCode',
     search: true,
     searchType: 'input' as const,
-    width: 140,
     ellipsis: true,
-  },
-  {
-    title: t('templateAsset.slotCode'),
-    dataIndex: 'slotCode',
-    search: true,
-    searchType: 'input' as const,
-    width: 130,
-    ellipsis: true,
+    width: 180,
   },
   {
     title: t('templateAsset.type'),
@@ -538,9 +581,16 @@ const assetColumns = [
     align: 'center' as const,
   },
   {
-    title: t('templateAsset.sortOrder'),
-    dataIndex: 'sortOrder',
-    width: 70,
+    title: t('templateAsset.url'),
+    dataIndex: 'url',
+    ellipsis: true,
+    width: 220,
+  },
+  {
+    title: t('templateAsset.placementCountCol'),
+    dataIndex: 'placementCount',
+    key: 'placementCount',
+    width: 150,
     align: 'center' as const,
   },
   {
@@ -550,35 +600,21 @@ const assetColumns = [
     width: 220,
   },
   {
-    title: t('common.status'),
-    dataIndex: 'status',
-    search: true,
-    searchType: 'select' as const,
-    searchOptions: [
-      { label: t('common.enabled'), value: 1 },
-      { label: t('common.disabled'), value: 0 },
-    ],
-    width: 90,
-    align: 'center' as const,
-  },
-  {
     title: t('common.action'),
     dataIndex: 'operation',
     key: 'operation',
-    width: 200,
+    width: 180,
     align: 'center' as const,
     fixed: 'right' as const,
   },
 ]
 
-// 当前列表查询条件（供批量打标取元数据复用）
+// 当前列表查询条件（供打标取元数据复用）
 const currentQuery = reactive({
   bizType: 'ecommerce' as string,
-  moduleCode: undefined as string | undefined,
-  slotCode: undefined as string | undefined,
 })
 
-// 已打标签：materialId -> [{optionId, label, color}]（打标挂物料，多投放位共享）
+// 已打标签：materialId -> [{optionId, label, color}]
 interface TaggedChip {
   optionId: number
   label: string
@@ -586,8 +622,6 @@ interface TaggedChip {
 }
 const taggedMap = reactive<Record<number, TaggedChip[]>>({})
 const taggedLoading = ref(false)
-// 投放位ID -> 物料ID（批量打标需把选中行换算成物料ID）
-const placementMaterial = reactive<Record<number, number>>({})
 // optionId -> {filterId, filterName, optionName}
 const optionDict = ref<Map<number, { filterId: number; filterName: string; optionName: string }>>(
   new Map(),
@@ -597,14 +631,10 @@ function colorForFilter(filterId: number): string {
   return TAG_COLORS[filterId % TAG_COLORS.length]
 }
 
-// 构建/刷新 optionId 字典（用当前筛选条件取全量维度）
+// 构建/刷新 optionId 字典（按业务域取全量维度）
 async function ensureOptionDict() {
   try {
-    const meta = await getTemplateFilterMeta({
-      bizType: currentQuery.bizType,
-      moduleCode: currentQuery.moduleCode,
-      slotCode: currentQuery.slotCode,
-    })
+    const meta = await getTemplateFilterMeta({ bizType: currentQuery.bizType })
     const dict = new Map<number, { filterId: number; filterName: string; optionName: string }>()
     ;(meta || []).forEach((m) => {
       m.options.forEach((o) => {
@@ -621,23 +651,22 @@ async function ensureOptionDict() {
   }
 }
 
-// 批量加载当前页素材的已打标签（按物料去重拉取，键=materialId）
-async function loadTaggedForAssets(assets: TemplateAsset[]) {
+// 批量加载当前页物料的已打标签（键=materialId）
+async function loadTaggedForAssets(materials: TemplateMaterial[]) {
   Object.keys(taggedMap).forEach((k) => delete taggedMap[Number(k)])
-  if (assets.length === 0) return
+  if (materials.length === 0) return
   taggedLoading.value = true
   try {
     await ensureOptionDict()
-    const materialIds = [...new Set(assets.map((a) => a.materialId))]
     const results = await Promise.all(
-      materialIds.map((mid) =>
-        getAssetTags(mid)
-          .then((tags) => ({ mid, tags: tags || [] }))
-          .catch(() => ({ mid, tags: [] })),
+      materials.map((m) =>
+        getAssetTags(m.id)
+          .then((tags) => ({ id: m.id, tags: tags || [] }))
+          .catch(() => ({ id: m.id, tags: [] })),
       ),
     )
-    results.forEach(({ mid, tags }) => {
-      taggedMap[mid] = tags.map((tg) => {
+    results.forEach(({ id, tags }) => {
+      taggedMap[id] = tags.map((tg) => {
         const dictEntry = optionDict.value.get(tg.optionId)
         return {
           optionId: tg.optionId,
@@ -654,22 +683,15 @@ async function loadTaggedForAssets(assets: TemplateAsset[]) {
 }
 
 async function loadAssets(params: Record<string, unknown>) {
-  currentQuery.moduleCode = params.moduleCode as string | undefined
-  currentQuery.slotCode = params.slotCode as string | undefined
-  const res = await getTemplateAssetList({
-    moduleCode: params.moduleCode as string | undefined,
-    slotCode: params.slotCode as string | undefined,
+  const res = await getTemplateMaterialList({
+    bizType: currentQuery.bizType,
+    keyword: (params.title as string) || undefined,
     type: params.type as TemplateAssetType | undefined,
-    status: params.status as number | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
   })
   const list = res.list || []
-  // 记录本页 投放位ID -> 物料ID 映射（供批量打标换算）
-  list.forEach((a) => {
-    placementMaterial[a.id] = a.materialId
-  })
-  // 异步加载本页素材已打标签（不阻塞表格渲染）
+  // 异步加载本页物料已打标签（不阻塞表格渲染）
   loadTaggedForAssets(list)
   return {
     data: list,
@@ -678,92 +700,197 @@ async function loadAssets(params: Record<string, unknown>) {
   }
 }
 
-// ---- 素材 CRUD ----
+// ---- 物料 CRUD ----
 const assetModalVisible = ref(false)
 const assetSubmitLoading = ref(false)
 const isAssetEdit = ref(false)
-const editAssetId = ref<number | null>(null)
+const editMaterialId = ref<number | null>(null)
 
 const assetForm = reactive({
   bizType: 'ecommerce',
-  moduleCode: '',
-  slotCode: '',
   type: 'image' as TemplateAssetType,
   title: '',
   url: '',
   width: undefined as number | undefined,
   height: undefined as number | undefined,
-  sortOrder: 0,
-  status: 1,
   extra: '',
 })
 
 function resetAssetForm() {
   assetForm.bizType = 'ecommerce'
-  assetForm.moduleCode = ''
-  assetForm.slotCode = ''
   assetForm.type = 'image'
   assetForm.title = ''
   assetForm.url = ''
   assetForm.width = undefined
   assetForm.height = undefined
-  assetForm.sortOrder = 0
-  assetForm.status = 1
   assetForm.extra = ''
 }
 
 function handleCreateAsset() {
   isAssetEdit.value = false
-  editAssetId.value = null
+  editMaterialId.value = null
   resetAssetForm()
-  assetSlotCodeOptions.value = []
   assetModalVisible.value = true
 }
 
-function handleEditAsset(record: TemplateAsset) {
+function handleEditAsset(record: TemplateMaterial) {
   isAssetEdit.value = true
-  editAssetId.value = record.id
+  editMaterialId.value = record.id
   assetForm.bizType = record.bizType
-  assetForm.moduleCode = record.moduleCode
-  assetForm.slotCode = record.slotCode
   assetForm.type = record.type
   assetForm.title = record.title
   assetForm.url = record.url
   assetForm.width = record.width
   assetForm.height = record.height
-  assetForm.sortOrder = record.sortOrder ?? 0
-  assetForm.status = record.status
   assetForm.extra = record.extra ?? ''
-  loadAssetSlotCodeOptions()
   assetModalVisible.value = true
 }
 
 async function handleAssetSubmit() {
+  if (!assetForm.url) {
+    message.warning(t('templateAsset.urlPlaceholder'))
+    return
+  }
   assetSubmitLoading.value = true
   try {
-    if (isAssetEdit.value && editAssetId.value != null) {
-      await updateTemplateAsset(editAssetId.value, { ...assetForm })
+    if (isAssetEdit.value && editMaterialId.value != null) {
+      await updateTemplateMaterial(editMaterialId.value, { ...assetForm })
       message.success(t('common.updateSuccess'))
+      assetModalVisible.value = false
+      assetTableRef.value?.refresh()
     } else {
-      await createTemplateAsset({ ...assetForm })
+      const newId = await createTemplateMaterial({ ...assetForm })
       message.success(t('common.createSuccess'))
+      assetModalVisible.value = false
+      assetTableRef.value?.refresh()
+      // 新建物料后直接引导去添加投放位
+      if (typeof newId === 'number') {
+        handleOpenPlacements({ ...assetForm, id: newId, placementCount: 0 } as TemplateMaterial)
+      }
     }
-    assetModalVisible.value = false
-    assetTableRef.value?.refresh()
   } catch (error) {
-    console.error('Failed to save asset:', error)
+    console.error('Failed to save material:', error)
   } finally {
     assetSubmitLoading.value = false
   }
 }
 
-async function handleDeleteAsset(record: TemplateAsset) {
+async function handleDeleteAsset(record: TemplateMaterial) {
   try {
-    await deleteTemplateAsset(record.id)
+    await deleteTemplateMaterial(record.id)
     message.success(t('common.deleteSuccess'))
     assetTableRef.value?.refresh()
   } catch (error) {
-    console.error('Failed to delete asset:', error)
+    console.error('Failed to delete material:', error)
+  }
+}
+
+// ---- 投放位管理抽屉 ----
+const placementDrawerVisible = ref(false)
+const placementLoading = ref(false)
+const placementAddLoading = ref(false)
+const placementMaterial = ref<TemplateMaterial | null>(null)
+const placements = ref<TemplatePlacement[]>([])
+const placementSlotOptions = ref<{ label: string; value: string }[]>([])
+const placementAddForm = reactive({
+  moduleCode: undefined as string | undefined,
+  slotCode: '' as string,
+  sortOrder: 0,
+  status: 1,
+})
+
+async function loadPlacementSlotOptions(moduleCode?: string) {
+  try {
+    const res = await getSlotCodes({
+      bizType: placementMaterial.value?.bizType || 'ecommerce',
+      moduleCode: moduleCode || undefined,
+    })
+    placementSlotOptions.value = (res || []).map((c) => ({ label: c, value: c }))
+  } catch (error) {
+    console.error('Failed to load slot options:', error)
+    placementSlotOptions.value = []
+  }
+}
+
+function onPlacementModuleChange() {
+  loadPlacementSlotOptions(placementAddForm.moduleCode)
+}
+
+async function loadPlacements(materialId: number) {
+  placementLoading.value = true
+  try {
+    const res = await getPlacements(materialId)
+    placements.value = (res || []).map((p) => ({ ...p }))
+  } catch (error) {
+    console.error('Failed to load placements:', error)
+    placements.value = []
+  } finally {
+    placementLoading.value = false
+  }
+}
+
+async function handleOpenPlacements(record: TemplateMaterial) {
+  placementMaterial.value = record
+  placementDrawerVisible.value = true
+  placementAddForm.moduleCode = undefined
+  placementAddForm.slotCode = ''
+  placementAddForm.sortOrder = 0
+  placementAddForm.status = 1
+  placements.value = []
+  placementSlotOptions.value = []
+  loadPlacementSlotOptions()
+  await loadPlacements(record.id)
+}
+
+async function handleAddPlacement() {
+  if (!placementMaterial.value) return
+  if (!placementAddForm.moduleCode) {
+    message.warning(t('templateAsset.moduleCodePlaceholder'))
+    return
+  }
+  placementAddLoading.value = true
+  try {
+    await addPlacement(placementMaterial.value.id, {
+      moduleCode: placementAddForm.moduleCode,
+      slotCode: placementAddForm.slotCode || '',
+      sortOrder: placementAddForm.sortOrder,
+      status: placementAddForm.status,
+    })
+    message.success(t('templateAsset.addPlacementSuccess'))
+    placementAddForm.slotCode = ''
+    await loadPlacements(placementMaterial.value.id)
+    assetTableRef.value?.refresh()
+  } catch (error) {
+    console.error('Failed to add placement:', error)
+  } finally {
+    placementAddLoading.value = false
+  }
+}
+
+async function handleSavePlacement(p: TemplatePlacement) {
+  try {
+    await updatePlacement(p.id, {
+      moduleCode: p.moduleCode,
+      slotCode: p.slotCode || '',
+      sortOrder: p.sortOrder,
+      status: p.status,
+    })
+    message.success(t('common.updateSuccess'))
+    assetTableRef.value?.refresh()
+  } catch (error) {
+    console.error('Failed to save placement:', error)
+  }
+}
+
+async function handleDeletePlacement(p: TemplatePlacement) {
+  if (!placementMaterial.value) return
+  try {
+    await deletePlacement(p.id)
+    message.success(t('common.deleteSuccess'))
+    await loadPlacements(placementMaterial.value.id)
+    assetTableRef.value?.refresh()
+  } catch (error) {
+    console.error('Failed to delete placement:', error)
   }
 }
 
@@ -771,11 +898,9 @@ async function handleDeleteAsset(record: TemplateAsset) {
 const tagDrawerVisible = ref(false)
 const tagLoading = ref(false)
 const tagSubmitLoading = ref(false)
-const tagAsset = ref<TemplateAsset | null>(null)
+const tagAsset = ref<TemplateMaterial | null>(null)
 const filterMetaList = ref<TemplateFilterMeta[]>([])
-// multiSelect=true -> optionId[] by filterId
 const multiSelections = reactive<Record<number, number[]>>({})
-// multiSelect=false -> single optionId (or null) by filterId
 const singleSelections = reactive<Record<number, number | null>>({})
 
 function clearTagSelections() {
@@ -783,7 +908,7 @@ function clearTagSelections() {
   Object.keys(singleSelections).forEach((k) => delete singleSelections[Number(k)])
 }
 
-async function handleOpenTagDrawer(record: TemplateAsset) {
+async function handleOpenTagDrawer(record: TemplateMaterial) {
   tagAsset.value = record
   tagDrawerVisible.value = true
   tagLoading.value = true
@@ -791,16 +916,11 @@ async function handleOpenTagDrawer(record: TemplateAsset) {
   clearTagSelections()
   try {
     const [meta, tags] = await Promise.all([
-      getTemplateFilterMeta({
-        bizType: record.bizType,
-        moduleCode: record.moduleCode,
-        slotCode: record.slotCode,
-      }),
-      getAssetTags(record.materialId),
+      getTemplateFilterMeta({ bizType: record.bizType }),
+      getAssetTags(record.id),
     ])
     filterMetaList.value = meta || []
     const selectedOptionIds = new Set((tags || []).map((tg) => tg.optionId))
-    // 初始化各维度选中态
     filterMetaList.value.forEach((m) => {
       const chosen = m.options
         .filter((o) => selectedOptionIds.has(o.optionId))
@@ -832,7 +952,7 @@ async function handleSaveTags() {
         if (v != null) optionIds.push(v)
       }
     })
-    await setAssetTags(tagAsset.value.materialId, optionIds)
+    await setAssetTags(tagAsset.value.id, optionIds)
     message.success(t('templateAsset.saveTagsSuccess'))
     tagDrawerVisible.value = false
     assetTableRef.value?.refresh()
@@ -872,11 +992,7 @@ async function handleOpenBatchTag() {
   batchFilterMetaList.value = []
   clearBatchSelections()
   try {
-    const meta = await getTemplateFilterMeta({
-      bizType: currentQuery.bizType,
-      moduleCode: currentQuery.moduleCode,
-      slotCode: currentQuery.slotCode,
-    })
+    const meta = await getTemplateFilterMeta({ bizType: currentQuery.bizType })
     batchFilterMetaList.value = meta || []
     batchFilterMetaList.value.forEach((m) => {
       if (m.multiSelect) {
@@ -908,14 +1024,8 @@ async function handleSubmitBatchTag() {
   }
   batchSubmitLoading.value = true
   try {
-    // 选中的是投放位行，换算成去重物料ID再打标（同物料只打一次）
-    const materialIds = [
-      ...new Set(
-        selectedRowKeys.value
-          .map((k) => placementMaterial[k])
-          .filter((v): v is number => v != null),
-      ),
-    ]
+    // 选中行即物料，直接按物料ID批量打标
+    const materialIds = [...selectedRowKeys.value]
     await batchTagAssets(materialIds, optionIds)
     message.success(t('templateAsset.batchTagSuccess', { count: materialIds.length }))
     batchTagDrawerVisible.value = false
@@ -946,6 +1056,7 @@ async function handleSubmitBatchTag() {
 .tag-asset-meta {
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .tag-asset-title {
@@ -955,6 +1066,19 @@ async function handleSubmitBatchTag() {
 .tag-asset-sub {
   font-size: 12px;
   color: #999;
+  word-break: break-all;
+}
+
+.placement-add {
+  padding: 8px 0;
+}
+
+.placement-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px dashed #f0f0f0;
 }
 
 .tag-dimension {

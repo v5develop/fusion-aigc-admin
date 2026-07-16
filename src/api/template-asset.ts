@@ -3,39 +3,51 @@ import type { PageResult } from '@/types/api'
 
 export type TemplateAssetType = 'image' | 'video'
 
-// 模板素材（拆分后：id=投放位ID，materialId=物料ID）
-export interface TemplateAsset {
-  /** 投放位ID：增删改/详情的目标 */
+// 物料（拆分后：id=物料ID，同一 bizType+url 唯一；module/slot 由投放位承载）
+export interface TemplateMaterial {
+  /** 物料ID：CRUD 与打标接口均用此 id */
   id: number
-  /** 物料ID：打标接口(getAssetTags/setAssetTags/batchTagAssets)使用；同一物料被多投放位共享 */
-  materialId: number
   bizType: string
-  moduleCode: string
-  slotCode: string
   type: TemplateAssetType
   title: string
   url: string
   width?: number
   height?: number
-  sortOrder?: number
-  status: number
   extra?: string
+  /** 已挂投放位数量 */
+  placementCount?: number
   createTime?: string
   updateTime?: string
 }
 
-export interface TemplateAssetFormData {
+// 投放位（物料出现在某 module/slot 的一条记录）
+export interface TemplatePlacement {
+  id: number
   bizType: string
   moduleCode: string
   slotCode: string
+  assetId: number
+  sortOrder?: number
+  status: number
+  createTime?: string
+  updateTime?: string
+}
+
+export interface MaterialFormData {
+  bizType: string
   type: TemplateAssetType
   title: string
   url: string
   width?: number
   height?: number
+  extra?: string
+}
+
+export interface PlacementFormData {
+  moduleCode: string
+  slotCode?: string
   sortOrder?: number
   status: number
-  extra?: string
 }
 
 // 素材已打的标签
@@ -63,36 +75,62 @@ export interface TemplateFilterMeta {
   options: TemplateFilterMetaOption[]
 }
 
-// ---- 素材 CRUD ----
-export function getTemplateAssetList(params: {
+// ---- 物料 CRUD ----
+export function getTemplateMaterialList(params: {
   bizType?: string
+  type?: TemplateAssetType
+  keyword?: string
   moduleCode?: string
   slotCode?: string
-  type?: TemplateAssetType
-  status?: number
   page?: number
   pageSize?: number
 }) {
-  return request.get<PageResult<TemplateAsset>>('/api/v1/admin/template/assets', { params })
+  return request.get<PageResult<TemplateMaterial>>('/api/v1/admin/template/assets', { params })
 }
 
-export function getTemplateAsset(id: number) {
-  return request.get<TemplateAsset>(`/api/v1/admin/template/assets/${id}`)
+export function getTemplateMaterial(id: number) {
+  return request.get<TemplateMaterial>(`/api/v1/admin/template/assets/${id}`)
 }
 
-export function createTemplateAsset(data: TemplateAssetFormData) {
-  return request.post('/api/v1/admin/template/assets', data)
+// 创建物料（可选同时批量落投放位）
+export function createTemplateMaterial(
+  data: MaterialFormData & { placements?: PlacementFormData[] },
+) {
+  return request.post<number>('/api/v1/admin/template/assets', data)
 }
 
-export function updateTemplateAsset(id: number, data: Partial<TemplateAssetFormData>) {
+export function updateTemplateMaterial(id: number, data: Partial<MaterialFormData>) {
   return request.put(`/api/v1/admin/template/assets/${id}`, data)
 }
 
-export function deleteTemplateAsset(id: number) {
+// 删除物料（级联删除其投放位与打标）
+export function deleteTemplateMaterial(id: number) {
   return request.delete(`/api/v1/admin/template/assets/${id}`)
 }
 
-// ---- 打标（入参为物料ID materialId，非投放位ID）----
+// ---- 投放位（物料子资源）----
+export function getPlacements(materialId: number) {
+  return request.get<TemplatePlacement[]>(
+    `/api/v1/admin/template/assets/${materialId}/placements`,
+  )
+}
+
+export function addPlacement(materialId: number, data: PlacementFormData) {
+  return request.post<number>(
+    `/api/v1/admin/template/assets/${materialId}/placements`,
+    data,
+  )
+}
+
+export function updatePlacement(placementId: number, data: Partial<PlacementFormData>) {
+  return request.put(`/api/v1/admin/template/assets/placements/${placementId}`, data)
+}
+
+export function deletePlacement(placementId: number) {
+  return request.delete(`/api/v1/admin/template/assets/placements/${placementId}`)
+}
+
+// ---- 打标（入参为物料ID）----
 export function getAssetTags(materialId: number) {
   return request.get<TemplateAssetTag[]>(
     `/api/v1/admin/template/filters/assets/${materialId}/tags`,
