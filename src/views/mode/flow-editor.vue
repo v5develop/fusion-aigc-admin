@@ -88,6 +88,16 @@
               placeholder="选择生成模型"
             />
           </a-form-item>
+          <a-form-item v-if="selectedNode.data.kind === 'AIGC'" label="可变模型步 variantGroup（可空）">
+            <a-input
+              v-model:value="selectedNode.data.variantGroup"
+              :disabled="!isDraft"
+              placeholder="填 stepCode 分组名（如 imageGen）"
+            />
+            <div class="muted" style="margin-top: 4px">
+              非空=该步按<b>提交模型</b>选档：运行时从 offer 同 stepCode 的多档组件命中一档，覆写本步 mode+modelId（上面 Mode 作占位默认档）。
+            </div>
+          </a-form-item>
           <a-divider style="margin: 8px 0" />
           <a-button danger size="small" :disabled="!isDraft" @click="removeSelected">删除该节点</a-button>
           <a-alert type="info" show-icon style="margin-top: 12px" message="计费类型不在此配置——计费随计费场景，在计费/offer 层管理。" />
@@ -218,6 +228,7 @@ function assemble() {
       handler: d.handler || undefined,
       mode: d.mode ?? undefined,
       modelId: d.modelId ?? undefined,
+      variantGroup: (d.variantGroup as string) || undefined, // 可变模型步：非空=按提交模型选档
       // costType 不在此——计费随计费场景，真实用户提交时由计费场景回填
     }
   })
