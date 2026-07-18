@@ -736,6 +736,18 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
+        path: 'flows/:flowId/versions',
+        name: 'ModeFlowVersions',
+        component: () => import('@/views/mode/flow-versions.vue'),
+        meta: {
+          title: 'menu.modeFlowVersions',
+          requiresAuth: true,
+          hidden: true,
+          activeMenu: '/mode/flows',
+          requiredPermissions: 'mode:view',
+        },
+      },
+      {
         path: 'flow-editor/:flowId',
         name: 'ModeFlowEditor',
         component: () => import('@/views/mode/flow-editor.vue'),

@@ -172,6 +172,7 @@ export default {
     modeList: '节点 Node',
     modeFlows: 'Mode 流',
     modeFlowEditor: '流程编排',
+    modeFlowVersions: '版本/编排',
   },
 
   layout: {

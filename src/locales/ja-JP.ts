@@ -210,6 +210,7 @@ export default {
     modeList: 'ノード',
     modeFlows: 'Modeフロー',
     modeFlowEditor: 'フロー編集',
+    modeFlowVersions: 'バージョン/編成',
     featureManagement: '機能管理',
     userManagement: 'ユーザー管理',
     adminManagement: '管理者管理',

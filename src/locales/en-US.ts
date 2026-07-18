@@ -163,6 +163,7 @@ export default {
     modeList: 'Nodes',
     modeFlows: 'Mode Flows',
     modeFlowEditor: 'Flow Editor',
+    modeFlowVersions: 'Versions / Orchestration',
   },
   layout: {
     logout: 'Logout',

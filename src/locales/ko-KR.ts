@@ -210,6 +210,7 @@ export default {
     modeList: '노드',
     modeFlows: '모드 플로우',
     modeFlowEditor: '플로우 편집',
+    modeFlowVersions: '버전/편성',
     featureManagement: '기능 관리',
     userManagement: '사용자 관리',
     adminManagement: '관리자 관리',
