@@ -1,32 +1,45 @@
 <template>
   <div class="page-container">
-    <a-page-header :title="`版本 · ${currentFlow?.name || ''}`" @back="goBack">
-      <template #extra>
+    <div class="fv-header">
+      <div class="fv-title">
+        <a-button type="text" class="fv-back" @click="goBack">
+          <template #icon><ArrowLeftOutlined /></template>
+          返回
+        </a-button>
+        <a-divider type="vertical" />
+        <span class="fv-name">版本 · {{ currentFlow?.name || '' }}</span>
+      </div>
+      <a-space>
         <a-button size="small" :disabled="!currentFlow" @click="editMeta">编辑元数据</a-button>
-        <a-button type="primary" size="small" :disabled="!currentFlow" @click="newDraft"
-          >新建草稿</a-button
-        >
-      </template>
-      <a-descriptions v-if="currentFlow" size="small" :column="{ xs: 1, sm: 2, lg: 4 }">
-        <a-descriptions-item label="编码">{{ currentFlow.code }}</a-descriptions-item>
-        <a-descriptions-item label="目标模型">
-          <a-tag v-if="currentFlow.targetModelCode" color="geekblue">{{
-            currentFlow.targetModelCode
-          }}</a-tag>
-          <span v-else class="muted">通用</span>
-        </a-descriptions-item>
-        <a-descriptions-item label="入口">{{
-          currentFlow.entryCode || '通用'
-        }}</a-descriptions-item>
-        <a-descriptions-item label="生效状态">
-          <a-tag v-if="currentFlow.activeVersionId > 0" color="green">已发布</a-tag>
-          <a-tag v-else color="default">无生效版本</a-tag>
-        </a-descriptions-item>
-        <a-descriptions-item v-if="currentFlow.description" label="描述" :span="4">{{
-          currentFlow.description
-        }}</a-descriptions-item>
-      </a-descriptions>
-    </a-page-header>
+        <a-button type="primary" size="small" :disabled="!currentFlow" @click="newDraft">
+          新建草稿
+        </a-button>
+      </a-space>
+    </div>
+
+    <a-descriptions
+      v-if="currentFlow"
+      size="small"
+      bordered
+      class="fv-desc"
+      :column="{ xs: 1, sm: 2, lg: 4 }"
+    >
+      <a-descriptions-item label="编码">{{ currentFlow.code }}</a-descriptions-item>
+      <a-descriptions-item label="目标模型">
+        <a-tag v-if="currentFlow.targetModelCode" color="geekblue">{{
+          currentFlow.targetModelCode
+        }}</a-tag>
+        <span v-else class="muted">通用</span>
+      </a-descriptions-item>
+      <a-descriptions-item label="入口">{{ currentFlow.entryCode || '通用' }}</a-descriptions-item>
+      <a-descriptions-item label="生效状态">
+        <a-tag v-if="currentFlow.activeVersionId > 0" color="green">已发布</a-tag>
+        <a-tag v-else color="default">无生效版本</a-tag>
+      </a-descriptions-item>
+      <a-descriptions-item v-if="currentFlow.description" label="描述" :span="4">{{
+        currentFlow.description
+      }}</a-descriptions-item>
+    </a-descriptions>
 
     <a-table
       :columns="versionColumns"
@@ -144,6 +157,7 @@
 </template>
 
 <script setup lang="ts">
+import { ArrowLeftOutlined } from '@antdv-next/icons';
 import { message } from 'antdv-next';
 import { ref, reactive, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -348,8 +362,29 @@ onMounted(() => {
 .page-container {
   padding: 24px;
 }
+.fv-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.fv-title {
+  display: flex;
+  align-items: center;
+}
+.fv-back {
+  padding-left: 0;
+}
+.fv-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+.fv-desc {
+  margin-bottom: 16px;
+}
 .version-table {
-  margin-top: 12px;
+  margin-top: 0;
 }
 .muted {
   color: var(--color-text-tertiary, #999);
