@@ -148,6 +148,19 @@
               的多档组件命中一档，覆写本步 mode+modelId（上面 Mode 作占位默认档）。
             </div>
           </a-form-item>
+          <a-form-item
+            v-if="selectedNode.data.kind === 'LOCAL'"
+            label="提示词 code 覆盖 promptCode（可空）"
+          >
+            <a-input
+              v-model:value="selectedNode.data.promptCode"
+              :disabled="!isDraft"
+              placeholder="填 Prompt Lab code（如 scriptReplication@doubao）"
+            />
+            <div class="muted" style="margin-top: 4px">
+              非空=该 LOCAL 优化步用此 code 取代 handler 内定默认；再叠加<b>目标模型维度</b>（自动带提交模型）。空=用默认。
+            </div>
+          </a-form-item>
           <a-divider style="margin: 8px 0" />
           <a-button danger size="small" :disabled="!isDraft" @click="removeSelected"
             >删除该节点</a-button
@@ -337,6 +350,7 @@ function assemble() {
       mode: d.mode ?? undefined,
       modelId: d.modelId ?? undefined,
       variantGroup: (d.variantGroup as string) || undefined, // 可变模型步：非空=按提交模型选档
+      promptCode: (d.promptCode as string) || undefined, // LOCAL 步：非空=按步指定提示词 code（叠加目标模型维度）
       // costType 不在此——计费随计费场景，真实用户提交时由计费场景回填
     };
   });
