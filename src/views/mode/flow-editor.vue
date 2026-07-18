@@ -61,7 +61,7 @@
         </div>
         <a-empty
           v-if="!palette.length"
-          description="先在「节点 Node」建节点"
+          description="先在「Mode 节点」建节点"
           :image-style="{ height: '40px' }"
         />
       </div>

@@ -207,7 +207,7 @@ export default {
     promptLabMeta: '메타데이터 관리',
     promptLabTest: '테스트 콘솔',
     modeManagement: '모드 플로우',
-    modeList: '노드',
+    modeList: 'Mode 노드',
     modeFlows: '모드 플로우',
     modeFlowEditor: '플로우 편집',
     modeFlowVersions: '버전/편성',

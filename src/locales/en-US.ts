@@ -160,7 +160,7 @@ export default {
     promptLabMeta: 'Metadata',
     promptLabTest: 'Test Console',
     modeManagement: 'Mode Flow',
-    modeList: 'Nodes',
+    modeList: 'Mode Nodes',
     modeFlows: 'Mode Flows',
     modeFlowEditor: 'Flow Editor',
     modeFlowVersions: 'Versions / Orchestration',

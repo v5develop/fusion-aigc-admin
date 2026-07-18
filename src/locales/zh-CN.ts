@@ -169,7 +169,7 @@ export default {
     promptLabMeta: '元数据管理',
     promptLabTest: '测试台',
     modeManagement: 'Mode 流管理',
-    modeList: '节点 Node',
+    modeList: 'Mode 节点',
     modeFlows: 'Mode 流',
     modeFlowEditor: '流程编排',
     modeFlowVersions: '版本/编排',
