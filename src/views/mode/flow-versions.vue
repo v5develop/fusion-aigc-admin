@@ -52,10 +52,12 @@
     >
       <template #bodyCell="{ column, record }">
         <template v-if="column.dataIndex === 'versionNo'">
-          v{{ record.versionNo }}
-          <a-tag v-if="record.id === currentFlow?.activeVersionId" color="green" size="small"
-            >生效中</a-tag
-          >
+          <span class="ver-cell">
+            <b>v{{ record.versionNo }}</b>
+            <a-tag v-if="record.id === currentFlow?.activeVersionId" color="green" size="small"
+              >生效中</a-tag
+            >
+          </span>
         </template>
         <template v-if="column.dataIndex === 'status'">
           <a-tag :color="vStatusColor(record.status)">{{ vStatusLabel(record.status) }}</a-tag>
@@ -217,14 +219,14 @@ const currentFlow = ref<ModeFlow | null>(null);
 const versions = ref<ModeFlowVersion[]>([]);
 const loadingVersions = ref(false);
 const versionColumns = [
-  { title: '版本', dataIndex: 'versionNo', width: 120 },
-  { title: '状态', dataIndex: 'status', width: 90 },
-  { title: '拓扑', dataIndex: 'topology', width: 100 },
-  { title: '结算', dataIndex: 'settlementType', width: 120 },
-  { title: '变更', dataIndex: 'changelog', ellipsis: true },
+  { title: '版本', dataIndex: 'versionNo', width: 150 },
+  { title: '状态', dataIndex: 'status', width: 100 },
+  { title: '拓扑', dataIndex: 'topology', width: 120 },
+  { title: '结算', dataIndex: 'settlementType', width: 180 },
+  { title: '变更', dataIndex: 'changelog', width: 200, ellipsis: true },
   { title: '创建人', dataIndex: 'createdBy', width: 120, ellipsis: true },
-  { title: '发布时间', dataIndex: 'publishedAt', width: 170 },
-  { title: '操作', key: 'op', width: 260, fixed: 'right' as const },
+  { title: '发布时间', dataIndex: 'publishedAt', width: 180 },
+  { title: '操作', key: 'op', minWidth: 260, fixed: 'right' as const },
 ];
 function vStatusLabel(s?: string) {
   return s === 'published' ? '已发布' : s === 'archived' ? '已归档' : '草稿';
@@ -385,6 +387,12 @@ onMounted(() => {
 }
 .version-table {
   margin-top: 0;
+}
+.ver-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
 }
 .muted {
   color: var(--color-text-tertiary, #999);
