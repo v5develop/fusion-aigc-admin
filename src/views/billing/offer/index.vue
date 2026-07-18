@@ -99,7 +99,7 @@
                         <a-button type="link" size="small" @click.stop="openComponentModal(offer, variant, c)">{{ $t('common.edit') }}</a-button>
                         <a-popconfirm
                           :title="$t('billingOffer.confirmDeleteComponent')"
-                          @confirm="handleDeleteComponent(variant, c.id)"
+                          @confirm="handleDeleteComponent(offer, variant, c.id)"
                         >
                           <a-button type="link" size="small" danger>{{ $t('common.delete') }}</a-button>
                         </a-popconfirm>
@@ -332,10 +332,23 @@ import {
   createComponent, updateComponent, deleteComponent,
   refreshOfferCache,
 } from '@/api/billing-offer'
-import type { BillingOffer, BillingOfferVariant, ChargeComponent, OfferTreeNode } from '@/api/billing-offer'
+import type { BillingOffer, BillingOfferVariant, ChargeComponent, OfferTreeNode, VariantTreeNode } from '@/api/billing-offer'
+
+// 运行时 offer 行还挂了 _variants 别名（供嵌套表绑定）与 modes 展示列
+type OfferNode = OfferTreeNode & { _variants?: VariantTreeNode[]; modes?: string }
 
 const { t, locale } = useI18n()
 const tableRef = ref()
+
+// antdv-next 不会在 dataSource 刷新时重渲染「已展开行」的嵌套内容，
+// 因此档位/组件的增删改直接就地修改响应式行对象（嵌套表已绑定该引用），
+// 无需整表 reload/重挂载，展开状态与滚动位置都不丢失。
+function recomputeModes(offer: OfferNode) {
+  const modes = [
+    ...new Set((offer._variants ?? []).flatMap(v => (v.components ?? []).map(c => c.mode))),
+  ].sort((a, b) => a - b)
+  offer.modes = modes.length ? modes.join(', ') : '-'
+}
 
 // Feature options (创作能力下拉)
 const featureOptions = ref<{ label: string; value: string }[]>([])
@@ -470,14 +483,14 @@ const variantColumns = [
 ]
 
 const variantModalVisible = ref(false)
-const editingVariant = ref<BillingOfferVariant | null>(null)
-const currentOffer = ref<BillingOffer | null>(null)
+const editingVariant = ref<VariantTreeNode | null>(null)
+const currentOffer = ref<OfferNode | null>(null)
 const variantForm = reactive<Partial<BillingOfferVariant>>({
   variantCode: '', name: '', qualityTier: 'standard', settlementType: 'ALL_OR_NOTHING', defaultModelId: undefined,
   defaultResolution: '', defaultDurationSeconds: undefined, includedOutputs: 1, status: 'ENABLED',
 })
 
-function openVariantModal(offer: BillingOffer, record: BillingOfferVariant | null) {
+function openVariantModal(offer: OfferNode, record: VariantTreeNode | null) {
   currentOffer.value = offer
   editingVariant.value = record
   if (record) Object.assign(variantForm, record)
@@ -489,21 +502,27 @@ async function handleVariantSubmit() {
   submitLoading.value = true
   try {
     if (editingVariant.value) {
-      await updateVariant(editingVariant.value.id!, variantForm)
+      const updated = await updateVariant(editingVariant.value.id!, variantForm)
       message.success(t('billingOffer.updateSuccess'))
+      // 就地更新已展开行，避免整表重刷丢失展开态
+      Object.assign(editingVariant.value, updated ?? variantForm)
     } else {
-      await createVariant(currentOffer.value!.id!, variantForm)
+      const created = await createVariant(currentOffer.value!.id!, variantForm)
       message.success(t('billingOffer.createSuccess'))
+      const node = { ...variantForm, ...created, components: [] } as VariantTreeNode
+      ;(currentOffer.value!._variants ??= []).push(node)
     }
     variantModalVisible.value = false
-    tableRef.value?.reload()
   } catch { /* error handled by interceptor */ } finally { submitLoading.value = false }
 }
 
-async function handleDeleteVariant(_offer: BillingOffer, id: number) {
+async function handleDeleteVariant(offer: OfferNode, id: number) {
   await deleteVariant(id)
   message.success(t('billingOffer.deleteSuccess'))
-  tableRef.value?.reload()
+  const list = offer._variants ?? []
+  const idx = list.findIndex(v => v.id === id)
+  if (idx > -1) list.splice(idx, 1)
+  recomputeModes(offer)
 }
 
 // ======================== Component ========================
@@ -523,14 +542,15 @@ const componentColumns = [
 
 const componentModalVisible = ref(false)
 const editingComponent = ref<ChargeComponent | null>(null)
-const currentVariant = ref<BillingOfferVariant | null>(null)
+const currentVariant = ref<VariantTreeNode | null>(null)
 const componentForm = reactive<Partial<ChargeComponent>>({
   componentCode: '', stepCode: '', componentType: 'BASE', mode: 103, costType: 'BILLED',
   actionType: undefined, basePoints: undefined,
   modelId: undefined, priceMultiplier: 1, sort: 0,
 })
 
-function openComponentModal(_offer: BillingOffer, variant: BillingOfferVariant, record: ChargeComponent | null) {
+function openComponentModal(offer: OfferNode, variant: VariantTreeNode, record: ChargeComponent | null) {
+  currentOffer.value = offer
   currentVariant.value = variant
   editingComponent.value = record
   if (record) Object.assign(componentForm, record)
@@ -542,21 +562,26 @@ async function handleComponentSubmit() {
   submitLoading.value = true
   try {
     if (editingComponent.value) {
-      await updateComponent(editingComponent.value.id!, componentForm)
+      const updated = await updateComponent(editingComponent.value.id!, componentForm)
       message.success(t('billingOffer.updateSuccess'))
+      Object.assign(editingComponent.value, updated ?? componentForm)
     } else {
-      await createComponent(currentVariant.value!.id!, componentForm)
+      const created = await createComponent(currentVariant.value!.id!, componentForm)
       message.success(t('billingOffer.createSuccess'))
+      ;(currentVariant.value!.components ??= []).push({ ...componentForm, ...created } as ChargeComponent)
     }
     componentModalVisible.value = false
-    tableRef.value?.reload()
+    if (currentOffer.value) recomputeModes(currentOffer.value)
   } catch { /* error handled by interceptor */ } finally { submitLoading.value = false }
 }
 
-async function handleDeleteComponent(_variant: BillingOfferVariant, id: number) {
+async function handleDeleteComponent(offer: OfferNode, variant: VariantTreeNode, id: number) {
   await deleteComponent(id)
   message.success(t('billingOffer.deleteSuccess'))
-  tableRef.value?.reload()
+  const list = variant.components ?? []
+  const idx = list.findIndex(c => c.id === id)
+  if (idx > -1) list.splice(idx, 1)
+  recomputeModes(offer)
 }
 
 // ======================== Cache ========================
