@@ -15,6 +15,9 @@
         <a-button type="primary" @click="showGrantModal">
           {{ $t('user.grantCapability') }}
         </a-button>
+        <a-button v-if="hasRole('super_admin')" danger @click="showResetModal">
+          {{ $t('user.resetCredential') }}
+        </a-button>
       </a-space>
     </div>
 
@@ -243,6 +246,40 @@
         </a-form-item>
       </a-form>
     </a-modal>
+
+    <!-- 重置用户名/密码弹窗（super_admin） -->
+    <a-modal
+      v-model:open="resetModalVisible"
+      :title="$t('user.resetCredential')"
+      :confirm-loading="resetLoading"
+      @ok="handleConfirmReset"
+    >
+      <a-alert
+        type="warning"
+        show-icon
+        :message="$t('user.resetCredentialWarn')"
+        style="margin-bottom: 12px"
+      />
+      <a-form layout="vertical">
+        <a-form-item :label="$t('user.id')">
+          <a-input :value="String(userInfo?.id ?? '')" disabled />
+        </a-form-item>
+        <a-form-item :label="$t('user.newUsername')">
+          <a-input
+            v-model:value="resetForm.newUsername"
+            :placeholder="$t('user.resetKeepPlaceholder')"
+            allow-clear
+          />
+        </a-form-item>
+        <a-form-item :label="$t('user.newPassword')">
+          <a-input-password
+            v-model:value="resetForm.newPassword"
+            :placeholder="$t('user.resetKeepPlaceholder')"
+            allow-clear
+          />
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
@@ -253,14 +290,16 @@ import { useI18n } from 'vue-i18n'
 import { message } from 'antdv-next'
 import { DollarOutlined, ArrowLeftOutlined } from '@antdv-next/icons'
 import dayjs from 'dayjs'
-import { getUserDetail, getUserCapabilities, getUserPool } from '@/api/user'
+import { getUserDetail, getUserCapabilities, getUserPool, resetUserCredentials } from '@/api/user'
 import { adjustPoints } from '@/api/points'
+import { usePermission } from '@/composables/usePermission'
 import { manualAddFeature, getFeatureOptions } from '@/api/feature'
 import { getLocale } from '@/locales'
 import { uuid } from '@/utils/helpers'
 import type { User, UserFeature, Feature, UserPool } from '@/types/api'
 
 const { t } = useI18n()
+const { hasRole } = usePermission()
 const router = useRouter()
 const route = useRoute()
 const currentLocale = computed(() => getLocale())
@@ -298,6 +337,40 @@ const grantForm = ref({
   expireTime: undefined as dayjs.Dayjs | undefined,
 })
 const featureOptions = ref<Feature[]>([])
+
+// 重置凭据相关（仅 super_admin；后端 @PreAuthorize 强制）
+const resetModalVisible = ref(false)
+const resetLoading = ref(false)
+const resetForm = ref({ newUsername: '', newPassword: '' })
+function showResetModal() {
+  resetForm.value = { newUsername: '', newPassword: '' }
+  resetModalVisible.value = true
+}
+async function handleConfirmReset() {
+  const newUsername = resetForm.value.newUsername?.trim()
+  const newPassword = resetForm.value.newPassword
+  if (!newUsername && !newPassword) {
+    message.warning(t('user.resetCredentialEmpty'))
+    return
+  }
+  if (newPassword && newPassword.length < 6) {
+    message.warning(t('user.passwordTooShort'))
+    return
+  }
+  const id = Number(route.params.id)
+  resetLoading.value = true
+  try {
+    await resetUserCredentials(id, {
+      newUsername: newUsername || undefined,
+      newPassword: newPassword || undefined,
+    })
+    message.success(t('user.resetCredentialSuccess'))
+    resetModalVisible.value = false
+    fetchUserDetail()
+  } finally {
+    resetLoading.value = false
+  }
+}
 
 // 状态映射
 const statusMap: Record<number, string> = {

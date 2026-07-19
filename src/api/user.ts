@@ -22,4 +22,12 @@ export function getUserPool(userId: number) {
   return request.get<UserPool>(`/api/v1/admin/app-users/${userId}/pool`)
 }
 
+/** 重置 C 端用户 用户名/密码（super_admin）。newUsername / newPassword 各可空（=不改），至少填一项。 */
+export function resetUserCredentials(
+  userId: number,
+  data: { newUsername?: string; newPassword?: string },
+) {
+  return request.put<boolean>(`/api/v1/admin/app-users/${userId}/credentials`, data)
+}
+
 
