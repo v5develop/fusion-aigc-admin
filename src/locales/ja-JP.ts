@@ -2945,6 +2945,7 @@ export default {
     label: 'ラベル',
     rejectedTarget: 'ヒット対象',
     reason: '理由',
+    requestContent: 'リクエスト内容',
     rawResponse: '生レスポンス',
     requestId: 'リクエストID',
     detail: '詳細',

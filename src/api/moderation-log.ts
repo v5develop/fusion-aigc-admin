@@ -16,9 +16,11 @@ export interface ModerationLog {
   /** 命中场景：porn/terrorism/antispam/whitelist/error 等 */
   scene?: string
   label?: string
-  /** 命中目标（违规图 URL / 文本摘要，未脱敏） */
+  /** 命中目标（违规图 URL / 未通过文本摘要，未脱敏；通过为空） */
   rejectedTarget?: string
   reason?: string
+  /** 审核请求内容（送审原始文本全文 / 图片URL列表，未脱敏） */
+  requestContent?: string
   /** 上游原始响应（排障用） */
   rawResponse?: string
   requestId?: string

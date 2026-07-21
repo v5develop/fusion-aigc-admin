@@ -2933,6 +2933,7 @@ export default {
     label: '라벨',
     rejectedTarget: '적중 대상',
     reason: '사유',
+    requestContent: '요청 내용',
     rawResponse: '원본 응답',
     requestId: '요청 ID',
     detail: '상세',

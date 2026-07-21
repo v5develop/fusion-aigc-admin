@@ -266,6 +266,9 @@
           </template>
           <template #expandedRowRender="{ record }">
             <a-descriptions :column="1" size="small" bordered>
+              <a-descriptions-item v-if="record.requestContent" :label="$t('moderationLog.requestContent')">
+                <span class="api-log-break">{{ decodeUnicode(record.requestContent) }}</span>
+              </a-descriptions-item>
               <a-descriptions-item v-if="record.rejectedTarget" :label="$t('moderationLog.rejectedTarget')">
                 <span class="api-log-break">{{ decodeUnicode(record.rejectedTarget) }}</span>
               </a-descriptions-item>

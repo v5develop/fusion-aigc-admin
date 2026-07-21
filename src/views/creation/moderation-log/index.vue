@@ -50,6 +50,9 @@
         <a-descriptions-item v-if="current.reason" :label="$t('moderationLog.reason')">
           <span class="mod-log-error">{{ decodeUnicode(current.reason) }}</span>
         </a-descriptions-item>
+        <a-descriptions-item v-if="current.requestContent" :label="$t('moderationLog.requestContent')">
+          <span class="mod-log-break">{{ decodeUnicode(current.requestContent) }}</span>
+        </a-descriptions-item>
         <a-descriptions-item v-if="current.rejectedTarget" :label="$t('moderationLog.rejectedTarget')">
           <span class="mod-log-break">{{ decodeUnicode(current.rejectedTarget) }}</span>
         </a-descriptions-item>

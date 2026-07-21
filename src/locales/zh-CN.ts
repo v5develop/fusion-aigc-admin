@@ -3553,6 +3553,7 @@ export default {
     label: '命中标签',
     rejectedTarget: '命中目标',
     reason: '原因',
+    requestContent: '请求内容',
     rawResponse: '原始响应',
     requestId: '请求ID',
     detail: '详情',

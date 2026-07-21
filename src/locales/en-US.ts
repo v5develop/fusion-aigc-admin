@@ -3501,6 +3501,7 @@ export default {
     label: 'Label',
     rejectedTarget: 'Hit Target',
     reason: 'Reason',
+    requestContent: 'Request Content',
     rawResponse: 'Raw Response',
     requestId: 'Request ID',
     detail: 'Detail',
