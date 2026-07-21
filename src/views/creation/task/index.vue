@@ -103,6 +103,26 @@
             >
               {{ $t('creationTask.forceComplete') }}
             </a-button>
+            <a-button
+              v-if="!record.blockStatus"
+              type="link"
+              size="small"
+              danger
+              @click="handleBlock(record)"
+            >
+              {{ $t('creationTask.block') }}
+            </a-button>
+            <a-button
+              v-if="record.blockStatus === 1"
+              type="link"
+              size="small"
+              @click="handleUnblock(record)"
+            >
+              {{ $t('creationTask.unblock') }}
+            </a-button>
+            <a-tag v-if="record.blockStatus === 2" color="red">
+              {{ $t('creationTask.blockedPermanent') }}
+            </a-tag>
           </a-space>
         </template>
       </template>
@@ -185,6 +205,35 @@
         </a-form-item>
       </a-form>
     </a-modal>
+
+    <!-- Block Modal -->
+    <a-modal
+      v-model:open="blockVisible"
+      :title="$t('creationTask.block')"
+      :confirmLoading="blockLoading"
+      @ok="handleBlockConfirm"
+    >
+      <a-alert
+        type="warning"
+        show-icon
+        :message="$t('creationTask.blockConfirmContent')"
+        style="margin-bottom: 12px"
+      />
+      <a-form layout="vertical">
+        <a-form-item :label="$t('creationTask.blockReason')">
+          <a-textarea
+            v-model:value="blockForm.reason"
+            :placeholder="$t('creationTask.blockReasonPlaceholder')"
+            :rows="2"
+          />
+        </a-form-item>
+        <a-form-item>
+          <a-checkbox v-model:checked="blockForm.permanent">
+            {{ $t('creationTask.blockPermanent') }}
+          </a-checkbox>
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
@@ -200,6 +249,8 @@ import {
   cancelCreationTask,
   retryCreationTask,
   forceCompleteCreationTask,
+  blockCreationTask,
+  unblockCreationTask,
   exportCreationTasks,
   batchCancelCreationTasks,
 } from '@/api/creation-task'
@@ -488,6 +539,45 @@ async function handleForceCompleteConfirm() {
   } finally {
     forceCompleteLoading.value = false
   }
+}
+
+// Block / unblock
+const blockVisible = ref(false)
+const blockLoading = ref(false)
+const blockForm = ref({ taskId: '', reason: '', permanent: false })
+
+function handleBlock(record: CreationTask) {
+  blockForm.value = { taskId: record.taskId, reason: '', permanent: false }
+  blockVisible.value = true
+}
+
+async function handleBlockConfirm() {
+  blockLoading.value = true
+  try {
+    await blockCreationTask(blockForm.value.taskId, {
+      permanent: blockForm.value.permanent,
+      reason: blockForm.value.reason || undefined,
+    })
+    message.success(t('creationTask.blockSuccess'))
+    blockVisible.value = false
+    tableRef.value?.reload()
+  } catch (error) {
+    console.error('Block failed:', error)
+  } finally {
+    blockLoading.value = false
+  }
+}
+
+function handleUnblock(record: CreationTask) {
+  Modal.confirm({
+    title: t('common.warning'),
+    content: t('creationTask.unblockConfirm'),
+    onOk: async () => {
+      await unblockCreationTask(record.taskId)
+      message.success(t('creationTask.unblockSuccess'))
+      tableRef.value?.reload()
+    },
+  })
 }
 
 // Batch cancel

@@ -28,6 +28,15 @@
         >
           {{ $t('creationTask.forceComplete') }}
         </a-button>
+        <a-button v-if="task && !task.blockStatus" danger @click="handleBlock">
+          {{ $t('creationTask.block') }}
+        </a-button>
+        <a-button v-if="task && task.blockStatus === 1" @click="handleUnblock">
+          {{ $t('creationTask.unblock') }}
+        </a-button>
+        <a-tag v-if="task && task.blockStatus === 2" color="red">
+          {{ $t('creationTask.blockedPermanent') }}
+        </a-tag>
       </a-space>
     </div>
 
@@ -48,6 +57,14 @@
             <a-tag v-if="task" :color="statusColorMap[task.status]">
               {{ statusMap[task.status] || '-' }}
             </a-tag>
+          </a-descriptions-item>
+          <a-descriptions-item v-if="task?.blockStatus" :label="$t('creationTask.blockStatus')">
+            <a-tag color="red">
+              {{ task.blockStatus === 2 ? $t('creationTask.blockedPermanent') : $t('creationTask.blocked') }}
+            </a-tag>
+            <span v-if="task.blockReason" style="margin-left: 8px; color: var(--color-text-secondary)">
+              {{ task.blockReason }}
+            </span>
           </a-descriptions-item>
           <a-descriptions-item :label="$t('creationTask.userId')">
             {{ task?.userId || '-' }}
@@ -474,6 +491,35 @@
         </a-form-item>
       </a-form>
     </a-modal>
+
+    <!-- Block Modal -->
+    <a-modal
+      v-model:open="blockVisible"
+      :title="$t('creationTask.block')"
+      :confirmLoading="blockLoading"
+      @ok="handleBlockConfirm"
+    >
+      <a-alert
+        type="warning"
+        show-icon
+        :message="$t('creationTask.blockConfirmContent')"
+        style="margin-bottom: 12px"
+      />
+      <a-form layout="vertical">
+        <a-form-item :label="$t('creationTask.blockReason')">
+          <a-textarea
+            v-model:value="blockForm.reason"
+            :placeholder="$t('creationTask.blockReasonPlaceholder')"
+            :rows="2"
+          />
+        </a-form-item>
+        <a-form-item>
+          <a-checkbox v-model:checked="blockForm.permanent">
+            {{ $t('creationTask.blockPermanent') }}
+          </a-checkbox>
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
@@ -483,7 +529,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { message, Modal } from 'antdv-next'
 import { ArrowLeftOutlined } from '@antdv-next/icons'
-import { getCreationTaskDetail, cancelCreationTask, retryCreationTask, forceCompleteCreationTask, getCompositeCostSummary, getCreationTaskApiLogs, getPipelineSteps, fixTaskContentType } from '@/api/creation-task'
+import { getCreationTaskDetail, cancelCreationTask, retryCreationTask, forceCompleteCreationTask, blockCreationTask, unblockCreationTask, getCompositeCostSummary, getCreationTaskApiLogs, getPipelineSteps, fixTaskContentType } from '@/api/creation-task'
 import type { CreationTask, CompositeCostSummary, ApiRequestLog, PipelineStepsResponse } from '@/api/creation-task'
 import { getCreationTaskModerationLogs } from '@/api/moderation-log'
 import type { ModerationLog } from '@/api/moderation-log'
@@ -775,6 +821,48 @@ async function handleForceCompleteConfirm() {
   } finally {
     forceCompleteLoading.value = false
   }
+}
+
+// Block / unblock
+const blockVisible = ref(false)
+const blockLoading = ref(false)
+const blockForm = ref({ reason: '', permanent: false })
+
+function handleBlock() {
+  if (!task.value) return
+  blockForm.value = { reason: '', permanent: false }
+  blockVisible.value = true
+}
+
+async function handleBlockConfirm() {
+  if (!task.value) return
+  blockLoading.value = true
+  try {
+    await blockCreationTask(task.value.taskId, {
+      permanent: blockForm.value.permanent,
+      reason: blockForm.value.reason || undefined,
+    })
+    message.success(t('creationTask.blockSuccess'))
+    blockVisible.value = false
+    loadTask()
+  } catch (error) {
+    console.error('Block failed:', error)
+  } finally {
+    blockLoading.value = false
+  }
+}
+
+function handleUnblock() {
+  if (!task.value) return
+  Modal.confirm({
+    title: t('common.warning'),
+    content: t('creationTask.unblockConfirm'),
+    onOk: async () => {
+      await unblockCreationTask(task.value!.taskId)
+      message.success(t('creationTask.unblockSuccess'))
+      loadTask()
+    },
+  })
 }
 
 // Fix Content-Type for existing OSS objects (historical videos uploaded without Content-Type)

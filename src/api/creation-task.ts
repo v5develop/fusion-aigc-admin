@@ -30,6 +30,10 @@ export interface CreationTask {
   /** 执行方任务 ID：执行方返回的任务标识（本地 task_id / 豆包 arkId / wavespeed requestId / comet taskId）*/
   executionTaskId?: string
   status: TaskStatus
+  /** 屏蔽状态：0未屏蔽 1屏蔽(可取消) 2永久屏蔽(不可逆) */
+  blockStatus?: number
+  blockReason?: string
+  blockTime?: string
   statusText?: string
   resultUrl?: string
   errorMsg?: string
@@ -208,6 +212,16 @@ export function retryCreationTask(taskId: string) {
 
 export function forceCompleteCreationTask(taskId: string, resultUrl?: string) {
   return request.post(`/api/v1/admin/creation/tasks/${taskId}/force-complete`, { resultUrl })
+}
+
+// 屏蔽任务（遮罩用户端内容 + 素材库下架；permanent=true 永久不可逆）
+export function blockCreationTask(taskId: string, data: { permanent?: boolean; reason?: string }) {
+  return request.post(`/api/v1/admin/creation/tasks/${taskId}/block`, data)
+}
+
+// 取消屏蔽（恢复展示 + 素材上架；永久屏蔽不可取消）
+export function unblockCreationTask(taskId: string) {
+  return request.post(`/api/v1/admin/creation/tasks/${taskId}/unblock`)
 }
 
 export function fixTaskContentType(id: number) {
