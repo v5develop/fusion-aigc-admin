@@ -33,7 +33,7 @@
             <a-switch
               v-model:checked="record.status"
               :checked-value="1"
-              :unchecked-value="0"
+              :un-checked-value="0"
               @change="handleStatusChange(record)"
             />
           </template>

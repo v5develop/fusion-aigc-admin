@@ -286,7 +286,7 @@
           <a-switch
             v-model:checked="filterForm.multiSelect"
             :checked-value="1"
-            :unchecked-value="0"
+            :un-checked-value="0"
           />
         </a-form-item>
         <a-form-item :label="$t('templateFilter.sortOrder')">
@@ -296,7 +296,7 @@
           <a-switch
             v-model:checked="filterForm.status"
             :checked-value="1"
-            :unchecked-value="0"
+            :un-checked-value="0"
           />
         </a-form-item>
       </a-form>
@@ -330,7 +330,7 @@
           <a-switch
             v-model:checked="optionForm.status"
             :checked-value="1"
-            :unchecked-value="0"
+            :un-checked-value="0"
           />
         </a-form-item>
       </a-form>
@@ -381,7 +381,7 @@
           <a-switch
             v-model:checked="slotForm.status"
             :checked-value="1"
-            :unchecked-value="0"
+            :un-checked-value="0"
           />
         </a-form-item>
       </a-form>

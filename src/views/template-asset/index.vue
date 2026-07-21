@@ -249,7 +249,7 @@
           <a-switch
             v-model:checked="placementAddForm.status"
             :checked-value="1"
-            :unchecked-value="0"
+            :un-checked-value="0"
           />
           <a-button
             v-permission="'template_filter:edit'"
@@ -284,7 +284,7 @@
             style="width: 140px"
           />
           <a-input-number v-model:value="p.sortOrder" :min="0" style="width: 80px" />
-          <a-switch v-model:checked="p.status" :checked-value="1" :unchecked-value="0" />
+          <a-switch v-model:checked="p.status" :checked-value="1" :un-checked-value="0" />
           <a-button
             v-permission="'template_filter:edit'"
             type="link"

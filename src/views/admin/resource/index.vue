@@ -82,7 +82,7 @@
           <a-switch
             v-model:checked="resourceForm.statusChecked"
             :checked-value="1"
-            :unchecked-value="0"
+            :un-checked-value="0"
           />
         </a-form-item>
       </a-form>
