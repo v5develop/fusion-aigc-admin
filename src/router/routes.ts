@@ -230,6 +230,17 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
           requiredPermissions: 'task:view',
         },
       },
+      {
+        path: 'moderation-log',
+        name: 'ModerationLogList',
+        component: () => import('@/views/creation/moderation-log/index.vue'),
+        meta: {
+          title: 'menu.moderationLog',
+          icon: 'SafetyCertificateOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'task:view',
+        },
+      },
     ],
   },
   {

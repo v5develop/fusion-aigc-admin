@@ -232,6 +232,54 @@
         </a-spin>
       </a-modal>
 
+      <!-- 内容审核日志（内容未通过时在此关联查看命中详情与上游原始响应） -->
+      <a-card
+        v-if="moderationLogs.length > 0"
+        :title="$t('moderationLog.title')"
+        style="margin-bottom: 16px"
+      >
+        <a-table
+          :columns="moderationColumns"
+          :data-source="moderationLogs"
+          :pagination="false"
+          row-key="id"
+          size="small"
+        >
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.dataIndex === 'bizType'">
+              <a-tag color="blue">{{ $t('moderationLog.bizTypeMap.' + record.bizType) || record.bizType }}</a-tag>
+            </template>
+            <template v-if="column.dataIndex === 'provider'">
+              <a-tag :color="record.provider === 'template' ? 'gold' : 'geekblue'">
+                {{ $t('moderationLog.providerMap.' + record.provider) || record.provider }}
+              </a-tag>
+            </template>
+            <template v-if="column.dataIndex === 'passed'">
+              <a-tag :color="record.passed ? 'green' : 'red'">
+                {{ record.passed ? $t('moderationLog.passedYes') : $t('moderationLog.passedNo') }}
+              </a-tag>
+            </template>
+            <template v-if="column.dataIndex === 'reason'">
+              <span v-if="record.reason" class="error-text">{{ decodeUnicode(record.reason) }}</span>
+              <span v-else>-</span>
+            </template>
+          </template>
+          <template #expandedRowRender="{ record }">
+            <a-descriptions :column="1" size="small" bordered>
+              <a-descriptions-item v-if="record.rejectedTarget" :label="$t('moderationLog.rejectedTarget')">
+                <span class="api-log-break">{{ decodeUnicode(record.rejectedTarget) }}</span>
+              </a-descriptions-item>
+              <a-descriptions-item v-if="record.rawResponse" :label="$t('moderationLog.rawResponse')">
+                <pre class="api-log-pre">{{ decodeUnicode(record.rawResponse) }}</pre>
+              </a-descriptions-item>
+              <a-descriptions-item v-if="record.requestId" :label="$t('moderationLog.requestId')">
+                <code>{{ record.requestId }}</code>
+              </a-descriptions-item>
+            </a-descriptions>
+          </template>
+        </a-table>
+      </a-card>
+
       <!-- Children Tasks -->
       <a-card
         v-if="task?.subTasks && task.subTasks.length > 0"
@@ -434,6 +482,8 @@ import { message, Modal } from 'antdv-next'
 import { ArrowLeftOutlined } from '@antdv-next/icons'
 import { getCreationTaskDetail, cancelCreationTask, retryCreationTask, forceCompleteCreationTask, getCompositeCostSummary, getCreationTaskApiLogs, getPipelineSteps, fixTaskContentType } from '@/api/creation-task'
 import type { CreationTask, CompositeCostSummary, ApiRequestLog, PipelineStepsResponse } from '@/api/creation-task'
+import { getCreationTaskModerationLogs } from '@/api/moderation-log'
+import type { ModerationLog } from '@/api/moderation-log'
 import { decodeUnicode } from '@/utils/helpers'
 
 const { t } = useI18n()
@@ -452,6 +502,18 @@ const hasSubTasks = computed(() => (task.value?.subTasks?.length ?? 0) > 0)
 const apiLogModalOpen = ref(false)
 const apiLogLoading = ref(false)
 const apiLogs = ref<ApiRequestLog[]>([])
+
+// 内容审核日志（含子任务；未过审时关联查看命中详情与上游原始响应）
+const moderationLogs = ref<ModerationLog[]>([])
+const moderationColumns = [
+  { title: t('common.createTime'), dataIndex: 'createTime', width: 170 },
+  { title: t('moderationLog.bizType'), dataIndex: 'bizType', width: 90, align: 'center' as const },
+  { title: t('moderationLog.provider'), dataIndex: 'provider', width: 110, align: 'center' as const },
+  { title: t('moderationLog.passed'), dataIndex: 'passed', width: 90, align: 'center' as const },
+  { title: t('moderationLog.scene'), dataIndex: 'scene', width: 110 },
+  { title: t('moderationLog.label'), dataIndex: 'label', width: 120 },
+  { title: t('moderationLog.reason'), dataIndex: 'reason', ellipsis: true },
+]
 
 async function showApiLogs() {
   if (!task.value) return
@@ -633,6 +695,10 @@ async function loadTask() {
   loading.value = true
   try {
     task.value = await getCreationTaskDetail(id)
+    // 内容审核日志（所有任务：命中/免审/未过审都可能有记录）
+    try {
+      moderationLogs.value = (await getCreationTaskModerationLogs(id)) ?? []
+    } catch { moderationLogs.value = [] }
     // 组合任务加载成本明细和 pipeline steps
     if (task.value?.mode != null && isCompositeMode(task.value.mode) && task.value.taskId) {
       try {
