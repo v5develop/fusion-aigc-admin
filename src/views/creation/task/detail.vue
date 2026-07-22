@@ -9,20 +9,20 @@
       </div>
       <a-space>
         <a-button
-          v-if="task && (task.status === 0 || task.status === 1)"
+          v-if="task && task.canCancel"
           danger
           @click="handleCancel"
         >
           {{ $t('common.cancel') }}
         </a-button>
         <a-button
-          v-if="task && task.status === 3"
+          v-if="task && task.canRetry"
           @click="handleRetry"
         >
           {{ $t('creationTask.retry') }}
         </a-button>
         <a-button
-          v-if="task && (task.status === 3 || task.status === 1)"
+          v-if="task && task.canForceComplete"
           type="primary"
           @click="handleForceComplete"
         >

@@ -79,7 +79,7 @@
               {{ $t('common.view') }}
             </a-button>
             <a-button
-              v-if="record.status === 0 || record.status === 1"
+              v-if="record.canCancel"
               type="link"
               size="small"
               danger
@@ -88,7 +88,7 @@
               {{ $t('common.cancel') }}
             </a-button>
             <a-button
-              v-if="record.status === 3"
+              v-if="record.canRetry"
               type="link"
               size="small"
               @click="handleRetry(record)"
@@ -96,7 +96,7 @@
               {{ $t('creationTask.retry') }}
             </a-button>
             <a-button
-              v-if="record.status === 3 || record.status === 1"
+              v-if="record.canForceComplete"
               type="link"
               size="small"
               @click="handleForceComplete(record)"

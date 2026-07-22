@@ -49,6 +49,14 @@ export interface CreationTask {
   totalPricePoints?: number
   /** 子任务聚合计费状态（父任务聚合折叠值） */
   aggregatedBillingStatus?: string
+  /** 是否可重试（后端权威：失败+未屏蔽+非子任务+可续跑的编排管线父任务）。据此显隐重试按钮 */
+  canRetry?: boolean
+  /** 是否可强制完成（未交付且未屏蔽的父任务）。据此显隐强制完成按钮 */
+  canForceComplete?: boolean
+  /** 是否可取消（排队/处理中且未屏蔽的父任务）。据此显隐取消按钮 */
+  canCancel?: boolean
+  /** 后台重试次数（达 app.creation.retry.max-attempts 上限后 canRetry=false） */
+  retryCount?: number
   featureCode?: string
   modelId?: number
   modelName?: string
