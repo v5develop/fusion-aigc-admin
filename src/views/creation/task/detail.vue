@@ -683,12 +683,14 @@ const billingStatusMap: Record<string, string> = {
   REFUNDED: t('creationTask.billingRefunded'),
   CANCELLED: t('creationTask.billingCancelled'),
   SETTLEMENT_FAILED: t('creationTask.billingSettlementFailed'),
+  PARTIALLY_REFUNDED: t('creationTask.billingPartiallyRefunded'),
 }
 
 const billingStatusColorMap: Record<string, string> = {
   HELD: 'blue',
   CONFIRMED: 'green',
   REFUNDED: 'orange',
+  PARTIALLY_REFUNDED: 'warning',
   CANCELLED: 'default',
   SETTLEMENT_FAILED: 'red',
 }

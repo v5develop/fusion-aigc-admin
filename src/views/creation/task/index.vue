@@ -74,7 +74,7 @@
         </template>
 
         <template v-if="column.key === 'operation'">
-          <a-space :size="4">
+          <a-space :size="4" :wrap="true">
             <a-button type="link" size="small" @click="handleViewDetail(record)">
               {{ $t('common.view') }}
             </a-button>
@@ -329,12 +329,14 @@ const billingStatusMap: Record<string, string> = {
   REFUNDED: t('creationTask.billingRefunded'),
   CANCELLED: t('creationTask.billingCancelled'),
   SETTLEMENT_FAILED: t('creationTask.billingSettlementFailed'),
+  PARTIALLY_REFUNDED: t('creationTask.billingPartiallyRefunded'),
 }
 
 const billingStatusColorMap: Record<string, string> = {
   HELD: 'blue',
   CONFIRMED: 'green',
   REFUNDED: 'orange',
+  PARTIALLY_REFUNDED: 'warning',
   CANCELLED: 'default',
   SETTLEMENT_FAILED: 'red',
 }
@@ -408,6 +410,7 @@ const columns = computed(() => [
       { label: t('creationTask.billingRefunded'), value: 'REFUNDED' },
       { label: t('creationTask.billingCancelled'), value: 'CANCELLED' },
       { label: t('creationTask.billingSettlementFailed'), value: 'SETTLEMENT_FAILED' },
+      { label: t('creationTask.billingPartiallyRefunded'), value: 'PARTIALLY_REFUNDED' },
     ],
     width: 120,
     align: 'center' as const,
@@ -433,7 +436,7 @@ const columns = computed(() => [
     title: t('common.action'),
     dataIndex: 'operation',
     key: 'operation',
-    width: 200,
+    width: 260,
     align: 'center' as const,
     fixed: 'right' as const,
   },

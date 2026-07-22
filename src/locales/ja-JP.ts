@@ -3022,6 +3022,7 @@ export default {
     billingRefunded: '返金済',
     billingCancelled: 'キャンセル済',
     billingSettlementFailed: '精算失敗',
+    billingPartiallyRefunded: '一部返金',
 
     // Actions
     retry: '再試行',

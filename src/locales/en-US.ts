@@ -3601,6 +3601,7 @@ export default {
     billingRefunded: 'Refunded',
     billingCancelled: 'Cancelled',
     billingSettlementFailed: 'Settlement Failed',
+    billingPartiallyRefunded: 'Partially Refunded',
     retry: 'Retry',
     forceComplete: 'Force Complete',
     batchCancel: 'Batch Cancel',

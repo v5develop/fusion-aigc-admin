@@ -129,6 +129,7 @@ const billingStatusMap: Record<string, string> = {
   REFUNDED: '已退款',
   CANCELLED: '已取消',
   SETTLEMENT_FAILED: '结算失败',
+  PARTIALLY_REFUNDED: '部分退款',
   BILLING_PENDING_REVIEW: '待审核',
 }
 
@@ -136,6 +137,7 @@ const billingStatusColorMap: Record<string, string> = {
   HELD: 'blue',
   CONFIRMED: 'green',
   REFUNDED: 'orange',
+  PARTIALLY_REFUNDED: 'warning',
   CANCELLED: 'default',
   SETTLEMENT_FAILED: 'red',
   BILLING_PENDING_REVIEW: 'warning',

@@ -3010,6 +3010,7 @@ export default {
     billingRefunded: '환불됨',
     billingCancelled: '취소됨',
     billingSettlementFailed: '정산 실패',
+    billingPartiallyRefunded: '부분 환불',
 
     // Actions
     retry: '재시도',

@@ -3661,6 +3661,7 @@ export default {
     billingRefunded: '已退款',
     billingCancelled: '已取消',
     billingSettlementFailed: '结算失败',
+    billingPartiallyRefunded: '部分退款',
 
     // Actions
     retry: '重试',
