@@ -594,6 +594,18 @@ export interface AgentModelProfile {
   status?: number | null
 }
 
+/** 前端「AI 帮写」专用提示词优化模型（独立一档，与管线内部自动优化解耦） */
+export interface AiWritingModel {
+  /** 绑定的模型 ID（afv_ai_model.id），null=未配置，回退默认档位路由 */
+  modelId: number | null
+  /** 模型名称（只读展示） */
+  modelName?: string | null
+  /** 模型标识 code（只读展示） */
+  modelCode?: string | null
+  /** 是否支持视觉（只读展示） */
+  supportVision?: boolean | null
+}
+
 // Feature Grant Types
 export interface FeatureGrant {
   id: number

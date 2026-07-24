@@ -3483,6 +3483,10 @@ export default {
     agentProfileVision: 'Vision profile (image prompt optimization)',
     agentProfileVisionHint: 'Handles multimodal prompt optimization with reference images. Requires a vision-capable model.',
     agentProfileVisionSelectHint: 'Only enabled vision-capable text chat models can be selected; leave empty to use the yaml fallback config',
+    aiWritingModel: 'AI Writing Model',
+    aiWritingModelHint: "Dedicated prompt-optimization model for the frontend \"AI Writing\" button. A standalone profile, decoupled from the image/video pipeline's internal auto-optimization. Falls back to the default routing (version binding → TEXT/VISION profile) when unset.",
+    aiWritingModelLabel: 'AI Writing dedicated model',
+    aiWritingModelSelectHint: 'Only enabled text chat models can be selected; leave empty to skip the dedicated config and fall back to default routing. When writing with images, a non-vision model automatically falls back to the vision profile.',
     saveSuccess: 'System parameters saved successfully',
   },
 

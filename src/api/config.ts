@@ -1,5 +1,5 @@
 import { request } from '@/utils/request'
-import type { UnionConfig, AiProvider, AiProviderPageParams, PageResult, StorageConfig, SystemConfig, SystemStorageConfig, AgentModelProfile } from '@/types/api'
+import type { UnionConfig, AiProvider, AiProviderPageParams, PageResult, StorageConfig, SystemConfig, SystemStorageConfig, AgentModelProfile, AiWritingModel } from '@/types/api'
 
 export function getUnionConfig() {
   return request.get<UnionConfig>('/api/v1/admin/settings/union')
@@ -96,6 +96,15 @@ export function getAgentModelProfiles() {
 
 export function bindAgentModelProfile(profile: string, modelId: number | null) {
   return request.put<boolean>(`/api/v1/admin/settings/agent-model-profiles/${profile}`, { modelId })
+}
+
+/** 前端「AI 帮写」专用提示词优化模型（独立一档，与管线内部自动优化解耦） */
+export function getAiWritingModel() {
+  return request.get<AiWritingModel>('/api/v1/admin/settings/ai-writing-model')
+}
+
+export function saveAiWritingModel(modelId: number | null) {
+  return request.put<boolean>('/api/v1/admin/settings/ai-writing-model', { modelId })
 }
 
 /** 系统级存储（数据库配置 B，双桶 + STS）。覆盖系统文件配置 A，被用户级配置 C 覆盖。 */

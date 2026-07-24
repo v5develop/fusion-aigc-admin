@@ -3535,6 +3535,10 @@ export default {
     agentProfileVision: '视觉档（带图提示词优化）',
     agentProfileVisionHint: '处理带参考图的多模态提示词优化，需绑定支持视觉的模型。',
     agentProfileVisionSelectHint: '仅可选择已启用且支持视觉的文本对话模型；清空表示使用 yaml 兜底配置',
+    aiWritingModel: 'AI 帮写模型',
+    aiWritingModelHint: '前端「AI 帮写」按钮专用的提示词优化模型，独立一档、与生图/生视频管线内部自动优化解耦。未配置时回退默认档位路由（版本绑定→TEXT/VISION 档）。',
+    aiWritingModelLabel: 'AI 帮写专用模型',
+    aiWritingModelSelectHint: '仅可选择已启用的文本对话模型；清空表示不单独配置、回退默认档位路由。带图帮写时若所选模型不支持视觉，会自动回退视觉档。',
     saveSuccess: '系统参数保存成功',
   },
 

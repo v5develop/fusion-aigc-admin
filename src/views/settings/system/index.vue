@@ -213,6 +213,54 @@
             </a-form>
           </div>
         </a-tab-pane>
+
+        <a-tab-pane key="aiWriting" :tab="$t('settingsSystem.aiWritingModel')">
+          <div class="max-w-2xl">
+            <a-alert
+              type="info"
+              show-icon
+              :message="$t('settingsSystem.aiWritingModelHint')"
+              class="agent-model-alert"
+            />
+
+            <a-form layout="vertical" class="agent-profile-block">
+              <a-form-item :label="$t('settingsSystem.aiWritingModelLabel')">
+                <a-select
+                  v-model:value="aiWritingModelId"
+                  :options="allModelOptions"
+                  :loading="loadingModels"
+                  :placeholder="$t('settingsSystem.agentModelPlaceholder')"
+                  allow-clear
+                  show-search
+                  option-filter-prop="label"
+                  style="max-width: 360px"
+                />
+                <div class="form-hint">{{ $t('settingsSystem.aiWritingModelSelectHint') }}</div>
+              </a-form-item>
+
+              <a-form-item v-if="aiWritingModelId && metaFor(aiWritingModelId)">
+                <a-space>
+                  <a-tag v-if="metaFor(aiWritingModelId)?.code" color="blue">
+                    {{ metaFor(aiWritingModelId)?.code }}
+                  </a-tag>
+                  <a-tag v-if="metaFor(aiWritingModelId)?.supportVision" color="green">
+                    {{ $t('settingsSystem.agentModelSupportVision') }}
+                  </a-tag>
+                </a-space>
+              </a-form-item>
+
+              <a-form-item>
+                <a-button
+                  type="primary"
+                  @click="handleSaveAiWriting"
+                  :loading="savingAiWriting"
+                >
+                  {{ $t('common.save') }}
+                </a-button>
+              </a-form-item>
+            </a-form>
+          </div>
+        </a-tab-pane>
       </a-tabs>
     </a-card>
   </div>
@@ -222,7 +270,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { message } from 'antdv-next'
 import { useI18n } from 'vue-i18n'
-import { getSystemConfig, saveSystemConfig, getAgentModelProfiles, bindAgentModelProfile } from '@/api/config'
+import { getSystemConfig, saveSystemConfig, getAgentModelProfiles, bindAgentModelProfile, getAiWritingModel, saveAiWritingModel } from '@/api/config'
 import { getModelOptions } from '@/api/model'
 import type { AIModel, AgentModelProfile } from '@/types/api'
 
@@ -275,6 +323,10 @@ const savingProfile = ref<string | null>(null)
 // 后端返回 TEXT/VISION 两档；modelId 可被 v-model 就地编辑，保存时按档提交
 const agentProfiles = ref<AgentModelProfile[]>([])
 
+// 前端「AI 帮写」专用优化模型（独立一档，与管线内部自动优化解耦）；null=未配置回退默认档位路由
+const aiWritingModelId = ref<number | null>(null)
+const savingAiWriting = ref(false)
+
 // 全部启用模型的下拉项（label 含 code）
 const allModelOptions = computed(() =>
   models.value.map((m) => ({
@@ -313,13 +365,18 @@ function profileHint(profile: string) {
 async function loadAgentModelConfig() {
   loadingModels.value = true
   try {
-    const [options, profiles] = await Promise.all([getModelOptions(), getAgentModelProfiles()])
+    const [options, profiles, aiWriting] = await Promise.all([
+      getModelOptions(),
+      getAgentModelProfiles(),
+      getAiWritingModel(),
+    ])
     models.value = options ?? []
     // 保证 TEXT 在前、VISION 在后的稳定顺序
     const order = ['TEXT', 'VISION']
     agentProfiles.value = (profiles ?? [])
       .slice()
       .sort((a, b) => order.indexOf(a.profile) - order.indexOf(b.profile))
+    aiWritingModelId.value = aiWriting?.modelId ?? null
   } catch {
     // Error handled by interceptor
   } finally {
@@ -336,6 +393,18 @@ async function handleSaveProfile(item: AgentModelProfile) {
     // Error handled by interceptor
   } finally {
     savingProfile.value = null
+  }
+}
+
+async function handleSaveAiWriting() {
+  savingAiWriting.value = true
+  try {
+    await saveAiWritingModel(aiWritingModelId.value ?? null)
+    message.success(t('settingsSystem.saveSuccess'))
+  } catch {
+    // Error handled by interceptor
+  } finally {
+    savingAiWriting.value = false
   }
 }
 
