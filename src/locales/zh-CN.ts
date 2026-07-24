@@ -3591,7 +3591,7 @@ export default {
     noErrorData: '暂无错误数据',
     resultImage: '任务结果图片',
     resultUrl: '结果 URL',
-    resultUrlPlaceholder: '请输入结果 URL（可选）',
+    resultUrlPlaceholder: '请输入结果 URL（必填）',
 
     // Task fields
     taskId: '任务 ID',
@@ -3670,13 +3670,16 @@ export default {
     // Actions
     retry: '重试',
     forceComplete: '强制完成',
+    forceFail: '强制失败',
     batchCancel: '批量取消',
     confirmCancel: '确定要取消该任务吗？',
     confirmRetry: '确定要重试该任务吗？',
+    confirmForceFail: '确定要强制失败该任务吗？将置为终态、不可再重试，并退掉未结算的预留。',
     confirmBatchCancel: '确定要取消选中的 {count} 个任务吗？',
     cancelSuccess: '取消成功',
     retrySuccess: '重试成功',
     forceCompleteSuccess: '强制完成成功',
+    forceFailSuccess: '强制失败成功',
     block: '屏蔽',
     unblock: '取消屏蔽',
     blockStatus: '屏蔽状态',

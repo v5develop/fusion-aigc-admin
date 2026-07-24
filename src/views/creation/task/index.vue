@@ -104,6 +104,15 @@
               {{ $t('creationTask.forceComplete') }}
             </a-button>
             <a-button
+              v-if="record.canForceFail"
+              type="link"
+              size="small"
+              danger
+              @click="handleForceFail(record)"
+            >
+              {{ $t('creationTask.forceFail') }}
+            </a-button>
+            <a-button
               v-if="!record.blockStatus"
               type="link"
               size="small"
@@ -129,7 +138,7 @@
 
       <!-- 子任务展开行 -->
       <template #expandedRowRender="{ record }">
-        <ChildTaskExpand :task-id="record.taskId">
+        <ChildTaskExpand :task-id="record.taskId" :key="`child-${record.taskId}-${childReloadTick}`">
           <template #default="{ data }">
             <a-table
               :columns="childColumns"
@@ -137,7 +146,7 @@
               :pagination="false"
               row-key="id"
               size="small"
-              :scroll="{ x: 1040 }"
+              :scroll="{ x: 1250 }"
             >
             <template #emptyText>
               <a-empty :description="$t('creationTask.noChildData')" />
@@ -182,6 +191,21 @@
                 </a-tooltip>
                 <span v-else>-</span>
               </template>
+              <!-- 失败子任务逐个处理：重试(仅本子) / 强制完成 / 强制失败 -->
+              <template v-if="column.dataIndex === 'action'">
+                <a-space :size="4">
+                  <a-button v-if="child.canRetry" type="link" size="small" @click="handleRetry(child)">
+                    {{ $t('creationTask.retry') }}
+                  </a-button>
+                  <a-button v-if="child.canForceComplete" type="link" size="small" @click="handleForceComplete(child)">
+                    {{ $t('creationTask.forceComplete') }}
+                  </a-button>
+                  <a-button v-if="child.canForceFail" type="link" size="small" danger @click="handleForceFail(child)">
+                    {{ $t('creationTask.forceFail') }}
+                  </a-button>
+                  <span v-if="!child.canRetry && !child.canForceComplete && !child.canForceFail">-</span>
+                </a-space>
+              </template>
             </template>
           </a-table>
           </template>
@@ -197,7 +221,7 @@
       :confirmLoading="forceCompleteLoading"
     >
       <a-form layout="vertical">
-        <a-form-item :label="$t('creationTask.resultUrl')">
+        <a-form-item :label="$t('creationTask.resultUrl')" required>
           <a-input
             v-model:value="forceCompleteForm.resultUrl"
             :placeholder="$t('creationTask.resultUrlPlaceholder')"
@@ -249,6 +273,7 @@ import {
   cancelCreationTask,
   retryCreationTask,
   forceCompleteCreationTask,
+  forceFailCreationTask,
   blockCreationTask,
   unblockCreationTask,
   exportCreationTasks,
@@ -262,6 +287,14 @@ const { t } = useI18n()
 const router = useRouter()
 const tableRef = ref()
 const selectedRowKeys = ref<string[]>([])
+// 子任务展开行强制刷新：动作作用于子任务后 +1，重挂 ChildTaskExpand 拉取最新子状态
+const childReloadTick = ref(0)
+
+// 刷新父列表（重算聚合）+ 重挂展开的子任务行（拉取最新状态）
+function reloadTasks() {
+  tableRef.value?.reload()
+  childReloadTick.value++
+}
 
 // 仅有子任务的父任务行可展开；展开行内容由 ChildTaskExpand 组件自管理
 const expandableConfig = computed(() => ({
@@ -452,6 +485,7 @@ const childColumns = computed(() => [
   { title: t('creationTask.pricePoints'), dataIndex: 'pricePoints', width: 90, align: 'center' as const },
   { title: t('creationTask.errorMsg'), dataIndex: 'errorMsg', ellipsis: true, width: 200 },
   { title: t('common.createTime'), dataIndex: 'createTime', width: 170 },
+  { title: t('common.action'), dataIndex: 'action', width: 200, align: 'center' as const, fixed: 'right' as const },
 ])
 
 /** 结果 URL 是否为图片（按扩展名粗判，签名 URL 去掉 query 再判） */
@@ -512,7 +546,20 @@ function handleRetry(record: CreationTask) {
     onOk: async () => {
       await retryCreationTask(record.taskId)
       message.success(t('creationTask.retrySuccess'))
-      tableRef.value?.reload()
+      reloadTasks()
+    },
+  })
+}
+
+// Force fail：置终态、封禁重试（仅已失败任务；FAN_OUT 父任务逐个处理失败子）。父子共用（按 taskId）。
+function handleForceFail(record: CreationTask) {
+  Modal.confirm({
+    title: t('common.warning'),
+    content: t('creationTask.confirmForceFail'),
+    onOk: async () => {
+      await forceFailCreationTask(record.taskId)
+      message.success(t('creationTask.forceFailSuccess'))
+      reloadTasks()
     },
   })
 }
@@ -528,15 +575,20 @@ function handleForceComplete(record: CreationTask) {
 }
 
 async function handleForceCompleteConfirm() {
+  // 结果URL 必填：无产物不算成功交付（后端亦强制）
+  if (!forceCompleteForm.value.resultUrl?.trim()) {
+    message.warning(t('creationTask.resultUrlPlaceholder'))
+    return
+  }
   forceCompleteLoading.value = true
   try {
     await forceCompleteCreationTask(
       forceCompleteForm.value.taskId,
-      forceCompleteForm.value.resultUrl || undefined,
+      forceCompleteForm.value.resultUrl.trim(),
     )
     message.success(t('creationTask.forceCompleteSuccess'))
     forceCompleteVisible.value = false
-    tableRef.value?.reload()
+    reloadTasks()
   } catch (error) {
     console.error('Force complete failed:', error)
   } finally {

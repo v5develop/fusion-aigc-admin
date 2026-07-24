@@ -53,6 +53,8 @@ export interface CreationTask {
   canRetry?: boolean
   /** 是否可强制完成（未交付且未屏蔽的父任务）。据此显隐强制完成按钮 */
   canForceComplete?: boolean
+  /** 是否可强制失败（失败/部分成功且未屏蔽未锁）。置终态封禁重试。据此显隐强制失败按钮 */
+  canForceFail?: boolean
   /** 是否可取消（排队/处理中且未屏蔽的父任务）。据此显隐取消按钮 */
   canCancel?: boolean
   /** 后台重试次数（达 app.creation.retry.max-attempts 上限后 canRetry=false） */
@@ -220,6 +222,11 @@ export function retryCreationTask(taskId: string) {
 
 export function forceCompleteCreationTask(taskId: string, resultUrl?: string) {
   return request.post(`/api/v1/admin/creation/tasks/${taskId}/force-complete`, { resultUrl })
+}
+
+// 强制失败（置终态、封禁重试；FAN_OUT 父任务逐个处理失败子）
+export function forceFailCreationTask(taskId: string) {
+  return request.post(`/api/v1/admin/creation/tasks/${taskId}/force-fail`)
 }
 
 // 屏蔽任务（遮罩用户端内容 + 素材库下架；permanent=true 永久不可逆）

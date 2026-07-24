@@ -2957,7 +2957,7 @@ export default {
     noErrorData: '오류 데이터 없음',
     resultImage: '작업 결과 이미지',
     resultUrl: '결과 URL',
-    resultUrlPlaceholder: '결과 URL을 입력하세요 (선택사항)',
+    resultUrlPlaceholder: '결과 URL을 입력하세요 (필수)',
 
     // Task fields
     taskId: '작업 ID',
@@ -3015,13 +3015,16 @@ export default {
     // Actions
     retry: '재시도',
     forceComplete: '강제 완료',
+    forceFail: '강제 실패',
     batchCancel: '일괄 취소',
     confirmCancel: '해당 작업을 취소하시겠습니까?',
     confirmRetry: '해당 작업을 재시도하시겠습니까?',
+    confirmForceFail: '이 작업을 강제로 실패 처리하시겠습니까? 최종 상태가 되어 재시도할 수 없으며 미정산 예약은 환불됩니다.',
     confirmBatchCancel: '선택한 {count}개의 작업을 취소하시겠습니까?',
     cancelSuccess: '취소 성공',
     retrySuccess: '재시도 성공',
     forceCompleteSuccess: '강제 완료 성공',
+    forceFailSuccess: '강제 실패 성공',
     block: '차단',
     unblock: '차단 해제',
     blockStatus: '차단 상태',

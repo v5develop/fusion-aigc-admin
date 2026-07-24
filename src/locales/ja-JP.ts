@@ -2969,7 +2969,7 @@ export default {
     noErrorData: 'エラーデータなし',
     resultImage: 'タスク結果画像',
     resultUrl: '結果URL',
-    resultUrlPlaceholder: '結果URLを入力してください（任意）',
+    resultUrlPlaceholder: '結果URLを入力してください（必須）',
 
     // Task fields
     taskId: 'タスクID',
@@ -3027,13 +3027,16 @@ export default {
     // Actions
     retry: '再試行',
     forceComplete: '強制完了',
+    forceFail: '強制失敗',
     batchCancel: '一括キャンセル',
     confirmCancel: 'このタスクをキャンセルしますか？',
     confirmRetry: 'このタスクを再試行しますか？',
+    confirmForceFail: 'このタスクを強制的に失敗にしますか？終了状態となり再試行できず、未精算の予約は返金されます。',
     confirmBatchCancel: '選択した{count}件のタスクをキャンセルしますか？',
     cancelSuccess: 'キャンセル成功',
     retrySuccess: '再試行成功',
     forceCompleteSuccess: '強制完了成功',
+    forceFailSuccess: '強制失敗成功',
     block: 'ブロック',
     unblock: 'ブロック解除',
     blockStatus: 'ブロック状態',
