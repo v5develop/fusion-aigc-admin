@@ -3508,6 +3508,7 @@ export default {
     requestContent: 'Request Content',
     rawResponse: 'Raw Response',
     requestId: 'Request ID',
+    outTaskId: 'Upstream Task ID',
     detail: 'Detail',
     empty: 'No moderation logs',
     bizTypeMap: { IMAGE: 'Image', TEXT: 'Text', VIDEO: 'Video' },

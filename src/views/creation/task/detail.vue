@@ -295,6 +295,10 @@
               <a-descriptions-item v-if="record.requestId" :label="$t('moderationLog.requestId')">
                 <code>{{ record.requestId }}</code>
               </a-descriptions-item>
+              <!-- 上游检测任务ID：拿它去易盾控制台回溯那次检测 -->
+              <a-descriptions-item v-if="record.outTaskId" :label="$t('moderationLog.outTaskId')">
+                <code>{{ record.outTaskId }}</code>
+              </a-descriptions-item>
             </a-descriptions>
           </template>
         </a-table>

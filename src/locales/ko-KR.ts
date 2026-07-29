@@ -2936,6 +2936,7 @@ export default {
     requestContent: '요청 내용',
     rawResponse: '원본 응답',
     requestId: '요청 ID',
+    outTaskId: '상위 검사 ID',
     detail: '상세',
     empty: '심사 로그 없음',
     bizTypeMap: { IMAGE: '이미지', TEXT: '텍스트', VIDEO: '동영상' },

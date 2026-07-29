@@ -3560,6 +3560,7 @@ export default {
     requestContent: '请求内容',
     rawResponse: '原始响应',
     requestId: '请求ID',
+    outTaskId: '上游检测ID',
     detail: '详情',
     empty: '暂无内容审核日志',
     bizTypeMap: { IMAGE: '图片', TEXT: '文本', VIDEO: '视频' },

@@ -24,11 +24,15 @@ export interface ModerationLog {
   /** 上游原始响应（排障用） */
   rawResponse?: string
   requestId?: string
+  /** 上游检测任务ID（易盾 taskId，多条以 ", " 拼接）；绿网/白名单为空。拿它去上游控制台回溯那次检测 */
+  outTaskId?: string
   createTime: string
 }
 
 export interface ModerationLogQuery {
   taskId?: string
+  /** 上游检测任务ID，后端按包含匹配（一次多图审核的多个 taskId 拼在一列里） */
+  outTaskId?: string
   userId?: number
   passed?: boolean
   provider?: string

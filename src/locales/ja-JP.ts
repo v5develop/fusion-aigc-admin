@@ -2948,6 +2948,7 @@ export default {
     requestContent: 'リクエスト内容',
     rawResponse: '生レスポンス',
     requestId: 'リクエストID',
+    outTaskId: '上流検査ID',
     detail: '詳細',
     empty: '審査ログはありません',
     bizTypeMap: { IMAGE: '画像', TEXT: 'テキスト', VIDEO: '動画' },

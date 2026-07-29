@@ -62,6 +62,10 @@
         <a-descriptions-item v-if="current.requestId" :label="$t('moderationLog.requestId')">
           <code>{{ current.requestId }}</code>
         </a-descriptions-item>
+        <!-- 上游检测任务ID：拿它去易盾控制台回溯那次检测，是「为什么这张没过」的唯一硬凭据 -->
+        <a-descriptions-item v-if="current.outTaskId" :label="$t('moderationLog.outTaskId')">
+          <code class="mod-log-break">{{ current.outTaskId }}</code>
+        </a-descriptions-item>
       </a-descriptions>
     </a-modal>
   </div>
@@ -86,6 +90,7 @@ function showDetail(record: ModerationLog) {
 
 const columns = [
   { title: t('moderationLog.taskId'), dataIndex: 'taskId', search: true, searchType: 'input' as const, width: 180, ellipsis: true },
+  { title: t('moderationLog.outTaskId'), dataIndex: 'outTaskId', search: true, searchType: 'input' as const, width: 180, ellipsis: true },
   { title: t('moderationLog.userId'), dataIndex: 'userId', search: true, searchType: 'input' as const, width: 90 },
   { title: t('moderationLog.username'), dataIndex: 'username', width: 110 },
   {
@@ -136,6 +141,7 @@ async function loadData(params: Record<string, unknown>) {
   const passedRaw = params.passed as string | undefined
   const res = await getModerationLogList({
     taskId: (params.taskId as string) || undefined,
+    outTaskId: (params.outTaskId as string) || undefined,
     userId: params.userId ? Number(params.userId) : undefined,
     passed: passedRaw === 'true' ? true : passedRaw === 'false' ? false : undefined,
     provider: (params.provider as string) || undefined,

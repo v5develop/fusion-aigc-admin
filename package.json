@@ -1,5 +1,5 @@
 {
-  "name": "ai-fusion-video-admin",
+  "name": "fusion-aigc-admin",
   "version": "1.0.0",
   "type": "module",
   "description": "Fusion AIGC - A modern Vue 3 admin scaffold for Fusion AIGC management",
