@@ -72,14 +72,14 @@
         <a-col :span="6">
           <a-statistic :title="$t('generationMonitor.pipelineInflightWithProgress')" :value="pipelineMetrics?.inflightWithProgress || 0">
             <template #suffix>
-              <span style="font-size: 14px; color: #999">{{ $t('generationMonitor.times') }}</span>
+              <span style="font-size: 14px; color: var(--color-text-tertiary)">{{ $t('generationMonitor.times') }}</span>
             </template>
           </a-statistic>
         </a-col>
         <a-col :span="6">
           <a-statistic :title="$t('generationMonitor.pipelineAvgStepDuration')" :value="pipelineMetrics?.avgStepDurationMs || 0">
             <template #suffix>
-              <span style="font-size: 14px; color: #999">ms</span>
+              <span style="font-size: 14px; color: var(--color-text-tertiary)">ms</span>
             </template>
           </a-statistic>
         </a-col>

@@ -359,7 +359,7 @@ onMounted(() => {
   position: absolute;
   top: -16px;
   font-size: 11px;
-  color: #595959;
+  color: var(--color-text-secondary);
   padding: 0;
   white-space: nowrap;
   line-height: 1;
@@ -367,7 +367,7 @@ onMounted(() => {
 
 .chart-container :deep(.bar-label) {
   font-size: 11px;
-  color: #8c8c8c;
+  color: var(--color-text-tertiary);
   margin-top: 8px;
   white-space: nowrap;
   text-align: center;

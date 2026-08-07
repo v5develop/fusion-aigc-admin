@@ -291,6 +291,6 @@ onMounted(async () => {
 
 .form-hint {
   font-size: 12px;
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--color-text-tertiary);
 }
 </style>

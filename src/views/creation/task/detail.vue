@@ -950,7 +950,7 @@ onMounted(() => {
 .api-log-cost,
 .api-log-time {
   font-size: 12px;
-  color: #999;
+  color: var(--color-text-tertiary);
 }
 
 .api-log-break {

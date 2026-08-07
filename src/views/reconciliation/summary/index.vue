@@ -344,7 +344,7 @@ onMounted(() => {
 .chart-container {
   height: 240px;
   padding: 16px;
-  background: var(--bg-color-secondary, #fafafa);
+  background: var(--color-fill-quaternary);
   border-radius: 8px;
 }
 
@@ -421,7 +421,7 @@ onMounted(() => {
 
 .chart-container :deep(.bar-label) {
   font-size: 10px;
-  color: #8c8c8c;
+  color: var(--color-text-tertiary);
   margin-top: 4px;
   white-space: nowrap;
 }
@@ -438,7 +438,7 @@ onMounted(() => {
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: #595959;
+  color: var(--color-text-secondary);
 }
 
 .chart-container :deep(.legend-dot) {

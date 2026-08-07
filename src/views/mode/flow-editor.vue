@@ -493,7 +493,7 @@ onMounted(load);
   gap: 6px;
   padding: 6px 8px;
   margin-bottom: 8px;
-  border: 1px solid #d9d9d9;
+  border: 1px solid var(--color-border);
   border-left-width: 3px;
   border-radius: 6px;
   cursor: grab;
@@ -508,14 +508,14 @@ onMounted(load);
 }
 .pn-mode {
   font-size: 11px;
-  color: #999;
+  color: var(--color-text-tertiary);
   margin-left: auto;
 }
 .mode-node {
   min-width: 150px;
   padding: 8px 10px;
   background: var(--color-bg-container, #fff);
-  border: 1px solid #d9d9d9;
+  border: 1px solid var(--color-border);
   border-left-width: 3px;
   border-radius: 8px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
@@ -535,6 +535,6 @@ onMounted(load);
   gap: 2px;
   margin-top: 4px;
   font-size: 11px;
-  color: #888;
+  color: var(--color-text-tertiary);
 }
 </style>

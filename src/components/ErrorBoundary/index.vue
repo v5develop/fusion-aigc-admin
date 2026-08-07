@@ -72,7 +72,7 @@ function reportError(error: unknown, info: string) {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: var(--ant-color-bg-layout);
+  background: var(--color-bg-layout);
 }
 
 .error-content {
@@ -83,20 +83,20 @@ function reportError(error: unknown, info: string) {
 
 .error-icon {
   font-size: 48px;
-  color: var(--ant-color-error);
+  color: var(--color-error);
   margin-bottom: 16px;
 }
 
 .error-title {
   font-size: 24px;
   font-weight: 600;
-  color: var(--ant-color-text);
+  color: var(--color-text-primary);
   margin: 0 0 8px;
 }
 
 .error-message {
   font-size: 14px;
-  color: var(--ant-color-text-secondary);
+  color: var(--color-text-secondary);
   margin: 0 0 24px;
 }
 

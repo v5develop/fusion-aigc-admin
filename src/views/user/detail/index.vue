@@ -593,7 +593,7 @@ onMounted(() => {
   .detail-title {
     font-size: 20px;
     font-weight: 600;
-    color: rgba(0, 0, 0, 0.85);
+    color: var(--color-text-primary);
   }
 }
 
@@ -611,12 +611,12 @@ onMounted(() => {
     .user-nickname {
       font-size: 20px;
       font-weight: 600;
-      color: rgba(0, 0, 0, 0.85);
+      color: var(--color-text-primary);
     }
 
     .user-username {
       font-size: 14px;
-      color: rgba(0, 0, 0, 0.45);
+      color: var(--color-text-tertiary);
     }
   }
 }
@@ -633,14 +633,14 @@ onMounted(() => {
 
   .points-unit {
     font-size: 14px;
-    color: rgba(0, 0, 0, 0.45);
+    color: var(--color-text-tertiary);
     margin-left: 4px;
   }
 }
 
 .capability-item {
   padding: 12px 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--color-border-secondary);
 
   &:last-child {
     border-bottom: none;
@@ -660,7 +660,7 @@ onMounted(() => {
     .capability-name {
       font-size: 14px;
       font-weight: 500;
-      color: rgba(0, 0, 0, 0.85);
+      color: var(--color-text-primary);
     }
   }
 
@@ -669,13 +669,13 @@ onMounted(() => {
     justify-content: space-between;
     align-items: center;
     font-size: 12px;
-    color: rgba(0, 0, 0, 0.45);
+    color: var(--color-text-tertiary);
     margin-bottom: 4px;
   }
 
   .capability-expire {
     font-size: 12px;
-    color: rgba(0, 0, 0, 0.45);
+    color: var(--color-text-tertiary);
   }
 }
 

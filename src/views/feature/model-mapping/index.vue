@@ -188,6 +188,6 @@ onMounted(() => {
 
 .model-meta {
   font-size: 12px;
-  color: #999;
+  color: var(--color-text-tertiary);
 }
 </style>

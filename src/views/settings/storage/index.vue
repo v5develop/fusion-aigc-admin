@@ -617,7 +617,7 @@ onMounted(() => {
 
 .form-hint {
   font-size: 12px;
-  color: #999;
+  color: var(--color-text-tertiary);
   margin-top: 4px;
 }
 </style>

@@ -215,7 +215,7 @@
                 </a-tag>
                 <span
                   v-if="record.optionFilterType === 'partial' && record.optionWhiteList?.length"
-                  style="margin-left: 4px; color: #999"
+                  style="margin-left: 4px; color: var(--color-text-tertiary)"
                 >
                   ({{ record.optionWhiteList.length }})
                 </span>

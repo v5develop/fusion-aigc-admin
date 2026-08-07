@@ -522,14 +522,14 @@ watch([category, keyword], () => {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  color: #333;
+  color: var(--color-text-primary);
 }
 
 /* 分类栏样式 */
 .ip-seg {
   padding: 2px;
   border-radius: 6px;
-  background-color: #f5f5f5;
+  background-color: var(--color-fill-quaternary);
 
   /* 强制调整内部 Ant Design 样式 */
   :deep(.ant-segmented-item-label) {
@@ -571,7 +571,7 @@ watch([category, keyword], () => {
   /* 第二行：数量 */
   :deep(.ip-seg-line2) {
     margin-top: 0;
-    color: #999;
+    color: var(--color-text-tertiary);
     font-size: 10px;
     white-space: nowrap;
   }
@@ -579,9 +579,9 @@ watch([category, keyword], () => {
 
 /* 网格容器背景 */
 .ip-grid-container {
-  border: 1px solid #f0f0f0;
+  border: 1px solid var(--color-border-secondary);
   border-radius: 8px;
-  background-color: #fafafa;
+  background-color: var(--color-fill-quaternary);
 }
 
 /* 图标网格防遮挡 */
@@ -604,7 +604,7 @@ watch([category, keyword], () => {
 
   &::-webkit-scrollbar-thumb {
     border-radius: 4px;
-    background: #e0e0e0;
+    background: var(--color-border-secondary);
   }
 
   &::-webkit-scrollbar-track {
@@ -619,7 +619,7 @@ watch([category, keyword], () => {
   align-items: center;
   justify-content: center;
   height: 280px;
-  color: #999;
+  color: var(--color-text-tertiary);
 }
 
 /* 图标卡片 */
@@ -636,9 +636,9 @@ watch([category, keyword], () => {
   /* 关键：防止底部色条超出圆角 */
   overflow: hidden;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid #eee;
+  border: 1px solid var(--color-border-secondary);
   border-radius: 6px;
-  background: #fff;
+  background: var(--color-bg-container);
   box-shadow: 0 1px 2px rgb(0 0 0 / 2%);
   cursor: pointer;
 
@@ -646,7 +646,7 @@ watch([category, keyword], () => {
   &:hover {
     z-index: 10;
     transform: translateY(-2px);
-    border-color: var(--hover-color, #1677ff);
+    border-color: var(--color-primary);
     box-shadow: 0 4px 10px rgb(0 0 0 / 8%);
 
     /* hover 时色条变粗 */
@@ -659,10 +659,10 @@ watch([category, keyword], () => {
   /* 选中状态 */
   &.selected {
     z-index: 5;
-    border-color: #1677ff;
-    background: #e6f7ff;
-    box-shadow: inset 0 0 0 1px #1677ff;
-    color: #1677ff;
+    border-color: var(--color-primary);
+    background: var(--color-primary-1);
+    box-shadow: inset 0 0 0 1px var(--color-primary);
+    color: var(--color-primary);
   }
 }
 
@@ -679,7 +679,7 @@ watch([category, keyword], () => {
 
   /* 稍微透明一点，不抢眼，但能看清颜色 */
   opacity: 0.7;
-  background-color: var(--hover-color, #ccc);
+  background-color: var(--color-border);
 }
 
 /* 底部栏 */
@@ -690,11 +690,11 @@ watch([category, keyword], () => {
 }
 
 .ip-total {
-  color: #888;
+  color: var(--color-text-tertiary);
   font-size: 12px;
 
   b {
-    color: #333;
+    color: var(--color-text-primary);
   }
 }
 

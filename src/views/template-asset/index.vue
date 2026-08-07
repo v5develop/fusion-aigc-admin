@@ -1065,7 +1065,7 @@ async function handleSubmitBatchTag() {
 
 .tag-asset-sub {
   font-size: 12px;
-  color: #999;
+  color: var(--color-text-tertiary);
   word-break: break-all;
 }
 
@@ -1097,12 +1097,12 @@ async function handleSubmitBatchTag() {
   left: 0;
   padding: 12px 24px;
   text-align: right;
-  background: #fff;
-  border-top: 1px solid #f0f0f0;
+  background: var(--color-bg-container);
+  border-top: 1px solid var(--color-border-secondary);
 }
 
 .tagged-empty {
-  color: #999;
+  color: var(--color-text-tertiary);
   font-size: 12px;
 }
 </style>

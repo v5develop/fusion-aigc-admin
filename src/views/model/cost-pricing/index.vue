@@ -422,6 +422,6 @@ onMounted(() => {
   margin-top: 4px;
   font-size: 12px;
   line-height: 1.4;
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--color-text-tertiary);
 }
 </style>
