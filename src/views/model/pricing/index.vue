@@ -101,7 +101,9 @@
             :min="0"
             :precision="0"
             style="width: 100%"
+            :placeholder="$t('pricing.pricePointsPlaceholder')"
           />
+          <div class="form-hint">{{ $t('pricing.pricePointsZeroHint') }}</div>
         </a-form-item>
         <a-form-item :label="$t('pricing.priceUnit')">
           <a-select v-model:value="formData.priceUnit" :options="priceUnitOptions" allow-clear />
@@ -294,7 +296,8 @@ const formData = reactive({
   modelId: undefined as number | undefined,
   modelName: '',
   actionType: '' as string,
-  pricePoints: 0,
+  // 默认留空而非 0：0 现在是合法定价（免费档），默认填 0 会让「忘了填」直接存成免费
+  pricePoints: undefined as number | undefined,
   priceUnit: 'PER_REQUEST',
   resolution: '' as string,
   durationSeconds: undefined as number | undefined,
@@ -340,7 +343,7 @@ function handleCreate() {
   formData.modelId = undefined
   formData.modelName = ''
   formData.actionType = actionTypeList.value[0]?.actionCode || ''
-  formData.pricePoints = 0
+  formData.pricePoints = undefined
   formData.priceUnit = 'PER_REQUEST'
   formData.resolution = ''
   formData.durationSeconds = undefined
@@ -356,7 +359,8 @@ function handleEdit(record: ModelPricing) {
   formData.modelId = record.modelId
   formData.modelName = record.modelName || ''
   formData.actionType = record.actionType || ''
-  formData.pricePoints = record.pricePoints || 0
+  // ?? 而非 ||：0 元行必须回显成 0，用 || 会被当成空值再填成 0——看着一样，但下面校验的语义不同
+  formData.pricePoints = record.pricePoints ?? undefined
   formData.priceUnit = record.priceUnit || 'PER_REQUEST'
   formData.resolution = record.resolution || ''
   formData.durationSeconds = record.durationSeconds ?? undefined
@@ -375,10 +379,13 @@ async function handleSubmit() {
     message.error(t('pricing.actionTypeRequired'))
     return
   }
-  if (!formData.pricePoints || formData.pricePoints <= 0) {
+  // 0 是合法定价（如豆包加工厂走用户自己绑定的账号，平台侧不收费），故不能用 falsy 判空——
+  // 那会把「填了 0」和「没填」混为一谈。留空(null)与负数才拒。
+  if (formData.pricePoints == null || formData.pricePoints < 0) {
     message.error(t('pricing.pricePointsRequired'))
     return
   }
+  const pricePoints = formData.pricePoints
 
   submitLoading.value = true
   try {
@@ -391,7 +398,7 @@ async function handleSubmit() {
       const data = {
         modelId: formData.modelId,
         actionType: formData.actionType,
-        pricePoints: formData.pricePoints,
+        pricePoints,
         priceUnit: formData.priceUnit,
         resolution, // '' 表示清回通用档
         durationSeconds: hasDuration ? formData.durationSeconds : -1, // -1 表示清回通用档
@@ -406,7 +413,7 @@ async function handleSubmit() {
       const data = {
         modelId: formData.modelId,
         actionType: formData.actionType,
-        pricePoints: formData.pricePoints,
+        pricePoints,
         priceUnit: formData.priceUnit,
         resolution: resolution || undefined,
         durationSeconds: hasDuration ? formData.durationSeconds : undefined,
