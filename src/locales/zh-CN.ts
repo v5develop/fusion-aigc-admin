@@ -2579,7 +2579,7 @@ export default {
     actionTypeRequired: '请选择操作类型',
     pricePointsRequired: '请输入消耗点数（可填 0，不能为负）',
     pricePointsPlaceholder: '请输入消耗点数，0 表示免费',
-    pricePointsZeroHint: '填 0 表示该模型免费（如豆包加工厂走用户自己绑定的账号，平台侧不收费）。留空不算 0，会校验失败。',
+    pricePointsZeroHint: '仅豆包加工厂系列（走用户自己绑定的账号）可填 0；其它模型填 0 会被后端拒绝。留空不算 0，同样校验失败。',
     modelRequired: '请选择模型',
     updateSuccess: '定价更新成功',
     createSuccess: '定价创建成功',

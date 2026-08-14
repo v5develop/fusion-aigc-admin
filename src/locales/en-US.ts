@@ -2547,7 +2547,7 @@ export default {
     actionTypeRequired: 'Please select action type',
     pricePointsRequired: 'Please enter points cost (0 allowed, negative rejected)',
     pricePointsPlaceholder: 'Points cost; 0 means free',
-    pricePointsZeroHint: 'Enter 0 to make this model free (e.g. Doubao Factory runs on the user\'s own bound account, so the platform charges nothing). Blank is not 0 and fails validation.',
+    pricePointsZeroHint: 'Only Doubao Factory models (which run on the user own bound account) may be priced at 0; other models are rejected by the server. Blank is not 0 and also fails validation.',
     modelRequired: 'Please select a model',
     updateSuccess: 'Pricing updated successfully',
     createSuccess: 'Pricing created successfully',
