@@ -151,39 +151,46 @@
         <a-empty v-else :description="$t('creationTask.noParams')" />
       </a-card>
 
-      <!-- Result -->
+      <!-- Result：一次调用出 N 张的 task_type 全落在同一行，逐张渲染，别只显示首张 -->
       <a-card
-        v-if="task?.resultUrl"
+        v-if="resultUrlList.length"
         :title="$t('creationTask.resultInfo')"
         style="margin-bottom: 16px"
       >
         <template #extra>
-          <a-button
-            v-if="task.resultUrl && isVideoUrl(task.resultUrl)"
-            size="small"
-            :loading="fixingContentType"
-            @click="handleFixContentType"
-          >
-            {{ $t('creationTask.fixContentType') }}
-          </a-button>
+          <a-space>
+            <a-tag v-if="resultUrlList.length > 1" color="blue">
+              {{ $t('creationTask.resultCount', { count: resultUrlList.length }) }}
+            </a-tag>
+            <a-button
+              v-if="isVideoUrl(resultUrlList[0])"
+              size="small"
+              :loading="fixingContentType"
+              @click="handleFixContentType"
+            >
+              {{ $t('creationTask.fixContentType') }}
+            </a-button>
+          </a-space>
         </template>
         <div class="result-preview">
-          <a-image
-            v-if="isImageUrl(task.resultUrl)"
-            :src="task.resultUrl"
-            :alt="$t('creationTask.resultImage')"
-            style="max-width: 400px; max-height: 400px"
-          />
-          <video
-            v-else-if="isVideoUrl(task.resultUrl)"
-            controls
-            playsinline
-            preload="metadata"
-            style="max-width: 600px; max-height: 400px"
-          >
-            <source :src="task.resultUrl" :type="getVideoMimeType(task.resultUrl)" />
-          </video>
-          <a v-else :href="task.resultUrl" target="_blank">{{ task.resultUrl }}</a>
+          <div v-for="(url, i) in resultUrlList" :key="i" class="result-preview__item">
+            <a-image
+              v-if="isImageUrl(url)"
+              :src="url"
+              :alt="$t('creationTask.resultImage')"
+              style="max-width: 400px; max-height: 400px"
+            />
+            <video
+              v-else-if="isVideoUrl(url)"
+              controls
+              playsinline
+              preload="metadata"
+              style="max-width: 600px; max-height: 400px"
+            >
+              <source :src="url" :type="getVideoMimeType(url)" />
+            </video>
+            <a v-else :href="url" target="_blank">{{ url }}</a>
+          </div>
         </div>
       </a-card>
 
@@ -550,6 +557,17 @@ const pipelineSteps = ref<PipelineStepsResponse | null>(null)
 
 // 是否存在子任务：存在则展示父任务计费聚合（合计消耗积分 / 折叠计费状态 / 子任务数）
 const hasSubTasks = computed(() => (task.value?.subTasks?.length ?? 0) > 0)
+
+/**
+ * 待展示的产物列表。优先 resultUrls（一次调用出 N 张的 task_type 把 N 张全落在同一行），
+ * 为空才回退 resultUrl —— 单产物任务后端不写 resultUrls 列，回退是常态而非异常。
+ * 部分成功时数组里可能有 null 占位（失败位保序），过滤掉不渲染空框。
+ */
+const resultUrlList = computed<string[]>(() => {
+  const many = (task.value?.resultUrls ?? []).filter((u): u is string => !!u)
+  if (many.length) return many
+  return task.value?.resultUrl ? [task.value.resultUrl] : []
+})
 
 // API 请求日志（错误信息详情）
 const apiLogModalOpen = ref(false)
@@ -933,6 +951,14 @@ onMounted(() => {
   align-items: flex-start;
   justify-content: center;
   padding: 8px;
+  /* 多产物（65/66 一次出 N 张）时横向排布并换行；单产物时与原先居中一张的观感一致 */
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.result-preview__item {
+  display: flex;
+  align-items: flex-start;
 }
 
 .api-log-item {

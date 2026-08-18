@@ -2961,6 +2961,7 @@ export default {
     paramsInfo: '実行パラメータ（実行側へ送信）',
     billingInfo: '課金情報',
     resultInfo: '結果情報',
+    resultCount: '{count}枚',
     errorInfo: 'エラー情報',
     childrenTasks: 'サブタスク一覧',
     noRequestParams: 'リクエストパラメータなし（メインタスクのみ）',

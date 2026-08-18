@@ -3575,6 +3575,7 @@ export default {
     paramsInfo: '执行参数（下发执行方）',
     billingInfo: '计费信息',
     resultInfo: '结果信息',
+    resultCount: '共 {count} 张',
     errorInfo: '错误信息',
     errorDetail: '详情',
     apiLogTitle: '对外请求日志',

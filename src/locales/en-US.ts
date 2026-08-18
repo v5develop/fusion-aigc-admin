@@ -3523,6 +3523,7 @@ export default {
     paramsInfo: 'Execution Params (Dispatched to Provider)',
     billingInfo: 'Billing Info',
     resultInfo: 'Result',
+    resultCount: '{count} outputs',
     errorInfo: 'Error Info',
     errorDetail: 'Detail',
     apiLogTitle: 'Outbound Request Logs',

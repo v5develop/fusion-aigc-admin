@@ -36,6 +36,13 @@ export interface CreationTask {
   blockTime?: string
   statusText?: string
   resultUrl?: string
+  /**
+   * 全部产物 URL。一次调用出 N 张的 task_type（批量 44/57/58/59/60、原生多图 65/66）
+   * 把 N 张全落在同一个任务行上，此时 resultUrl 只是其中首张。
+   * 只渲染 resultUrl 会让运营在排查「用户说少给图」时看到 1 张而误判为「本来就只出了一张」。
+   * 单产物任务该字段为空数组/缺省，回退 resultUrl。
+   */
+  resultUrls?: string[]
   errorMsg?: string
   category?: string
   ownerType?: number

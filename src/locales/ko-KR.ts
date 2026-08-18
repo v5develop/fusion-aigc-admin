@@ -2949,6 +2949,7 @@ export default {
     paramsInfo: '실행 파라미터 (실행자에 전달)',
     billingInfo: '청구 정보',
     resultInfo: '결과 정보',
+    resultCount: '{count}장',
     errorInfo: '오류 정보',
     childrenTasks: '하위 작업 목록',
     noRequestParams: '요청 파라미터 없음 (메인 작업만 기록)',
