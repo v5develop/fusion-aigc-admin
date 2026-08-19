@@ -27,6 +27,11 @@ export interface Prompt {
   status: number
   activeVersionId: number
   owner?: string
+  /**
+   * 导入来源文件路径；空 = 管理端手工创建、无源文件，「同步文件」对它无效。
+   * 注意历史数据（source_path 列加上之前导入的）也为空，故仅用于「是否禁用按钮」的提示性判断。
+   */
+  sourcePath?: string
   usageCount?: number
   lastUsedTime?: string
   createTime?: string
@@ -69,9 +74,15 @@ export interface VersionDiff {
 }
 
 export interface ImportResult {
+  /** 新建的优化模板数（首次导入，直接发布为 v1） */
   optimizeImported: number
+  /** 新建的 Agent 提示词数（首次导入，直接发布为 v1） */
   agentImported: number
+  /** 源文件已变更、生成了待发布草稿的数量。生效版本未动，需人工 review 后发布 */
+  updated: number
+  /** 源文件与上次导入一致、原样跳过的数量 */
   skipped: number
+  /** 逐条明细：optimize:xx(new) / agent:xx(draft v3) / xx(unchanged) / missing:xx(源文件未找到) */
   details: string[]
 }
 
@@ -225,8 +236,17 @@ export function rollbackVersion(id: number | string, versionId: number | string)
 export function diffVersions(a: number | string, b: number | string) {
   return request.get<VersionDiff>(`${BASE}/versions/diff`, { params: { a, b } })
 }
-export function importExisting() {
-  return request.post<ImportResult>(`${BASE}/import`)
+/**
+ * 导入/同步文件侧提示词。
+ *
+ * 按源文件内容 hash 与上次导入比对：未变跳过，已变生成【草稿】版本（不动生效版本），首次导入直接发布。
+ *
+ * @param codes 只同步这些 code；不传=全量。改一条却全量导入的话，其余变更过的文件会一并刷出草稿，
+ *              还得在列表里逐条辨认哪个是自己要的。
+ */
+export function importExisting(codes?: string[]) {
+  const params = codes?.length ? { codes: codes.join(',') } : undefined
+  return request.post<ImportResult>(`${BASE}/import`, undefined, { params })
 }
 
 /** 后台 AI 辅助优化/生成提示词内容（元提示词）。content 为空=按 instruction 从零生成。 */
