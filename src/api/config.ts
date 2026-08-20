@@ -128,6 +128,22 @@ export function setVideoWatermarkEnabled(enabled: boolean) {
   })
 }
 
+/**
+ * 图片盲水印开关。同样是「DB 优先、未配置回退 yaml」后的实际生效值。
+ *
+ * 开启后每张出图都会调外部盲水印微服务嵌入溯源信息；该服务异常时会拖慢整条出图链路，
+ * 故保留一键关闭。未配置 app.blind-watermark.base-url 时后端会拒绝开启。
+ */
+export function getBlindWatermarkEnabled() {
+  return request.get<boolean>('/api/v1/admin/settings/blind-watermark')
+}
+
+export function setBlindWatermarkEnabled(enabled: boolean) {
+  return request.put<boolean>('/api/v1/admin/settings/blind-watermark', undefined, {
+    params: { enabled },
+  })
+}
+
 /** 系统级存储（数据库配置 B，双桶 + STS）。覆盖系统文件配置 A，被用户级配置 C 覆盖。 */
 export function getSystemStorageConfig() {
   return request.get<SystemStorageConfig>('/api/v1/admin/settings/storage')

@@ -235,6 +235,15 @@
                 />
                 <div class="form-hint">{{ $t('settingsSystem.videoWatermarkDesc') }}</div>
               </a-form-item>
+
+              <a-form-item :label="$t('settingsSystem.blindWatermark')">
+                <a-switch
+                  v-model:checked="blindWatermarkEnabled"
+                  :loading="savingBlindWatermark"
+                  @change="handleToggleBlindWatermark"
+                />
+                <div class="form-hint">{{ $t('settingsSystem.blindWatermarkDesc') }}</div>
+              </a-form-item>
             </a-form>
           </div>
         </a-tab-pane>
@@ -295,7 +304,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { message } from 'antdv-next'
 import { useI18n } from 'vue-i18n'
-import { getSystemConfig, saveSystemConfig, getAgentModelProfiles, bindAgentModelProfile, getAiWritingModel, saveAiWritingModel, getVideoWatermarkEnabled, setVideoWatermarkEnabled } from '@/api/config'
+import { getSystemConfig, saveSystemConfig, getAgentModelProfiles, bindAgentModelProfile, getAiWritingModel, saveAiWritingModel, getVideoWatermarkEnabled, setVideoWatermarkEnabled, getBlindWatermarkEnabled, setBlindWatermarkEnabled } from '@/api/config'
 import { getModelOptions } from '@/api/model'
 import type { AIModel, AgentModelProfile } from '@/types/api'
 
@@ -352,6 +361,10 @@ const savingProfile = ref<string | null>(null)
  */
 const videoWatermarkEnabled = ref(false)
 const savingVideoWatermark = ref(false)
+
+/** 图片盲水印开关。同样是 DB 优先后的实际生效值。 */
+const blindWatermarkEnabled = ref(false)
+const savingBlindWatermark = ref(false)
 // 后端返回 TEXT/VISION 两档；modelId 可被 v-model 就地编辑，保存时按档提交
 const agentProfiles = ref<AgentModelProfile[]>([])
 
@@ -512,10 +525,32 @@ async function handleToggleVideoWatermark(checked: boolean) {
   }
 }
 
+async function loadBlindWatermark() {
+  try {
+    blindWatermarkEnabled.value = await getBlindWatermarkEnabled()
+  } catch {
+    /* 错误已由拦截器提示 */
+  }
+}
+
+async function handleToggleBlindWatermark(checked: boolean) {
+  savingBlindWatermark.value = true
+  try {
+    await setBlindWatermarkEnabled(checked)
+    message.success(checked ? t('settingsSystem.blindWatermarkOn') : t('settingsSystem.blindWatermarkOff'))
+  } catch {
+    // 同视频水印：保存失败必须拨回去，否则界面显示已开、实际没开
+    blindWatermarkEnabled.value = !checked
+  } finally {
+    savingBlindWatermark.value = false
+  }
+}
+
 onMounted(() => {
   loadConfig()
   loadAgentModelConfig()
   loadVideoWatermark()
+  loadBlindWatermark()
 })
 </script>
 
