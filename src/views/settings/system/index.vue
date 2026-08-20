@@ -214,6 +214,31 @@
           </div>
         </a-tab-pane>
 
+        <a-tab-pane key="creation" :tab="$t('settingsSystem.creation')">
+          <div class="max-w-2xl">
+            <a-alert
+              type="info"
+              show-icon
+              :message="$t('settingsSystem.videoWatermarkHint')"
+              class="agent-model-alert"
+            />
+            <a-form layout="vertical">
+              <a-form-item :label="$t('settingsSystem.videoWatermark')">
+                <!-- 切换即保存：单个布尔值没有「改几项再一起提交」的需求，
+                     且水印涉及存储与算力成本，出问题要能一键立刻关掉。
+                     也不能并进 basic 表单随整体 PUT——那样用户保存任意其它设置时，
+                     都会把当前显示值写进 DB，等于把「DB 未配置、跟随 yaml」这个状态给消掉 -->
+                <a-switch
+                  v-model:checked="videoWatermarkEnabled"
+                  :loading="savingVideoWatermark"
+                  @change="handleToggleVideoWatermark"
+                />
+                <div class="form-hint">{{ $t('settingsSystem.videoWatermarkDesc') }}</div>
+              </a-form-item>
+            </a-form>
+          </div>
+        </a-tab-pane>
+
         <a-tab-pane key="aiWriting" :tab="$t('settingsSystem.aiWritingModel')">
           <div class="max-w-2xl">
             <a-alert
@@ -270,7 +295,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { message } from 'antdv-next'
 import { useI18n } from 'vue-i18n'
-import { getSystemConfig, saveSystemConfig, getAgentModelProfiles, bindAgentModelProfile, getAiWritingModel, saveAiWritingModel } from '@/api/config'
+import { getSystemConfig, saveSystemConfig, getAgentModelProfiles, bindAgentModelProfile, getAiWritingModel, saveAiWritingModel, getVideoWatermarkEnabled, setVideoWatermarkEnabled } from '@/api/config'
 import { getModelOptions } from '@/api/model'
 import type { AIModel, AgentModelProfile } from '@/types/api'
 
@@ -320,6 +345,13 @@ const notificationForm = reactive({
 const loadingModels = ref(false)
 const models = ref<AIModel[]>([])
 const savingProfile = ref<string | null>(null)
+
+/**
+ * 视频展示水印开关。读到的是「DB 优先、未配置回退 yaml」后的实际生效值，
+ * 所以首次进来显示 false 时 DB 里未必有该行——一旦切换就会写入 DB 并从此以 DB 为准。
+ */
+const videoWatermarkEnabled = ref(false)
+const savingVideoWatermark = ref(false)
 // 后端返回 TEXT/VISION 两档；modelId 可被 v-model 就地编辑，保存时按档提交
 const agentProfiles = ref<AgentModelProfile[]>([])
 
@@ -458,9 +490,32 @@ async function handleSaveNotification() {
   }
 }
 
+/** 读水印开关。失败不弹错：它只是设置页的一个开关，拉不到时保持关闭态即可，不该打断整页。 */
+async function loadVideoWatermark() {
+  try {
+    videoWatermarkEnabled.value = await getVideoWatermarkEnabled()
+  } catch {
+    /* 错误已由拦截器提示 */
+  }
+}
+
+async function handleToggleVideoWatermark(checked: boolean) {
+  savingVideoWatermark.value = true
+  try {
+    await setVideoWatermarkEnabled(checked)
+    message.success(checked ? t('settingsSystem.videoWatermarkOn') : t('settingsSystem.videoWatermarkOff'))
+  } catch {
+    // 保存失败必须把开关拨回去，否则界面显示已开、实际没开，下次进来又变回来
+    videoWatermarkEnabled.value = !checked
+  } finally {
+    savingVideoWatermark.value = false
+  }
+}
+
 onMounted(() => {
   loadConfig()
   loadAgentModelConfig()
+  loadVideoWatermark()
 })
 </script>
 

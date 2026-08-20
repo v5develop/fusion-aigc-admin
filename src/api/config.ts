@@ -107,6 +107,27 @@ export function saveAiWritingModel(modelId: number | null) {
   return request.put<boolean>('/api/v1/admin/settings/ai-writing-model', { modelId })
 }
 
+/**
+ * 视频展示水印开关。
+ *
+ * 返回的是「DB 优先、未配置回退 yaml」之后的<b>实际生效值</b>，不是裸 DB 值——
+ * 所以首次打开看到的可能是 yaml 的默认（false），此时 DB 里并无该行。
+ *
+ * 开启后由后台扫描任务为视频生成加水印副本：展示走水印版、下载仍给原件。
+ * 代价是每条视频多一次整段 ffmpeg 编码 + 另存一份，与图片水印（OSS 实时处理、零存储）
+ * 完全不是一个量级，故默认关闭。
+ */
+export function getVideoWatermarkEnabled() {
+  return request.get<boolean>('/api/v1/admin/settings/video-watermark')
+}
+
+/** 写入 DB 即时生效、覆盖 yaml，无需重启。 */
+export function setVideoWatermarkEnabled(enabled: boolean) {
+  return request.put<boolean>('/api/v1/admin/settings/video-watermark', undefined, {
+    params: { enabled },
+  })
+}
+
 /** 系统级存储（数据库配置 B，双桶 + STS）。覆盖系统文件配置 A，被用户级配置 C 覆盖。 */
 export function getSystemStorageConfig() {
   return request.get<SystemStorageConfig>('/api/v1/admin/settings/storage')
