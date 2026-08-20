@@ -176,6 +176,19 @@ onMounted(() => {
   background-color: #e6f7ff;
 }
 
+/*
+ * 暗黑模式：选中态不能沿用亮色的 #e6f7ff。
+ * 那是给白底设计的浅蓝，而暗黑下卡片文字是浅色的——浅字压浅蓝底，对比度接近于无，
+ * 整张卡片的模型名和编码都读不出来（截图里 Flash/Mini/Plus/Max 全是这个状态）。
+ *
+ * 改用主色的低透明度叠加：底色由卡片自身的深色透出来，文字保持原本的浅色即可读，
+ * 与 TabBar 激活态的处理同源（html.dark + rgba(22,119,255,0.25)）。
+ * 不写死某个深蓝色值，是为了让它随卡片背景走，主题微调时不会脱节。
+ */
+html.dark .model-card-selected {
+  background-color: rgba(22, 119, 255, 0.25);
+}
+
 .model-info {
   display: flex;
   flex-direction: column;
