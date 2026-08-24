@@ -3970,6 +3970,12 @@ export default {
     sameStyleCol: '做同款',
     sameStyleOn: '已配置',
     sameStyleOff: '未配置',
+    sameStyleDerived: '来自来源内容',
+    derivedTip: '配方从关联的创作内容自动反解，不需要手配。要在原作基础上改提示词或参数，点「配同款」手配即可覆盖。',
+    publishBlockedNoRecipe: '未配做同款配方，不能发布——推荐位上出现点进去做不了同款的内容，对用户就是个死入口。请先点「配同款」，或填上来源创作内容的数据ID。',
+    sourceTask: '来源创作内容',
+    sourceTaskPlaceholder: '创作内容列表里的「数据ID」，可不填',
+    sourceTaskHint: '填了就不用手配做同款配方——配方从该条创作内容的提交参数自动反解。手灌的外部图没有来源，必须手配。',
     configSameStyle: '配同款',
     sameStyleDrawerTitle: '做同款配方',
     sameStyleHint:

@@ -367,6 +367,12 @@ export default {
     sameStyleCol: 'Make Similar',
     sameStyleOn: 'Configured',
     sameStyleOff: 'Not set',
+    sameStyleDerived: 'From source',
+    derivedTip: 'The recipe is derived from the linked creation automatically. To tweak the prompt or params, configure one manually - it takes precedence.',
+    publishBlockedNoRecipe: 'No Make-Similar recipe, cannot publish - an item users cannot remix is a dead end in the feed. Configure one, or fill in the source creation data ID.',
+    sourceTask: 'Source creation',
+    sourceTaskPlaceholder: 'The "Data ID" from Creation Contents, optional',
+    sourceTaskHint: 'When set, the recipe is derived from that creation automatically. Assets uploaded from outside have no source and must be configured manually.',
     configSameStyle: 'Recipe',
     sameStyleDrawerTitle: 'Make-Similar Recipe',
     sameStyleHint:

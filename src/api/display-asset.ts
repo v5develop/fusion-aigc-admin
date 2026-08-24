@@ -17,6 +17,8 @@ export interface DisplayAsset {
   categoryL1Id: number
   /** 默认推荐位-二级分类ID，0=仅一级或未指定 */
   categoryL2Id: number
+  /** 来源创作任务ID；非空时做同款配方从该任务反解，运营不必手配 */
+  sourceTaskId: number | null
   type: DisplayAssetType
   isRecommend: number
   isHot: number
@@ -44,6 +46,11 @@ export interface DisplayAssetFormData {
   categoryL1Id?: number
   /** 默认推荐位-二级分类ID；指定时必须属于 categoryL1Id */
   categoryL2Id?: number
+  /**
+   * 来源创作任务ID（创作内容列表里的「数据ID」）。给了就不用手配做同款配方——
+   * 配方从该任务的提交参数自动反解。手灌的外部图没有来源任务，必须手配。
+   */
+  sourceTaskId?: number
   type: DisplayAssetType
   isRecommend?: number
   isHot?: number

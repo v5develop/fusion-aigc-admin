@@ -78,8 +78,13 @@
           </template>
 
           <template v-if="column.dataIndex === 'sameStyle'">
-            <a-button type="link" size="small" @click="openSameStyle(record)">
-              <a-tag :color="record.sameStyle ? 'green' : 'default'">
+            <a-tooltip v-if="record.sourceTaskId" :title="$t('displayAsset.derivedTip')">
+              <a-button type="link" size="small" @click="openSameStyle(record)">
+                <a-tag color="blue">{{ $t('displayAsset.sameStyleDerived') }}</a-tag>
+              </a-button>
+            </a-tooltip>
+            <a-button v-else type="link" size="small" @click="openSameStyle(record)">
+              <a-tag :color="record.sameStyle ? 'green' : 'red'">
                 {{
                   record.sameStyle
                     ? $t('displayAsset.sameStyleOn')
@@ -95,8 +100,17 @@
 
           <template v-if="column.key === 'operation'">
             <a-space :size="4">
+              <a-tooltip
+                v-if="record.status !== DISPLAY_ASSET_STATUS.PUBLISHED && !record.sameStyle"
+                v-permission="'display_asset:edit'"
+                :title="$t('displayAsset.publishBlockedNoRecipe')"
+              >
+                <a-button type="link" size="small" disabled>
+                  {{ $t('displayAsset.publish') }}
+                </a-button>
+              </a-tooltip>
               <a-button
-                v-if="record.status !== DISPLAY_ASSET_STATUS.PUBLISHED"
+                v-else-if="record.status !== DISPLAY_ASSET_STATUS.PUBLISHED"
                 v-permission="'display_asset:edit'"
                 type="link"
                 size="small"
@@ -175,6 +189,15 @@
             option-filter-prop="label"
             :placeholder="$t('displayAsset.categoryL2Placeholder')"
           />
+        </a-form-item>
+        <a-form-item :label="$t('displayAsset.sourceTask')">
+          <a-input-number
+            v-model:value="assetForm.sourceTaskId"
+            :min="1"
+            style="width: 100%"
+            :placeholder="$t('displayAsset.sourceTaskPlaceholder')"
+          />
+          <div class="muted">{{ $t('displayAsset.sourceTaskHint') }}</div>
         </a-form-item>
         <a-form-item :label="$t('displayAsset.type')">
           <a-select v-model:value="assetForm.type" :options="typeOptions" />
@@ -541,7 +564,7 @@ const columns = computed(() => [
     title: t('displayAsset.sameStyleCol'),
     dataIndex: 'sameStyle',
     key: 'sameStyle',
-    width: 110,
+    width: 130,
     align: 'center' as const,
   },
   {
@@ -593,6 +616,7 @@ const editId = ref<number | null>(null)
 const assetForm = reactive({
   categoryL1Id: undefined as number | undefined,
   categoryL2Id: undefined as number | undefined,
+  sourceTaskId: undefined as number | undefined,
   type: 'image' as DisplayAssetType,
   isRecommend: 0,
   isHot: 0,
@@ -620,6 +644,7 @@ function resetAssetForm() {
   Object.assign(assetForm, {
     categoryL1Id: undefined,
     categoryL2Id: undefined,
+    sourceTaskId: undefined,
     type: 'image' as DisplayAssetType,
     isRecommend: 0,
     isHot: 0,
@@ -642,6 +667,7 @@ function openEdit(record: DisplayAsset) {
   Object.assign(assetForm, {
     categoryL1Id: record.categoryL1Id || undefined,
     categoryL2Id: record.categoryL2Id || undefined,
+    sourceTaskId: record.sourceTaskId ?? undefined,
     type: record.type,
     isRecommend: record.isRecommend ?? 0,
     isHot: record.isHot ?? 0,
@@ -666,6 +692,8 @@ async function handleAssetSubmit() {
       ...assetForm,
       categoryL1Id: assetForm.categoryL1Id ?? 0,
       categoryL2Id: assetForm.categoryL2Id ?? 0,
+      // 0 = 解除关联；传 undefined 会被后端当「不改」，运营就清不掉已填的来源
+      sourceTaskId: assetForm.sourceTaskId ?? 0,
       url: assetForm.url.trim(),
     }
     if (editId.value) await updateDisplayAsset(editId.value, payload)

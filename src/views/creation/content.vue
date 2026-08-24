@@ -445,7 +445,11 @@ function onRecL1Change() {
   }
 }
 
-/** 只有已成功、未屏蔽、未被用户删、且有产物的内容能推——后端也会再拦一次 */
+/**
+ * 只有已成功、未屏蔽、未被用户删、且有产物的内容能推——后端也会再拦一次。
+ * 「部分成功」(5) 虽有产物也不放开：有子任务失败，推荐位上摆一组残缺产物不合适。
+ * 这是产品确认过的口径，不是漏判。
+ */
 function canRecommend(record: CreationContentItem) {
   return (
     record.status === 2 &&
