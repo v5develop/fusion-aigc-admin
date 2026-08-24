@@ -620,6 +620,16 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
           requiredPermissions: 'display_asset:view',
         },
       },
+      {
+        path: 'content-recommend',
+        name: 'ContentRecommendList',
+        component: () => import('@/views/display-asset/recommend.vue'),
+        meta: {
+          title: 'menu.contentRecommendList',
+          requiresAuth: true,
+          requiredPermissions: 'content_recommend:view',
+        },
+      },
     ],
   },
   {
