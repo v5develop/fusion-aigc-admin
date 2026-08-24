@@ -589,6 +589,16 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
           requiredPermissions: 'template_filter:view',
         },
       },
+      {
+        path: 'display',
+        name: 'DisplayAssetList',
+        component: () => import('@/views/display-asset/index.vue'),
+        meta: {
+          title: 'menu.displayAssetList',
+          requiresAuth: true,
+          requiredPermissions: 'display_asset:view',
+        },
+      },
     ],
   },
   {
