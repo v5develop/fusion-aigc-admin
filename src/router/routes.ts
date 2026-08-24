@@ -599,6 +599,16 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
           requiredPermissions: 'display_asset:view',
         },
       },
+      {
+        path: 'display-category',
+        name: 'DisplayCategoryList',
+        component: () => import('@/views/display-asset/category.vue'),
+        meta: {
+          title: 'menu.displayCategoryList',
+          requiresAuth: true,
+          requiredPermissions: 'display_asset:view',
+        },
+      },
     ],
   },
   {
