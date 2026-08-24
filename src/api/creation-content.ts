@@ -24,10 +24,12 @@ export interface CreationContentItem {
   /** 提示词（取自原始提交体） */
   prompt: string | null
   /**
-   * 用户原始提交入参，含其上传的图片/音视频 URL。
+   * 用户原始提交体（整个 request_params 原样下发）。
+   * 用户上传的素材在顶层（submit 是 images/video/audio，submit-by-template 是
+   * imageUrls/videoUrl/audioUrl），不在 params 子对象里，所以后端不挑子对象。
    * 后台是管理员视角，此处不脱敏——运营要看到用户传了什么才能判断内容能不能推。
    */
-  params: Record<string, unknown> | null
+  submitPayload: Record<string, unknown> | null
   /** 0 未屏蔽 / 1 屏蔽 / 2 永久屏蔽 */
   blockStatus: number | null
   userDeleted: boolean

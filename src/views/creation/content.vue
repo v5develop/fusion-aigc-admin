@@ -125,11 +125,11 @@
         <div class="detail-block">
           <div class="block-head">
             <span class="block-label">{{ $t('creationContent.submitParams') }}</span>
-            <a-button v-if="paramsJson" type="link" size="small" @click="copyParams">
+            <a-button v-if="payloadJson" type="link" size="small" @click="copyPayload">
               {{ $t('creationContent.copyJson') }}
             </a-button>
           </div>
-          <pre v-if="paramsJson" class="json-box">{{ paramsJson }}</pre>
+          <pre v-if="payloadJson" class="json-box">{{ payloadJson }}</pre>
           <span v-else class="muted">{{ $t('creationContent.noParams') }}</span>
         </div>
 
@@ -377,16 +377,16 @@ function openViewer(record: CreationContentItem) {
   viewerVisible.value = true
 }
 
-/** 用户原始提交入参，原样出 JSON——键名和结构本身就是排查依据，逐字段渲染反而会丢信息 */
-const paramsJson = computed(() => {
-  const params = current.value?.params
-  if (!params || !Object.keys(params).length) return ''
-  return JSON.stringify(params, null, 2)
+/** 用户原始提交体，原样出 JSON——键名与嵌套结构本身就是排查依据，逐字段渲染反而会丢信息 */
+const payloadJson = computed(() => {
+  const payload = current.value?.submitPayload
+  if (!payload || !Object.keys(payload).length) return ''
+  return JSON.stringify(payload, null, 2)
 })
 
-async function copyParams() {
+async function copyPayload() {
   try {
-    await navigator.clipboard.writeText(paramsJson.value)
+    await navigator.clipboard.writeText(payloadJson.value)
     message.success(t('creationContent.copied'))
   } catch {
     // 非 https 或浏览器不给权限时 clipboard 不可用，JSON 就在页面上，让用户自己选中复制
