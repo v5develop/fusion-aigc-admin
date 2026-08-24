@@ -123,28 +123,13 @@
         </div>
 
         <div class="detail-block">
-          <div class="block-label">{{ $t('creationContent.submitParams') }}</div>
-          <template v-if="paramEntries.length">
-            <a-descriptions bordered :column="1" size="small">
-              <a-descriptions-item v-for="p in paramEntries" :key="p.key" :label="p.key">
-                <!-- 用户上传的素材直接给可点开的链接，运营判断能不能推得看得见原图 -->
-                <template v-if="p.urls">
-                  <a-space wrap :size="4">
-                    <a
-                      v-for="(u, i) in p.urls"
-                      :key="i"
-                      :href="u"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <a-tag color="blue">{{ $t('creationContent.mediaLink') }} {{ i + 1 }}</a-tag>
-                    </a>
-                  </a-space>
-                </template>
-                <span v-else class="param-value">{{ p.value }}</span>
-              </a-descriptions-item>
-            </a-descriptions>
-          </template>
+          <div class="block-head">
+            <span class="block-label">{{ $t('creationContent.submitParams') }}</span>
+            <a-button v-if="paramsJson" type="link" size="small" @click="copyParams">
+              {{ $t('creationContent.copyJson') }}
+            </a-button>
+          </div>
+          <pre v-if="paramsJson" class="json-box">{{ paramsJson }}</pre>
           <span v-else class="muted">{{ $t('creationContent.noParams') }}</span>
         </div>
 
@@ -392,38 +377,21 @@ function openViewer(record: CreationContentItem) {
   viewerVisible.value = true
 }
 
-const paramEntries = computed(() => {
+/** 用户原始提交入参，原样出 JSON——键名和结构本身就是排查依据，逐字段渲染反而会丢信息 */
+const paramsJson = computed(() => {
   const params = current.value?.params
-  if (!params) return []
-  return Object.entries(params).map(([key, value]) => {
-    const urls = toUrlList(value)
-    return { key, urls, value: urls ? undefined : formatParamValue(value) }
-  })
+  if (!params || !Object.keys(params).length) return ''
+  return JSON.stringify(params, null, 2)
 })
 
-/**
- * 值是 http 链接就渲染成可点开的链接，其余按文本展示。
- * <p>只认 http：私有桶路径（imagepath1 之类）点不开，按文本给运营看反而准确；
- * 也因此不需要按键名白名单判断——键名叫什么不影响这个值能不能点开。
- */
-function toUrlList(value: unknown): string[] | undefined {
-  if (Array.isArray(value)) {
-    const strs = value.filter((v): v is string => typeof v === 'string')
-    return strs.length === value.length && strs.length > 0 && strs.every(isHttpUrl)
-      ? strs
-      : undefined
+async function copyParams() {
+  try {
+    await navigator.clipboard.writeText(paramsJson.value)
+    message.success(t('creationContent.copied'))
+  } catch {
+    // 非 https 或浏览器不给权限时 clipboard 不可用，JSON 就在页面上，让用户自己选中复制
+    message.warning(t('creationContent.copyFailed'))
   }
-  return typeof value === 'string' && isHttpUrl(value) ? [value] : undefined
-}
-
-function isHttpUrl(v: string) {
-  return /^https?:\/\//i.test(v)
-}
-
-function formatParamValue(value: unknown) {
-  if (value === null || value === undefined) return '-'
-  if (typeof value === 'object') return JSON.stringify(value)
-  return String(value)
 }
 
 // ---- 推荐到分类位 ----
@@ -587,7 +555,29 @@ async function submitRecommend() {
   white-space: pre-wrap;
   margin-bottom: 0 !important;
 }
-.param-value {
+
+.block-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.block-head .block-label {
+  margin-bottom: 0;
+}
+.json-box {
+  margin: 0;
+  padding: 12px;
+  max-height: 320px;
+  overflow: auto;
+  border-radius: 4px;
+  background: var(--bg-color-secondary, #fafafa);
+  border: 1px solid var(--border-color, #f0f0f0);
+  color: var(--text-color, #262626);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
   word-break: break-all;
 }
 .viewer-media :deep(.slick-slide) {

@@ -459,7 +459,9 @@ export default {
     noPrompt: 'No prompt recorded for this task',
     submitParams: 'Submitted params',
     noParams: 'No params recorded (sub-task or legacy data)',
-    mediaLink: 'Asset',
+    copyJson: 'Copy JSON',
+    copied: 'Copied',
+    copyFailed: 'Clipboard unavailable - please select and copy manually',
   },
 
   contentRecommend: {

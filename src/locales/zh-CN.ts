@@ -4061,7 +4061,9 @@ export default {
     noPrompt: '该任务没有记录提示词',
     submitParams: '提交入参',
     noParams: '该任务没有记录入参（子任务或历史数据）',
-    mediaLink: '素材',
+    copyJson: '复制 JSON',
+    copied: '已复制',
+    copyFailed: '浏览器不支持自动复制，请手动选中',
   },
 
   contentRecommend: {
