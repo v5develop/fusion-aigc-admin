@@ -32,6 +32,23 @@ export interface ContentRecommendItem {
   /** 源已失效（素材下架/删除、任务被删/屏蔽/未成功）；失效的不会出现在用户端 */
   sourceInvalid: boolean
   invalidReason: string | null
+  /** 该条能否做同款。推一条不能做同款的上去，等于给用户一个死入口 */
+  sameStyle: boolean
+}
+
+/** 已发布但还没挂任何推荐位的展示素材 */
+export interface PendingAsset {
+  id: number
+  title: string | null
+  type: string
+  thumbnail: string | null
+  /** 素材身上配的默认推荐位，上推时可一键沿用 */
+  categoryL1Id: number
+  categoryL1Name: string | null
+  categoryL2Id: number
+  categoryL2Name: string | null
+  sameStyle: boolean
+  createTime: string | null
 }
 
 export interface ContentRecommendSaveData {
@@ -56,6 +73,14 @@ export function getRecommendList(params: {
   return request.get<PageResult<ContentRecommendItem>>('/api/v1/admin/content/recommends', {
     params,
   })
+}
+
+/** 待上推：已发布但还没挂推荐位的素材。发布不等于露出，这里是编排入口 */
+export function getPendingAssets(params: { page?: number; pageSize?: number }) {
+  return request.get<PageResult<PendingAsset>>(
+    '/api/v1/admin/content/recommends/pending-assets',
+    { params },
+  )
 }
 
 /** 添加推荐。后端会校验源可用、二级归属一级、推荐平台被分类平台覆盖 */

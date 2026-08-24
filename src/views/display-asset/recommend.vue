@@ -15,6 +15,74 @@
     />
 
     <a-card variant="borderless">
+      <a-tabs v-model:activeKey="activeTab" @change="onTabChange">
+        <a-tab-pane key="pinned" :tab="$t('contentRecommend.tabPinned')" />
+        <a-tab-pane key="pending">
+          <template #tab>
+            {{ $t('contentRecommend.tabPending') }}
+            <a-badge v-if="pendingTotal" :count="pendingTotal" :offset="[6, -2]" />
+          </template>
+        </a-tab-pane>
+      </a-tabs>
+
+      <!-- 待上推：已发布但没挂任何推荐位的素材 -->
+      <template v-if="activeTab === 'pending'">
+        <a-alert
+          type="info"
+          show-icon
+          style="margin-bottom: 12px"
+          :message="$t('contentRecommend.pendingHint')"
+        />
+        <a-table
+          :columns="pendingColumns"
+          :data-source="pendingRows"
+          :loading="pendingLoading"
+          :pagination="pendingPagination"
+          row-key="id"
+          size="middle"
+          @change="onPendingPageChange"
+        >
+          <template #emptyText>
+            <a-empty :description="$t('contentRecommend.pendingEmpty')" />
+          </template>
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.dataIndex === 'thumbnail'">
+              <a-image
+                v-if="record.thumbnail"
+                :src="record.thumbnail"
+                :width="44"
+                :height="44"
+                style="object-fit: cover; border-radius: 4px"
+              />
+              <span v-else class="muted">-</span>
+            </template>
+            <template v-if="column.dataIndex === 'categoryL1Name'">
+              <template v-if="record.categoryL1Id">
+                <a-tag color="blue">{{ record.categoryL1Name }}</a-tag>
+                <a-tag v-if="record.categoryL2Id" color="cyan">{{ record.categoryL2Name }}</a-tag>
+              </template>
+              <span v-else class="muted">{{ $t('contentRecommend.noDefaultSlot') }}</span>
+            </template>
+            <template v-if="column.dataIndex === 'sameStyle'">
+              <a-tag :color="record.sameStyle ? 'green' : 'default'">
+                {{ record.sameStyle ? $t('common.yes') : $t('common.no') }}
+              </a-tag>
+            </template>
+            <template v-if="column.key === 'operation'">
+              <a-button
+                v-permission="'content_recommend:create'"
+                type="link"
+                size="small"
+                @click="openPinPending(record)"
+              >
+                {{ $t('contentRecommend.pinNow') }}
+              </a-button>
+            </template>
+          </template>
+        </a-table>
+      </template>
+
+      <template v-else>
       <div class="filter-bar">
         <a-select
           v-model:value="filters.categoryL1Id"
@@ -106,6 +174,12 @@
             <a-tag :color="platformColor(record.platform)">{{ platformLabel(record.platform) }}</a-tag>
           </template>
 
+          <template v-if="column.dataIndex === 'sameStyle'">
+            <a-tag :color="record.sameStyle ? 'green' : 'default'">
+              {{ record.sameStyle ? $t('common.yes') : $t('common.no') }}
+            </a-tag>
+          </template>
+
           <template v-if="column.dataIndex === 'sourceInvalid'">
             <a-tooltip v-if="record.sourceInvalid" :title="record.invalidReason">
               <a-tag color="red">{{ $t('contentRecommend.invalid') }}</a-tag>
@@ -136,6 +210,7 @@
           </template>
         </template>
       </a-table>
+      </template>
     </a-card>
 
     <!-- 添加 / 编辑 -->
@@ -219,14 +294,16 @@ import {
   updateRecommend,
   reorderRecommends,
   removeRecommend,
+  getPendingAssets,
   type ContentRecommendItem,
+  type PendingAsset,
   type RecommendSourceType,
 } from '@/api/content-recommend'
 
 const { t } = useI18n()
 
 function platformLabel(p: Platform) {
-  return p === 'APP' ? 'App' : p === 'PC' ? 'PC' : 'App+PC'
+  return p === 'APP' ? 'APP' : p === 'PC' ? 'PC' : 'APP+PC'
 }
 function platformColor(p: Platform) {
   return p === 'APP' ? 'blue' : p === 'PC' ? 'green' : 'purple'
@@ -303,6 +380,12 @@ const columns = computed(() => [
     align: 'center' as const,
   },
   {
+    title: t('contentRecommend.sameStyleCol'),
+    dataIndex: 'sameStyle',
+    width: 100,
+    align: 'center' as const,
+  },
+  {
     title: t('contentRecommend.sourceState'),
     dataIndex: 'sourceInvalid',
     width: 110,
@@ -357,6 +440,88 @@ function onTableChange(pg: { current?: number; pageSize?: number }) {
   pagination.current = pg.current ?? 1
   pagination.pageSize = pg.pageSize ?? 20
   loadList()
+}
+
+// ---- 待上推 ----
+const activeTab = ref<'pinned' | 'pending'>('pinned')
+const pendingRows = ref<PendingAsset[]>([])
+const pendingLoading = ref(false)
+const pendingTotal = ref(0)
+const pendingPagination = reactive({
+  current: 1,
+  pageSize: 20,
+  get total() {
+    return pendingTotal.value
+  },
+  showSizeChanger: true,
+})
+
+const pendingColumns = computed(() => [
+  {
+    title: t('contentRecommend.thumbnail'),
+    dataIndex: 'thumbnail',
+    width: 80,
+    align: 'center' as const,
+  },
+  { title: t('contentRecommend.sourceId'), dataIndex: 'id', width: 100 },
+  { title: t('contentRecommend.assetTitle'), dataIndex: 'title', ellipsis: true },
+  { title: t('contentRecommend.defaultSlot'), dataIndex: 'categoryL1Name', width: 200 },
+  {
+    title: t('contentRecommend.sameStyleCol'),
+    dataIndex: 'sameStyle',
+    width: 100,
+    align: 'center' as const,
+  },
+  {
+    title: t('common.action'),
+    dataIndex: 'operation',
+    key: 'operation',
+    width: 110,
+    align: 'center' as const,
+  },
+])
+
+async function loadPending() {
+  pendingLoading.value = true
+  try {
+    const res = await getPendingAssets({
+      page: pendingPagination.current,
+      pageSize: pendingPagination.pageSize,
+    })
+    pendingRows.value = res.list || []
+    pendingTotal.value = res.total || 0
+  } catch {
+    /* 拦截器已提示 */
+  } finally {
+    pendingLoading.value = false
+  }
+}
+// 首屏就拉一次：待上推数量要显示在 Tab 徽标上，等切过去才知道有多少就晚了
+loadPending()
+
+function onTabChange() {
+  if (activeTab.value === 'pending') loadPending()
+  else loadList()
+}
+function onPendingPageChange(pg: { current?: number; pageSize?: number }) {
+  pendingPagination.current = pg.current ?? 1
+  pendingPagination.pageSize = pg.pageSize ?? 20
+  loadPending()
+}
+
+/** 从待上推直接上推荐位：沿用素材身上配的默认分类，运营只需确认平台 */
+function openPinPending(record: PendingAsset) {
+  editId.value = null
+  Object.assign(form, {
+    sourceType: 'DISPLAY_ASSET' as RecommendSourceType,
+    sourceId: record.id,
+    categoryL1Id: record.categoryL1Id || undefined,
+    categoryL2Id: record.categoryL2Id || undefined,
+    platform: 'APP' as Platform,
+    status: 1,
+  })
+  syncPlatformToScope()
+  modalVisible.value = true
 }
 
 // ---- 拖拽排序 ----
@@ -502,6 +667,7 @@ async function handleSubmit() {
     message.success(t('common.saveSuccess'))
     modalVisible.value = false
     loadList()
+    loadPending() // 刚上推的那条要从「待上推」里消失，徽标计数也得跟着降
   } catch {
     /* 源不可用 / 分类归属 / 平台越界的报错由拦截器提示 */
   } finally {

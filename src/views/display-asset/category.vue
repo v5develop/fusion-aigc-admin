@@ -24,7 +24,7 @@
         <span class="muted">{{ $t('displayCategory.platformFilter') }}</span>
         <a-radio-group v-model:value="platformFilter" button-style="solid" @change="loadTree">
           <a-radio-button value="">{{ $t('displayCategory.platformAll') }}</a-radio-button>
-          <a-radio-button value="APP">App</a-radio-button>
+          <a-radio-button value="APP">APP</a-radio-button>
           <a-radio-button value="PC">PC</a-radio-button>
         </a-radio-group>
       </div>
@@ -193,7 +193,7 @@ const loading = ref(false)
 const platformFilter = ref<'' | Platform>('')
 
 function platformLabel(p: Platform) {
-  return p === 'APP' ? 'App' : p === 'PC' ? 'PC' : 'App+PC'
+  return p === 'APP' ? 'APP' : p === 'PC' ? 'PC' : 'APP+PC'
 }
 function platformColor(p: Platform) {
   return p === 'APP' ? 'blue' : p === 'PC' ? 'green' : 'purple'

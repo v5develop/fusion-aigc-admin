@@ -213,7 +213,7 @@
         <a-form-item :label="$t('contentRecommend.platform')" required>
           <a-radio-group v-model:value="recForm.platform" button-style="solid">
             <a-radio-button v-for="p in recAllowedPlatforms" :key="p" :value="p">
-              {{ p === 'APP' ? 'App' : p === 'PC' ? 'PC' : 'App+PC' }}
+              {{ p === 'APP' ? 'APP' : p === 'PC' ? 'PC' : 'APP+PC' }}
             </a-radio-button>
           </a-radio-group>
           <div class="muted">{{ recPlatformHint }}</div>
@@ -433,7 +433,7 @@ const recAllowedPlatforms = computed<Platform[]>(() => {
 const recPlatformHint = computed(() =>
   recAllowedPlatforms.value.length === 1
     ? t('contentRecommend.platformLocked', {
-        platform: recAllowedPlatforms.value[0] === 'APP' ? 'App' : 'PC',
+        platform: recAllowedPlatforms.value[0] === 'APP' ? 'APP' : 'PC',
       })
     : t('contentRecommend.platformHint'),
 )

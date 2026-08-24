@@ -47,11 +47,14 @@
             <span v-else>-</span>
           </template>
 
-          <template v-if="column.dataIndex === 'category'">
-            <a-tag v-if="record.category" color="blue">
-              {{ categoryName(record.category) }}
-            </a-tag>
-            <span v-else class="muted">-</span>
+          <template v-if="column.dataIndex === 'categoryL1Id'">
+            <template v-if="record.categoryL1Id">
+              <a-tag color="blue">{{ categoryName(record.categoryL1Id) }}</a-tag>
+              <a-tag v-if="record.categoryL2Id" color="cyan">
+                {{ categoryName(record.categoryL2Id) }}
+              </a-tag>
+            </template>
+            <span v-else class="muted">{{ $t('displayAsset.noDefaultSlot') }}</span>
           </template>
 
           <template v-if="column.dataIndex === 'type'">
@@ -87,18 +90,31 @@
           </template>
 
           <template v-if="column.dataIndex === 'status'">
-            <a-switch
-              :checked="record.status === 1"
-              :loading="statusLoadingId === record.id"
-              :disabled="!can('display_asset:edit')"
-              :checked-children="$t('displayAsset.online')"
-              :un-checked-children="$t('displayAsset.offline')"
-              @change="(checked: boolean) => handleToggleStatus(record, checked)"
-            />
+            <a-tag :color="statusColor(record.status)">{{ statusLabel(record.status) }}</a-tag>
           </template>
 
           <template v-if="column.key === 'operation'">
             <a-space :size="4">
+              <a-button
+                v-if="record.status !== DISPLAY_ASSET_STATUS.PUBLISHED"
+                v-permission="'display_asset:edit'"
+                type="link"
+                size="small"
+                :loading="statusLoadingId === record.id"
+                @click="handlePublish(record)"
+              >
+                {{ $t('displayAsset.publish') }}
+              </a-button>
+              <a-popconfirm
+                v-else
+                v-permission="'display_asset:edit'"
+                :title="$t('displayAsset.confirmOffline')"
+                @confirm="handleOffline(record)"
+              >
+                <a-button type="link" size="small" :loading="statusLoadingId === record.id">
+                  {{ $t('displayAsset.offline') }}
+                </a-button>
+              </a-popconfirm>
               <a-button
                 v-permission="'display_asset:edit'"
                 type="link"
@@ -137,15 +153,27 @@
       @ok="handleAssetSubmit"
     >
       <a-form :model="assetForm" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
-        <a-form-item :label="$t('displayAsset.category')">
+        <a-form-item :label="$t('displayAsset.categoryL1')">
           <a-select
-            v-model:value="assetForm.category"
-            :options="categoryOptions"
+            v-model:value="assetForm.categoryL1Id"
+            :options="l1Options"
             :loading="categoryLoading"
             allow-clear
             show-search
             option-filter-prop="label"
             :placeholder="$t('displayAsset.categoryPlaceholder')"
+            @change="onAssetL1Change"
+          />
+          <div class="muted">{{ $t('displayAsset.defaultSlotHint') }}</div>
+        </a-form-item>
+        <a-form-item v-if="assetForm.categoryL1Id" :label="$t('displayAsset.categoryL2')">
+          <a-select
+            v-model:value="assetForm.categoryL2Id"
+            :options="assetL2Options"
+            allow-clear
+            show-search
+            option-filter-prop="label"
+            :placeholder="$t('displayAsset.categoryL2Placeholder')"
           />
         </a-form-item>
         <a-form-item :label="$t('displayAsset.type')">
@@ -192,13 +220,6 @@
         <a-form-item :label="$t('displayAsset.sortOrder')">
           <a-input-number v-model:value="assetForm.sortOrder" :min="0" style="width: 100%" />
           <div class="muted">{{ $t('displayAsset.sortOrderHint') }}</div>
-        </a-form-item>
-        <a-form-item :label="$t('displayAsset.status')">
-          <a-switch
-            v-model:checked="assetOnline"
-            :checked-children="$t('displayAsset.online')"
-            :un-checked-children="$t('displayAsset.offline')"
-          />
         </a-form-item>
       </a-form>
       <a-alert
@@ -366,22 +387,22 @@ import {
   getDisplayAsset,
   createDisplayAsset,
   updateDisplayAsset,
-  updateDisplayAssetStatus,
+  publishDisplayAsset,
+  offlineDisplayAsset,
+  DISPLAY_ASSET_STATUS,
   deleteDisplayAsset,
   saveSameStyle,
   removeSameStyle,
   getDisplayEntryCodes,
-  getDisplayCategories,
   type DisplayAsset,
   type DisplayAssetType,
   type SameStyleRecipe,
 } from '@/api/display-asset'
+import { getCategoryTree, type DisplayCategoryNode } from '@/api/display-category'
 import { getModelOptions } from '@/api/model'
 import ProTable from '@/components/Pro/ProTable/index.vue'
-import { usePermission } from '@/composables/usePermission'
 
 const { t } = useI18n()
-const { can } = usePermission()
 const tableRef = ref<InstanceType<typeof ProTable> | null>(null)
 
 const typeOptions = [
@@ -390,24 +411,18 @@ const typeOptions = [
 ]
 
 // ---- 下拉数据源 ----
-const categoryOptions = ref<{ label: string; value: string }[]>([])
-const categoryNameMap = reactive<Record<string, string>>({})
+const tree = ref<DisplayCategoryNode[]>([])
+const categoryNameMap = reactive<Record<number, string>>({})
 const categoryLoading = ref(false)
+
 async function loadCategories() {
   categoryLoading.value = true
   try {
-    const list = (await getDisplayCategories()) || []
-    categoryOptions.value = list.map((c) => {
-      categoryNameMap[c.categoryCode] = c.categoryName
-      return {
-        // 停用分类仍可见但标出来：素材可能还挂在旧分类上，藏起来会让人以为数据丢了
-        label:
-          c.status === 1
-            ? `${c.categoryName} (${c.categoryCode})`
-            : `${c.categoryName} (${c.categoryCode}) · ${t('displayAsset.categoryDisabled')}`,
-        value: c.categoryCode,
-      }
-    })
+    tree.value = (await getCategoryTree(false)) || []
+    for (const l1 of tree.value) {
+      categoryNameMap[l1.id] = l1.categoryName
+      for (const l2 of l1.children ?? []) categoryNameMap[l2.id] = l2.categoryName
+    }
   } catch {
     /* 拦截器已提示 */
   } finally {
@@ -416,8 +431,29 @@ async function loadCategories() {
 }
 loadCategories()
 
-function categoryName(code: string) {
-  return categoryNameMap[code] || code
+function categoryName(id: number) {
+  return categoryNameMap[id] ?? String(id)
+}
+
+const l1Options = computed(() =>
+  tree.value.map((c) => ({ label: `${c.categoryName} (${c.categoryCode})`, value: c.id })),
+)
+function l2OptionsOf(l1Id?: number) {
+  const l1 = l1Id ? tree.value.find((c) => c.id === l1Id) : undefined
+  return (l1?.children ?? []).map((c) => ({ label: c.categoryName, value: c.id }))
+}
+
+/** 三态：0 草稿 / 1 已发布 / 2 已下架。缺项会让列表显示裸数字 */
+const STATUS = {
+  0: { label: () => t('displayAsset.statusDraft'), color: 'default' },
+  1: { label: () => t('displayAsset.statusPublished'), color: 'green' },
+  2: { label: () => t('displayAsset.statusOffline'), color: 'orange' },
+} as Record<number, { label: () => string; color: string }>
+function statusLabel(v: number) {
+  return STATUS[v]?.label() ?? String(v)
+}
+function statusColor(v: number) {
+  return STATUS[v]?.color ?? 'default'
 }
 
 const entryCodeOptions = ref<{ label: string; value: string }[]>([])
@@ -478,11 +514,11 @@ const columns = computed(() => [
   },
   {
     title: t('displayAsset.category'),
-    dataIndex: 'category',
+    dataIndex: 'categoryL1Id',
     search: true,
     searchType: 'select' as const,
-    searchOptions: categoryOptions.value,
-    width: 130,
+    searchOptions: l1Options.value,
+    width: 180,
   },
   {
     title: t('displayAsset.type'),
@@ -520,10 +556,10 @@ const columns = computed(() => [
     key: 'status',
     search: true,
     searchType: 'select' as const,
-    searchOptions: [
-      { label: t('displayAsset.online'), value: 1 },
-      { label: t('displayAsset.offline'), value: 0 },
-    ],
+    searchOptions: Object.entries(STATUS).map(([value, cfg]) => ({
+      label: cfg.label(),
+      value: Number(value),
+    })),
     width: 100,
     align: 'center' as const,
   },
@@ -540,7 +576,7 @@ const columns = computed(() => [
 async function loadData(params: Record<string, unknown>) {
   const res = await getDisplayAssetList({
     keyword: (params.title as string) || undefined,
-    category: (params.category as string) || undefined,
+    categoryL1Id: (params.categoryL1Id as number) ?? undefined,
     type: params.type as DisplayAssetType | undefined,
     status: params.status as number | undefined,
     page: (params.current as number) || 1,
@@ -555,7 +591,8 @@ const assetSubmitLoading = ref(false)
 const editId = ref<number | null>(null)
 
 const assetForm = reactive({
-  category: undefined as string | undefined,
+  categoryL1Id: undefined as number | undefined,
+  categoryL2Id: undefined as number | undefined,
   type: 'image' as DisplayAssetType,
   isRecommend: 0,
   isHot: 0,
@@ -564,7 +601,6 @@ const assetForm = reactive({
   width: undefined as number | undefined,
   height: undefined as number | undefined,
   sortOrder: 0,
-  status: 1,
 })
 const assetRecommend = computed({
   get: () => assetForm.isRecommend === 1,
@@ -574,14 +610,16 @@ const assetHot = computed({
   get: () => assetForm.isHot === 1,
   set: (v: boolean) => (assetForm.isHot = v ? 1 : 0),
 })
-const assetOnline = computed({
-  get: () => assetForm.status === 1,
-  set: (v: boolean) => (assetForm.status = v ? 1 : 0),
-})
+const assetL2Options = computed(() => l2OptionsOf(assetForm.categoryL1Id))
+/** 换一级后旧二级不再属于它 */
+function onAssetL1Change() {
+  assetForm.categoryL2Id = undefined
+}
 
 function resetAssetForm() {
   Object.assign(assetForm, {
-    category: undefined,
+    categoryL1Id: undefined,
+    categoryL2Id: undefined,
     type: 'image' as DisplayAssetType,
     isRecommend: 0,
     isHot: 0,
@@ -590,7 +628,6 @@ function resetAssetForm() {
     width: undefined,
     height: undefined,
     sortOrder: 0,
-    status: 1,
   })
 }
 
@@ -603,7 +640,8 @@ function openCreate() {
 function openEdit(record: DisplayAsset) {
   editId.value = record.id
   Object.assign(assetForm, {
-    category: record.category || undefined,
+    categoryL1Id: record.categoryL1Id || undefined,
+    categoryL2Id: record.categoryL2Id || undefined,
     type: record.type,
     isRecommend: record.isRecommend ?? 0,
     isHot: record.isHot ?? 0,
@@ -612,7 +650,6 @@ function openEdit(record: DisplayAsset) {
     width: record.width,
     height: record.height,
     sortOrder: record.sortOrder ?? 0,
-    status: record.status,
   })
   assetModalVisible.value = true
 }
@@ -625,7 +662,12 @@ async function handleAssetSubmit() {
   assetSubmitLoading.value = true
   try {
     // 不传 extra：同款配方走专用接口维护，这里带上会把配方整段覆盖掉
-    const payload = { ...assetForm, url: assetForm.url.trim() }
+    const payload = {
+      ...assetForm,
+      categoryL1Id: assetForm.categoryL1Id ?? 0,
+      categoryL2Id: assetForm.categoryL2Id ?? 0,
+      url: assetForm.url.trim(),
+    }
     if (editId.value) await updateDisplayAsset(editId.value, payload)
     else await createDisplayAsset(payload)
     message.success(t('common.saveSuccess'))
@@ -639,14 +681,33 @@ async function handleAssetSubmit() {
 }
 
 const statusLoadingId = ref<number | null>(null)
-async function handleToggleStatus(record: DisplayAsset, checked: boolean) {
+
+async function handlePublish(record: DisplayAsset) {
   statusLoadingId.value = record.id
   try {
-    await updateDisplayAssetStatus(record.id, checked ? 1 : 0)
-    message.success(checked ? t('displayAsset.onlineSuccess') : t('displayAsset.offlineSuccess'))
+    await publishDisplayAsset(record.id)
+    // 配了默认推荐位的会顺带挂上推荐位，文案要说清楚，否则运营不知道已经对外可见了
+    message.success(
+      record.categoryL1Id
+        ? t('displayAsset.publishedAndPinned')
+        : t('displayAsset.publishedPending'),
+    )
     tableRef.value?.refresh()
   } catch {
-    tableRef.value?.refresh() // 失败回滚开关视觉状态
+    /* 拦截器已提示 */
+  } finally {
+    statusLoadingId.value = null
+  }
+}
+
+async function handleOffline(record: DisplayAsset) {
+  statusLoadingId.value = record.id
+  try {
+    await offlineDisplayAsset(record.id)
+    message.success(t('displayAsset.offlineSuccess'))
+    tableRef.value?.refresh()
+  } catch {
+    /* 拦截器已提示 */
   } finally {
     statusLoadingId.value = null
   }

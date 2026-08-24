@@ -61,7 +61,7 @@
 
           <template v-if="column.dataIndex === 'platform'">
             <a-tag :color="record.platform === 'APP' ? 'blue' : 'green'">
-              {{ record.platform === 'APP' ? 'App' : 'PC' }}
+              {{ record.platform === 'APP' ? 'APP' : 'PC' }}
             </a-tag>
           </template>
 
@@ -117,7 +117,7 @@
         </a-form-item>
         <a-form-item :label="$t('entryRoute.platform')" required>
           <a-radio-group v-model:value="form.platform" button-style="solid">
-            <a-radio-button value="APP">App</a-radio-button>
+            <a-radio-button value="APP">APP</a-radio-button>
             <a-radio-button value="PC">PC</a-radio-button>
           </a-radio-group>
           <div class="muted">{{ $t('entryRoute.platformHint') }}</div>
@@ -171,7 +171,7 @@ const entryFilter = ref<string | undefined>(undefined)
 
 const platformFilterOptions = computed(() => [
   { label: t('entryRoute.platformAll'), value: '' },
-  { label: 'App', value: 'APP' },
+  { label: 'APP', value: 'APP' },
   { label: 'PC', value: 'PC' },
 ])
 
