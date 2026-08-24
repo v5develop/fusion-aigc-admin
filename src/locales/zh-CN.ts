@@ -4045,6 +4045,8 @@ export default {
     statusProcessing: '处理中',
     statusSuccess: '成功',
     statusFailed: '失败',
+    statusCancelled: '已取消',
+    statusPartial: '部分成功',
     blocked: '已屏蔽',
     createTime: '创建时间',
     userDeleted: '用户端已删除',

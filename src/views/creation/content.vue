@@ -241,11 +241,14 @@ const { t } = useI18n()
 // 推荐成功后要刷新列表拿回 recommended 标记
 const tableRef = ref<InstanceType<typeof ProTable> | null>(null)
 
+// 与后端 CreationTaskStatus 枚举一一对应，缺项会让列表直接显示裸数字
 const STATUS = {
   0: { label: () => t('creationContent.statusQueued'), color: 'default' },
   1: { label: () => t('creationContent.statusProcessing'), color: 'blue' },
   2: { label: () => t('creationContent.statusSuccess'), color: 'green' },
   3: { label: () => t('creationContent.statusFailed'), color: 'red' },
+  4: { label: () => t('creationContent.statusCancelled'), color: 'default' },
+  5: { label: () => t('creationContent.statusPartial'), color: 'orange' },
 } as Record<number, { label: () => string; color: string }>
 
 function statusLabel(s: number) {
@@ -316,12 +319,10 @@ const columns = computed(() => [
     dataIndex: 'status',
     search: true,
     searchType: 'select' as const,
-    searchOptions: [
-      { label: t('creationContent.statusQueued'), value: 0 },
-      { label: t('creationContent.statusProcessing'), value: 1 },
-      { label: t('creationContent.statusSuccess'), value: 2 },
-      { label: t('creationContent.statusFailed'), value: 3 },
-    ],
+    searchOptions: Object.entries(STATUS).map(([value, s]) => ({
+      label: s.label(),
+      value: Number(value),
+    })),
     width: 130,
     align: 'center' as const,
   },

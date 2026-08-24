@@ -443,6 +443,8 @@ export default {
     statusProcessing: 'Processing',
     statusSuccess: 'Success',
     statusFailed: 'Failed',
+    statusCancelled: 'Cancelled',
+    statusPartial: 'Partially succeeded',
     blocked: 'Blocked',
     createTime: 'Created',
     userDeleted: 'Deleted by user',
