@@ -219,6 +219,17 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
+        path: 'content',
+        name: 'CreationContentList',
+        component: () => import('@/views/creation/content.vue'),
+        meta: {
+          title: 'menu.creationContentList',
+          icon: 'PictureOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'task:view',
+        },
+      },
+      {
         path: 'task/detail/:id',
         name: 'CreationTaskDetail',
         component: () => import('@/views/creation/task/detail.vue'),
