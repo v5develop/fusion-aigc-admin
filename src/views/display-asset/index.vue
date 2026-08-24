@@ -67,16 +67,6 @@
             </a-tag>
           </template>
 
-          <template v-if="column.dataIndex === 'placement'">
-            <a-space :size="4">
-              <a-tag v-if="record.isRecommend === 1" color="gold">
-                {{ $t('displayAsset.recommend') }}
-              </a-tag>
-              <a-tag v-if="record.isHot === 1" color="volcano">{{ $t('displayAsset.hot') }}</a-tag>
-              <span v-if="record.isRecommend !== 1 && record.isHot !== 1" class="muted">-</span>
-            </a-space>
-          </template>
-
           <template v-if="column.dataIndex === 'sameStyle'">
             <a-tooltip v-if="record.sourceTaskId" :title="$t('displayAsset.derivedTip')">
               <a-button type="link" size="small" @click="openSameStyle(record)">
@@ -230,14 +220,6 @@
               :min="0"
               :placeholder="$t('displayAsset.height')"
             />
-          </a-space>
-        </a-form-item>
-        <a-form-item :label="$t('displayAsset.placementCol')">
-          <a-space>
-            <a-checkbox v-model:checked="assetRecommend">
-              {{ $t('displayAsset.recommend') }}
-            </a-checkbox>
-            <a-checkbox v-model:checked="assetHot">{{ $t('displayAsset.hot') }}</a-checkbox>
           </a-space>
         </a-form-item>
         <a-form-item :label="$t('displayAsset.sortOrder')">
@@ -554,13 +536,6 @@ const columns = computed(() => [
   },
   { title: t('displayAsset.url'), dataIndex: 'url', ellipsis: true, width: 220 },
   {
-    title: t('displayAsset.placementCol'),
-    dataIndex: 'placement',
-    key: 'placement',
-    width: 130,
-    align: 'center' as const,
-  },
-  {
     title: t('displayAsset.sameStyleCol'),
     dataIndex: 'sameStyle',
     key: 'sameStyle',
@@ -618,21 +593,11 @@ const assetForm = reactive({
   categoryL2Id: undefined as number | undefined,
   sourceTaskId: undefined as number | undefined,
   type: 'image' as DisplayAssetType,
-  isRecommend: 0,
-  isHot: 0,
   title: '',
   url: '',
   width: undefined as number | undefined,
   height: undefined as number | undefined,
   sortOrder: 0,
-})
-const assetRecommend = computed({
-  get: () => assetForm.isRecommend === 1,
-  set: (v: boolean) => (assetForm.isRecommend = v ? 1 : 0),
-})
-const assetHot = computed({
-  get: () => assetForm.isHot === 1,
-  set: (v: boolean) => (assetForm.isHot = v ? 1 : 0),
 })
 const assetL2Options = computed(() => l2OptionsOf(assetForm.categoryL1Id))
 /** 换一级后旧二级不再属于它 */
@@ -646,8 +611,6 @@ function resetAssetForm() {
     categoryL2Id: undefined,
     sourceTaskId: undefined,
     type: 'image' as DisplayAssetType,
-    isRecommend: 0,
-    isHot: 0,
     title: '',
     url: '',
     width: undefined,
@@ -669,8 +632,6 @@ function openEdit(record: DisplayAsset) {
     categoryL2Id: record.categoryL2Id || undefined,
     sourceTaskId: record.sourceTaskId ?? undefined,
     type: record.type,
-    isRecommend: record.isRecommend ?? 0,
-    isHot: record.isHot ?? 0,
     title: record.title || '',
     url: record.url,
     width: record.width,

@@ -20,8 +20,6 @@ export interface DisplayAsset {
   /** 来源创作任务ID；非空时做同款配方从该任务反解，运营不必手配 */
   sourceTaskId: number | null
   type: DisplayAssetType
-  isRecommend: number
-  isHot: number
   title: string
   url: string
   width?: number
@@ -52,8 +50,6 @@ export interface DisplayAssetFormData {
    */
   sourceTaskId?: number
   type: DisplayAssetType
-  isRecommend?: number
-  isHot?: number
   title?: string
   url: string
   width?: number
@@ -99,8 +95,6 @@ export function getDisplayAssetList(params: {
   categoryL1Id?: number
   categoryL2Id?: number
   type?: DisplayAssetType
-  isRecommend?: number
-  isHot?: number
   status?: number
   keyword?: string
   page?: number
