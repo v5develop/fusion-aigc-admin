@@ -21,6 +21,13 @@ export interface CreationContentItem {
   thumbnail: string | null
   /** 全部产物（已按水印图优先逐位对齐），多图可幻灯片查看 */
   urls: string[]
+  /** 提示词（取自原始提交体） */
+  prompt: string | null
+  /**
+   * 用户原始提交入参，含其上传的图片/音视频 URL。
+   * 后台是管理员视角，此处不脱敏——运营要看到用户传了什么才能判断内容能不能推。
+   */
+  params: Record<string, unknown> | null
   /** 0 未屏蔽 / 1 屏蔽 / 2 永久屏蔽 */
   blockStatus: number | null
   userDeleted: boolean
