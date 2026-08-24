@@ -57,7 +57,11 @@
               <a-button type="link" size="small" @click="openViewer(record)">
                 {{ $t('creationContent.view') }}
               </a-button>
-              <a-tooltip v-if="!canRecommend(record)" :title="recommendBlockedReason(record)">
+              <a-tooltip
+                v-if="!canRecommend(record)"
+                v-permission="'content_recommend:create'"
+                :title="recommendBlockedReason(record)"
+              >
                 <a-button type="link" size="small" disabled>
                   {{ $t('creationContent.recommend') }}
                 </a-button>
@@ -388,30 +392,28 @@ function openViewer(record: CreationContentItem) {
   viewerVisible.value = true
 }
 
-/** URL 形态的参数值单独渲染成可点开的链接，其余按文本展示 */
-const MEDIA_KEYS = /^(images?|imageUrls?|video|videoUrl|audio|audioUrl|imagepath\d*|videopath|audiopath)$/i
-
 const paramEntries = computed(() => {
   const params = current.value?.params
   if (!params) return []
   return Object.entries(params).map(([key, value]) => {
-    const urls = toUrlList(key, value)
+    const urls = toUrlList(value)
     return { key, urls, value: urls ? undefined : formatParamValue(value) }
   })
 })
 
-function toUrlList(key: string, value: unknown): string[] | undefined {
-  const looksMedia = MEDIA_KEYS.test(key)
+/**
+ * 值是 http 链接就渲染成可点开的链接，其余按文本展示。
+ * <p>只认 http：私有桶路径（imagepath1 之类）点不开，按文本给运营看反而准确；
+ * 也因此不需要按键名白名单判断——键名叫什么不影响这个值能不能点开。
+ */
+function toUrlList(value: unknown): string[] | undefined {
   if (Array.isArray(value)) {
     const strs = value.filter((v): v is string => typeof v === 'string')
-    // 数组里全是 http 链接时按媒体处理，即便键名不在白名单里
-    if (strs.length === value.length && strs.length > 0 && strs.every(isHttpUrl)) return strs
-    return undefined
+    return strs.length === value.length && strs.length > 0 && strs.every(isHttpUrl)
+      ? strs
+      : undefined
   }
-  if (typeof value === 'string' && (looksMedia || isHttpUrl(value)) && value.trim()) {
-    return isHttpUrl(value) ? [value] : undefined
-  }
-  return undefined
+  return typeof value === 'string' && isHttpUrl(value) ? [value] : undefined
 }
 
 function isHttpUrl(v: string) {
