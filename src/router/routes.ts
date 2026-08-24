@@ -630,6 +630,16 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
           requiredPermissions: 'content_recommend:view',
         },
       },
+      {
+        path: 'entry-route',
+        name: 'CreationEntryRouteList',
+        component: () => import('@/views/display-asset/entry-route.vue'),
+        meta: {
+          title: 'menu.entryRouteList',
+          requiresAuth: true,
+          requiredPermissions: 'display_asset:view',
+        },
+      },
     ],
   },
   {
