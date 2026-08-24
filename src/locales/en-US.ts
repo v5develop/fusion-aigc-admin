@@ -3889,6 +3889,7 @@ export default {
     urlPlaceholder: 'Enter image / video URL',
     urlRequired: 'Asset URL is required',
     size: 'Size',
+    sizeHint: 'Leave empty to auto-detect on save; if detection fails it stays 0 and the feed falls back to reflow after load',
     width: 'Width',
     height: 'Height',
     sortOrder: 'Sort',

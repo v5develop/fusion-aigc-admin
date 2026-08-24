@@ -52,6 +52,10 @@ export interface DisplayAssetFormData {
   type: DisplayAssetType
   title?: string
   url: string
+  /**
+   * 宽/高（px）。留空则后端按 URL 自动探测一次写回；探不到（外链已挂、格式不识别）留 0。
+   * 用户端瀑布流靠它在图片加载前占位，所以尽量别让它是 0。
+   */
   width?: number
   height?: number
   sortOrder?: number

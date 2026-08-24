@@ -221,6 +221,7 @@
               :placeholder="$t('displayAsset.height')"
             />
           </a-space>
+          <div class="muted">{{ $t('displayAsset.sizeHint') }}</div>
         </a-form-item>
         <a-form-item :label="$t('displayAsset.sortOrder')">
           <a-input-number v-model:value="assetForm.sortOrder" :min="0" style="width: 100%" />

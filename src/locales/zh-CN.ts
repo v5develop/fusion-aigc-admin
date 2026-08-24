@@ -3954,6 +3954,7 @@ export default {
     urlPlaceholder: '请输入图片/视频URL',
     urlRequired: '请填写素材URL',
     size: '尺寸',
+    sizeHint: '留空则保存时自动探测；探不到留 0，用户端瀑布流会退化成加载后重排',
     width: '宽',
     height: '高',
     sortOrder: '排序',
