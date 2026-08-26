@@ -4045,6 +4045,8 @@ export default {
 
   creationContent: {
     title: '创作内容列表',
+    mediaImage: '图片',
+    mediaVideo: '视频',
     empty: '暂无创作内容',
     view: '查看',
     detailTitle: '内容详情',

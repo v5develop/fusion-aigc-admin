@@ -16,7 +16,23 @@
         <template #bodyCell="{ column, record }">
           <template v-if="column.dataIndex === 'thumbnail'">
             <div v-if="record.thumbnail" class="thumb-wrap" @click="openViewer(record)">
-              <img :src="record.thumbnail" class="thumb-img" />
+              <!-- 缩略图可能就是产物本身（无封面时回退取首个产物），视频喂给 img 只会出裂图。
+                   video 标签不带 controls 时浏览器会渲染首帧，正好当封面用 -->
+              <video
+                v-if="isVideoUrl(record.thumbnail, record.mediaType)"
+                :src="record.thumbnail"
+                class="thumb-img"
+                muted
+                preload="metadata"
+              />
+              <img v-else :src="record.thumbnail" class="thumb-img" />
+              <span
+                v-if="isVideoUrl(record.thumbnail, record.mediaType)"
+                class="thumb-play"
+                aria-hidden="true"
+              >
+                ▶
+              </span>
               <span v-if="record.urls.length > 1" class="thumb-count">
                 {{ record.urls.length }}
               </span>
@@ -24,8 +40,10 @@
             <span v-else class="muted">-</span>
           </template>
 
-          <template v-if="column.dataIndex === 'type'">
-            <a-tag :color="record.type === 'video' ? 'purple' : 'blue'">{{ record.type }}</a-tag>
+          <template v-if="column.dataIndex === 'mediaType'">
+            <!-- 列按 mediaType 筛，但展示原始 type：运营要看到具体是哪种任务，
+                 光显示 image/video 会把 12 种电商入口糊成一坨 -->
+            <a-tag :color="record.mediaType === 'video' ? 'purple' : 'blue'">{{ record.type }}</a-tag>
           </template>
 
           <template v-if="column.dataIndex === 'entryCode'">
@@ -92,13 +110,13 @@
           <a-empty v-if="!current.urls.length" :description="$t('creationContent.noOutput')" />
           <a-carousel v-else-if="current.urls.length > 1" arrows dots>
             <div v-for="(url, i) in current.urls" :key="i" class="slide">
-              <video v-if="current.type === 'video'" :src="url" controls class="slide-media" />
+              <video v-if="currentIsVideo(url)" :src="url" controls class="slide-media" />
               <img v-else :src="url" class="slide-media" />
             </div>
           </a-carousel>
           <template v-else>
             <video
-              v-if="current.type === 'video'"
+              v-if="currentIsVideo(current.urls[0])"
               :src="current.urls[0]"
               controls
               class="slide-media"
@@ -294,13 +312,16 @@ const columns = computed(() => [
   { title: t('creationContent.dataId'), dataIndex: 'id', width: 90 },
   { title: t('creationContent.username'), dataIndex: 'username', width: 140, ellipsis: true },
   {
+    // dataIndex 必须是 mediaType：ProTable 拿它同时当搜索参数名，
+    // 而后端按媒体形态筛（image/video）。若用 type，选「图片」会因为电商任务的
+    // type 是 PRODUCTSETIMAGES 而一条都筛不到。单元格内容由 bodyCell 自定义，仍显示原始 type
     title: t('creationContent.type'),
-    dataIndex: 'type',
+    dataIndex: 'mediaType',
     search: true,
     searchType: 'select' as const,
     searchOptions: [
-      { label: 'image', value: 'image' },
-      { label: 'video', value: 'video' },
+      { label: t('creationContent.mediaImage'), value: 'image' },
+      { label: t('creationContent.mediaVideo'), value: 'video' },
     ],
     width: 90,
     align: 'center' as const,
@@ -359,7 +380,9 @@ async function loadData(params: Record<string, unknown>) {
   const res = await getCreationContentList({
     keyword: (params.id as string) || undefined,
     entryCode: (params.entryCode as string) || undefined,
-    type: (params.type as string) || undefined,
+    // 键名必须与列的 dataIndex 一致：ProTable 用 dataIndex 当搜索表单的 key，
+    // 选中值到达这里时叫 params.mediaType。读 params.type 恒为 undefined，筛选会静默失效
+    mediaType: (params.mediaType as string) || undefined,
     status: params.status as number | undefined,
     userDeleted: params.userDeleted as boolean | undefined,
     recommended: params.recommended as boolean | undefined,
@@ -376,6 +399,32 @@ const current = ref<CreationContentItem | null>(null)
 function openViewer(record: CreationContentItem) {
   current.value = record
   viewerVisible.value = true
+}
+
+const VIDEO_EXTENSIONS = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.flv', '.m4v']
+
+/**
+ * 这条产物是不是视频。
+ *
+ * 先看 URL 后缀、再回退到后端下发的 mediaType：
+ * 后缀是对「这个文件本身」最确定的判断，也能应付一个任务混合产出图与视频的情况；
+ * 而 CDN/OSS 链接不一定带后缀，此时才用任务级的 mediaType 兜底。
+ *
+ * 注意签名 URL 带 query（?Expires=...&Signature=...），必须先截掉再比后缀。
+ */
+function isVideoUrl(url: string | null | undefined, mediaType?: string | null): boolean {
+  if (url) {
+    const path = url.split('?')[0].toLowerCase()
+    if (VIDEO_EXTENSIONS.some((ext) => path.endsWith(ext))) return true
+    // 后缀明确是图片就别再信任务级类型：混合产出时以文件本身为准
+    if (/\.(jpe?g|png|webp|gif|bmp|avif|heic)$/.test(path)) return false
+  }
+  return mediaType === 'video'
+}
+
+/** 当前查看项的某条产物是不是视频 */
+function currentIsVideo(url: string): boolean {
+  return isVideoUrl(url, current.value?.mediaType)
 }
 
 /** 用户原始提交体，原样出 JSON——键名与嵌套结构本身就是排查依据，逐字段渲染反而会丢信息 */
@@ -528,6 +577,22 @@ async function submitRecommend() {
   border-radius: 4px;
   border: 1px solid var(--border-color, #f0f0f0);
   display: block;
+}
+/* 视频角标：缩略图取的是首帧，不加标记的话与静态图长得一样，运营看不出哪条是视频 */
+.thumb-play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 8px;
+  line-height: 18px;
+  text-align: center;
+  pointer-events: none;
 }
 .thumb-count {
   position: absolute;

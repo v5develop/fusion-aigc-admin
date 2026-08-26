@@ -3982,6 +3982,8 @@ export default {
 
   creationContent: {
     title: 'Creation Contents',
+    mediaImage: 'Image',
+    mediaVideo: 'Video',
     empty: 'No creation contents',
     view: 'View',
     detailTitle: 'Content Detail',

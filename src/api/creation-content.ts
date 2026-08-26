@@ -12,7 +12,17 @@ export interface CreationContentItem {
   taskId: string
   userId: number | null
   username: string
+  /**
+   * 任务原始类型，仅供展示。混着两套约定：多数是小驼峰（image / productSetImages），
+   * 电商那条路存请求原值（IMAGE / PRODUCTSETIMAGES）。
+   */
   type: string
+  /**
+   * 归一化媒体类型：image / video。决定用 <img> 还是 <video> 渲染，判断只能用它。
+   * 别拿 type 自己比：大小写两套约定混着，更要命的是电商视频入口的字面量里根本没有
+   * "video"（productReplacement / personReplacement），怎么比都会把视频渲染成裂图。
+   */
+  mediaType: string
   entryCode: string
   /** 0 排队 1 处理中 2 成功 3 失败 */
   status: number
@@ -41,7 +51,12 @@ export interface CreationContentQuery {
   /** 任务ID 或 数据ID */
   keyword?: string
   entryCode?: string
-  type?: string
+  /**
+   * 按媒体形态筛：image / video。
+   * 后端不是拿它跟任务 type 精确匹配，而是按 offer 的 category 展开成入口集合——
+   * 传 'image' 能筛到 PRODUCTSETIMAGES 这类电商图片任务。传别的值会被当成不筛。
+   */
+  mediaType?: string
   status?: number
   userDeleted?: boolean
   recommended?: boolean
