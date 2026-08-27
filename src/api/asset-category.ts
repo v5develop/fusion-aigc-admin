@@ -8,26 +8,51 @@ export interface AssetCategoryEntryItem {
 }
 
 /**
- * 素材库聚合分类：把创作入口归成几组，用户端素材库据此出 tab。
+ * 素材库聚合分类（两级树）：一级是用户端素材库的 tab，二级是 tab 下的 chip。
  * 纯展示概念，与计费/提交口径解耦——改分组不会动到 offer。
  */
 export interface AssetCategory {
   id: number
-  /** 小驼峰；用户端按它传参筛素材，是对外契约的一部分 */
+  /** 小驼峰、全局唯一；用户端按它传参筛素材，是对外契约的一部分 */
   categoryCode: string
   categoryName: string
-  sortOrder: number
+  /** 父级分类ID，0 表示一级 */
+  parentId: number
+  /** 1-一级(tab) 2-二级(chip)；只支持这两级 */
+  level: number
+  /**
+   * 媒体形态(image/video)，**仅一级有意义**：设了它的一级会在用户端自动补一个虚拟二级
+   * 「其他」，收纳该形态下还没归类的入口。二级恒为空串，别在二级表单里露出来——
+   * 露出来运营就会填，填了也不生效。
+   */
+  mediaType: string
   /** 0-停用 1-启用；停用的分类不下发给用户端，但后台仍要能看到并改它 */
+  sortOrder: number
   status: number
+  /** 该分类**自己**挂的入口。入口只挂在二级上，一级恒为空数组 */
   entries: AssetCategoryEntryItem[]
+  /** 二级子分类；二级节点恒为空数组（后端给空数组而不是 null） */
+  children: AssetCategory[]
 }
 
-/** 入口候选项，带当前归属；categoryId 为 null 即尚未归类 */
+/** 归属分类的最小引用（永远是二级） */
+export interface AssetCategoryRef {
+  id: number
+  name: string
+}
+
+/**
+ * 入口候选项，带它当前的**全部**归属。
+ *
+ * categories 是数组而不是单个 categoryId/categoryName：归属**允许重叠**，
+ * 同一入口可以同时归到多个二级（商品套图既在「图片>商品图」也在「电商>电商图片」）。
+ * 用单值只能装下其中随机一个，运营看到「归属：电商图片」就会以为图片那边的归属没了。
+ */
 export interface AssetCategoryEntryOption {
   entryCode: string
   entryName: string
-  categoryId: number | null
-  categoryName: string | null
+  /** 空数组即未归类；不要拿它做「已被占用」的置灰依据，重叠是特性不是冲突 */
+  categories: AssetCategoryRef[]
 }
 
 export interface AssetCategoryEntryOptions {
@@ -39,13 +64,26 @@ export interface AssetCategoryEntryOptions {
 export interface AssetCategorySaveData {
   categoryCode: string
   categoryName: string
+  /**
+   * 父级分类ID，0=一级。
+   * 编辑二级时**必须原样回传**：不传会被后端当成一级，而一级不允许挂入口，
+   * 于是带着 entryCodes 的保存直接被拒。
+   */
+  parentId: number
+  /** 1-一级 2-二级；后端最终按 parentId 推导，这里原样提交只是让请求自解释 */
+  level: number
+  /** 仅一级有意义；空串=该一级不做未归类兜底 */
+  mediaType: string
   sortOrder: number
   status: number
-  /** 成员入口按全量覆盖：不在这个数组里的入口会被移出该分类 */
+  /** 成员入口按全量覆盖，且**只有二级能挂**；可与其它分类重叠，不必先从别处摘掉 */
   entryCodes: string[]
 }
 
-/** 全量列表（含停用项）：停用只表示「用户不该看见」，运营还得能在后台改它 */
+/**
+ * 全量分类树（含停用项）：停用只表示「用户不该看见」，运营还得能在后台改它。
+ * 一级在顶层、二级在其 children 里。
+ */
 export function getAssetCategories() {
   return request.get<AssetCategory[]>('/api/v1/admin/asset-category/list')
 }
@@ -64,12 +102,15 @@ export function updateAssetCategory(id: number, data: AssetCategorySaveData) {
   return request.put(`/api/v1/admin/asset-category/${id}`, data)
 }
 
-/** 删除后其成员入口退回未归类，这些入口的素材在所有 tab 里都不再出现 */
+/**
+ * 删除单个分类（不级联）：删一级不会连带删它的二级，那些二级会变成孤儿；
+ * 删二级则其成员入口若不再属于任何分类就退回未归类。
+ */
 export function deleteAssetCategory(id: number) {
   return request.delete(`/api/v1/admin/asset-category/${id}`)
 }
 
-/** 整表重排；后端按数组次序重写 sortOrder */
+/** 按传入的 id 顺序重写 sortOrder；只传同一层级的兄弟节点 */
 export function reorderAssetCategories(ids: number[]) {
   return request.put('/api/v1/admin/asset-category/reorder', { ids })
 }
