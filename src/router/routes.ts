@@ -252,6 +252,18 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
           requiredPermissions: 'task:view',
         },
       },
+      {
+        path: 'backfill',
+        name: 'CreationBackfill',
+        component: () => import('@/views/creation/backfill.vue'),
+        meta: {
+          title: 'menu.creationBackfill',
+          icon: 'DatabaseOutlined',
+          requiresAuth: true,
+          // 进页面只是看欠账；真正写库的按钮另按 task:force_complete 显隐
+          requiredPermissions: 'task:view',
+        },
+      },
     ],
   },
   {
