@@ -157,7 +157,12 @@
               <a-badge status="success" :text="$t('dashboard.running')" />
             </a-descriptions-item>
             <a-descriptions-item :label="$t('dashboard.unionConnected')">
-              <a-badge :status="unionConnected ? 'success' : 'default'" :text="unionConnected ? $t('dashboard.connected') : $t('dashboard.disconnected')" />
+              <a-tooltip :title="unionStatusHint">
+                <a-badge
+                  :status="stats.unionConnected ? 'success' : 'default'"
+                  :text="stats.unionConnected ? $t('dashboard.connected') : $t('dashboard.disconnected')"
+                />
+              </a-tooltip>
             </a-descriptions-item>
             <a-descriptions-item :label="$t('dashboard.todayUnionRequests')">
               {{ stats.todayUnionRequests }}
@@ -183,7 +188,9 @@ import {
   WalletOutlined,
   WarningOutlined,
 } from '@antdv-next/icons'
-import { reactive, ref, onMounted, nextTick } from 'vue'
+import { reactive, ref, computed, onMounted, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
+
 import { getDashboardStats } from '@/api/dashboard'
 
 const stats = reactive({
@@ -203,9 +210,28 @@ const stats = reactive({
   todayUnionRequests: 0,
   todayUnionSuccess: 0,
   openDifferences: 0,
+  unionConnected: false,
+  unionEnabledApps: 0,
+  unionLastSuccessTime: null as string | null,
 })
 
-const unionConnected = ref(false)
+/**
+ * 「未连接」到底是哪种未连接——鼠标悬停时说清楚。
+ * 之前这里是个恒为 false 的 ref，徽标永远显示未连接，
+ * 看的人分不清是真断了还是这个功能压根没接。
+ */
+const { t } = useI18n()
+
+const unionStatusHint = computed(() => {
+  if (stats.unionEnabledApps === 0) {
+    return t('dashboard.unionNoApp')
+  }
+  if (!stats.unionLastSuccessTime) {
+    return t('dashboard.unionNeverCalled')
+  }
+  return t('dashboard.unionLastSuccess', { time: stats.unionLastSuccessTime })
+})
+
 const taskChartRef = ref<HTMLElement>()
 const consumeChartRef = ref<HTMLElement>()
 
@@ -227,6 +253,11 @@ async function loadStats() {
     stats.todayRechargePoints = res.todayRechargePoints || 0
     stats.todayUnionRequests = res.todayUnionRequests || 0
     stats.todayUnionSuccess = res.todayUnionSuccess || 0
+    // 布尔值不能用 || 兜底：false 会被吞成默认值，这里默认值也是 false 所以看不出问题，
+    // 但写法本身是错的，照抄到别处就会出事
+    stats.unionConnected = res.unionConnected ?? false
+    stats.unionEnabledApps = res.unionEnabledApps || 0
+    stats.unionLastSuccessTime = res.unionLastSuccessTime ?? null
     stats.openDifferences = res.openDifferences || 0
 
     await nextTick()
