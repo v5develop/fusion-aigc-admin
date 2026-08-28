@@ -3646,8 +3646,14 @@ export default {
     coverRemainingTasks: '待补任务封面',
     coverRemainingHint:
       '这是「待补条数」而不是「还能补多少」：ffmpeg 抽不出帧的那批（对象已删、格式不认）会永远留在这个数里，清到不再下降就可以停。',
-    coverNoDryRunHint:
-      '没有试跑：抽帧是「下载 + ffmpeg」的重操作，试一遍的代价和真跑一样。单批可能要跑几十秒，执行期间别离开本页。',
+    coverPreview: '预览（不改数据）',
+    coverPreviewHint:
+      '「预览」只列出会被选中的行，不下载、不抽帧、不写库，可以随手点，别人正在跑回填时也能看。它答不了「补出来什么样」——那必须真下载真跑 ffmpeg；它答的是「队头卡着的到底是哪几条」：抽不出帧的行会一直留在待补集合里，不设跳过条数就每轮从同一批开始、立刻又失败，后面本来能补的永远够不着。执行本身是重操作，单批可能要跑几十秒，期间别离开本页。',
+    coverPreviewTitle: '将被选中的行（{count} 条，仅预览）',
+    coverPreviewDone: '预览到 {count} 条候选，未改动任何数据',
+    colTaskId: '任务号',
+    colReason: '为什么被选中',
+    colResultUrl: '源地址（抽帧用）',
     coverHistorySide: '{side} 扫 {scanned} / 成功 {generated} / 失败 {failed} / 连带修复 {crossFixed}',
   },
 

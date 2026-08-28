@@ -106,11 +106,34 @@ export interface VideoCoverReport {
   tasks: VideoCoverResult
 }
 
-/** 没有 dryRun：抽帧是下载 + ffmpeg 的重操作，试跑一遍的代价和真跑一样 */
+/**
+ * dry-run 不在这里，走 previewVideoCover。
+ * 它返回的是候选行清单而不是计数，与 entry_code 回填的 dryRun 语义不同。
+ */
 export interface VideoCoverBackfillParams {
   scope: VideoCoverScope
   limit: number
   offset: number
+}
+
+/** dry-run 里的一行候选 */
+export interface VideoCoverCandidate {
+  /** asset / task：两侧 id 空间不同，混在一个列表里必须能分辨 */
+  side: string
+  id: number
+  /** 素材侧给 source_task_id，可能为空 */
+  taskId: string | null
+  /** 抽帧要用的源地址。判断「补不上是不是因为地址失效」全靠它 */
+  resultUrl: string | null
+  coverUrl: string | null
+  /** 命中判据的原因，后端已翻成人话 */
+  reason: string
+}
+
+export interface VideoCoverPreview {
+  assets: VideoCoverCandidate[]
+  tasks: VideoCoverCandidate[]
+  remaining: VideoCoverRemaining
 }
 
 export function getVideoCoverRemaining() {
@@ -121,5 +144,21 @@ export function backfillVideoCover(params: VideoCoverBackfillParams) {
   return request.post<VideoCoverReport>('/api/v1/admin/creation/video-cover/backfill', undefined, {
     params,
     timeout: BACKFILL_TIMEOUT,
+  })
+}
+
+/**
+ * dry-run：只看会选中哪些行，不下载、不抽帧、不写库。
+ *
+ * 与真实回填共用同一套判据、排序、分页，所以「预览里有的」真跑时一定捞得到。
+ * 它答不了「补出来什么样」——那必须真下载真跑 ffmpeg；它答的是
+ * **队头卡着的到底是哪几条**：抽不出帧的行会永远留在待补集合里，
+ * 不给 offset 就每轮从同一批开始、立刻又失败。
+ *
+ * 只读、不抢锁，可以和别人正在跑的回填并行查看，超时也用不着 BACKFILL_TIMEOUT。
+ */
+export function previewVideoCover(params: VideoCoverBackfillParams) {
+  return request.get<VideoCoverPreview>('/api/v1/admin/creation/video-cover/preview', {
+    params,
   })
 }

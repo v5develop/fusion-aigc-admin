@@ -3367,8 +3367,14 @@ export default {
     coverRemainingTasks: 'Task covers to fill',
     coverRemainingHint:
       'This is a "rows still to fill" count, not a "how many can still be fixed" count: the rows ffmpeg cannot extract a frame from (object deleted, format unsupported) stay in this number forever, so stop once it no longer goes down.',
-    coverNoDryRunHint:
-      'No dry run here: frame extraction is a heavy download + ffmpeg operation, so a trial run costs the same as the real thing. A batch may take tens of seconds - stay on this page while it runs.',
+    coverPreview: 'Preview (no writes)',
+    coverPreviewHint:
+      'Preview only lists the rows that would be picked - no download, no frame extraction, no writes. It tells you which rows are stuck at the head of the queue: rows whose frame cannot be extracted stay in the pending set forever, so without an offset every round starts on the same batch and fails again. The run itself is heavy - a batch may take tens of seconds, stay on this page while it runs.',
+    coverPreviewTitle: 'Rows that would be picked ({count}, preview only)',
+    coverPreviewDone: 'Previewed {count} candidate rows; nothing was changed',
+    colTaskId: 'Task ID',
+    colReason: 'Why picked',
+    colResultUrl: 'Source URL (for extraction)',
     coverHistorySide: '{side} scanned {scanned} / generated {generated} / failed {failed} / cross-fixed {crossFixed}',
   },
 

@@ -174,20 +174,45 @@
           <a-input-number v-model:value="coverForm.offset" :min="0" style="width: 120px" />
         </a-form-item>
         <a-form-item>
-          <a-button
-            v-permission="'task:force_complete'"
-            type="primary"
-            :loading="coverRunning"
-            :disabled="coverRunning"
-            @click="runCover"
-          >
-            {{ $t('creationBackfill.run') }}
-          </a-button>
+          <a-space>
+            <!-- 预览只读、不抢锁，所以只要 task:view，也不跟着 coverRunning 禁用 -->
+            <a-button
+              v-permission="'task:view'"
+              :loading="coverPreviewing"
+              @click="previewCover"
+            >
+              {{ $t('creationBackfill.coverPreview') }}
+            </a-button>
+            <a-button
+              v-permission="'task:force_complete'"
+              type="primary"
+              :loading="coverRunning"
+              :disabled="coverRunning"
+              @click="runCover"
+            >
+              {{ $t('creationBackfill.run') }}
+            </a-button>
+          </a-space>
         </a-form-item>
       </a-form>
       <div class="muted">{{ $t('creationBackfill.limitHint', { max: COVER_MAX_LIMIT }) }}</div>
       <div class="muted">{{ $t('creationBackfill.offsetHint') }}</div>
-      <div class="muted">{{ $t('creationBackfill.coverNoDryRunHint') }}</div>
+      <div class="muted">{{ $t('creationBackfill.coverPreviewHint') }}</div>
+
+      <template v-if="coverCandidates.length">
+        <div class="history-title">
+          {{ $t('creationBackfill.coverPreviewTitle', { count: coverCandidates.length }) }}
+        </div>
+        <a-table
+          class="result-table"
+          :columns="coverCandidateColumns"
+          :data-source="coverCandidates"
+          :pagination="false"
+          row-key="key"
+          size="small"
+          :scroll="{ x: 900 }"
+        />
+      </template>
 
       <a-table
         v-if="coverResultRows.length"
@@ -224,9 +249,11 @@ import dayjs from 'dayjs'
 import { computed, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import type { VideoCoverCandidate } from '@/api/creation-backfill'
 import {
   backfillEntryCode,
   backfillVideoCover,
+  previewVideoCover,
   getEntryCodeRemaining,
   getVideoCoverRemaining,
   type EntryCodeRemaining,
@@ -335,6 +362,8 @@ function scopeLabel(scope: string) {
 
 const entryRunning = ref(false)
 const coverRunning = ref(false)
+const coverPreviewing = ref(false)
+const coverCandidates = ref<(VideoCoverCandidate & { key: string })[]>([])
 const entryReport = ref<EntryCodeReport | null>(null)
 const coverReport = ref<VideoCoverReport | null>(null)
 const entryHistory = ref<HistoryRow[]>([])
@@ -393,6 +422,30 @@ async function runEntry() {
   }
 }
 
+/**
+ * dry-run：只列出会被选中的行。不下载、不抽帧、不写库，可以随手点。
+ * 后端不抢锁，所以别人正在跑回填时照样能看。
+ */
+async function previewCover() {
+  if (coverPreviewing.value) return
+  coverPreviewing.value = true
+  try {
+    const p = await previewVideoCover({ ...coverForm })
+    // 两侧 id 空间不同，key 必须带上 side 才不会撞
+    coverCandidates.value = [...(p?.assets ?? []), ...(p?.tasks ?? [])].map((c) => ({
+      ...c,
+      key: `${c.side}-${c.id}`,
+    }))
+    message.success(
+      t('creationBackfill.coverPreviewDone', { count: coverCandidates.value.length }),
+    )
+  } catch {
+    /* 拦截器已提示 */
+  } finally {
+    coverPreviewing.value = false
+  }
+}
+
 async function runCover() {
   if (coverRunning.value) return
   coverRunning.value = true
@@ -415,6 +468,8 @@ async function runCover() {
     )
     const generated = coverResult(report?.assets).generated + coverResult(report?.tasks).generated
     message.success(t('creationBackfill.coverRunDone', { count: generated }))
+    // 跑完之后这份预览就过期了（补好的已退出候选集合），留着会让人以为还欠这些
+    coverCandidates.value = []
     loadRemaining()
   } catch {
     /* 拦截器已提示 */
@@ -472,6 +527,15 @@ const coverResultColumns = computed(() => [
   { title: t('creationBackfill.colGenerated'), dataIndex: 'generated', width: 120 },
   { title: t('creationBackfill.colFailed'), dataIndex: 'failed', width: 120 },
   { title: t('creationBackfill.colCrossFixed'), dataIndex: 'crossFixed' },
+])
+
+const coverCandidateColumns = computed(() => [
+  { title: t('creationBackfill.colSide'), dataIndex: 'side', width: 90 },
+  { title: 'ID', dataIndex: 'id', width: 90 },
+  { title: t('creationBackfill.colTaskId'), dataIndex: 'taskId', width: 220, ellipsis: true },
+  { title: t('creationBackfill.colReason'), dataIndex: 'reason', width: 220 },
+  // 源地址是判断「补不上是不是因为地址失效」的唯一线索，宽一点、可省略但要能悬停看全
+  { title: t('creationBackfill.colResultUrl'), dataIndex: 'resultUrl', ellipsis: true },
 ])
 
 const historyColumns = computed(() => [
