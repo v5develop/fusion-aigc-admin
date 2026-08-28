@@ -13,6 +13,10 @@
 
 <script setup lang="ts">
 import { ConfigProvider, theme as antdTheme, type ThemeConfig } from 'antdv-next';
+// 深引入：changeConfirmLocale 没有从包入口导出，但它是静态弹窗文案的唯一兜底来源，
+// 见下面 syncAntdGlobalConfig 的说明。升级 antdv-next 时若这条路径没了，
+// 表现是弹窗按钮变回 OK/Cancel（不会编译报错），届时按同样思路重新接一次。
+import { changeConfirmLocale } from 'antdv-next/dist/modal/locale';
 import zhCN from 'antdv-next/locale/zh_CN';
 import enUS from 'antdv-next/locale/en_US';
 import jaJP from 'antdv-next/locale/ja_JP';
@@ -72,9 +76,20 @@ const antdLocale = computed(() => {
  *
  * setGlobalConfig 只写传进去的字段，不会冲掉没传的 prefixCls 等。
  * 用 watchEffect 而不是只在启动时配一次：切语言、切明暗都要跟着换。
+ *
+ * 光配 ConfigProvider.config 还不够，必须同时调 changeConfirmLocale：
+ * 弹窗文案实际取自 useLocale("Modal", getConfirmLocale())——context 里有就用
+ * context，没有就用 getConfirmLocale() 的返回值，而那个值初始化成 en_US
+ * 且【库里没有任何地方调用 changeConfirmLocale 去改它】（在 dist 里搜过，零调用）。
+ * 也就是说这个兜底永远是英文，只要 context 那一路没接上就露出 OK/Cancel。
+ * 两条路都设成同一份 locale，无论走哪条结果都一样。
  */
-watchEffect(() => {
+watchEffect((onCleanup) => {
   ConfigProvider.config({ locale: antdLocale.value, theme: antdThemeConfig.value });
+  // changeConfirmLocale 是「往列表里追加一份并返回撤销函数」，不是覆盖式赋值。
+  // 这个 effect 切主题也会重跑，不撤销的话列表会一直涨。
+  const restore = changeConfirmLocale(antdLocale.value.Modal);
+  onCleanup(() => restore?.());
 });
 
 onMounted(() => {
