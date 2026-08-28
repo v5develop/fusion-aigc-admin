@@ -507,7 +507,12 @@ async function loadData(params: Record<string, unknown>) {
     // 三态，别写 `|| undefined`：那会把「仅未删除」(false) 悄悄变成「不限」
     deleted: params.deleted as boolean | undefined,
     startTime: range?.[0] ? range[0].startOf('day').format(ISO_LOCAL) : undefined,
-    endTime: range?.[1] ? range[1].endOf('day').format(ISO_LOCAL) : undefined,
+    // 后端 endTime 是开区间（create_time < endTime），所以送次日零点而不是当日
+    // 23:59:59。create_time 是秒精度 datetime，用 endOf('day') 会把恰好落在
+    // 23:59:59 那一秒创建的素材漏掉——量少但真实存在，且完全看不出来
+    endTime: range?.[1]
+      ? range[1].startOf('day').add(1, 'day').format(ISO_LOCAL)
+      : undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
   })
