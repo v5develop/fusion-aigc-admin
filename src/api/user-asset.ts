@@ -39,7 +39,7 @@ export interface UserAssetItem {
  * 用户素材（afv_asset）。
  *
  * 与另外两块粒度不同，别搞混：
- * - 「展示素材管理」是运营手灌的运营位内容（afv_public_display_assets）；
+ * - 「灵感素材管理」是运营手灌的运营位内容（afv_public_display_assets）；
  * - 「创作内容列表」是「一次生成」的任务粒度（afv_creation_task）；
  * - 本接口是**产物**粒度——一个 num=4 的任务落 4 条素材，单条产物的宽高、比例、
  *   封面对不对，只有在这一层才看得见。

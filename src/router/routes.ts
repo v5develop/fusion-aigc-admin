@@ -663,7 +663,7 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
-        // 用户素材（afv_asset，产物粒度），与上面的「展示素材」「素材分类」不是一回事，
+        // 用户素材（afv_asset，产物粒度），与上面的「灵感素材」「素材分类」不是一回事，
         // 各自套自己的权限：只有 display_asset:view 的运营进不来这页
         path: 'user-asset',
         name: 'UserAssetList',

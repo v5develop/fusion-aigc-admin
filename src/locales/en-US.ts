@@ -150,7 +150,7 @@ export default {
     templateAssetParent: 'Assets',
     templateAssetList: 'Template Asset List',
     templateFilterList: 'Template Filter Config',
-    displayAssetList: 'Display Assets',
+    displayAssetList: 'Inspiration Assets',
     displayCategoryList: 'Content Categories',
     contentRecommendList: 'Recommendations',
     entryRouteList: 'Entry Routes',
@@ -3924,7 +3924,7 @@ export default {
   },
 
   displayAsset: {
-    listTitle: 'Display Assets',
+    listTitle: 'Inspiration Assets',
     pageHint:
       'Display assets power the inspiration feed, recommended and hot slots (/asset/public/display). When a "Make Similar" recipe is configured, tapping it pre-fills the creation form for the user; the recipe itself never submits a task or charges points.',
     noData: 'No display assets',
@@ -4109,7 +4109,7 @@ export default {
     sourceAsset: 'Display asset',
     sourceIdRequired: 'Data ID is required',
     sourceIdHintTask: 'The "Data ID" column in Creation Contents',
-    sourceIdHintAsset: 'The asset ID in Display Assets',
+    sourceIdHintAsset: 'The asset ID in Inspiration Assets',
     category: 'Category',
     categoryL1: 'Level-1 category',
     categoryL2: 'Level-2 category',
@@ -4232,7 +4232,7 @@ export default {
 
   userAsset: {
     title: 'User Assets',
-    hint: 'These are the users\' own assets (afv_asset) at output granularity: a task with num=4 produces four asset rows, and whether a single output has the right size, ratio and cover can only be seen at this level. This is not the same thing as "Display Assets" (operator-uploaded slot content) or "Creation Contents" (one generation, task granularity). Assets the user has deleted are listed too - that is exactly what you need when investigating "my image is gone" - and their rows are greyed out with a red bar.',
+    hint: 'These are the users\' own assets (afv_asset) at output granularity: a task with num=4 produces four asset rows, and whether a single output has the right size, ratio and cover can only be seen at this level. This is not the same thing as "Inspiration Assets" (operator-uploaded slot content) or "Creation Contents" (one generation, task granularity). Assets the user has deleted are listed too - that is exactly what you need when investigating "my image is gone" - and their rows are greyed out with a red bar.',
     keyword: 'Keyword',
     categoryL1: 'Level-1 Category',
     categoryL2: 'Level-2 Category',

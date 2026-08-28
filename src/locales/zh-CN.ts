@@ -159,7 +159,7 @@ export default {
     templateAssetParent: '素材管理',
     templateAssetList: '模板素材列表',
     templateFilterList: '模板筛选项管理',
-    displayAssetList: '展示素材管理',
+    displayAssetList: '灵感素材管理',
     displayCategoryList: '内容分类管理',
     contentRecommendList: '推荐内容管理',
     entryRouteList: '创作入口路由',
@@ -3989,13 +3989,13 @@ export default {
   },
 
   displayAsset: {
-    listTitle: '展示素材列表',
+    listTitle: '灵感素材列表',
     pageHint:
-      '展示素材用于灵感广场瀑布流、推荐位与热门位（用户端 /asset/public/display）。配了「做同款」的素材，用户点击后会拿到这份配方预填创作表单，再由用户确认提交——配方本身不提交任务、不扣费。',
-    noData: '暂无展示素材',
+      '灵感素材用于灵感广场瀑布流、推荐位与热门位（用户端 /asset/public/display）。配了「做同款」的素材，用户点击后会拿到这份配方预填创作表单，再由用户确认提交——配方本身不提交任务、不扣费。',
+    noData: '暂无灵感素材',
     createAsset: '新增素材',
     editAsset: '编辑素材',
-    confirmDelete: '确定删除该展示素材？',
+    confirmDelete: '确定删除该灵感素材？',
     preview: '预览',
     videoLink: '视频链接',
     category: '内容分类',
@@ -4077,7 +4077,7 @@ export default {
 
   displayCategory: {
     title: '内容分类管理',
-    hint: '两级分类：一级用于用户端顶部 Tab 与展示素材归类，二级用于推荐内容的子筛选。App 与 PC 的分类可以不一样，用「分发平台」区分，APP+PC 表示两端共用。层级与父级建好后不可改——改了会让已挂其下的素材与推荐记录语义漂移，要换层级请删了重建。',
+    hint: '两级分类：一级用于用户端顶部 Tab 与灵感素材归类，二级用于推荐内容的子筛选。App 与 PC 的分类可以不一样，用「分发平台」区分，APP+PC 表示两端共用。层级与父级建好后不可改——改了会让已挂其下的素材与推荐记录语义漂移，要换层级请删了重建。',
     platform: '分发平台',
     platformHint: 'APP+PC 表示两端共用；只在单端出现时选对应端。',
     platformLockedByParent: '父级分类仅限 {platform}，二级不能超出父级范围。',
@@ -4095,7 +4095,7 @@ export default {
     nameRequired: '请填写分类名称',
     code: '分类编码',
     codePlaceholder: '如 exploreShop / foodShop',
-    codeHint: '小驼峰，同一父级下唯一；一级编码被展示素材按值引用，有素材挂着时不可改。',
+    codeHint: '小驼峰，同一父级下唯一；一级编码被灵感素材按值引用，有素材挂着时不可改。',
     codeRequired: '请填写分类编码',
     level: '层级',
     l1: '一级',
@@ -4156,7 +4156,7 @@ export default {
 
   contentRecommend: {
     title: '推荐内容管理',
-    hint: '推荐是「把一条内容挂到某个分类位置 + 分发平台并排序」的关系，不是内容本体：移除推荐只解除关系，源内容不会被删除。支持两种来源——用户真实创作产物与运营手灌的展示素材，推荐粒度都是整条内容，多产物任务在用户端以幻灯片呈现。',
+    hint: '推荐是「把一条内容挂到某个分类位置 + 分发平台并排序」的关系，不是内容本体：移除推荐只解除关系，源内容不会被删除。支持两种来源——用户真实创作产物与运营手灌的灵感素材，推荐粒度都是整条内容，多产物任务在用户端以幻灯片呈现。',
     empty: '该筛选下暂无推荐内容',
     add: '+ 添加推荐',
     editTitle: '编辑推荐',
@@ -4169,10 +4169,10 @@ export default {
     sourceId: '数据ID',
     sourceType: '内容来源',
     sourceTask: '用户创作',
-    sourceAsset: '展示素材',
+    sourceAsset: '灵感素材',
     sourceIdRequired: '请填写数据ID',
     sourceIdHintTask: '创作内容列表里的「数据ID」',
-    sourceIdHintAsset: '展示素材管理里的素材ID',
+    sourceIdHintAsset: '灵感素材管理里的素材ID',
     category: '分类',
     categoryL1: '一级分类',
     categoryL2: '二级分类',
@@ -4194,7 +4194,7 @@ export default {
     filterSource: '内容来源（全部）',
     tabPinned: '已上推荐位',
     tabPending: '待上推',
-    pendingHint: '这些展示素材已发布，但还没挂到任何推荐位——发布不等于露出，配上分类和平台后用户端才能看到。',
+    pendingHint: '这些灵感素材已发布，但还没挂到任何推荐位——发布不等于露出，配上分类和平台后用户端才能看到。',
     pendingEmpty: '没有待上推的素材',
     pinNow: '上推荐位',
     noDefaultSlot: '未配默认位',
@@ -4295,7 +4295,7 @@ export default {
 
   userAsset: {
     title: '用户素材管理',
-    hint: '这里是用户自己的素材（afv_asset），粒度是「产物」：一个 num=4 的任务会落 4 条素材，单条产物的宽高、比例、封面对不对，只有在这一层才看得见。与「展示素材管理」（运营手灌的运营位内容）、「创作内容列表」（一次生成的任务粒度）都不是一回事。列表默认把用户已删除的素材一起列出来——排查「我的图没了」时正需要看它们，它们在行上有灰底和红条标记。',
+    hint: '这里是用户自己的素材（afv_asset），粒度是「产物」：一个 num=4 的任务会落 4 条素材，单条产物的宽高、比例、封面对不对，只有在这一层才看得见。与「灵感素材管理」（运营手灌的运营位内容）、「创作内容列表」（一次生成的任务粒度）都不是一回事。列表默认把用户已删除的素材一起列出来——排查「我的图没了」时正需要看它们，它们在行上有灰底和红条标记。',
     keyword: '关键词',
     categoryL1: '一级分类',
     categoryL2: '二级分类',

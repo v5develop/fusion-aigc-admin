@@ -5,7 +5,7 @@ import { request } from '@/utils/request'
 export type DisplayAssetType = 'image' | 'video'
 
 /**
- * 展示素材（灵感广场瀑布流 / 推荐位 / 热门位），对应用户端 /api/v1/asset/public/display。
+ * 灵感素材（灵感广场瀑布流 / 推荐位 / 热门位），对应用户端 /api/v1/asset/public/display。
  * 「做同款」配方存在 extra.sameStyle 子键下，不占独立列。
  */
 /** 0-草稿 1-已发布 2-已下架 */

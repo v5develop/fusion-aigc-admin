@@ -73,7 +73,7 @@ export function getCreationContentList(params: CreationContentQuery) {
   return request.get<PageResult<CreationContentItem>>('/api/v1/admin/creation/contents', { params })
 }
 
-/** 创作入口下拉。与展示素材侧同源，但各自套权限，别跨着调 */
+/** 创作入口下拉。与灵感素材侧同源，但各自套权限，别跨着调 */
 export function getContentEntryCodes() {
   return request.get<EntryCodeOption[]>('/api/v1/admin/creation/contents/entry-codes')
 }

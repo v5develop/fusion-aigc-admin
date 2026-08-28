@@ -198,7 +198,7 @@ export default {
     templateAssetParent: 'Assets',
     templateAssetList: '템플릿 소재 목록',
     templateFilterList: '템플릿 필터 관리',
-    displayAssetList: '전시 소재 관리',
+    displayAssetList: '영감 소재 관리',
     displayCategoryList: '콘텐츠 분류 관리',
     contentRecommendList: '추천 콘텐츠 관리',
     entryRouteList: '창작 진입 라우트',

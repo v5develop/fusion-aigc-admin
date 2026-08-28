@@ -2,7 +2,7 @@ import { request } from '@/utils/request'
 import type { PageResult } from '@/types/api'
 import type { Platform } from '@/api/display-category'
 
-/** 推荐内容的来源：运营手灌的展示素材 / 用户真实创作产物 */
+/** 推荐内容的来源：运营手灌的灵感素材 / 用户真实创作产物 */
 export type RecommendSourceType = 'DISPLAY_ASSET' | 'CREATION_TASK'
 
 /**
@@ -36,7 +36,7 @@ export interface ContentRecommendItem {
   sameStyle: boolean
 }
 
-/** 已发布但还没挂任何推荐位的展示素材 */
+/** 已发布但还没挂任何推荐位的灵感素材 */
 export interface PendingAsset {
   id: number
   title: string | null

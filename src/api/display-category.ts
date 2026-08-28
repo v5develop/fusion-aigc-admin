@@ -5,7 +5,7 @@ export type Platform = 'APP' | 'PC' | 'BOTH'
 
 /**
  * 内容分类（两级树）。一级 parentId=0 / level=1，二级 parentId=父ID / level=2。
- * 一级用于用户端顶部 Tab 与展示素材归类，二级只用于推荐内容归类。
+ * 一级用于用户端顶部 Tab 与灵感素材归类，二级只用于推荐内容归类。
  * APP 与 PC 的分类可以不一样，由 platform 表达。
  */
 export interface DisplayCategoryNode {
