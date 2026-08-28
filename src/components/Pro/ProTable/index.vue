@@ -1720,7 +1720,12 @@ const buildSorterRequestParams = () => {
   return {};
 };
 
-const loadData = async () => {
+/**
+ * @param allowPageFallback 本页查空时是否允许回退到最后一个有数据的页。
+ *   回退后的那次重查传 false，只回退一次——总数在两次请求之间被别人改动时，
+ *   无限制的回退会来回打请求。
+ */
+const loadData = async (allowPageFallback = true) => {
   loading.value = true;
   try {
     const params: Record<string, unknown> = {
@@ -1739,6 +1744,23 @@ const loadData = async () => {
     if (result.success) {
       dataSource.value = result.data;
       total.value = result.total || result.data.length;
+
+      // 停在空页上就往回退：删掉第 10 页最后一条后总数只够 9 页，
+      // 保持页码不动会看到一张空表加一个「共 N 条」，像是数据全没了。
+      // 总数为 0（真的筛不到东西）不在此列，那是正常的空态。
+      const lastPage = Math.ceil(total.value / pageSize.value);
+      if (
+        allowPageFallback &&
+        paginationEnabled.value &&
+        result.data.length === 0 &&
+        total.value > 0 &&
+        currentPage.value > lastPage
+      ) {
+        currentPage.value = Math.max(1, lastPage);
+        await loadData(false);
+        return;
+      }
+
       scheduleMeasureTable();
     }
   } catch (error: unknown) {
@@ -2053,9 +2075,21 @@ const handleCrudSubmit = async () => {
 
 // Expose methods
 defineExpose({
-  refresh: loadData,
-  reload: () => {
-    currentPage.value = 1;
+  /** 原地重查，保持当前页码与筛选条件。 */
+  refresh: () => loadData(),
+  /**
+   * 重查列表。
+   *
+   * 默认<b>保持当前页码</b>，与 ant-design-pro 的 `reload(resetPageIndex?)` 一致。
+   * 早前它无条件跳回第 1 页：在第 10 页删一条、改个状态，视图就被甩回开头，
+   * 得重新翻 10 页才能接着处理下一条——批量运维时这一下最伤。
+   * 页码重置属于「换了筛选条件」的语义，那两条路径（handleSearch / handleReset）
+   * 本来就各自把页码归 1，不需要靠 reload 代劳。
+   *
+   * @param resetPageIndex 传 true 才回到第 1 页
+   */
+  reload: (resetPageIndex = false) => {
+    if (resetPageIndex) currentPage.value = 1;
     loadData();
   },
   openCreateModal,

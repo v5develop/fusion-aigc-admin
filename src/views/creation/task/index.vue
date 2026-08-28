@@ -138,7 +138,10 @@
 
       <!-- 子任务展开行 -->
       <template #expandedRowRender="{ record }">
-        <ChildTaskExpand :task-id="record.taskId" :key="`child-${record.taskId}-${childReloadTick}`">
+        <ChildTaskExpand
+          :task-id="record.taskId"
+          :key="`child-${record.taskId}-${childReloadTick}-${childExpandTicks[record.taskId] || 0}`"
+        >
           <template #default="{ data }">
             <a-table
               :columns="childColumns"
@@ -290,6 +293,20 @@ const selectedRowKeys = ref<string[]>([])
 // 子任务展开行强制刷新：动作作用于子任务后 +1，重挂 ChildTaskExpand 拉取最新子状态
 const childReloadTick = ref(0)
 
+/**
+ * 每个父任务各自的展开计数，每次「重新展开」+1。
+ *
+ * 底层表格收起展开行时<b>并不销毁它</b>：@v-c/table 的 BodyRow 里有个只进不退的
+ * latch（`if (rowInfo.expanded.value) expandedRef.value = true`），配合
+ * ExpandedRow 的 `style.display = expanded ? null : 'none'`，收起只是把那一行藏起来。
+ * 于是 ChildTaskExpand 的 onMounted 一辈子只跑一次，收起再展开看到的还是第一次的数据——
+ * 想看到子任务的最新状态只能刷新整页。
+ *
+ * 把这个计数编进 :key，重新展开就换 key、重挂组件，onMounted 再跑一次。
+ * 按 taskId 分开计数，展开 A 不会顺带把已展开的 B 也重拉一遍。
+ */
+const childExpandTicks = ref<Record<string, number>>({})
+
 // 刷新父列表（重算聚合）+ 重挂展开的子任务行（拉取最新状态）
 function reloadTasks() {
   tableRef.value?.reload()
@@ -299,6 +316,10 @@ function reloadTasks() {
 // 仅有子任务的父任务行可展开；展开行内容由 ChildTaskExpand 组件自管理
 const expandableConfig = computed(() => ({
   rowExpandable: (record: CreationTask) => !!record.hasChildren,
+  onExpand: (expanded: boolean, record: CreationTask) => {
+    if (!expanded || !record.taskId) return
+    childExpandTicks.value[record.taskId] = (childExpandTicks.value[record.taskId] || 0) + 1
+  },
 }))
 
 // 动态类型筛选选项（从 offer 表加载）
