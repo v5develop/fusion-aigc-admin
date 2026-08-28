@@ -8,11 +8,24 @@ import type { PageResult } from '@/types/api'
 export interface UserAssetItem {
   id: number
   assetId: number
-  /** front / side / back / detail / expression / pose / variant / original */
+  /**
+   * 这一项在这组里的角色，**不是媒体形态**（那是 mediaType）：
+   * initial 主项 / original 原始 / front 正面 / side 侧面 / back 背面 /
+   * detail 细节 / expression 表情 / pose 姿势 / variant 变体
+   */
   itemType: string | null
   name: string | null
-  imageUrl: string | null
-  thumbnailUrl: string | null
+  /** 产物地址。是图是视频看 mediaType，别靠后缀猜——签名地址根本没有后缀 */
+  mediaUrl: string | null
+  /** image / video / audio。后端 NOT NULL，不会给空 */
+  mediaType: string
+  /** 展示帧。视频/音频必有；图片可能为空，此时回退 mediaUrl 自己 */
+  coverUrl: string | null
+  /** 0 = 未知 */
+  width: number | null
+  height: number | null
+  /** 归一化标准比例；空 = 还没算过 */
+  aspectRatio: string | null
   /** 动态属性 JSON 字符串，原样透出 */
   properties: string | null
   sortOrder: number | null

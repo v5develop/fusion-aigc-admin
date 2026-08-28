@@ -211,10 +211,17 @@
             <div class="muted item-hint">{{ $t('userAsset.itemsHint') }}</div>
             <div class="item-grid">
               <div v-for="it in current.items" :key="it.id" class="item-card">
-                <a-image v-if="itemImage(it)" :src="itemImage(it)" class="item-img" />
+                <a-image v-if="itemThumb(it)" :src="itemThumb(it)" class="item-img" />
+                <video
+                  v-else-if="it.mediaType === 'video' && it.mediaUrl"
+                  :src="it.mediaUrl"
+                  class="item-img"
+                  preload="metadata"
+                  muted
+                />
                 <div v-else class="item-img item-img-empty">-</div>
                 <div class="item-name">{{ it.name || '-' }}</div>
-                <div class="muted">{{ it.itemType || '-' }}</div>
+                <div class="muted">{{ it.itemType || '-' }} · {{ it.mediaType }}</div>
               </div>
             </div>
           </div>
@@ -531,8 +538,14 @@ function thumbOf(record: UserAsset) {
   return record.coverUrl || record.resultUrl || ''
 }
 
-function itemImage(item: UserAssetItem) {
-  return item.thumbnailUrl || item.imageUrl || ''
+/**
+ * 子项缩略图：优先展示帧，图片子项才回退产物本身。
+ * 视频子项没有展示帧时宁可留空——拿 mp4 进 <img> 就是一张裂图，
+ * 而空占位至少能看出「这条缺封面」。
+ */
+function itemThumb(item: UserAssetItem) {
+  if (item.coverUrl) return item.coverUrl
+  return item.mediaType === 'image' ? item.mediaUrl || '' : ''
 }
 
 /**
