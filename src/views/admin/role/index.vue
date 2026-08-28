@@ -1,6 +1,7 @@
 <template>
   <div class="page-container">
     <ProTable
+      ref="tableRef"
       :columns="columns"
       :request="loadData"
       :search="{}"
@@ -114,6 +115,13 @@ import { getPermissionTree } from '@/api/admin-permission'
 const { t, locale } = useI18n()
 
 // Role list columns
+/**
+ * 表格句柄。增删改之后必须重查——本页此前一个 ref 都没有，改完数据列表还是旧的，
+ * 看着像没生效，运营会重复点第二次。
+ * 用 refresh() 而不是 reload()：refresh 保持当前页码，在第 N 页处理完不会被甩回第一页。
+ */
+const tableRef = ref()
+
 const columns = [
   {
     title: t('admin.role.roleCode'),
@@ -229,6 +237,7 @@ async function handleRoleSubmit() {
       message.success(t('admin.role.createSuccess'))
     }
     roleModalVisible.value = false
+    tableRef.value?.refresh()
   } catch (error) {
     console.error('Failed to save role:', error)
   } finally {
@@ -244,6 +253,7 @@ function handleDelete(record: Record<string, unknown>) {
       try {
         await deleteAdminRole(record.id as number)
         message.success(t('admin.role.deleteSuccess'))
+        tableRef.value?.refresh()
       } catch (error) {
         console.error('Failed to delete role:', error)
       }

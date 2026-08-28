@@ -2,6 +2,7 @@
   <div class="page-container">
     <a-card :title="$t('reconciliation.difference')">
       <ProTable
+        ref="tableRef"
         :columns="columns"
         :request="loadData"
         :search="{}"
@@ -99,6 +100,8 @@ import ProTable from '@/components/Pro/ProTable/index.vue'
 import { getDifferenceList, handleDifference } from '@/api/reconciliation'
 
 const { t } = useI18n()
+
+const tableRef = ref()
 
 const dialogVisible = ref(false)
 const submitting = ref(false)
@@ -287,6 +290,12 @@ async function handleConfirm() {
     })
     message.success(t('reconciliation.handleSuccess'))
     dialogVisible.value = false
+    // 处理完必须重查：差异行的状态会从 OPEN 变成已处理，不刷新的话那一行还挂在
+    // 列表上、状态也没变，看着像没生效，运营会重复点第二次
+    tableRef.value?.refresh()
+  } catch {
+    // 拦截器已提示。这里必须接住：不接的话异常会逃逸成 unhandled rejection，
+    // 只在控制台留一行日志。也不能顺手关弹窗——失败时留着，用户改完可以直接重试
   } finally {
     submitting.value = false
   }

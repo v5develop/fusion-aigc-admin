@@ -1,6 +1,7 @@
 <template>
   <div class="page-container">
     <ProTable
+      ref="tableRef"
       :columns="columns"
       :request="loadData"
       :search="{}"
@@ -118,6 +119,13 @@ const langConfigs: LangConfig[] = [
   { locale: 'ja-JP', label: '日本語', placeholder: '日本語を入力してください' },
   { locale: 'ko-KR', label: '한국어', placeholder: '한국어를 입력하세요' },
 ]
+
+/**
+ * 表格句柄。增删改之后必须重查——本页此前一个 ref 都没有，改完数据列表还是旧的，
+ * 看着像没生效，运营会重复点第二次。
+ * 用 refresh() 而不是 reload()：refresh 保持当前页码，在第 N 页处理完不会被甩回第一页。
+ */
+const tableRef = ref()
 
 const columns = [
   {
@@ -314,6 +322,7 @@ async function handlePermSubmit() {
       message.success(t('admin.permission.createSuccess'))
     }
     permModalVisible.value = false
+    tableRef.value?.refresh()
   } catch (error) {
     console.error('Failed to save permission:', error)
   } finally {
@@ -333,6 +342,7 @@ function handleDelete(record: Record<string, unknown>) {
       try {
         await deleteAdminPermission(record.id as number)
         message.success(t('admin.permission.deleteSuccess'))
+        tableRef.value?.refresh()
       } catch (error) {
         console.error('Failed to delete permission:', error)
       }

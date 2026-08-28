@@ -1,6 +1,7 @@
 <template>
   <div class="page-container">
     <ProTable
+      ref="tableRef"
       :columns="columns"
       :request="loadData"
       :search="{}"
@@ -62,6 +63,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'antdv-next'
 import { useI18n } from 'vue-i18n'
@@ -71,6 +73,13 @@ import {
   deleteTemplate,
   type TemplateRecord,
 } from '@/api/template'
+
+/**
+ * 表格句柄。增删改之后必须重查——本页此前一个 ref 都没有，改完数据列表还是旧的，
+ * 看着像没生效，运营会重复点第二次。
+ * 用 refresh() 而不是 reload()：refresh 保持当前页码，在第 N 页处理完不会被甩回第一页。
+ */
+const tableRef = ref()
 
 const router = useRouter()
 const { t } = useI18n()
@@ -189,6 +198,7 @@ async function handleDelete(record: TemplateRecord) {
   try {
     await deleteTemplate(record.id)
     message.success(t('common.deleteSuccess'))
+    tableRef.value?.refresh()
   } catch {
     message.error(t('common.deleteFailed'))
   }

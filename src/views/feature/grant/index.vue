@@ -1,6 +1,7 @@
 <template>
   <div class="page-container">
     <ProTable
+      ref="tableRef"
       :columns="columns"
       :request="loadData"
       :search="{}"
@@ -95,6 +96,13 @@ import { getLocale } from '@/locales'
 import type { Feature } from '@/types/api'
 
 const { t } = useI18n()
+/**
+ * 表格句柄。增删改之后必须重查——本页此前一个 ref 都没有，改完数据列表还是旧的，
+ * 看着像没生效，运营会重复点第二次。
+ * 用 refresh() 而不是 reload()：refresh 保持当前页码，在第 N 页处理完不会被甩回第一页。
+ */
+const tableRef = ref()
+
 const currentLocale = computed(() => getLocale())
 
 const featureGrantSourceMap: Record<string, string> = {
@@ -199,6 +207,7 @@ function handleRevoke(record: { id: number }) {
     onOk: async () => {
       await revokeFeature(record.id)
       message.success(t('featureGrant.revokeSuccess'))
+      tableRef.value?.refresh()
     },
   })
 }
@@ -210,6 +219,7 @@ function handleManualRemove(record: { id: number }) {
     onOk: async () => {
       await manualRemoveFeature(record.id)
       message.success(t('featureGrant.manualRemoveSuccess'))
+      tableRef.value?.refresh()
     },
   })
 }
@@ -253,6 +263,7 @@ async function handleManualAddOk() {
     expireTime: manualAddForm.value.expireTime?.format('YYYY-MM-DD HH:mm:ss'),
   })
   message.success(t('featureGrant.manualAddSuccess'))
+  tableRef.value?.refresh()
   manualAddVisible.value = false
 }
 
