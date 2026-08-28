@@ -35,15 +35,18 @@
       :allow-clear="config.allowClear"
       :option-filter-prop="'label'"
       :max-tag-count="'responsive'"
+      :options="config.options"
       @change="onChange"
     >
-      <a-select-option
-        v-for="opt in config.options"
-        :key="opt.value"
-        :value="opt.value"
-        :label="opt.label"
-        :disabled="opt.disabled"
-      >
+      <!--
+        选项内容（图标 / 描述）走 #optionRender，不能写 a-select-option 子标签：
+        antdv-next 的 a-select 渲染底层 VcSelect 时 children 直接传 null，
+        默认插槽全程没被引用，子标签写了也到不了下拉框——不报错，只是下拉框空着。
+        optionRender 是它明确转发的插槽（见 dist/select/index.js:222）。
+        插槽参数是 { option, info }，其中 option 是 FlattenOptionData，
+        原始选项对象在 option.data 上——直接解构成 { data: opt } 会拿到 undefined。
+      -->
+      <template #optionRender="{ option: { data: opt } }">
         <div class="select-widget__option">
           <template v-if="opt.icon">
             <img
@@ -66,7 +69,7 @@
             {{ opt.description }}
           </span>
         </div>
-      </a-select-option>
+      </template>
 
       <template
         v-if="isChipTags"

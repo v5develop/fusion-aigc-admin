@@ -92,12 +92,7 @@
     <!-- 步骤耗时分布 -->
     <a-card :title="$t('generationMonitor.stepDurationDistribution')" size="small" style="margin-bottom: 16px">
       <template #extra>
-        <a-select v-model:value="durationHours" size="small" style="width: 100px" @change="loadStepDuration">
-          <a-select-option :value="1">{{ $t('generationMonitor.hours1') }}</a-select-option>
-          <a-select-option :value="6">{{ $t('generationMonitor.hours6') }}</a-select-option>
-          <a-select-option :value="24">{{ $t('generationMonitor.hours24') }}</a-select-option>
-          <a-select-option :value="72">{{ $t('generationMonitor.hours72') }}</a-select-option>
-        </a-select>
+        <a-select v-model:value="durationHours" size="small" style="width: 100px" @change="loadStepDuration" :options="hourOptions" />
       </template>
       <a-table
         :columns="durationColumns"
@@ -130,12 +125,7 @@
         <a-card :title="$t('generationMonitor.slowStepTrend')" size="small">
           <template #extra>
             <a-space size="small">
-              <a-select v-model:value="trendHours" size="small" style="width: 80px" @change="loadSlowStepTrend">
-                <a-select-option :value="1">{{ $t('generationMonitor.hours1') }}</a-select-option>
-                <a-select-option :value="6">{{ $t('generationMonitor.hours6') }}</a-select-option>
-                <a-select-option :value="24">{{ $t('generationMonitor.hours24') }}</a-select-option>
-                <a-select-option :value="72">{{ $t('generationMonitor.hours72') }}</a-select-option>
-              </a-select>
+              <a-select v-model:value="trendHours" size="small" style="width: 80px" @change="loadSlowStepTrend" :options="hourOptions" />
               <a-space-compact>
                 <a-input-number
                   v-model:value="trendThresholdMs"
@@ -147,12 +137,7 @@
                 />
                 <a-button size="small" disabled>ms</a-button>
               </a-space-compact>
-              <a-select v-model:value="trendBucketMinutes" size="small" style="width: 80px" @change="loadSlowStepTrend">
-                <a-select-option :value="5">5min</a-select-option>
-                <a-select-option :value="15">15min</a-select-option>
-                <a-select-option :value="30">30min</a-select-option>
-                <a-select-option :value="60">1h</a-select-option>
-              </a-select>
+              <a-select v-model:value="trendBucketMinutes" size="small" style="width: 80px" @change="loadSlowStepTrend" :options="bucketMinuteOptions" />
             </a-space>
           </template>
           <div ref="slowStepTrendChartRef" style="height: 300px"></div>
@@ -162,18 +147,8 @@
         <a-card :title="$t('generationMonitor.stepDurationTrend')" size="small">
           <template #extra>
             <a-space size="small">
-              <a-select v-model:value="durationTrendHours" size="small" style="width: 80px" @change="loadStepDurationTrend">
-                <a-select-option :value="1">{{ $t('generationMonitor.hours1') }}</a-select-option>
-                <a-select-option :value="6">{{ $t('generationMonitor.hours6') }}</a-select-option>
-                <a-select-option :value="24">{{ $t('generationMonitor.hours24') }}</a-select-option>
-                <a-select-option :value="72">{{ $t('generationMonitor.hours72') }}</a-select-option>
-              </a-select>
-              <a-select v-model:value="durationTrendBucketMinutes" size="small" style="width: 80px" @change="loadStepDurationTrend">
-                <a-select-option :value="5">5min</a-select-option>
-                <a-select-option :value="15">15min</a-select-option>
-                <a-select-option :value="30">30min</a-select-option>
-                <a-select-option :value="60">1h</a-select-option>
-              </a-select>
+              <a-select v-model:value="durationTrendHours" size="small" style="width: 80px" @change="loadStepDurationTrend" :options="hourOptions" />
+              <a-select v-model:value="durationTrendBucketMinutes" size="small" style="width: 80px" @change="loadStepDurationTrend" :options="bucketMinuteOptions" />
             </a-space>
           </template>
           <div ref="stepDurationTrendChartRef" style="height: 300px"></div>
@@ -185,17 +160,8 @@
     <a-card :title="$t('generationMonitor.alertHistory')" size="small">
       <template #extra>
         <a-space size="small">
-          <a-select v-model:value="alertHours" size="small" style="width: 80px" @change="loadAlertHistory">
-            <a-select-option :value="1">{{ $t('generationMonitor.hours1') }}</a-select-option>
-            <a-select-option :value="6">{{ $t('generationMonitor.hours6') }}</a-select-option>
-            <a-select-option :value="24">{{ $t('generationMonitor.hours24') }}</a-select-option>
-            <a-select-option :value="72">{{ $t('generationMonitor.hours72') }}</a-select-option>
-          </a-select>
-          <a-select v-model:value="alertTypeFilter" size="small" style="width: 120px" allow-clear @change="loadAlertHistory">
-            <a-select-option value="INFLIGHT">{{ $t('generationMonitor.alertTypeInflight') }}</a-select-option>
-            <a-select-option value="RECOVERY">{{ $t('generationMonitor.alertTypeRecovery') }}</a-select-option>
-            <a-select-option value="SLOW_STEP">{{ $t('generationMonitor.alertTypeSlowStep') }}</a-select-option>
-          </a-select>
+          <a-select v-model:value="alertHours" size="small" style="width: 80px" @change="loadAlertHistory" :options="hourOptions" />
+          <a-select v-model:value="alertTypeFilter" size="small" style="width: 120px" allow-clear @change="loadAlertHistory" :options="alertTypeOptions" />
         </a-space>
       </template>
       <a-table
@@ -226,7 +192,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import * as echarts from 'echarts'
 import {
@@ -246,6 +212,38 @@ import {
 } from '@/api/generation'
 
 const { t } = useI18n()
+
+/**
+ * 下拉选项一律用 :options，<b>不能写 a-select-option 子标签</b>。
+ *
+ * antdv-next 的 a-select 渲染底层 VcSelect 时第三个参数（children）直接传 null
+ * （antdv-next/dist/select/index.js 里 createVNode(VcSelect, ..., null)），
+ * 默认插槽全程没被引用过——子标签写了也到不了下拉框。组件本身注册过
+ * （ASelectOption），所以既没有 Vue 警告也不报错，只是下拉框空着。
+ * 本页原先 7 个下拉全是这种写法，等于 7 个都点不开。
+ *
+ * 用 computed 是因为标签要跟着语言切换走。
+ */
+const hourOptions = computed(() => [
+  { label: t('generationMonitor.hours1'), value: 1 },
+  { label: t('generationMonitor.hours6'), value: 6 },
+  { label: t('generationMonitor.hours24'), value: 24 },
+  { label: t('generationMonitor.hours72'), value: 72 },
+])
+
+/** 时间桶粒度。单位是通用写法，不进语言包。 */
+const bucketMinuteOptions = [
+  { label: '5min', value: 5 },
+  { label: '15min', value: 15 },
+  { label: '30min', value: 30 },
+  { label: '1h', value: 60 },
+]
+
+const alertTypeOptions = computed(() => [
+  { label: t('generationMonitor.alertTypeInflight'), value: 'INFLIGHT' },
+  { label: t('generationMonitor.alertTypeRecovery'), value: 'RECOVERY' },
+  { label: t('generationMonitor.alertTypeSlowStep'), value: 'SLOW_STEP' },
+])
 
 const queueRows = ref<GenerationQueueMetric[]>([])
 const creationRows = ref<CreationTaskMetric[]>([])

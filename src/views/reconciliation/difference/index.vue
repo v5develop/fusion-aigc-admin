@@ -72,11 +72,11 @@
             </span>
           </a-form-item>
           <a-form-item :label="$t('reconciliation.handleAction')" name="action">
-            <a-select v-model:value="formState.action" :placeholder="$t('reconciliation.actionRequired')">
-              <a-select-option value="compensate">{{ $t('reconciliation.compensate') }}</a-select-option>
-              <a-select-option value="deduct">{{ $t('reconciliation.deduct') }}</a-select-option>
-              <a-select-option value="ignore">{{ $t('reconciliation.ignore') }}</a-select-option>
-            </a-select>
+            <a-select
+              v-model:value="formState.action"
+              :options="actionOptions"
+              :placeholder="$t('reconciliation.actionRequired')"
+            />
           </a-form-item>
           <a-form-item :label="$t('reconciliation.handleRemark')" name="remark">
             <a-textarea
@@ -92,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { message } from 'antdv-next'
 import ProTable from '@/components/Pro/ProTable/index.vue'
@@ -111,6 +111,24 @@ const currentRecord = reactive({
   localPoints: 0,
   remotePoints: 0,
 })
+
+/**
+ * 处理方式下拉项。
+ *
+ * <b>必须用 :options，不能写 a-select-option 子标签。</b>
+ * antdv-next 的 a-select 在渲染底层 VcSelect 时第三个参数（children）直接传 null
+ * （见 antdv-next/dist/select/index.js 的 createVNode(VcSelect, ..., null)），
+ * 默认插槽全程没被引用过——所以 a-select-option 写了也到不了下拉框。
+ * 组件本身是注册过的（ASelectOption），因此不会有 Vue 警告、不会报错，
+ * 只是下拉框空着，这个坑仓库里已经踩过一次（见 user/detail 的注释）。
+ *
+ * 用 computed 是因为标签要跟着语言切换走，写成常量切语言就不更新了。
+ */
+const actionOptions = computed(() => [
+  { label: t('reconciliation.compensate'), value: 'compensate' },
+  { label: t('reconciliation.deduct'), value: 'deduct' },
+  { label: t('reconciliation.ignore'), value: 'ignore' },
+])
 
 const formState = reactive({
   action: '',
