@@ -72,7 +72,7 @@
             <span v-if="!canEditSort">{{ record.sortOrder }}</span>
             <a-input-number
               v-else
-              :value="sortDraft[record.id] ?? record.sortOrder"
+              :value="record.id in sortDraft ? sortDraft[record.id] : record.sortOrder"
               :min="0"
               :max="99999"
               :precision="0"
@@ -455,31 +455,21 @@ const visiblePositions = computed(
  * 真的混着多个位置才禁用，并在提示里说清是哪种情况。
  */
 /**
- * 这一页是不是装下了当前筛选的全部记录。
- * 重排接口按传入顺序从 0 开始每步 10 重新编号，只发当前页的话，第 2 页会被编成
- * 0/10/20…，正好和第 1 页撞在一起，顺序反而更乱。拖拽以前从没生效过，
- * 所以这个坑一直没暴露出来。
- */
-const wholeSetOnPage = computed(() => pagination.total <= rows.value.length)
-
-/**
- * 能不能拖。两个条件缺一不可：
- *   ① 可见行同属一个分类位置——与后端 reorder 的守卫完全一致，跨位置它直接 400；
- *   ② 该位置的记录全在这一页——否则重排只覆盖一部分，编号会和别的页撞。
+ * 能不能拖。判据与后端 reorder 的守卫一致：<b>可见行同属一个分类位置</b>。
  *
  * 原来写的是「选了一级就能拖」，但只选一级时列表通常横跨多个二级位置，
  * 拖完后端一律回 400「只能在同一分类内排序」——按钮是亮的、拖得动、就是存不上。
- * 现在按真实数据判：只选一级但这些行恰好同属一个位置、且一页装得下时照样能拖。
+ * 现在按真实数据判：只选一级但这些行恰好同属一个位置时照样能拖。
+ *
+ * 不再限制「整个位置必须在同一页」：后端已改成「把传入的这几条放回它们原先占据的
+ * 那几个位次」，只动相对次序、不从 0 重新编号，所以第几页拖都对。
  */
-const canDrag = computed(
-  () => rows.value.length > 1 && visiblePositions.value.size === 1 && wholeSetOnPage.value,
-)
+const canDrag = computed(() => rows.value.length > 1 && visiblePositions.value.size === 1)
 
 /** 不能拖时的原因，直接告诉运营下一步该做什么，而不是只说「需要选分类」 */
 const dragHint = computed(() => {
   if (rows.value.length < 2) return ''
   if (visiblePositions.value.size > 1) return t('contentRecommend.dragMixedPositions')
-  if (!wholeSetOnPage.value) return t('contentRecommend.dragNeedsSinglePage')
   return ''
 })
 
@@ -706,6 +696,12 @@ const savingSortId = ref<number | null>(null)
 
 /**
  * 每行的编辑草稿，失焦时才落库。
+ *
+ * 取值用 `id in sortDraft` 判断而不是 `?? record.sortOrder`：InputNumber 是受控的
+ * （见 @v-c/input-number 的 `if (props.value === void 0) setInputValue(...)`——
+ * 传了 value 就完全靠父组件回喂），清空输入框时 change 给的是 null，
+ * 用 ?? 会立刻把旧数字填回去，表现就是「这个框根本清不掉、输不进数字」。
+ * 所以必须把「没编辑过」(undefined) 和「编辑成空」(null) 分开。
  *
  * 不读 DOM（e.target.value 拿的是显示字符串，将来给 InputNumber 配了 formatter
  * 就会静默出错），也不在 change 里直接存（InputNumber 每敲一个数字就触发一次 change，
