@@ -188,13 +188,14 @@
 
           <template v-if="column.dataIndex === 'sortOrder'">
             <!--
-              没有编辑权时显示纯数字，而不是靠 v-permission 把输入框摘掉：
-              那个指令作用在根元素上，摘掉之后这一列整个空白，比改之前还差——
-              只读的人本来是能看到排序值的
+              点一下才出输入框。这一列是读多写少——拖拽已经覆盖了常规排序，
+              填数字只是跨页/混分类位置时的兜底；20 行常驻输入框会把这一列变成
+              一堵框墙，而且失焦即存，路过点一下都可能误改。
+              没有编辑权时就是一段纯文本，不给可点的样子。
             -->
-            <span v-if="!canEditSort">{{ record.sortOrder }}</span>
             <a-input-number
-              v-else
+              v-if="editingSortId === record.id"
+              ref="sortInputRef"
               :value="record.id in sortDraft ? sortDraft[record.id] : record.sortOrder"
               :min="0"
               :max="99999"
@@ -203,8 +204,17 @@
               style="width: 76px"
               :disabled="savingSortId === record.id"
               @change="(v: number | null) => (sortDraft[record.id] = v)"
+              @keydown="onSortKeydown($event, record)"
               @blur="saveSortOrder(record)"
             />
+            <span
+              v-else
+              :class="canEditSort ? 'sort-editable' : ''"
+              :title="canEditSort ? $t('contentRecommend.sortEditHint') : undefined"
+              @click="startEditSort(record)"
+            >
+              {{ record.sortOrder }}
+            </span>
           </template>
 
           <template v-if="column.dataIndex === 'sameStyle'">
@@ -380,7 +390,7 @@
 
 <script setup lang="ts">
 import { message } from 'antdv-next'
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { useAuthStore } from '@/stores/auth'
@@ -707,6 +717,31 @@ function openDetail(record: ContentRecommendItem) {
 
 // ---- 行内改排序 ----
 const savingSortId = ref<number | null>(null)
+/** 当前处于编辑态的那一行；null 表示都在只读态 */
+const editingSortId = ref<number | null>(null)
+const sortInputRef = ref<{ focus?: () => void } | null>(null)
+
+/**
+ * 点数字进入编辑态并自动聚焦。
+ * <p>不自动聚焦的话，点完还得再点一次输入框才能打字，等于把一步拆成两步。
+ * antdv-next 的 InputNumber 没有 autofocus 属性，但 expose 了 focus()。
+ */
+function startEditSort(record: ContentRecommendItem) {
+  if (!canEditSort.value) return
+  editingSortId.value = record.id
+  nextTick(() => sortInputRef.value?.focus?.())
+}
+
+/** Esc 取消：丢掉草稿再退出编辑态，随后的 blur 读到 undefined 自然不会落库 */
+function onSortKeydown(e: KeyboardEvent, record: ContentRecommendItem) {
+  if (e.key === 'Escape') {
+    delete sortDraft[record.id]
+    editingSortId.value = null
+  } else if (e.key === 'Enter') {
+    // 回车即提交：交给 blur 那条路径，避免两处各写一遍落库逻辑
+    ;(e.target as HTMLInputElement)?.blur()
+  }
+}
 
 /**
  * 每行的编辑草稿，失焦时才落库。
@@ -742,17 +777,17 @@ const canEditSort = computed(() => {
 async function saveSortOrder(record: ContentRecommendItem) {
   const raw = sortDraft[record.id]
   // 没动过就不发请求：点进点出也会触发 blur
-  if (raw === undefined) return
+  if (raw === undefined) {
+    editingSortId.value = null
+    return
+  }
 
   const next = Number(raw)
   // 清空或填了非数字时按不变处理，而不是当成 0——0 会把这条顶到最前面。
   // 草稿一并丢掉，输入框回到库里的值
-  if (!Number.isFinite(next) || next < 0) {
+  if (!Number.isFinite(next) || next < 0 || next === record.sortOrder) {
     delete sortDraft[record.id]
-    return
-  }
-  if (next === record.sortOrder) {
-    delete sortDraft[record.id]
+    editingSortId.value = null
     return
   }
 
@@ -768,6 +803,7 @@ async function saveSortOrder(record: ContentRecommendItem) {
     loadList()
   } finally {
     savingSortId.value = null
+    editingSortId.value = null
   }
 }
 
@@ -897,6 +933,14 @@ async function handleRemove(record: ContentRecommendItem) {
 </script>
 
 <style scoped>
+/* 只读态也要看得出可以点，否则没人知道这个数字能改 */
+.sort-editable {
+  cursor: text;
+  border-bottom: 1px dashed var(--ant-color-border, #d9d9d9);
+}
+.sort-editable:hover {
+  border-bottom-color: var(--ant-color-primary, #1677ff);
+}
 .detail-media {
   display: flex;
   flex-wrap: wrap;

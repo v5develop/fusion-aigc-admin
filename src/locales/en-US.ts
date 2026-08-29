@@ -4101,6 +4101,7 @@ export default {
   },
 
   contentRecommend: {
+    sortEditHint: 'Click to edit the sort order',
     dragMixedPositions: 'This list spans several category positions, so drag-sorting is off — sort order is stored per (level-1 + level-2) position. Pick a level-2 category as well, or type a number in the Sort column.',
     sortSaved: 'Sort order saved',
     detailTitle: 'Recommendation detail',

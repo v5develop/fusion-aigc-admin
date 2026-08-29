@@ -4164,6 +4164,7 @@ export default {
   },
 
   contentRecommend: {
+    sortEditHint: '点击可直接修改排序值',
     dragMixedPositions: '当前列表横跨多个分类位置，无法拖拽排序——排序值是按「一级+二级」这个位置存的。请再选一个二级分类，或直接在「排序」列填数字。',
     sortSaved: '排序已保存',
     detailTitle: '推荐详情',
