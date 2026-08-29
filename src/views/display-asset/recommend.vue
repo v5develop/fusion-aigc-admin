@@ -63,7 +63,22 @@
               </template>
               <span v-else class="muted">{{ $t('contentRecommend.noDefaultSlot') }}</span>
             </template>
-            <template v-if="column.dataIndex === 'sameStyle'">
+            <template v-if="column.dataIndex === 'sortOrder'">
+            <a-input-number
+              v-permission="'content_recommend:edit'"
+              :value="record.sortOrder"
+              :min="0"
+              :max="99999"
+              :precision="0"
+              size="small"
+              style="width: 72px"
+              :disabled="savingSortId === record.id"
+              @blur="(e: FocusEvent) => saveSortOrder(record, (e.target as HTMLInputElement).value)"
+              @press-enter="(e: KeyboardEvent) => (e.target as HTMLInputElement).blur()"
+            />
+          </template>
+
+          <template v-if="column.dataIndex === 'sameStyle'">
               <a-tag :color="record.sameStyle ? 'green' : 'default'">
                 {{ record.sameStyle ? $t('common.yes') : $t('common.no') }}
               </a-tag>
@@ -124,12 +139,12 @@
       </div>
 
       <a-alert
-        v-if="!canDrag"
+        v-if="dragHint"
         type="warning"
         show-icon
         banner
         style="margin-bottom: 12px"
-        :message="$t('contentRecommend.dragNeedsCategory')"
+        :message="dragHint"
       />
 
       <a-table
@@ -139,7 +154,7 @@
         :pagination="pagination"
         row-key="id"
         size="middle"
-        :custom-row="customRow"
+        :on-row="customRow"
         @change="onTableChange"
       >
         <template #emptyText>
@@ -189,6 +204,10 @@
 
           <template v-if="column.key === 'operation'">
             <a-space :size="4">
+              <!-- 查看只读，用 view 权限而不是 edit：没有编辑权的运营也该能看清一条推荐到底是什么 -->
+              <a-button type="link" size="small" @click="openDetail(record)">
+                {{ $t('common.view') }}
+              </a-button>
               <a-button
                 v-permission="'content_recommend:edit'"
                 type="link"
@@ -212,6 +231,65 @@
       </a-table>
       </template>
     </a-card>
+
+    <!-- 查看详情 -->
+    <a-drawer v-model:open="detailVisible" :title="$t('contentRecommend.detailTitle')" width="520">
+      <template v-if="detail">
+        <!-- 源失效最要紧，放最上面：失效的条目不会出现在用户端，但列表里看着一切正常 -->
+        <a-alert
+          v-if="detail.sourceInvalid"
+          type="error"
+          show-icon
+          style="margin-bottom: 16px"
+          :message="$t('contentRecommend.invalid')"
+          :description="detail.invalidReason || undefined"
+        />
+
+        <div v-if="detail.urls.length" class="detail-media">
+          <!-- urls 是水印图，与用户端所见一致；多产物按顺序平铺，别只给第一张 -->
+          <a-image-preview-group>
+            <a-image v-for="(u, i) in detail.urls" :key="i" :src="u" class="detail-media-item" />
+          </a-image-preview-group>
+        </div>
+        <a-empty v-else :description="$t('contentRecommend.noMedia')" />
+
+        <a-descriptions :column="1" bordered size="small" style="margin-top: 16px">
+          <a-descriptions-item :label="$t('contentRecommend.sourceType')">
+            <a-tag :color="detail.sourceType === 'CREATION_TASK' ? 'purple' : 'blue'">
+              {{ sourceTypeLabel(detail.sourceType) }}
+            </a-tag>
+            <span class="muted">{{ detail.sourceId }}</span>
+          </a-descriptions-item>
+          <a-descriptions-item :label="$t('contentRecommend.title')">
+            {{ detail.title || '-' }}
+          </a-descriptions-item>
+          <a-descriptions-item :label="$t('contentRecommend.category')">
+            {{ detail.categoryL1Name || '-' }}
+            <span v-if="detail.categoryL2Name" class="muted"> / {{ detail.categoryL2Name }}</span>
+          </a-descriptions-item>
+          <a-descriptions-item :label="$t('contentRecommend.platform')">
+            <a-tag :color="platformColor(detail.platform)">{{ platformLabel(detail.platform) }}</a-tag>
+          </a-descriptions-item>
+          <a-descriptions-item :label="$t('contentRecommend.sortOrder')">
+            {{ detail.sortOrder }}
+          </a-descriptions-item>
+          <a-descriptions-item :label="$t('contentRecommend.sameStyleCol')">
+            <a-tag :color="detail.sameStyle ? 'green' : 'default'">
+              {{ detail.sameStyle ? $t('common.yes') : $t('common.no') }}
+            </a-tag>
+            <span v-if="!detail.sameStyle" class="muted"> {{ $t('contentRecommend.noSameStyleHint') }}</span>
+          </a-descriptions-item>
+          <a-descriptions-item :label="$t('common.status')">
+            <a-tag :color="detail.status === 1 ? 'green' : 'default'">
+              {{ detail.status === 1 ? $t('common.enabled') : $t('common.disabled') }}
+            </a-tag>
+          </a-descriptions-item>
+          <a-descriptions-item :label="$t('common.createTime')">
+            {{ detail.createTime || '-' }}
+          </a-descriptions-item>
+        </a-descriptions>
+      </template>
+    </a-drawer>
 
     <!-- 添加 / 编辑 -->
     <a-modal
@@ -355,7 +433,30 @@ const filterL2Options = computed(() => l2OptionsOf(filters.categoryL1Id))
  * 拖拽排序只在「筛定了一级分类」时开放。
  * 后端只接受同一分类位置内的重排（跨分类拖拽语义上是换分类），混着多个分类的列表拖了必然被拒。
  */
-const canDrag = computed(() => !!filters.categoryL1Id)
+/**
+ * 当前列表里出现了几个「分类位置」（L1:L2）。
+ * 排序值是<b>按位置</b>存的，后端 reorder 也按这个分组守卫（跨位置直接 400）。
+ */
+const visiblePositions = computed(
+  () => new Set(rows.value.map((r) => `${r.categoryL1Id}:${r.categoryL2Id}`)),
+)
+
+/**
+ * 能不能拖。判据必须与后端 reorder 的守卫一致：<b>可见行同属一个分类位置</b>。
+ *
+ * 原来写的是「选了一级就能拖」，但只选一级时列表通常横跨多个二级位置，
+ * 拖完后端一律回 400「只能在同一分类内排序」——按钮是亮的、拖得动、就是存不上。
+ * 现在按真实数据判：只选一级但这些行恰好同属一个位置时照样能拖，
+ * 真的混着多个位置才禁用，并在提示里说清是哪种情况。
+ */
+const canDrag = computed(() => rows.value.length > 1 && visiblePositions.value.size === 1)
+
+/** 不能拖时的原因，直接告诉运营下一步该做什么，而不是只说「需要选分类」 */
+const dragHint = computed(() => {
+  if (!rows.value.length) return ''
+  if (visiblePositions.value.size > 1) return t('contentRecommend.dragMixedPositions')
+  return ''
+})
 
 const columns = computed(() => [
   { title: '', dataIndex: 'drag', key: 'drag', width: 40, align: 'center' as const },
@@ -561,6 +662,52 @@ async function handleDrop(targetIndex: number) {
   }
 }
 
+// ---- 查看详情 ----
+const detailVisible = ref(false)
+const detail = ref<ContentRecommendItem | null>(null)
+
+/**
+ * 直接用列表行渲染，不再打一次详情接口：列表项已经带齐了源内容快照
+ * （title / urls / sameStyle / sourceInvalid…），而且那份快照是每次查询实时取的。
+ * 另开一个接口只会多一次往返，还会出现「列表说失效、详情说正常」的两套口径。
+ */
+function openDetail(record: ContentRecommendItem) {
+  detail.value = record
+  detailVisible.value = true
+}
+
+// ---- 行内改排序 ----
+const savingSortId = ref<number | null>(null)
+
+/**
+ * 直接改某一条的排序值。
+ *
+ * 与拖拽互补：拖拽只在「可见行同属一个分类位置」时可用，而运营常常只筛一级、
+ * 列表横跨多个位置——那种情况下排序值是唯一能改顺序的手段。
+ * 这里改的是绝对值，不涉及跨位置比较，所以任何筛选下都成立。
+ *
+ * 只传 sortOrder：后端 update 对没传的字段回退到原值（分类、平台都不动），
+ * 所以不必把整行回传，也就不会因为回传了旧快照而覆盖掉别人刚改的分类。
+ */
+async function saveSortOrder(record: ContentRecommendItem, raw: string | number | null) {
+  const next = Number(raw)
+  // 清空或填了非数字时按不变处理，而不是当成 0——0 会把这条顶到最前面
+  if (!Number.isFinite(next) || next < 0) return
+  if (next === record.sortOrder) return
+
+  savingSortId.value = record.id
+  try {
+    await updateRecommend(record.id, { sortOrder: next })
+    message.success(t('contentRecommend.sortSaved'))
+    loadList()
+  } catch {
+    // 拦截器已提示；重拉一次把输入框恢复成库里的真实值
+    loadList()
+  } finally {
+    savingSortId.value = null
+  }
+}
+
 // ---- 添加 / 编辑 ----
 const modalVisible = ref(false)
 const saving = ref(false)
@@ -687,6 +834,15 @@ async function handleRemove(record: ContentRecommendItem) {
 </script>
 
 <style scoped>
+.detail-media {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.detail-media-item {
+  max-width: 150px;
+  border-radius: 4px;
+}
 .page-container {
   padding: 24px;
 }

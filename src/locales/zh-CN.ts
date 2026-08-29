@@ -4164,6 +4164,11 @@ export default {
   },
 
   contentRecommend: {
+    dragMixedPositions: '当前列表横跨多个分类位置，无法拖拽排序——排序值是按「一级+二级」这个位置存的。请再选一个二级分类，或直接在「排序」列填数字。',
+    sortSaved: '排序已保存',
+    detailTitle: '推荐详情',
+    noMedia: '该内容没有可展示的产物',
+    noSameStyleHint: '（用户端不会显示做同款入口）',
     title: '推荐内容管理',
     hint: '推荐是「把一条内容挂到某个分类位置 + 分发平台并排序」的关系，不是内容本体：移除推荐只解除关系，源内容不会被删除。支持两种来源——用户真实创作产物与运营手灌的灵感素材，推荐粒度都是整条内容，多产物任务在用户端以幻灯片呈现。',
     empty: '该筛选下暂无推荐内容',
@@ -4172,7 +4177,6 @@ export default {
     remove: '移除',
     removeSuccess: '推荐关系已移除',
     confirmRemove: '移除后该内容不再出现在此推荐位（原内容不会被删除），确定？',
-    dragNeedsCategory: '先筛选到某个一级分类才能拖拽排序：后端只接受同一分类内的重排，跨分类拖拽属于「换分类」，请用编辑。',
     reorderSuccess: '排序已保存',
     thumbnail: '缩略图',
     sourceId: '数据ID',

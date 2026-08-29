@@ -488,6 +488,11 @@ export default {
   },
 
   contentRecommend: {
+    dragMixedPositions: 'This list spans several category positions, so drag-sorting is off — sort order is stored per (level-1 + level-2) position. Pick a level-2 category as well, or type a number in the Sort column.',
+    sortSaved: 'Sort order saved',
+    detailTitle: 'Recommendation detail',
+    noMedia: 'This content has no media to show',
+    noSameStyleHint: ' (the same-style entry is hidden on the client)',
     title: 'Recommendations',
     hint: 'A recommendation is a relation - one piece of content pinned to a category slot with a platform and an order - not the content itself. Removing it only breaks the relation; the source content is never deleted. Two sources are supported: real user creations and operator-uploaded display assets. Multi-output tasks are recommended as one entry and shown as a slideshow on the client.',
     empty: 'No recommendations under this filter',
@@ -496,7 +501,6 @@ export default {
     remove: 'Remove',
     removeSuccess: 'Recommendation removed',
     confirmRemove: 'The content will no longer appear in this slot (the source is not deleted). Continue?',
-    dragNeedsCategory: 'Filter to a level-1 category before dragging: the backend only accepts reordering within one category, and dragging across categories means "change category" - use Edit for that.',
     reorderSuccess: 'Order saved',
     thumbnail: 'Preview',
     sourceId: 'Data ID',
