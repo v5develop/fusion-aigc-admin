@@ -151,10 +151,22 @@
           </template>
 
           <template v-if="column.dataIndex === 'thumbnail'">
-            <div v-if="record.thumbnail" class="thumb-wrap">
+            <!--
+              缩略图点击 = 查看详情。行本身是可拖拽的（:on-row 给了 draggable），
+              所以这里用 button 而不是给 div 挂 @click：button 天然可聚焦、可回车触发，
+              键盘操作的人也能打开详情，而不是只有鼠标能点。
+              @click.stop 是必须的——不拦住的话点击会冒泡到行上，与拖拽起手势打架。
+            -->
+            <button
+              v-if="record.thumbnail"
+              type="button"
+              class="thumb-wrap"
+              :title="$t('common.view')"
+              @click.stop="openDetail(record)"
+            >
               <img :src="record.thumbnail" class="thumb-img" />
               <span v-if="record.urls.length > 1" class="thumb-count">{{ record.urls.length }}</span>
-            </div>
+            </button>
             <span v-else class="muted">-</span>
           </template>
 
@@ -930,6 +942,17 @@ async function handleRemove(record: ContentRecommendItem) {
 .thumb-wrap {
   position: relative;
   display: inline-block;
+  /* 它现在是 button：清掉浏览器默认边框/内边距/背景，视觉与原来的 div 一致 */
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  line-height: 0;
+}
+.thumb-wrap:focus-visible {
+  outline: 2px solid var(--ant-color-primary, #1677ff);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 .thumb-img {
   width: 44px;
