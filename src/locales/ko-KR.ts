@@ -488,6 +488,7 @@ export default {
   },
 
   contentRecommend: {
+    dragNeedsSinglePage: 'This page does not hold all matching records, so drag-sorting is off — reordering renumbers from 0 and would collide with the other pages. Increase the page size, or type a number in the Sort column.',
     dragMixedPositions: 'This list spans several category positions, so drag-sorting is off — sort order is stored per (level-1 + level-2) position. Pick a level-2 category as well, or type a number in the Sort column.',
     sortSaved: 'Sort order saved',
     detailTitle: 'Recommendation detail',

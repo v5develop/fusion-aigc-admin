@@ -64,17 +64,23 @@
               <span v-else class="muted">{{ $t('contentRecommend.noDefaultSlot') }}</span>
             </template>
             <template v-if="column.dataIndex === 'sortOrder'">
+            <!--
+              没有编辑权时显示纯数字，而不是靠 v-permission 把输入框摘掉：
+              那个指令作用在根元素上，摘掉之后这一列整个空白，比改之前还差——
+              只读的人本来是能看到排序值的
+            -->
+            <span v-if="!canEditSort">{{ record.sortOrder }}</span>
             <a-input-number
-              v-permission="'content_recommend:edit'"
-              :value="record.sortOrder"
+              v-else
+              :value="sortDraft[record.id] ?? record.sortOrder"
               :min="0"
               :max="99999"
               :precision="0"
               size="small"
-              style="width: 72px"
+              style="width: 76px"
               :disabled="savingSortId === record.id"
-              @blur="(e: FocusEvent) => saveSortOrder(record, (e.target as HTMLInputElement).value)"
-              @press-enter="(e: KeyboardEvent) => (e.target as HTMLInputElement).blur()"
+              @change="(v: number | null) => (sortDraft[record.id] = v)"
+              @blur="saveSortOrder(record)"
             />
           </template>
 
@@ -365,6 +371,8 @@ import { message } from 'antdv-next'
 import { ref, reactive, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import { useAuthStore } from '@/stores/auth'
+
 import { getCategoryTree, type DisplayCategoryNode, type Platform } from '@/api/display-category'
 import {
   getRecommendList,
@@ -379,6 +387,7 @@ import {
 } from '@/api/content-recommend'
 
 const { t } = useI18n()
+const authStore = useAuthStore()
 
 function platformLabel(p: Platform) {
   return p === 'APP' ? 'APP' : p === 'PC' ? 'PC' : 'APP+PC'
@@ -430,10 +439,6 @@ const pagination = reactive({ current: 1, pageSize: 20, total: 0, showSizeChange
 const filterL2Options = computed(() => l2OptionsOf(filters.categoryL1Id))
 
 /**
- * 拖拽排序只在「筛定了一级分类」时开放。
- * 后端只接受同一分类位置内的重排（跨分类拖拽语义上是换分类），混着多个分类的列表拖了必然被拒。
- */
-/**
  * 当前列表里出现了几个「分类位置」（L1:L2）。
  * 排序值是<b>按位置</b>存的，后端 reorder 也按这个分组守卫（跨位置直接 400）。
  */
@@ -449,12 +454,32 @@ const visiblePositions = computed(
  * 现在按真实数据判：只选一级但这些行恰好同属一个位置时照样能拖，
  * 真的混着多个位置才禁用，并在提示里说清是哪种情况。
  */
-const canDrag = computed(() => rows.value.length > 1 && visiblePositions.value.size === 1)
+/**
+ * 这一页是不是装下了当前筛选的全部记录。
+ * 重排接口按传入顺序从 0 开始每步 10 重新编号，只发当前页的话，第 2 页会被编成
+ * 0/10/20…，正好和第 1 页撞在一起，顺序反而更乱。拖拽以前从没生效过，
+ * 所以这个坑一直没暴露出来。
+ */
+const wholeSetOnPage = computed(() => pagination.total <= rows.value.length)
+
+/**
+ * 能不能拖。两个条件缺一不可：
+ *   ① 可见行同属一个分类位置——与后端 reorder 的守卫完全一致，跨位置它直接 400；
+ *   ② 该位置的记录全在这一页——否则重排只覆盖一部分，编号会和别的页撞。
+ *
+ * 原来写的是「选了一级就能拖」，但只选一级时列表通常横跨多个二级位置，
+ * 拖完后端一律回 400「只能在同一分类内排序」——按钮是亮的、拖得动、就是存不上。
+ * 现在按真实数据判：只选一级但这些行恰好同属一个位置、且一页装得下时照样能拖。
+ */
+const canDrag = computed(
+  () => rows.value.length > 1 && visiblePositions.value.size === 1 && wholeSetOnPage.value,
+)
 
 /** 不能拖时的原因，直接告诉运营下一步该做什么，而不是只说「需要选分类」 */
 const dragHint = computed(() => {
-  if (!rows.value.length) return ''
+  if (rows.value.length < 2) return ''
   if (visiblePositions.value.size > 1) return t('contentRecommend.dragMixedPositions')
+  if (!wholeSetOnPage.value) return t('contentRecommend.dragNeedsSinglePage')
   return ''
 })
 
@@ -680,6 +705,21 @@ function openDetail(record: ContentRecommendItem) {
 const savingSortId = ref<number | null>(null)
 
 /**
+ * 每行的编辑草稿，失焦时才落库。
+ *
+ * 不读 DOM（e.target.value 拿的是显示字符串，将来给 InputNumber 配了 formatter
+ * 就会静默出错），也不在 change 里直接存（InputNumber 每敲一个数字就触发一次 change，
+ * 输 120 会打三次请求）。按行存草稿还避免了「编辑 A 未失焦就去点 B」时两行互相串值。
+ */
+const sortDraft = reactive<Record<number, number | null>>({})
+
+/** 排序列要不要给可编辑控件。与操作列的 v-permission 用同一个权限码 */
+const canEditSort = computed(() => {
+  const perms = authStore.user?.permissions ?? []
+  return perms.includes('*') || perms.includes('content_recommend:edit')
+})
+
+/**
  * 直接改某一条的排序值。
  *
  * 与拖拽互补：拖拽只在「可见行同属一个分类位置」时可用，而运营常常只筛一级、
@@ -689,19 +729,32 @@ const savingSortId = ref<number | null>(null)
  * 只传 sortOrder：后端 update 对没传的字段回退到原值（分类、平台都不动），
  * 所以不必把整行回传，也就不会因为回传了旧快照而覆盖掉别人刚改的分类。
  */
-async function saveSortOrder(record: ContentRecommendItem, raw: string | number | null) {
+async function saveSortOrder(record: ContentRecommendItem) {
+  const raw = sortDraft[record.id]
+  // 没动过就不发请求：点进点出也会触发 blur
+  if (raw === undefined) return
+
   const next = Number(raw)
-  // 清空或填了非数字时按不变处理，而不是当成 0——0 会把这条顶到最前面
-  if (!Number.isFinite(next) || next < 0) return
-  if (next === record.sortOrder) return
+  // 清空或填了非数字时按不变处理，而不是当成 0——0 会把这条顶到最前面。
+  // 草稿一并丢掉，输入框回到库里的值
+  if (!Number.isFinite(next) || next < 0) {
+    delete sortDraft[record.id]
+    return
+  }
+  if (next === record.sortOrder) {
+    delete sortDraft[record.id]
+    return
+  }
 
   savingSortId.value = record.id
   try {
     await updateRecommend(record.id, { sortOrder: next })
     message.success(t('contentRecommend.sortSaved'))
+    delete sortDraft[record.id]
     loadList()
   } catch {
-    // 拦截器已提示；重拉一次把输入框恢复成库里的真实值
+    // 拦截器已提示；丢掉草稿并重拉，输入框恢复成库里的真实值
+    delete sortDraft[record.id]
     loadList()
   } finally {
     savingSortId.value = null
