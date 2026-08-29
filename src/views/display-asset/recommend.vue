@@ -63,27 +63,6 @@
               </template>
               <span v-else class="muted">{{ $t('contentRecommend.noDefaultSlot') }}</span>
             </template>
-            <template v-if="column.dataIndex === 'sortOrder'">
-            <!--
-              没有编辑权时显示纯数字，而不是靠 v-permission 把输入框摘掉：
-              那个指令作用在根元素上，摘掉之后这一列整个空白，比改之前还差——
-              只读的人本来是能看到排序值的
-            -->
-            <span v-if="!canEditSort">{{ record.sortOrder }}</span>
-            <a-input-number
-              v-else
-              :value="record.id in sortDraft ? sortDraft[record.id] : record.sortOrder"
-              :min="0"
-              :max="99999"
-              :precision="0"
-              size="small"
-              style="width: 76px"
-              :disabled="savingSortId === record.id"
-              @change="(v: number | null) => (sortDraft[record.id] = v)"
-              @blur="saveSortOrder(record)"
-            />
-          </template>
-
           <template v-if="column.dataIndex === 'sameStyle'">
               <a-tag :color="record.sameStyle ? 'green' : 'default'">
                 {{ record.sameStyle ? $t('common.yes') : $t('common.no') }}
@@ -193,6 +172,27 @@
 
           <template v-if="column.dataIndex === 'platform'">
             <a-tag :color="platformColor(record.platform)">{{ platformLabel(record.platform) }}</a-tag>
+          </template>
+
+          <template v-if="column.dataIndex === 'sortOrder'">
+            <!--
+              没有编辑权时显示纯数字，而不是靠 v-permission 把输入框摘掉：
+              那个指令作用在根元素上，摘掉之后这一列整个空白，比改之前还差——
+              只读的人本来是能看到排序值的
+            -->
+            <span v-if="!canEditSort">{{ record.sortOrder }}</span>
+            <a-input-number
+              v-else
+              :value="record.id in sortDraft ? sortDraft[record.id] : record.sortOrder"
+              :min="0"
+              :max="99999"
+              :precision="0"
+              size="small"
+              style="width: 76px"
+              :disabled="savingSortId === record.id"
+              @change="(v: number | null) => (sortDraft[record.id] = v)"
+              @blur="saveSortOrder(record)"
+            />
           </template>
 
           <template v-if="column.dataIndex === 'sameStyle'">
@@ -492,7 +492,9 @@ const columns = computed(() => [
   {
     title: t('contentRecommend.sortOrder'),
     dataIndex: 'sortOrder',
-    width: 80,
+    // 100 而不是 80：这一列现在放的是可编辑的数字输入框（76px + 内边距），
+    // 按 80 会把框挤到贴边
+    width: 100,
     align: 'center' as const,
   },
   {
