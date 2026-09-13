@@ -244,6 +244,41 @@
                 />
                 <div class="form-hint">{{ $t('settingsSystem.blindWatermarkDesc') }}</div>
               </a-form-item>
+
+              <a-divider />
+
+              <!-- 可见水印总开关。与上面的盲水印是两回事：盲水印不可见、用于溯源，
+                   嵌在交付给用户的那份产物里；这里是可见遮挡，只出现在预览地址上。
+                   两者同时存在不冲突，关掉任何一个都不能替代另一个。 -->
+              <a-form-item :label="$t('settingsSystem.displayWatermark')">
+                <a-switch
+                  v-model:checked="displayWatermarkEnabled"
+                  :loading="savingDisplayWatermark"
+                  @change="handleToggleDisplayWatermark"
+                />
+                <div class="form-hint">{{ $t('settingsSystem.displayWatermarkDesc') }}</div>
+              </a-form-item>
+
+              <!-- 只管付费档。免费用户查看/下载/进资产库恒带水印，不受它影响，
+                   所以这里刻意不写成「查看水印」——那会让人以为关掉后免费用户也没水印了 -->
+              <a-form-item :label="$t('settingsSystem.paidViewWatermark')">
+                <a-switch
+                  v-model:checked="paidViewWatermarkEnabled"
+                  :loading="savingPaidViewWatermark"
+                  :disabled="!displayWatermarkEnabled"
+                  @change="handleTogglePaidViewWatermark"
+                />
+                <div class="form-hint">{{ $t('settingsSystem.paidViewWatermarkDesc') }}</div>
+              </a-form-item>
+
+              <a-form-item :label="$t('settingsSystem.userTier')">
+                <a-switch
+                  v-model:checked="userTierEnabled"
+                  :loading="savingUserTier"
+                  @change="handleToggleUserTier"
+                />
+                <div class="form-hint">{{ $t('settingsSystem.userTierDesc') }}</div>
+              </a-form-item>
             </a-form>
           </div>
         </a-tab-pane>
@@ -304,7 +339,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { message } from 'antdv-next'
 import { useI18n } from 'vue-i18n'
-import { getSystemConfig, saveSystemConfig, getAgentModelProfiles, bindAgentModelProfile, getAiWritingModel, saveAiWritingModel, getVideoWatermarkEnabled, setVideoWatermarkEnabled, getBlindWatermarkEnabled, setBlindWatermarkEnabled } from '@/api/config'
+import { getSystemConfig, saveSystemConfig, getAgentModelProfiles, bindAgentModelProfile, getAiWritingModel, saveAiWritingModel, getVideoWatermarkEnabled, setVideoWatermarkEnabled, getBlindWatermarkEnabled, setBlindWatermarkEnabled, getDisplayWatermarkEnabled, setDisplayWatermarkEnabled, getPaidViewWatermarkEnabled, setPaidViewWatermarkEnabled, getUserTierEnabled, setUserTierEnabled } from '@/api/config'
 import { getModelOptions } from '@/api/model'
 import type { AIModel, AgentModelProfile } from '@/types/api'
 
@@ -365,6 +400,12 @@ const savingVideoWatermark = ref(false)
 /** 图片盲水印开关。同样是 DB 优先后的实际生效值。 */
 const blindWatermarkEnabled = ref(false)
 const savingBlindWatermark = ref(false)
+const displayWatermarkEnabled = ref(false)
+const savingDisplayWatermark = ref(false)
+const paidViewWatermarkEnabled = ref(false)
+const savingPaidViewWatermark = ref(false)
+const userTierEnabled = ref(false)
+const savingUserTier = ref(false)
 // 后端返回 TEXT/VISION 两档；modelId 可被 v-model 就地编辑，保存时按档提交
 const agentProfiles = ref<AgentModelProfile[]>([])
 
@@ -525,6 +566,72 @@ async function handleToggleVideoWatermark(checked: boolean) {
   }
 }
 
+/**
+ * 三个开关共用一套「切换即保存 + 失败拨回」的写法。
+ *
+ * 失败必须把开关拨回去：界面显示已开、实际没开，下次进来又变回来，
+ * 而中间这段时间运营会以为策略已经生效。
+ */
+async function loadDisplayWatermark() {
+  try {
+    displayWatermarkEnabled.value = await getDisplayWatermarkEnabled()
+  } catch {
+    /* 错误已由拦截器提示 */
+  }
+}
+
+async function handleToggleDisplayWatermark(checked: boolean) {
+  savingDisplayWatermark.value = true
+  try {
+    await setDisplayWatermarkEnabled(checked)
+    message.success(checked ? t('settingsSystem.displayWatermarkOn') : t('settingsSystem.displayWatermarkOff'))
+  } catch {
+    displayWatermarkEnabled.value = !checked
+  } finally {
+    savingDisplayWatermark.value = false
+  }
+}
+
+async function loadPaidViewWatermark() {
+  try {
+    paidViewWatermarkEnabled.value = await getPaidViewWatermarkEnabled()
+  } catch {
+    /* 错误已由拦截器提示 */
+  }
+}
+
+async function handleTogglePaidViewWatermark(checked: boolean) {
+  savingPaidViewWatermark.value = true
+  try {
+    await setPaidViewWatermarkEnabled(checked)
+    message.success(checked ? t('settingsSystem.paidViewWatermarkOn') : t('settingsSystem.paidViewWatermarkOff'))
+  } catch {
+    paidViewWatermarkEnabled.value = !checked
+  } finally {
+    savingPaidViewWatermark.value = false
+  }
+}
+
+async function loadUserTier() {
+  try {
+    userTierEnabled.value = await getUserTierEnabled()
+  } catch {
+    /* 错误已由拦截器提示 */
+  }
+}
+
+async function handleToggleUserTier(checked: boolean) {
+  savingUserTier.value = true
+  try {
+    await setUserTierEnabled(checked)
+    message.success(checked ? t('settingsSystem.userTierOn') : t('settingsSystem.userTierOff'))
+  } catch {
+    userTierEnabled.value = !checked
+  } finally {
+    savingUserTier.value = false
+  }
+}
+
 async function loadBlindWatermark() {
   try {
     blindWatermarkEnabled.value = await getBlindWatermarkEnabled()
@@ -551,6 +658,9 @@ onMounted(() => {
   loadAgentModelConfig()
   loadVideoWatermark()
   loadBlindWatermark()
+  loadDisplayWatermark()
+  loadPaidViewWatermark()
+  loadUserTier()
 })
 </script>
 

@@ -493,6 +493,18 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
           requiredPermissions: 'billing_rule:view',
         },
       },
+      {
+        // 点数包是下单金额的唯一出处，权限跟定价同一把钥匙（pricing:update 才能改）
+        path: 'points-packages',
+        name: 'BillingPointsPackage',
+        component: () => import('@/views/billing/points-package/index.vue'),
+        meta: {
+          title: 'menu.billingPointsPackage',
+          icon: 'GiftOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'pricing:view',
+        },
+      },
     ],
   },
   {
@@ -922,6 +934,41 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
           icon: 'ToolOutlined',
           requiresAuth: true,
           requiredPermissions: 'system:param_config',
+        },
+      },
+      {
+        path: 'user-level',
+        name: 'SettingsUserLevel',
+        component: () => import('@/views/settings/user-level/index.vue'),
+        meta: {
+          title: 'menu.settingsUserLevel',
+          icon: 'TrophyOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'system:param_config',
+        },
+      },
+      {
+        path: 'check-in',
+        name: 'SettingsCheckIn',
+        component: () => import('@/views/settings/check-in/index.vue'),
+        meta: {
+          title: 'menu.settingsCheckIn',
+          icon: 'CalendarOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'system:param_config',
+        },
+      },
+      {
+        // 通知有自己的一组权限码（notification:view/publish/delete，V1.0.99 落库），
+        // 不跟着系统参数走：发公告与改系统参数是两类完全不同的授权
+        path: 'notification',
+        name: 'SettingsNotification',
+        component: () => import('@/views/settings/notification/index.vue'),
+        meta: {
+          title: 'menu.settingsNotification',
+          icon: 'NotificationOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'notification:view',
         },
       },
     ],

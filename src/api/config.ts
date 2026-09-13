@@ -144,6 +144,61 @@ export function setBlindWatermarkEnabled(enabled: boolean) {
   })
 }
 
+/**
+ * 图片展示水印总开关（可见水印，**不是**盲水印）。
+ *
+ * 口径见后端 docs/WATERMARK_AND_USER_TIER.md：免费用户查看/下载/进资产库一律带水印，
+ * 付费用户查看带（可开关）、下载与资产库不带。关掉总开关后谁都不带，
+ * 且交付管线停止生成新的展示副本。
+ *
+ * 同样是「DB 优先、未配置回退 yaml」后的实际生效值。
+ * 未配置 logo 与文字时后端会拒绝开启 —— 否则开着也画不出任何东西。
+ */
+export function getDisplayWatermarkEnabled() {
+  return request.get<boolean>('/api/v1/admin/settings/display-watermark')
+}
+
+export function setDisplayWatermarkEnabled(enabled: boolean) {
+  return request.put<boolean>('/api/v1/admin/settings/display-watermark', undefined, {
+    params: { enabled },
+  })
+}
+
+/**
+ * 付费用户查看是否也带水印。**只管付费档**。
+ *
+ * 免费用户查看/下载/进资产库恒带水印，不受它影响 ——
+ * 它决定的是付费档走「付费即无水印」还是「付费仅下载无水印」。
+ */
+export function getPaidViewWatermarkEnabled() {
+  return request.get<boolean>('/api/v1/admin/settings/paid-view-watermark')
+}
+
+export function setPaidViewWatermarkEnabled(enabled: boolean) {
+  return request.put<boolean>('/api/v1/admin/settings/paid-view-watermark', undefined, {
+    params: { enabled },
+  })
+}
+
+/**
+ * 免费/付费分层总开关。
+ *
+ * 判据是「是否曾经收到过付费来源的点数批次」，不看余额 ——
+ * 按余额判会让用户把买来的点数用完那一刻掉回免费档，已有产物突然全部长出水印。
+ *
+ * 关掉后所有人按**付费**档处理：不区分时走更宽松的那一档，
+ * 否则一个开关就能让全站产物全部带上水印。
+ */
+export function getUserTierEnabled() {
+  return request.get<boolean>('/api/v1/admin/settings/user-tier')
+}
+
+export function setUserTierEnabled(enabled: boolean) {
+  return request.put<boolean>('/api/v1/admin/settings/user-tier', undefined, {
+    params: { enabled },
+  })
+}
+
 /** 系统级存储（数据库配置 B，双桶 + STS）。覆盖系统文件配置 A，被用户级配置 C 覆盖。 */
 export function getSystemStorageConfig() {
   return request.get<SystemStorageConfig>('/api/v1/admin/settings/storage')

@@ -60,6 +60,17 @@
           />
         </a-form-item>
 
+        <!-- 只在「增加」时出现：扣减不是发放，标一个赠送来源没有意义，
+             反而会让流水里出现「扣了一笔注册赠送」这种读不通的记录 -->
+        <a-form-item v-if="formData.adjustType === 'add'" :label="$t('points.grantSource')" name="grantSource">
+          <a-select v-model:value="formData.grantSource" allow-clear :placeholder="$t('points.grantSourcePlaceholder')">
+            <a-select-option value="REGISTER_GIFT">{{ $t('points.grantSourceRegister') }}</a-select-option>
+            <a-select-option value="CAMPAIGN_GIFT">{{ $t('points.grantSourceCampaign') }}</a-select-option>
+            <a-select-option value="ADMIN_GIFT">{{ $t('points.grantSourceAdmin') }}</a-select-option>
+          </a-select>
+          <div class="text-xs text-gray-500 mt-1">{{ $t('points.grantSourceDesc') }}</div>
+        </a-form-item>
+
         <a-form-item :label="$t('points.adjustReason')" name="adjustReason">
           <a-textarea
             v-model:value="formData.adjustReason"
@@ -150,6 +161,7 @@ const selectedUser = ref<{
 const formData = reactive({
   userId: '',
   adjustType: 'add',
+  grantSource: undefined as string | undefined,
   adjustAmount: undefined as number | undefined,
   adjustReason: '',
   approvalTicketId: '',
@@ -241,6 +253,8 @@ async function handleConfirmSubmit() {
       adjustType: formData.adjustType,
       amount: formData.adjustAmount as number,
       reason: formData.adjustReason,
+      // 只有「增加」才带来源：扣减不是发放。留空时后端沿用 ADMIN_ADJUST。
+      grantSource: formData.adjustType === 'add' ? formData.grantSource || undefined : undefined,
       idempotencyKey: uuid(),
     })
     message.success(t('points.adjustSuccess'))

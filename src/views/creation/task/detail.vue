@@ -555,7 +555,7 @@ const task = ref<CreationTask | null>(null)
 const costSummary = ref<CompositeCostSummary | null>(null)
 const pipelineSteps = ref<PipelineStepsResponse | null>(null)
 
-// 是否存在子任务：存在则展示父任务计费聚合（合计消耗积分 / 折叠计费状态 / 子任务数）
+// 是否存在子任务：存在则展示父任务计费聚合（合计消耗点数 / 折叠计费状态 / 子任务数）
 const hasSubTasks = computed(() => (task.value?.subTasks?.length ?? 0) > 0)
 
 /**

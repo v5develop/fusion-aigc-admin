@@ -52,7 +52,7 @@ export interface CreationTask {
   hasChildren?: boolean
   /** 子任务数量（父任务聚合） */
   childCount?: number
-  /** 子任务合计消耗积分（父任务聚合，已退款/已取消/已过期不计） */
+  /** 子任务合计消耗点数（父任务聚合，已退款/已取消/已过期不计） */
   totalPricePoints?: number
   /** 子任务聚合计费状态（父任务聚合折叠值） */
   aggregatedBillingStatus?: string

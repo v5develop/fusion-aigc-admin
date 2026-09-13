@@ -578,6 +578,121 @@ export interface SystemConfig {
   defaultPoints?: string | number
 }
 
+/**
+ * 经验等级规则。加权分落在哪一档，以及那一档的排队优先级。
+ *
+ * 与免费/付费分层是**两件事**：分层管权利边界（水印），等级管排队快慢。
+ */
+export interface UserLevelRule {
+  id?: number
+  /** LV0..LVn */
+  levelCode: string
+  levelName: string
+  /** 达到本级所需的最低加权分（含）。LV0 必须为 0，否则没充过值的用户匹配不到任何档 */
+  minScore: number
+  /** 生成排队优先级，越大越先出队 */
+  queuePriority: number
+  sort?: number
+  enabled?: boolean
+  remark?: string | null
+}
+
+/** 等级总开关与加权系数。关闭后所有人同优先级，队列退回纯 FIFO。 */
+export interface UserLevelSettings {
+  enabled: boolean
+  /** JSON 字符串：{rechargeAmountWeight, paidMonthWeight, topPackageAmountWeight}，量纲为主单位 */
+  weights?: string | null
+}
+
+/**
+ * 点数包（充值套餐）。
+ *
+ * priceAmount / basePoints / bonusPoints 都是**服务端权威值**：C 端下单只传 packageId，
+ * 金额与点数一律以本行为准。在这里改价即改真实售价。
+ */
+export interface PointsPackage {
+  id?: number
+  /** 对外稳定标识。删除后编码会被改写成「原编码#行id」，所以同一个编码可以反复重建 */
+  packageCode: string
+  name: string
+  /** 售价，**最小货币单位（分）**，与订单 amount 同口径 */
+  priceAmount: number
+  /** 基础点数（按售价换算所得） */
+  basePoints: number
+  /** 赠送点数（活动加送，可为 0）。与基础点数分开存，商品卡才能分别展示 */
+  bonusPoints?: number
+  /** 角标文案，如「最受欢迎」；为空则不展示角标 */
+  badge?: string | null
+  /** 是否推荐档位（前端高亮），与角标相互独立 */
+  recommended?: boolean
+  sort?: number
+  enabled?: boolean
+  /** 运营备注，不对 C 端暴露 */
+  remark?: string | null
+}
+
+/**
+ * 后台列表返回的点数包，比提交体多两个**派生**字段。
+ *
+ * 档位的基础点数在保存时会与汇率对齐，但存量行不会跟着汇率变：改了后端的
+ * `PAYMENT_POINTS_PER_YUAN` 之后，已有档位就地失配，且没有任何写操作会触发校验。
+ * 所以列表把失配算出来给运营看，而不是等到有人下次编辑那个档位才被拒。
+ */
+export interface AdminPointsPackage extends PointsPackage {
+  id: number
+  /** 基础 + 赠送 */
+  totalPoints?: number
+  /** 当前汇率下该售价应对应的基础点数 */
+  expectedBasePoints?: number
+  /** false = 汇率改过而此档位未同步，仍在按旧汇率卖点数 */
+  rateConsistent?: boolean
+}
+
+/** 每日签到规则。改这里等于改点数发放口径，会进审计日志。 */
+export interface CheckInSettings {
+  enabled?: boolean
+  /** 连签奖励梯度：下标=连签天数-1，超出长度后循环。例如 [10,10,10,10,10,10,60] */
+  rewards?: number[]
+  /** 赠送点数有效期天数，<=0 表示永不过期 */
+  pointsValidDays?: number
+}
+
+/** 站内通知（后台视角，含排期稿与已撤回） */
+export interface AdminNotification {
+  id: number
+  title: string
+  content: string
+  notificationType: string
+  /** ALL-全体公告 USER-定向通知 */
+  targetScope: string
+  targetUserId?: number | null
+  publishTime?: string | null
+  expireTime?: string | null
+  status: number
+  publisherId?: number | null
+  createTime?: string
+}
+
+export interface NotificationPublishParams {
+  title: string
+  content: string
+  notificationType: string
+  /** ALL 时只写一行、不向用户扇出；USER 时必须给 targetUserId */
+  targetScope: string
+  targetUserId?: number | null
+  /** 填未来时间即排期，未到时间用户端查不到 */
+  publishTime?: string | null
+  /** 不传走系统默认有效期（notification.default_valid_days，配为 0 则长期有效） */
+  expireTime?: string | null
+}
+
+export interface NotificationQueryParams extends PageParams {
+  notificationType?: string
+  targetScope?: string
+  status?: number
+  keyword?: string
+}
+
 /** Agent 模型档位绑定（提示词优化按是否带图自动路由 TEXT/VISION 档；与用户权限角色无关） */
 export interface AgentModelProfile {
   /** 档位标识：TEXT-纯文本 VISION-视觉 */
@@ -644,6 +759,14 @@ export interface PointsAdjustParams {
   amount: number
   reason: string
   idempotencyKey?: string
+  /**
+   * 发放来源标记。留空=ADMIN_ADJUST（存量行为）。
+   *
+   * 填 REGISTER_GIFT / CAMPAIGN_GIFT / ADMIN_GIFT 时这批点数会被识别为**赠送额度**，
+   * 免费/付费分层据此判断用户有没有真正付过钱。
+   * 后端**拒绝付费来源**（RECHARGE 等）——发放与收款必须是两件事。
+   */
+  grantSource?: string
 }
 
 // Compensation Types
