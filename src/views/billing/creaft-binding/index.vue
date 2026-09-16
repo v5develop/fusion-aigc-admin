@@ -182,7 +182,12 @@
           <a-input v-model:value="form.billingFeatureCode" placeholder="留空表示不改" />
         </a-form-item>
         <a-form-item label="计费动作类型">
-          <a-input v-model:value="form.billingActionType" placeholder="留空表示不改" />
+          <a-input v-model:value="form.billingActionType" placeholder="留空表示不改，兼容面统一填 CREAFT_V1" />
+          <div class="muted">
+            报价按（计费模型 + 本动作类型）命中定价行，取值必须是「计费动作类型」字典里已启用的码。
+            兼容面这 26 条统一用 CREAFT_V1，价钱的差异由模型表达 —— 填成路由或入口码会以
+            「动作类型无效或已禁用」被拒。
+          </div>
         </a-form-item>
       </a-form>
 
