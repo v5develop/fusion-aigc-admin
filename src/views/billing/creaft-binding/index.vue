@@ -9,7 +9,7 @@
       type="info"
       show-icon
       style="margin-bottom: 12px"
-      message="一行 = 冻结契约里的一条 creaft v1 路由。可改的只有「计费模型 / 计费能力码 / 计费动作类型 / 启用位」；入口码、能力码、执行方选择器、计费策略、价目码由契约决定，直接改库会让下次启动判为结构漂移。"
+      message="一行 = 冻结契约里的一条 creaft v1 路由。可改的只有「计费模型 / 计费能力码 / 计费动作类型 / 启用位」；入口码、能力码、执行方选择器、计费策略、价目码由契约决定，直接改库会让下次启动判为结构漂移。价钱只有 CATALOG_PRICE 这类要配（模型 + 定价），NO_CHARGE / FIXED / FREE_THEN_FIXED 的点数写在冻结策略里，不用配也能出数。"
     />
 
     <a-alert
@@ -102,6 +102,7 @@
             <a-tag :color="record.quotePreviewReady ? 'green' : 'orange'">
               {{ record.quotePreviewReady ? '可出数' : '不出数' }}
             </a-tag>
+            <a-tag v-if="!record.requiresModelBinding" color="blue">策略定价</a-tag>
             <div v-if="record.quotePreviewReason" class="muted reason">
               {{ record.quotePreviewReason }}
             </div>

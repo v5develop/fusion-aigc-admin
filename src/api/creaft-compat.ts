@@ -49,7 +49,11 @@ export interface CreaftBindingRow {
 
   state: CreaftBindingState
   stateReason: string | null
-  /** 价目接口（biz-points / *-model-configs）能否出数；与 state 是两条独立链路 */
+  /**
+   * 价目接口（biz-points / *-model-configs）能否出数；与 state 是两条独立链路。
+   * 点数写在冻结策略里的三种（NO_CHARGE / FIXED / FREE_THEN_FIXED）恒为 true —— 不需要运营配；
+   * 只有 CATALOG_PRICE 依赖「模型 + 生效定价」。
+   */
   quotePreviewReady: boolean
   quotePreviewReason: string | null
   /** 仅 CATALOG_PRICE 需要配模型与价格 */
