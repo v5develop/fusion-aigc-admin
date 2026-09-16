@@ -169,10 +169,15 @@ const handleChangePassword = async () => {
   margin-top: var(--spacing-md);
 }
 
+/*
+ * 有意的局部覆盖，不是漏删的重复：这一页的说明文字是段落说明（14px + 下间距），
+ * 与全局 .form-hint 那种贴在字段下方的小字（12px + 上间距）不是同一个东西。
+ * margin-top 显式归零，避免继承全局的 4px 让段落上下都带间距。
+ */
 .form-hint {
+  margin-top: 0;
   margin-bottom: var(--spacing-md);
   font-size: var(--font-size-sm);
-  color: var(--color-text-tertiary);
 }
 
 .max-w-2xl {

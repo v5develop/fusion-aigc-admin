@@ -458,10 +458,4 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.form-hint {
-  margin-top: 4px;
-  font-size: 12px;
-  line-height: 1.4;
-  color: var(--color-text-tertiary);
-}
 </style>

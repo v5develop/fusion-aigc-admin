@@ -275,10 +275,6 @@ onMounted(() => {
 .weights-input {
   width: 420px;
 }
-.form-hint {
-  color: rgba(0, 0, 0, 0.45);
-  font-size: 12px;
-}
 .danger-link {
   color: #ff4d4f;
 }

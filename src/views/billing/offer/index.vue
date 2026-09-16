@@ -77,7 +77,7 @@
             <template #expandedRowRender="{ record: variant }">
               <div style="padding: 4px 0 4px 24px">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px">
-                  <span style="color: #666">{{ $t('billingOffer.components') }}</span>
+                  <span style="color: var(--color-text-secondary)">{{ $t('billingOffer.components') }}</span>
                   <a-button type="dashed" size="small" @click.stop="openComponentModal(offer, variant, null)">
                     <PlusOutlined /> {{ $t('billingOffer.createComponent') }}
                   </a-button>
@@ -616,10 +616,4 @@ loadActionTypeOptions()
 </script>
 
 <style scoped>
-.form-hint {
-  margin-top: 4px;
-  font-size: 12px;
-  line-height: 1.4;
-  color: rgba(0, 0, 0, 0.45);
-}
 </style>

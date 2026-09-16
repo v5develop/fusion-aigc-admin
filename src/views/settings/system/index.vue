@@ -669,11 +669,6 @@ onMounted(() => {
   max-width: 720px;
 }
 
-.form-hint {
-  font-size: 12px;
-  color: var(--color-text-tertiary);
-  margin-top: 4px;
-}
 
 .agent-model-alert {
   margin-bottom: 16px;

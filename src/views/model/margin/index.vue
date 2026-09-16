@@ -289,8 +289,4 @@ onMounted(async () => {
   width: 100%;
 }
 
-.form-hint {
-  font-size: 12px;
-  color: var(--color-text-tertiary);
-}
 </style>

@@ -217,6 +217,19 @@ ol {
 .text-tertiary {
   color: var(--color-text-tertiary);
 }
+
+/*
+ * 表单字段下面的说明文字。放在全局是因为它此前在 11 个页面各写了一份，
+ * 其中 5 份把颜色写死成 rgba(0, 0, 0, 0.45)，暗黑模式下整屏说明都读不出来。
+ * 复制多份的工具类一定会漂，所以这里只留一处；页面需要变体时写局部覆盖，
+ * 不要再复制整条定义（profile 那个 14px + 下间距的用法就是有意的局部覆盖）。
+ */
+.form-hint {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-text-tertiary);
+}
 .text-success {
   color: var(--color-success);
 }

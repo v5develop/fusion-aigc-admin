@@ -124,16 +124,12 @@ onMounted(load)
 </script>
 
 <style scoped>
-/* 这几个工具类各页自带一份（项目里没有全局工具样式表），与其它设置页保持一致 */
+/* 这两个局部工具类沿用各设置页的写法；说明文字的 .form-hint 已提到 global.css，不要再在这里复制一份 */
 .mb-4 {
   margin-bottom: 16px;
 }
 .w-full {
   width: 100%;
-}
-.form-hint {
-  color: rgba(0, 0, 0, 0.45);
-  font-size: 12px;
 }
 .settings-form {
   max-width: 520px;
