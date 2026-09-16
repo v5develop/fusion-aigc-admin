@@ -494,6 +494,29 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
+        // creaft v1 兼容面的能力绑定：配的是"这条路由用哪个模型按哪条价计费、卖不卖"
+        path: 'creaft-bindings',
+        name: 'CreaftBinding',
+        component: () => import('@/views/billing/creaft-binding/index.vue'),
+        meta: {
+          title: 'menu.creaftBinding',
+          icon: 'ApiOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'creaft_binding:view',
+        },
+      },
+      {
+        path: 'creaft-catalog',
+        name: 'CreaftCatalog',
+        component: () => import('@/views/billing/creaft-catalog/index.vue'),
+        meta: {
+          title: 'menu.creaftCatalog',
+          icon: 'ProfileOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'creaft_catalog:view',
+        },
+      },
+      {
         // 点数包是下单金额的唯一出处，权限跟定价同一把钥匙（pricing:update 才能改）
         path: 'points-packages',
         name: 'BillingPointsPackage',

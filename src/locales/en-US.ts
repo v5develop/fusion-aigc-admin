@@ -139,6 +139,8 @@ export default {
     billingOffer: 'Billing Scenes',
     billingRule: 'Pricing Rules',
     billingPointsPackage: 'Points Packages',
+    creaftBinding: 'Creaft Capability Binding',
+    creaftCatalog: 'Creaft Catalog',
     reconciliationManagement: 'Reconciliation',
     reconciliationSummary: 'Reconciliation Summary',
     reconciliationDifference: 'Difference Handling',

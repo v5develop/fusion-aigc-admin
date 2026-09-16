@@ -143,6 +143,8 @@ export default {
     billingOffer: '计费场景',
     billingRule: '计价规则',
     billingPointsPackage: '点数包',
+    creaftBinding: 'Creaft 能力绑定',
+    creaftCatalog: 'Creaft 目录',
     reconciliationManagement: '对账管理',
     reconciliationSummary: '对账汇总',
     reconciliationDifference: '差异处理',
