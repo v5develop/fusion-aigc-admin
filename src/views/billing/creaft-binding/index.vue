@@ -27,6 +27,16 @@
       :message="brokenMessage"
     />
 
+    <a-alert
+      v-for="item in unreadyV1"
+      :key="item.capabilityCode"
+      type="error"
+      show-icon
+      style="margin-bottom: 12px"
+      :message="`v1 线能力 ${item.capabilityCode}（入口码 ${item.entryCode || '未声明'}）不可提交：${item.problems.join('；')}`"
+      description="这条能力不在下面那 32 条冻结契约里，配置入口是「计费场景」与「定价管理」，配完记得刷计费缓存。"
+    />
+
     <a-card variant="borderless">
       <div class="filter-bar">
         <a-select v-model:value="stateFilter" :options="stateOptions" style="width: 220px" />
@@ -195,9 +205,11 @@ import {
   getCreaftBindings,
   type CreaftBindingRow,
   type CreaftBindingState,
+  type CreaftV1CapabilityRow,
 } from '@/api/creaft-compat'
 
 const rows = ref<CreaftBindingRow[]>([])
+const v1Capabilities = ref<CreaftV1CapabilityRow[]>([])
 const executionPlaneEnabled = ref(false)
 const loading = ref(false)
 const stateFilter = ref<'' | CreaftBindingState>('')
@@ -224,6 +236,9 @@ const counts = computed(() => {
 const driftCount = computed(() => counts.value.DRIFT)
 const brokenCount = computed(() => counts.value.NOT_ASSEMBLABLE)
 const quoteReadyCount = computed(() => rows.value.filter((r) => r.quotePreviewReady).length)
+
+/** v1 线能力缺配时提交会被直接拒，且它不在下面的表里 —— 只能单独告警 */
+const unreadyV1 = computed(() => v1Capabilities.value.filter((item) => !item.ready))
 
 /**
  * 同一个 NOT_ASSEMBLABLE，后果取决于执行面开没开：
@@ -293,6 +308,7 @@ async function loadList() {
   try {
     const overview = await getCreaftBindings()
     rows.value = overview?.rows || []
+    v1Capabilities.value = overview?.protocolV1Capabilities || []
     executionPlaneEnabled.value = !!overview?.executionPlaneEnabled
   } catch {
     /* 拦截器已提示 */

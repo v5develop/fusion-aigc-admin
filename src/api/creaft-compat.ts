@@ -75,6 +75,15 @@ export interface CreaftBindingConfigureData {
   billingActionType?: string
 }
 
+export interface CreaftV1CapabilityRow {
+  capabilityCode: string
+  /** 计费权威是 afv_billing_offer 的同名 entry_code，不是 compat 绑定 */
+  entryCode: string | null
+  ready: boolean
+  /** 缺什么，逐条列出；为空即就绪 */
+  problems: string[]
+}
+
 export interface CreaftBindingOverview {
   /**
    * 执行面（app.internal-execution.enabled）是否开启。
@@ -82,6 +91,11 @@ export interface CreaftBindingOverview {
    */
   executionPlaneEnabled: boolean
   rows: CreaftBindingRow[]
+  /**
+   * v1 线协议能力（当前只有 media.cutout / 抠图）。
+   * 它不在上面那 32 条冻结契约里，但计费同样要运营配 —— 缺配时抠图提交会被直接拒。
+   */
+  protocolV1Capabilities: CreaftV1CapabilityRow[]
 }
 
 export function getCreaftBindings() {
