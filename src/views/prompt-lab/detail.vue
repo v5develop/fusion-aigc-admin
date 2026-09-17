@@ -579,7 +579,7 @@ onMounted(() => {
   color: var(--color-text-secondary, #888);
 }
 .run-latency {
-  color: var(--color-text, #333);
+  color: var(--color-text-primary, #262626);
 }
 .run-output {
   max-height: 160px;

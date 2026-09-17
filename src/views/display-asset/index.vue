@@ -860,7 +860,7 @@ async function handleRemoveSameStyle() {
   font-size: 12px;
 }
 .error-text {
-  color: var(--ant-color-error, #ff4d4f);
+  color: var(--color-error, #ff4d4f);
   font-size: 12px;
 }
 .ss-head {
@@ -887,7 +887,7 @@ async function handleRemoveSameStyle() {
   left: 0;
   padding: 12px 24px;
   text-align: right;
-  background: var(--bg-color, #fff);
-  border-top: 1px solid var(--border-color, #f0f0f0);
+  background: var(--color-bg-container, #fff);
+  border-top: 1px solid var(--color-border-secondary, #f0f0f0);
 }
 </style>

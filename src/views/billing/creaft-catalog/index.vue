@@ -359,8 +359,10 @@ async function handleDelete(record: CreaftCatalogRow) {
 .route-code {
   padding: 2px 6px;
   border-radius: 3px;
-  background: var(--bg-color-secondary, #f5f5f5);
-  color: var(--text-color, #262626);
+  /* 描边让 chip 在浅色下（#fafafa 贴着 #fff）也有边界；暗色下是 #303030 的柔和边 */
+  border: 1px solid var(--color-border-secondary, #f0f0f0);
+  background: var(--color-fill-quaternary, #fafafa);
+  color: var(--color-text-primary, #262626);
   font-size: 12px;
 }
 </style>

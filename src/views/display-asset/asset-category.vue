@@ -737,8 +737,8 @@ async function handleDelete(record: CategoryRow) {
   margin-left: 8px;
   padding: 2px 6px;
   border-radius: 3px;
-  background: var(--bg-color-secondary, #f5f5f5);
-  color: var(--text-color, #262626);
+  background: var(--color-fill-quaternary, #fafafa);
+  color: var(--color-text-primary, #262626);
   font-size: 12px;
 }
 /* 弹窗是 teleport 到 body 的，但条目内容由本组件模板渲染，scoped 作用域属性照样打得上 */

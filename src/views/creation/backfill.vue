@@ -582,13 +582,13 @@ const historyColumns = computed(() => [
 /* 明细表塞在 alert 的描述区里，背景是警告色，给它一块白底才看得清 */
 .unreg-table {
   max-width: 520px;
-  background: var(--bg-color, #fff);
+  background: var(--color-bg-container, #fff);
   border-radius: 4px;
 }
 .code-cell {
   padding: 2px 6px;
   border-radius: 3px;
-  background: var(--bg-color-secondary, #f5f5f5);
+  background: var(--color-fill-quaternary, #fafafa);
   font-size: 12px;
 }
 .param-form {

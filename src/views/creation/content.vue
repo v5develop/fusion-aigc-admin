@@ -575,7 +575,7 @@ async function submitRecommend() {
   height: 44px;
   object-fit: cover;
   border-radius: 4px;
-  border: 1px solid var(--border-color, #f0f0f0);
+  border: 1px solid var(--color-border-secondary, #f0f0f0);
   display: block;
 }
 /* 视频角标：缩略图取的是首帧，不加标记的话与静态图长得一样，运营看不出哪条是视频 */
@@ -620,8 +620,8 @@ async function submitRecommend() {
 .prompt-box {
   padding: 10px 12px;
   border-radius: 4px;
-  background: var(--bg-color-secondary, #fafafa);
-  border: 1px solid var(--border-color, #f0f0f0);
+  background: var(--color-fill-quaternary, #fafafa);
+  border: 1px solid var(--color-border-secondary, #f0f0f0);
   white-space: pre-wrap;
   margin-bottom: 0 !important;
 }
@@ -641,9 +641,9 @@ async function submitRecommend() {
   max-height: 320px;
   overflow: auto;
   border-radius: 4px;
-  background: var(--bg-color-secondary, #fafafa);
-  border: 1px solid var(--border-color, #f0f0f0);
-  color: var(--text-color, #262626);
+  background: var(--color-fill-quaternary, #fafafa);
+  border: 1px solid var(--color-border-secondary, #f0f0f0);
+  color: var(--color-text-primary, #262626);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 12px;
   line-height: 1.6;

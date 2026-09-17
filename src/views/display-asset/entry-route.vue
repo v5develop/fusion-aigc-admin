@@ -346,8 +346,8 @@ async function handleDelete(record: CreationEntryRoute) {
 .route-code {
   padding: 2px 6px;
   border-radius: 3px;
-  background: var(--bg-color-secondary, #f5f5f5);
-  color: var(--text-color, #262626);
+  background: var(--color-fill-quaternary, #fafafa);
+  color: var(--color-text-primary, #262626);
   font-size: 12px;
 }
 </style>

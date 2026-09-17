@@ -616,7 +616,7 @@ function isVideoUrl(url: string | null | undefined, mediaType?: string | null): 
   height: 44px;
   object-fit: cover;
   border-radius: 4px;
-  border: 1px solid var(--border-color, #f0f0f0);
+  border: 1px solid var(--color-border-secondary, #f0f0f0);
   display: block;
 }
 /* 视频角标：缩略图取的是首帧或封面，不加标记的话与静态图长得一样，运营看不出哪条是视频 */
@@ -641,7 +641,7 @@ function isVideoUrl(url: string | null | undefined, mediaType?: string | null): 
   行是 ProTable 内部渲染的，scoped 打不到 <tr> 上，必须走 :deep()。
 */
 .page-container :deep(.row-deleted) > td {
-  background: var(--bg-color-secondary, #fafafa);
+  background: var(--color-fill-quaternary, #fafafa);
   opacity: 0.6;
 }
 .page-container :deep(.row-deleted) > td:first-child {
@@ -666,8 +666,8 @@ function isVideoUrl(url: string | null | undefined, mediaType?: string | null): 
 .prompt-box {
   padding: 10px 12px;
   border-radius: 4px;
-  background: var(--bg-color-secondary, #fafafa);
-  border: 1px solid var(--border-color, #f0f0f0);
+  background: var(--color-fill-quaternary, #fafafa);
+  border: 1px solid var(--color-border-secondary, #f0f0f0);
   white-space: pre-wrap;
   margin-bottom: 0 !important;
 }
@@ -687,14 +687,14 @@ function isVideoUrl(url: string | null | undefined, mediaType?: string | null): 
   height: 108px;
   object-fit: cover;
   border-radius: 4px;
-  border: 1px solid var(--border-color, #f0f0f0);
+  border: 1px solid var(--color-border-secondary, #f0f0f0);
 }
 .item-img-empty {
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--color-text-tertiary, #999);
-  background: var(--bg-color-secondary, #fafafa);
+  background: var(--color-fill-quaternary, #fafafa);
 }
 .item-name {
   margin-top: 4px;

@@ -101,7 +101,7 @@ watch(currentTab, (val) => {
       margin: 0;
       font-size: 16px;
       font-weight: 600;
-      color: var(--color-text);
+      color: var(--color-text-primary, #262626);
     }
 
     .pro-detail-subtitle {

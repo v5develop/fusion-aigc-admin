@@ -936,10 +936,10 @@ async function handleRemove(record: ContentRecommendItem) {
 /* 只读态也要看得出可以点，否则没人知道这个数字能改 */
 .sort-editable {
   cursor: text;
-  border-bottom: 1px dashed var(--ant-color-border, #d9d9d9);
+  border-bottom: 1px dashed var(--color-border, #d9d9d9);
 }
 .sort-editable:hover {
-  border-bottom-color: var(--ant-color-primary, #1677ff);
+  border-bottom-color: var(--color-primary-6, #1890ff);
 }
 .detail-media {
   display: flex;
@@ -994,7 +994,7 @@ async function handleRemove(record: ContentRecommendItem) {
   line-height: 0;
 }
 .thumb-wrap:focus-visible {
-  outline: 2px solid var(--ant-color-primary, #1677ff);
+  outline: 2px solid var(--color-primary-6, #1890ff);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -1003,7 +1003,7 @@ async function handleRemove(record: ContentRecommendItem) {
   height: 44px;
   object-fit: cover;
   border-radius: 4px;
-  border: 1px solid var(--border-color, #f0f0f0);
+  border: 1px solid var(--color-border-secondary, #f0f0f0);
   display: block;
 }
 .thumb-count {

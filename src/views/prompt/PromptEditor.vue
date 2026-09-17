@@ -1195,7 +1195,7 @@ onMounted(async () => {
   background: var(--color-bg-container, #fff);
   border: 1px solid var(--color-border, #f0f0f0);
   border-radius: 8px;
-  color: var(--color-text, #1f2329);
+  color: var(--color-text-primary, #262626);
   font-size: 15px;
   line-height: 2.15;
   word-break: break-word;
@@ -1326,7 +1326,7 @@ onMounted(async () => {
 .prompt-content-editor {
   min-height: 150px;
   padding: 14px 16px;
-  color: var(--color-text, #1f2329);
+  color: var(--color-text-primary, #262626);
   background: var(--color-bg-container, #fff);
   border: 1px solid var(--color-border, #d9d9d9);
   border-radius: 6px;
@@ -1447,7 +1447,7 @@ onMounted(async () => {
 
 .preview-separator {
   font-weight: 600;
-  color: var(--color-text, #1f2329);
+  color: var(--color-text-primary, #262626);
 }
 
 .inline-chip-control {
