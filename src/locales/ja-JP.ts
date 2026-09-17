@@ -860,9 +860,9 @@ export default {
   user: {
     title: 'ユーザー管理',
     resetCredential: 'ユーザー名/パスワードをリセット',
-    resetCredentialWarn: 'リセットすると現在のログインは即時無効になります（再ログインが必要）。空欄は変更しません。',
+    resetCredentialWarn: 'リセットすると全デバイスのログインが即時無効になります（再ログインが必要）。空欄は変更しません。',
     resetCredentialEmpty: '新しいユーザー名または新しいパスワードを入力してください',
-    resetCredentialSuccess: 'リセットしました。ユーザーはログアウトされました',
+    resetCredentialSuccess: 'リセットしました。ユーザーは全デバイスでログアウトされました',
     newUsername: '新しいユーザー名',
     newPassword: '新しいパスワード',
     resetKeepPlaceholder: '空欄 = 変更しない',

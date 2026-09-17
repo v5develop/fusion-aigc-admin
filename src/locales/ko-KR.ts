@@ -861,9 +861,9 @@ export default {
   user: {
     title: '사용자 관리',
     resetCredential: '사용자명/비밀번호 재설정',
-    resetCredentialWarn: '재설정하면 현재 로그인이 즉시 만료됩니다(재로그인 필요). 비워두면 변경하지 않습니다.',
+    resetCredentialWarn: '재설정하면 모든 기기의 로그인이 즉시 만료됩니다(재로그인 필요). 비워두면 변경하지 않습니다.',
     resetCredentialEmpty: '새 사용자명 또는 새 비밀번호를 입력하세요',
-    resetCredentialSuccess: '재설정 완료. 사용자가 로그아웃되었습니다',
+    resetCredentialSuccess: '재설정 완료. 사용자가 모든 기기에서 로그아웃되었습니다',
     newUsername: '새 사용자명',
     newPassword: '새 비밀번호',
     resetKeepPlaceholder: '비워두면 변경 안 함',

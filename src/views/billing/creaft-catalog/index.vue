@@ -19,7 +19,7 @@
       type="warning"
       show-icon
       style="margin-bottom: 12px"
-      message="平均耗时一行都没有：GET /api/v1/features/task-avg-duration/{taskType} 此时对任何取值都返回 4001「资源不存在」，前端容易误判成「值传错了」。目录键填任务类型码（与能力清单里的能力码一致）。"
+      message="平均耗时一行都没有：GET /api/v1/features/task-avg-duration/{taskType} 此时对任何取值都返回 4001「资源不存在」，前端容易误判成「值传错了」。目录键填路由末段，如 ai-image-generator、ai-video-generator、ocr —— 不是能力码 creaft.v1.tools.*，后端按目录键与 URL 上的 taskType 精确匹配，填成能力码等于配了也命不中。"
     />
 
     <a-card variant="borderless">
@@ -180,7 +180,7 @@ const typeFilterOptions = [{ label: '全部类型', value: '' }, ...typeOptions]
 
 const DESCRIPTIONS: Record<CreaftCatalogType, string> = {
   AVG_DURATION:
-    '被 GET /api/v1/features/task-avg-duration/{taskType} 读：目录键就是 URL 上的 taskType，值取平均耗时。',
+    '被 GET /api/v1/features/task-avg-duration/{taskType} 读：目录键就是 URL 上的 taskType（路由末段，如 ai-image-generator），值取平均耗时。',
   FEATURE: '被 GET /api/v2/features 读：按分组给标题。',
   MODEL_CONFIG: '模型可选项，按模型类型过滤。',
   BIZ_POINT: '业务点数表，取目录键 + 点数 + 附加载荷。',
