@@ -9,7 +9,7 @@
       type="info"
       show-icon
       style="margin-bottom: 12px"
-      message="一行 = 冻结契约里的一条 creaft v1 路由。可改的只有「计费模型 / 计费能力码 / 计费动作类型 / 启用位」；入口码、能力码、执行方选择器、计费策略、价目码由契约决定，直接改库会让下次启动判为结构漂移。价钱只有 CATALOG_PRICE 这类要配（模型 + 定价），NO_CHARGE / FIXED / FREE_THEN_FIXED 的点数写在冻结策略里，不用配也能出数。"
+      message="一行 = 冻结契约里的一条 creaft v1 路由。可改的只有「计费模型 / 计费能力码 / 计费动作类型 / 点数覆盖 / 启用位」；入口码、能力码、执行方选择器、计费策略种类、价目码由契约决定，直接改库会让下次启动判为结构漂移。CATALOG_PRICE 那些的价钱在「定价管理」里配（模型 + 定价）；FIXED / FREE_THEN_FIXED 的点数原本写死在契约里，现在可以用「改点数」覆盖（写独立的覆盖列，不碰契约投影，无缓存即刻生效）；NO_CHARGE 没有可改的数。"
     />
 
     <a-alert
@@ -74,8 +74,17 @@
             <a-tag :color="record.requiresModelBinding ? 'purple' : 'default'">
               {{ record.billingPolicyKind || '-' }}
             </a-tag>
-            <div v-if="fixedPoints(record) !== null" class="muted">
-              固定 {{ fixedPoints(record) }} 点
+            <div v-if="record.overrideFixedPoints !== null" class="muted">
+              <span class="struck">冻结 {{ frozenFixedPoints(record) ?? '-' }} 点</span>
+              <a-tag color="gold">覆盖 {{ record.overrideFixedPoints }} 点</a-tag>
+            </div>
+            <div v-else-if="frozenFixedPoints(record) !== null" class="muted">
+              固定 {{ frozenFixedPoints(record) }} 点
+            </div>
+            <div v-if="record.effectiveFreeQuota !== null" class="muted">
+              每日免费 {{ record.effectiveFreeQuota }} 次{{
+                record.overrideFreeQuota !== null ? '（覆盖）' : ''
+              }}
             </div>
           </template>
 
@@ -118,6 +127,16 @@
                 @click="openConfigure(record)"
               >
                 配置
+              </a-button>
+              <a-button
+                v-if="record.policyOverridable"
+                v-permission="'creaft_binding:config'"
+                type="link"
+                size="small"
+                :disabled="!record.bindingId"
+                @click="openOverride(record)"
+              >
+                改点数
               </a-button>
               <a-popconfirm
                 v-if="!record.enabled"
@@ -197,6 +216,71 @@
         message="保存只写配置，不改启用位；两张表（绑定 + 价目行）由服务端在同一事务里改成一致。配好后再点「启用」过自检。"
       />
     </a-modal>
+
+    <a-modal
+      v-model:open="overrideVisible"
+      title="覆盖冻结策略里的点数"
+      width="620px"
+    >
+      <a-descriptions v-if="overrideTarget" :column="1" size="small" bordered style="margin-bottom: 16px">
+        <a-descriptions-item label="路由">{{ overrideTarget.creaftV1Route }}</a-descriptions-item>
+        <a-descriptions-item label="计费策略（只读）">
+          {{ overrideTarget.billingPolicyKind }}
+        </a-descriptions-item>
+        <a-descriptions-item label="契约冻结值">
+          固定 {{ frozenFixedPoints(overrideTarget) ?? '-' }} 点<template
+            v-if="frozenFreeQuota(overrideTarget) !== null"
+          >
+            ，每日免费 {{ frozenFreeQuota(overrideTarget) }} 次</template
+          >
+        </a-descriptions-item>
+        <a-descriptions-item label="当前生效值">
+          固定 {{ overrideTarget.effectiveFixedPoints ?? '-' }} 点<template
+            v-if="overrideTarget.effectiveFreeQuota !== null"
+          >
+            ，每日免费 {{ overrideTarget.effectiveFreeQuota }} 次</template
+          >
+        </a-descriptions-item>
+        <a-descriptions-item v-if="overrideTarget.overrideBy" label="上次覆盖">
+          {{ overrideTarget.overrideBy }} · {{ overrideTarget.overrideTime }} ·
+          {{ overrideTarget.overrideReason }}
+        </a-descriptions-item>
+      </a-descriptions>
+
+      <a-form :model="overrideForm" :label-col="{ span: 7 }" :wrapper-col="{ span: 15 }">
+        <a-form-item label="固定点数" required>
+          <a-input-number v-model:value="overrideForm.fixedPoints" :min="0" :precision="0" style="width: 100%" />
+          <div class="muted">填 0 表示这条能力改成免费。允许，但它是一次会留痕的显式决定。</div>
+        </a-form-item>
+        <a-form-item v-if="overrideTarget?.billingPolicyKind === 'FREE_THEN_FIXED'" label="每日免费次数">
+          <a-input-number v-model:value="overrideForm.freeQuota" :min="0" :precision="0" style="width: 100%" />
+        </a-form-item>
+        <a-form-item label="覆盖原因" required>
+          <a-textarea v-model:value="overrideForm.reason" :rows="2" placeholder="例：促销期临时降价，负责人 X" />
+          <div class="muted">必填。改价会进账，没有理由的改动事后无法复盘。</div>
+        </a-form-item>
+      </a-form>
+
+      <a-alert
+        type="info"
+        show-icon
+        message="只覆盖点数，不改计费策略种类：策略种类决定这条路由要不要配模型、价目接口走哪条分支、准入检查什么，运行期改它会让页面显示的判据与实扣脱节。"
+      />
+
+      <template #footer>
+        <a-space>
+          <a-popconfirm
+            v-if="overrideTarget && overrideTarget.overrideFixedPoints !== null"
+            title="清除后立即回到契约冻结值。确认？"
+            @confirm="handleClearOverride"
+          >
+            <a-button danger>清除覆盖</a-button>
+          </a-popconfirm>
+          <a-button @click="overrideVisible = false">取消</a-button>
+          <a-button type="primary" :loading="overrideSaving" @click="handleSaveOverride">保存</a-button>
+        </a-space>
+      </template>
+    </a-modal>
   </div>
 </template>
 
@@ -204,11 +288,13 @@
 import { message } from 'antdv-next'
 import { computed, reactive, ref } from 'vue'
 import {
+  clearCreaftBindingPolicyOverride,
   configureCreaftBinding,
   disableCreaftBinding,
   enableCreaftBinding,
   getCreaftBindingModelOptions,
   getCreaftBindings,
+  saveCreaftBindingPolicyOverride,
   type CreaftBindingRow,
   type CreaftBindingState,
   type CreaftV1CapabilityRow,
@@ -278,12 +364,28 @@ const columns = [
   { title: '操作', dataIndex: 'operation', key: 'operation', width: 90, fixed: 'right' as const },
 ]
 
-/** 固定点数写在策略原文里，解析失败就不显示——策略原文是只读的，这里不负责纠错 */
-function fixedPoints(record: CreaftBindingRow): number | null {
+/**
+ * 冻结契约里的固定点数。解析失败就不显示——策略原文是只读的，这里不负责纠错。
+ *
+ * 生效值不在这里算：后端已经下发 effectiveFixedPoints（与提交、价目预览同一份解析）。
+ * 前端自己再算一遍就是给同一个价钱造第二个口径。
+ */
+function frozenFixedPoints(record: CreaftBindingRow): number | null {
   if (!record.billingPolicyJson) return null
   try {
     const policy = JSON.parse(record.billingPolicyJson)
     return typeof policy.fixed_points === 'number' ? policy.fixed_points : null
+  } catch {
+    return null
+  }
+}
+
+/** 契约冻结的每日免费次数，仅 FREE_THEN_FIXED 有 */
+function frozenFreeQuota(record: CreaftBindingRow): number | null {
+  if (!record.billingPolicyJson) return null
+  try {
+    const policy = JSON.parse(record.billingPolicyJson)
+    return typeof policy.free_quota === 'number' ? policy.free_quota : null
   } catch {
     return null
   }
@@ -396,6 +498,69 @@ async function handleEnable(record: CreaftBindingRow) {
   }
 }
 
+// ---- 点数覆盖 ----
+const overrideVisible = ref(false)
+const overrideSaving = ref(false)
+const overrideTarget = ref<CreaftBindingRow | null>(null)
+const overrideForm = reactive({
+  fixedPoints: 0 as number | null,
+  freeQuota: null as number | null,
+  reason: '',
+})
+
+function openOverride(record: CreaftBindingRow) {
+  if (!record.bindingId) return
+  overrideTarget.value = record
+  // 默认填当前生效值而不是 0：多数改价是"在现价上调一点"，填 0 等于给一次误操作让路
+  overrideForm.fixedPoints = record.effectiveFixedPoints ?? frozenFixedPoints(record) ?? 0
+  overrideForm.freeQuota = record.effectiveFreeQuota
+  overrideForm.reason = ''
+  overrideVisible.value = true
+}
+
+async function handleSaveOverride() {
+  const target = overrideTarget.value
+  if (!target?.bindingId) return
+  if (overrideForm.fixedPoints === null || overrideForm.fixedPoints < 0) {
+    message.warning('固定点数必填且不能为负')
+    return
+  }
+  if (!overrideForm.reason.trim()) {
+    message.warning('请填写覆盖原因')
+    return
+  }
+  overrideSaving.value = true
+  try {
+    await saveCreaftBindingPolicyOverride(target.bindingId, {
+      fixedPoints: overrideForm.fixedPoints,
+      // 非 FREE_THEN_FIXED 传了会被后端拒（避免在页面上留一个永远不生效的值）
+      freeQuota:
+        target.billingPolicyKind === 'FREE_THEN_FIXED' ? overrideForm.freeQuota : undefined,
+      reason: overrideForm.reason.trim(),
+    })
+    message.success('已覆盖，立即生效')
+    overrideVisible.value = false
+    loadList()
+  } catch {
+    /* CATALOG_PRICE / NO_CHARGE 等由后端拒绝并说明原因，拦截器已提示 */
+  } finally {
+    overrideSaving.value = false
+  }
+}
+
+async function handleClearOverride() {
+  const target = overrideTarget.value
+  if (!target?.bindingId) return
+  try {
+    await clearCreaftBindingPolicyOverride(target.bindingId)
+    message.success('已清除覆盖，回到契约冻结值')
+    overrideVisible.value = false
+    loadList()
+  } catch {
+    /* 拦截器已提示 */
+  }
+}
+
 async function handleDisable(record: CreaftBindingRow) {
   if (!record.bindingId) return
   try {
@@ -431,6 +596,10 @@ async function handleDisable(record: CreaftBindingRow) {
 .muted {
   color: var(--color-text-tertiary, #999);
   font-size: 12px;
+}
+.struck {
+  text-decoration: line-through;
+  margin-right: 6px;
 }
 .reason {
   white-space: normal;

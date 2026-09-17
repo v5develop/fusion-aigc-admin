@@ -35,6 +35,19 @@ export interface CreaftBindingRow {
   /** creaft v1 的执行池名，不是 Java 模型码 */
   modelSelectorValue: string | null
 
+  // 点数覆盖：冻结策略里那两个数是运营可改的那一小块
+  /** 只有 FIXED / FREE_THEN_FIXED 可覆盖；CATALOG_PRICE 的价钱在「定价管理」里配 */
+  policyOverridable: boolean
+  /** 为空表示没有覆盖，按冻结策略 */
+  overrideFixedPoints: number | null
+  overrideFreeQuota: number | null
+  /** 实际生效值（有覆盖取覆盖值，否则取冻结值）。三个值都要显示，否则对不上账时无法自证 */
+  effectiveFixedPoints: number | null
+  effectiveFreeQuota: number | null
+  overrideReason: string | null
+  overrideBy: string | null
+  overrideTime: string | null
+
   // 可配置
   modelCode: string | null
   billingFeatureCode: string | null
@@ -79,6 +92,21 @@ export interface CreaftBindingConfigureData {
   billingActionType?: string
 }
 
+/**
+ * 点数覆盖。
+ *
+ * 只有这两个数可覆盖：kind 是结构事实（决定要不要配模型、价目走哪条分支、准入查什么），
+ * 运行期改它会让页面显示的判据与实扣脱节，所以后端不接收。
+ */
+export interface CreaftBindingPolicyOverrideData {
+  /** 0 表示改成免费；这是一次显式的、留痕的决定 */
+  fixedPoints: number
+  /** 仅 FREE_THEN_FIXED 可填，其它策略传了会被拒 */
+  freeQuota?: number | null
+  /** 必填：改价会进账，没有理由事后无法复盘 */
+  reason: string
+}
+
 export interface CreaftV1CapabilityRow {
   capabilityCode: string
   /** 计费权威是 afv_billing_offer 的同名 entry_code，不是 compat 绑定 */
@@ -121,6 +149,19 @@ export function enableCreaftBinding(bindingId: number) {
 
 export function disableCreaftBinding(bindingId: number) {
   return request.post(`/api/v1/admin/creaft/bindings/${bindingId}/disable`)
+}
+
+/** 覆盖冻结策略里的点数。写独立的覆盖列，不碰契约投影列；无缓存，即刻生效 */
+export function saveCreaftBindingPolicyOverride(
+  bindingId: number,
+  data: CreaftBindingPolicyOverrideData
+) {
+  return request.put(`/api/v1/admin/creaft/bindings/${bindingId}/billing-policy-override`, data)
+}
+
+/** 清除覆盖，回到冻结策略 */
+export function clearCreaftBindingPolicyOverride(bindingId: number) {
+  return request.delete(`/api/v1/admin/creaft/bindings/${bindingId}/billing-policy-override`)
 }
 
 /**
