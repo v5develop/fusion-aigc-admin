@@ -1,0 +1,17 @@
+# 只放「纯格式化 / 机械重命名」这类提交：它们会淹掉 git blame，但没有任何行为改动。
+#
+# 本地启用一次（仓库配置不会自动生效）：
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+# GitHub / GitLab 会自动读这个文件，网页 blame 无需额外设置。
+#
+# 格式化约定（本仓 .gitignore 忽略所有 *.md，所以写在这儿）：
+#   * 要格式化就跑 `npm run format`（全仓），别只格式化自己改的那几个文件——
+#     只格式化一部分会让两种风格重新混进来，下一个人跑全仓 format 时又是几百行无关 diff。
+#   * 提交前跑 `npm run verify`（format:check + type-check）。本仓没有 CI，这条命令就是那道闸。
+#   * 风格口径以 .oxfmtrc.json 为准（带分号、单引号、printWidth 100、import 排序）。
+#
+# 往这里加提交之前先确认它真的没有逻辑改动——一旦被忽略，那次提交引入的问题
+# 在 blame 里就再也追不到人了。
+
+# style: 全仓跑一次 oxfmt，格式与 .oxfmtrc.json 对齐（192 文件，仅格式）
+84f24a525d54acf4c3908d8445949e7f8549e342

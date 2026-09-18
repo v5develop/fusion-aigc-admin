@@ -12,7 +12,8 @@
     "lint": "oxlint src mock",
     "lint:fix": "oxlint --fix src mock",
     "format": "oxfmt --write src mock",
-    "format:check": "oxfmt --check src mock"
+    "format:check": "oxfmt --check src mock",
+    "verify": "oxfmt --check src mock && vue-tsc --noEmit"
   },
   "dependencies": {
     "@ant-design/colors": "^8.0.1",
