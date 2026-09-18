@@ -29,12 +29,7 @@
     </a-row>
 
     <a-card :title="$t('billing.consumption')">
-      <ProTable
-        :columns="columns"
-        :request="loadData"
-        :search="{}"
-        row-key="id"
-      >
+      <ProTable :columns="columns" :request="loadData" :search="{}" row-key="id">
         <template #emptyText>
           <a-empty :description="$t('billing.noConsumptionData')" />
         </template>
@@ -51,26 +46,27 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
-import ProTable from '@/components/Pro/ProTable/index.vue'
-import ProStatCard from '@/components/Pro/ProStatCard/index.vue'
-import { getConsumptionList, getConsumptionStats } from '@/api/consumption'
+import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n()
+import { getConsumptionList, getConsumptionStats } from '@/api/consumption';
+import ProStatCard from '@/components/Pro/ProStatCard/index.vue';
+import ProTable from '@/components/Pro/ProTable/index.vue';
+
+const { t } = useI18n();
 
 const stats = ref({
   todayConsumption: 0,
   monthConsumption: 0,
   todayThirdPartyCost: 0,
-})
+});
 
 async function loadStats() {
   try {
-    const res = await getConsumptionStats()
-    stats.value = res
+    const res = await getConsumptionStats();
+    stats.value = res;
   } catch (error) {
-    console.error('Failed to load consumption stats:', error)
+    console.error('Failed to load consumption stats:', error);
   }
 }
 
@@ -121,7 +117,7 @@ const columns = [
     dataIndex: 'createTime',
     width: 180,
   },
-]
+];
 
 async function loadData(params: Record<string, unknown>) {
   const res = await getConsumptionList({
@@ -129,15 +125,15 @@ async function loadData(params: Record<string, unknown>) {
     bizKeyword: params.bizId as string | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
-  })
+  });
   return {
     data: res.list || [],
     total: res.total || 0,
     success: true,
-  }
+  };
 }
 
 onMounted(() => {
-  loadStats()
-})
+  loadStats();
+});
 </script>

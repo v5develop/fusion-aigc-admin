@@ -68,133 +68,134 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import type { TemplateConfig } from '@/types/template-builder';
 
-import Icon from '@/components/Icon/index.vue'
-import { $t } from '@/locales'
-import SectionRenderer from '@/views/template/renderer/SectionRenderer.vue'
+import { computed, reactive, ref } from 'vue';
 
-import type { TemplateConfig } from '@/types/template-builder'
+import Icon from '@/components/Icon/index.vue';
+import { $t } from '@/locales';
+import SectionRenderer from '@/views/template/renderer/SectionRenderer.vue';
 
 const props = defineProps<{
-  config: TemplateConfig
-}>()
+  config: TemplateConfig;
+}>();
 
 const emit = defineEmits<{
-  (e: 'generate', prompt: string, params: Record<string, unknown>): void
-}>()
+  (e: 'generate', prompt: string, params: Record<string, unknown>): void;
+}>();
 
-const generating = ref(false)
-const formValues = reactive<Record<string, unknown>>({})
+const generating = ref(false);
+const formValues = reactive<Record<string, unknown>>({});
 
 function bySort(a: { sort: number }, b: { sort: number }): number {
-  return a.sort - b.sort
+  return a.sort - b.sort;
 }
 
 const primarySections = computed(() =>
-  props.config.sections
-    .filter((s) => s.role === 'primary' || s.role === 'inline')
-    .sort(bySort),
-)
+  props.config.sections.filter((s) => s.role === 'primary' || s.role === 'inline').sort(bySort),
+);
 
 const sidebarSections = computed(() =>
   props.config.sections.filter((s) => s.role === 'sidebar').sort(bySort),
-)
+);
 
 const fullSections = computed(() =>
   props.config.sections.filter((s) => s.role === 'full').sort(bySort),
-)
+);
 
 const layoutBodyClass = computed<string>(() => {
-  if (sidebarSections.value.length === 0) return 'single-column'
-  if (props.config.layout.mode === 'sidebar-right') return 'with-sidebar-right'
-  return 'with-sidebar-left'
-})
+  if (sidebarSections.value.length === 0) return 'single-column';
+  if (props.config.layout.mode === 'sidebar-right') return 'with-sidebar-right';
+  return 'with-sidebar-left';
+});
 
 function onFormValuesUpdate(key: string, value: unknown): void {
-  formValues[key] = value
+  formValues[key] = value;
 }
 
 function buildPrompt(): string {
-  let prompt = props.config.promptTemplate
+  let prompt = props.config.promptTemplate;
   for (const [key, value] of Object.entries(formValues)) {
-    if (value === null || value === undefined) continue
+    if (value === null || value === undefined) continue;
     // prompt-input 的值是 { slotKey: value, ... } 结构，需要按 slot key 替换
     if (isPromptInputValue(value)) {
-      prompt = replacePromptInputSlots(prompt, value as Record<string, unknown>)
-      continue
+      prompt = replacePromptInputSlots(prompt, value as Record<string, unknown>);
+      continue;
     }
-    const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g')
-    const strValue = typeof value === 'object'
-      ? getTextFromChipValue(value)
-      : extractTextValue(String(value))
-    prompt = prompt.replace(regex, strValue)
+    const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
+    const strValue =
+      typeof value === 'object' ? getTextFromChipValue(value) : extractTextValue(String(value));
+    prompt = prompt.replace(regex, strValue);
   }
-  return prompt
+  return prompt;
 }
 
 /** 判断是否为 prompt-input widget 的值形态 */
 function isPromptInputValue(value: unknown): boolean {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
-  const obj = value as Record<string, unknown>
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const obj = value as Record<string, unknown>;
   // prompt-input 的值包含 slot key → value 映射，不含 chips/text 等 chip-input 特征字段
-  return !('chips' in obj) && !('text' in obj) && Object.keys(obj).length > 0
+  return !('chips' in obj) && !('text' in obj) && Object.keys(obj).length > 0;
 }
 
 /** 替换 prompt-input 模板中的 {{slotKey}} */
 function replacePromptInputSlots(prompt: string, slotValues: Record<string, unknown>): string {
   for (const [slotKey, slotValue] of Object.entries(slotValues)) {
-    if (slotValue === null || slotValue === undefined) continue
-    const regex = new RegExp(`\\{\\{${slotKey}\\}\\}`, 'g')
+    if (slotValue === null || slotValue === undefined) continue;
+    const regex = new RegExp(`\\{\\{${slotKey}\\}\\}`, 'g');
     // chip 多选值为数组 → 以「、」连接（与 PromptEditor 渲染一致）
     const strValue = Array.isArray(slotValue)
-      ? slotValue.map(v => String(v)).join('、')
+      ? slotValue.map((v) => String(v)).join('、')
       : typeof slotValue === 'object'
         ? extractObjectValue(slotValue)
-        : String(slotValue)
-    prompt = prompt.replace(regex, strValue)
+        : String(slotValue);
+    prompt = prompt.replace(regex, strValue);
   }
-  return prompt
+  return prompt;
 }
 
 /** 从对象值中提取文本（图片上传返回 {url, name, size}，取 name 或 url） */
 function extractObjectValue(value: unknown): string {
-  if (!value || typeof value !== 'object') return ''
-  const obj = value as Record<string, unknown>
-  if (typeof obj.name === 'string' && obj.name) return obj.name
-  if (typeof obj.url === 'string' && obj.url) return obj.url
-  return ''
+  if (!value || typeof value !== 'object') return '';
+  const obj = value as Record<string, unknown>;
+  if (typeof obj.name === 'string' && obj.name) return obj.name;
+  if (typeof obj.url === 'string' && obj.url) return obj.url;
+  return '';
 }
 
 /** chip-input 值形态: { text: string, chips: string[] } */
 function getTextFromChipValue(value: unknown): string {
   if (value && typeof value === 'object' && !Array.isArray(value)) {
-    const v = value as Record<string, unknown>
-    const chips = Array.isArray(v.chips) ? v.chips.filter((c): c is string => typeof c === 'string') : []
-    const text = typeof v.text === 'string' ? v.text : ''
-    return chips.length > 0 ? `${text} ${chips.join(' ')}`.trim() : text
+    const v = value as Record<string, unknown>;
+    const chips = Array.isArray(v.chips)
+      ? v.chips.filter((c): c is string => typeof c === 'string')
+      : [];
+    const text = typeof v.text === 'string' ? v.text : '';
+    return chips.length > 0 ? `${text} ${chips.join(' ')}`.trim() : text;
   }
-  return ''
+  return '';
 }
 
 /** 多选 select/chip 值 → 「、」拼接（与 PromptEditor 渲染一致） */
 function extractTextValue(raw: string): string {
   if (raw.startsWith('[') && raw.endsWith(']')) {
     try {
-      const arr = JSON.parse(raw)
-      if (Array.isArray(arr)) return arr.join('、')
-    } catch { /* ignore */ }
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) return arr.join('、');
+    } catch {
+      /* ignore */
+    }
   }
-  return raw
+  return raw;
 }
 
 async function handleGenerate(): Promise<void> {
-  generating.value = true
+  generating.value = true;
   try {
-    const prompt = buildPrompt()
-    emit('generate', prompt, { ...formValues })
+    const prompt = buildPrompt();
+    emit('generate', prompt, { ...formValues });
   } finally {
-    generating.value = false
+    generating.value = false;
   }
 }
 </script>

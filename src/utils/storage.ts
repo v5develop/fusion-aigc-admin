@@ -185,27 +185,27 @@ const REFRESH_TOKEN_KEY = 'afv_admin_refresh_token';
 const USER_KEY = 'afv_admin_user';
 
 export function getToken(): string | null {
-  return localStorage.get<string>(TOKEN_KEY)
+  return localStorage.get<string>(TOKEN_KEY);
 }
 
 export function setToken(token: string): void {
-  localStorage.set(TOKEN_KEY, token)
+  localStorage.set(TOKEN_KEY, token);
 }
 
 export function removeToken(): void {
-  localStorage.remove(TOKEN_KEY)
+  localStorage.remove(TOKEN_KEY);
 }
 
 export function getRefreshToken(): string | null {
-  return localStorage.get<string>(REFRESH_TOKEN_KEY)
+  return localStorage.get<string>(REFRESH_TOKEN_KEY);
 }
 
 export function setRefreshToken(refreshToken: string): void {
-  localStorage.set(REFRESH_TOKEN_KEY, refreshToken)
+  localStorage.set(REFRESH_TOKEN_KEY, refreshToken);
 }
 
 export function removeRefreshToken(): void {
-  localStorage.remove(REFRESH_TOKEN_KEY)
+  localStorage.remove(REFRESH_TOKEN_KEY);
 }
 
 export function clearTokens(): void {
@@ -214,13 +214,13 @@ export function clearTokens(): void {
 }
 
 export function getUser<T = Record<string, unknown>>(): T | null {
-  return localStorage.get<T>(USER_KEY)
+  return localStorage.get<T>(USER_KEY);
 }
 
 export function setUser<T = Record<string, unknown>>(user: T): void {
-  localStorage.set(USER_KEY, user)
+  localStorage.set(USER_KEY, user);
 }
 
 export function removeUser(): void {
-  localStorage.remove(USER_KEY)
+  localStorage.remove(USER_KEY);
 }

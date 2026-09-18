@@ -51,38 +51,33 @@
 </template>
 
 <script setup lang="ts">
-import { $t } from '@/locales'
-import type { SwitchWidgetConfig } from '@/types/template-builder'
+import type { SwitchWidgetConfig } from '@/types/template-builder';
+
+import { $t } from '@/locales';
 
 const props = defineProps<{
-  widget: SwitchWidgetConfig
-}>()
+  widget: SwitchWidgetConfig;
+}>();
 
 const emit = defineEmits<{
-  (e: 'update', patch: Record<string, unknown>): void
-}>()
+  (e: 'update', patch: Record<string, unknown>): void;
+}>();
 
 /** 将值字段（string|number|boolean）转为可编辑文本，undefined 显示空串。 */
 function toText(value: string | number | boolean | undefined): string {
-  if (value === undefined) return ''
-  return String(value)
+  if (value === undefined) return '';
+  return String(value);
 }
 
 /** 值字段（checkedValue/uncheckedValue）：文本编辑，空串回传 undefined。 */
-function onUpdateValue(
-  field: 'checkedValue' | 'uncheckedValue',
-  value: string,
-): void {
-  const trimmed = value.trim()
-  emit('update', { [field]: trimmed.length === 0 ? undefined : value })
+function onUpdateValue(field: 'checkedValue' | 'uncheckedValue', value: string): void {
+  const trimmed = value.trim();
+  emit('update', { [field]: trimmed.length === 0 ? undefined : value });
 }
 
 /** 文案字段（checkedText/uncheckedText）：空串回传 undefined。 */
-function onUpdateText(
-  field: 'checkedText' | 'uncheckedText',
-  value: string,
-): void {
-  emit('update', { [field]: value.length === 0 ? undefined : value })
+function onUpdateText(field: 'checkedText' | 'uncheckedText', value: string): void {
+  emit('update', { [field]: value.length === 0 ? undefined : value });
 }
 </script>
 

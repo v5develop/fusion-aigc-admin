@@ -201,7 +201,10 @@
           <a-input v-model:value="form.billingFeatureCode" placeholder="留空表示不改" />
         </a-form-item>
         <a-form-item label="计费动作类型">
-          <a-input v-model:value="form.billingActionType" placeholder="留空表示不改，兼容面统一填 CREAFT_V1" />
+          <a-input
+            v-model:value="form.billingActionType"
+            placeholder="留空表示不改，兼容面统一填 CREAFT_V1"
+          />
           <div class="muted">
             报价按（计费模型 + 本动作类型）命中定价行，取值必须是「计费动作类型」字典里已启用的码。
             兼容面这 26 条统一用 CREAFT_V1，价钱的差异由模型表达 —— 填成路由或入口码会以
@@ -217,12 +220,14 @@
       />
     </a-modal>
 
-    <a-modal
-      v-model:open="overrideVisible"
-      title="覆盖冻结策略里的点数"
-      width="620px"
-    >
-      <a-descriptions v-if="overrideTarget" :column="1" size="small" bordered style="margin-bottom: 16px">
+    <a-modal v-model:open="overrideVisible" title="覆盖冻结策略里的点数" width="620px">
+      <a-descriptions
+        v-if="overrideTarget"
+        :column="1"
+        size="small"
+        bordered
+        style="margin-bottom: 16px"
+      >
         <a-descriptions-item label="路由">{{ overrideTarget.creaftV1Route }}</a-descriptions-item>
         <a-descriptions-item label="计费策略（只读）">
           {{ overrideTarget.billingPolicyKind }}
@@ -249,14 +254,31 @@
 
       <a-form :model="overrideForm" :label-col="{ span: 7 }" :wrapper-col="{ span: 15 }">
         <a-form-item label="固定点数" required>
-          <a-input-number v-model:value="overrideForm.fixedPoints" :min="0" :precision="0" style="width: 100%" />
+          <a-input-number
+            v-model:value="overrideForm.fixedPoints"
+            :min="0"
+            :precision="0"
+            style="width: 100%"
+          />
           <div class="muted">填 0 表示这条能力改成免费。允许，但它是一次会留痕的显式决定。</div>
         </a-form-item>
-        <a-form-item v-if="overrideTarget?.billingPolicyKind === 'FREE_THEN_FIXED'" label="每日免费次数">
-          <a-input-number v-model:value="overrideForm.freeQuota" :min="0" :precision="0" style="width: 100%" />
+        <a-form-item
+          v-if="overrideTarget?.billingPolicyKind === 'FREE_THEN_FIXED'"
+          label="每日免费次数"
+        >
+          <a-input-number
+            v-model:value="overrideForm.freeQuota"
+            :min="0"
+            :precision="0"
+            style="width: 100%"
+          />
         </a-form-item>
         <a-form-item label="覆盖原因" required>
-          <a-textarea v-model:value="overrideForm.reason" :rows="2" placeholder="例：促销期临时降价，负责人 X" />
+          <a-textarea
+            v-model:value="overrideForm.reason"
+            :rows="2"
+            placeholder="例：促销期临时降价，负责人 X"
+          />
           <div class="muted">必填。改价会进账，没有理由的改动事后无法复盘。</div>
         </a-form-item>
       </a-form>
@@ -277,7 +299,9 @@
             <a-button danger>清除覆盖</a-button>
           </a-popconfirm>
           <a-button @click="overrideVisible = false">取消</a-button>
-          <a-button type="primary" :loading="overrideSaving" @click="handleSaveOverride">保存</a-button>
+          <a-button type="primary" :loading="overrideSaving" @click="handleSaveOverride"
+            >保存</a-button
+          >
         </a-space>
       </template>
     </a-modal>
@@ -285,8 +309,9 @@
 </template>
 
 <script setup lang="ts">
-import { message } from 'antdv-next'
-import { computed, reactive, ref } from 'vue'
+import { message } from 'antdv-next';
+import { computed, reactive, ref } from 'vue';
+
 import {
   clearCreaftBindingPolicyOverride,
   configureCreaftBinding,
@@ -298,14 +323,14 @@ import {
   type CreaftBindingRow,
   type CreaftBindingState,
   type CreaftV1CapabilityRow,
-} from '@/api/creaft-compat'
+} from '@/api/creaft-compat';
 
-const rows = ref<CreaftBindingRow[]>([])
-const v1Capabilities = ref<CreaftV1CapabilityRow[]>([])
-const executionPlaneEnabled = ref(false)
-const loading = ref(false)
-const stateFilter = ref<'' | CreaftBindingState>('')
-const keyword = ref('')
+const rows = ref<CreaftBindingRow[]>([]);
+const v1Capabilities = ref<CreaftV1CapabilityRow[]>([]);
+const executionPlaneEnabled = ref(false);
+const loading = ref(false);
+const stateFilter = ref<'' | CreaftBindingState>('');
+const keyword = ref('');
 
 const stateOptions = [
   { label: '全部状态', value: '' },
@@ -313,7 +338,7 @@ const stateOptions = [
   { label: '停用 DISABLED', value: 'DISABLED' },
   { label: '装配失败 NOT_ASSEMBLABLE', value: 'NOT_ASSEMBLABLE' },
   { label: '结构漂移 DRIFT', value: 'DRIFT' },
-]
+];
 
 const counts = computed(() => {
   const base: Record<CreaftBindingState, number> = {
@@ -321,16 +346,16 @@ const counts = computed(() => {
     DISABLED: 0,
     NOT_ASSEMBLABLE: 0,
     DRIFT: 0,
-  }
-  rows.value.forEach((r) => (base[r.state] = (base[r.state] || 0) + 1))
-  return base
-})
-const driftCount = computed(() => counts.value.DRIFT)
-const brokenCount = computed(() => counts.value.NOT_ASSEMBLABLE)
-const quoteReadyCount = computed(() => rows.value.filter((r) => r.quotePreviewReady).length)
+  };
+  rows.value.forEach((r) => (base[r.state] = (base[r.state] || 0) + 1));
+  return base;
+});
+const driftCount = computed(() => counts.value.DRIFT);
+const brokenCount = computed(() => counts.value.NOT_ASSEMBLABLE);
+const quoteReadyCount = computed(() => rows.value.filter((r) => r.quotePreviewReady).length);
 
 /** v1 线能力缺配时提交会被直接拒，且它不在下面的表里 —— 只能单独告警 */
-const unreadyV1 = computed(() => v1Capabilities.value.filter((item) => !item.ready))
+const unreadyV1 = computed(() => v1Capabilities.value.filter((item) => !item.ready));
 
 /**
  * 同一个 NOT_ASSEMBLABLE，后果取决于执行面开没开：
@@ -341,19 +366,19 @@ const brokenMessage = computed(() =>
   executionPlaneEnabled.value
     ? `${brokenCount.value} 条已启用但装配不起来：下一次重启会失败。请补齐模型/定价，或先停用这些能力。`
     : `${brokenCount.value} 条已启用但装配不起来。执行面当前未开启，暂不影响启动；开启执行面前必须补齐或停用，否则应用起不来。`,
-)
+);
 
 const filteredRows = computed(() => {
-  const word = keyword.value.trim().toLowerCase()
+  const word = keyword.value.trim().toLowerCase();
   return rows.value.filter((r) => {
-    if (stateFilter.value && r.state !== stateFilter.value) return false
-    if (!word) return true
+    if (stateFilter.value && r.state !== stateFilter.value) return false;
+    if (!word) return true;
     return (
       r.creaftV1Route.toLowerCase().includes(word) ||
       (r.capabilityCode || '').toLowerCase().includes(word)
-    )
-  })
-})
+    );
+  });
+});
 
 const columns = [
   { title: '路由', dataIndex: 'creaftV1Route', width: 300, fixed: 'left' as const },
@@ -362,7 +387,7 @@ const columns = [
   { title: '准入状态', dataIndex: 'state', width: 300 },
   { title: '价目接口', dataIndex: 'quotePreviewReady', width: 300 },
   { title: '操作', dataIndex: 'operation', key: 'operation', width: 90, fixed: 'right' as const },
-]
+];
 
 /**
  * 冻结契约里的固定点数。解析失败就不显示——策略原文是只读的，这里不负责纠错。
@@ -371,23 +396,23 @@ const columns = [
  * 前端自己再算一遍就是给同一个价钱造第二个口径。
  */
 function frozenFixedPoints(record: CreaftBindingRow): number | null {
-  if (!record.billingPolicyJson) return null
+  if (!record.billingPolicyJson) return null;
   try {
-    const policy = JSON.parse(record.billingPolicyJson)
-    return typeof policy.fixed_points === 'number' ? policy.fixed_points : null
+    const policy = JSON.parse(record.billingPolicyJson);
+    return typeof policy.fixed_points === 'number' ? policy.fixed_points : null;
   } catch {
-    return null
+    return null;
   }
 }
 
 /** 契约冻结的每日免费次数，仅 FREE_THEN_FIXED 有 */
 function frozenFreeQuota(record: CreaftBindingRow): number | null {
-  if (!record.billingPolicyJson) return null
+  if (!record.billingPolicyJson) return null;
   try {
-    const policy = JSON.parse(record.billingPolicyJson)
-    return typeof policy.free_quota === 'number' ? policy.free_quota : null
+    const policy = JSON.parse(record.billingPolicyJson);
+    return typeof policy.free_quota === 'number' ? policy.free_quota : null;
   } catch {
-    return null
+    return null;
   }
 }
 
@@ -397,139 +422,139 @@ function catalogMismatch(record: CreaftBindingRow) {
     record.requiresModelBinding &&
     !!record.pricingCatalogCode &&
     record.modelCode !== record.pricingCatalogModelCode
-  )
+  );
 }
 
 function stateColor(state: CreaftBindingState) {
-  if (state === 'READY') return 'green'
-  if (state === 'DISABLED') return 'default'
-  return state === 'DRIFT' ? 'red' : 'orange'
+  if (state === 'READY') return 'green';
+  if (state === 'DISABLED') return 'default';
+  return state === 'DRIFT' ? 'red' : 'orange';
 }
 function stateLabel(state: CreaftBindingState) {
-  if (state === 'READY') return '就绪'
-  if (state === 'DISABLED') return '停用'
-  return state === 'DRIFT' ? '结构漂移' : '装配失败'
+  if (state === 'READY') return '就绪';
+  if (state === 'DISABLED') return '停用';
+  return state === 'DRIFT' ? '结构漂移' : '装配失败';
 }
 
 async function loadList() {
-  loading.value = true
+  loading.value = true;
   try {
-    const overview = await getCreaftBindings()
-    rows.value = overview?.rows || []
-    v1Capabilities.value = overview?.protocolV1Capabilities || []
-    executionPlaneEnabled.value = !!overview?.executionPlaneEnabled
+    const overview = await getCreaftBindings();
+    rows.value = overview?.rows || [];
+    v1Capabilities.value = overview?.protocolV1Capabilities || [];
+    executionPlaneEnabled.value = !!overview?.executionPlaneEnabled;
   } catch {
     /* 拦截器已提示 */
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
-loadList()
+loadList();
 
 // ---- 配置 ----
-const modalVisible = ref(false)
-const saving = ref(false)
-const optionsLoading = ref(false)
-const current = ref<CreaftBindingRow | null>(null)
-const modelOptions = ref<{ label: string; value: string; disabled: boolean }[]>([])
+const modalVisible = ref(false);
+const saving = ref(false);
+const optionsLoading = ref(false);
+const current = ref<CreaftBindingRow | null>(null);
+const modelOptions = ref<{ label: string; value: string; disabled: boolean }[]>([]);
 const form = reactive({
   modelCode: undefined as string | undefined,
   billingFeatureCode: '',
   billingActionType: '',
-})
+});
 
 async function openConfigure(record: CreaftBindingRow) {
-  if (!record.bindingId) return
-  current.value = record
-  form.modelCode = record.modelCode || undefined
-  form.billingFeatureCode = record.billingFeatureCode || ''
-  form.billingActionType = record.billingActionType || ''
-  modalVisible.value = true
-  optionsLoading.value = true
+  if (!record.bindingId) return;
+  current.value = record;
+  form.modelCode = record.modelCode || undefined;
+  form.billingFeatureCode = record.billingFeatureCode || '';
+  form.billingActionType = record.billingActionType || '';
+  modalVisible.value = true;
+  optionsLoading.value = true;
   try {
-    const options = (await getCreaftBindingModelOptions(record.bindingId)) || []
+    const options = (await getCreaftBindingModelOptions(record.bindingId)) || [];
     modelOptions.value = options.map((option) => {
       const missing = [
         option.boundToFeature ? '' : '未挂到计费能力',
         option.hasActivePrice ? '' : '无生效定价',
       ]
         .filter(Boolean)
-        .join('、')
+        .join('、');
       return {
         label: `${option.code}（${option.name}）${missing ? ' — ' + missing : ''}`,
         value: option.code,
         disabled: !option.selectable,
-      }
-    })
+      };
+    });
   } catch {
-    modelOptions.value = []
+    modelOptions.value = [];
   } finally {
-    optionsLoading.value = false
+    optionsLoading.value = false;
   }
 }
 
 async function handleSave() {
-  if (!current.value?.bindingId) return
-  saving.value = true
+  if (!current.value?.bindingId) return;
+  saving.value = true;
   try {
     await configureCreaftBinding(current.value.bindingId, {
       modelCode: form.modelCode ?? '',
       billingFeatureCode: form.billingFeatureCode.trim(),
       billingActionType: form.billingActionType.trim(),
-    })
-    message.success('已保存')
-    modalVisible.value = false
-    loadList()
+    });
+    message.success('已保存');
+    modalVisible.value = false;
+    loadList();
   } catch {
     /* 模型码不唯一等由后端拒绝，原因由拦截器提示 */
   } finally {
-    saving.value = false
+    saving.value = false;
   }
 }
 
 async function handleEnable(record: CreaftBindingRow) {
-  if (!record.bindingId) return
+  if (!record.bindingId) return;
   try {
-    await enableCreaftBinding(record.bindingId)
-    message.success('已启用')
-    loadList()
+    await enableCreaftBinding(record.bindingId);
+    message.success('已启用');
+    loadList();
   } catch {
     /* 装配自检不通过时后端返回缺什么，拦截器已提示 */
   }
 }
 
 // ---- 点数覆盖 ----
-const overrideVisible = ref(false)
-const overrideSaving = ref(false)
-const overrideTarget = ref<CreaftBindingRow | null>(null)
+const overrideVisible = ref(false);
+const overrideSaving = ref(false);
+const overrideTarget = ref<CreaftBindingRow | null>(null);
 const overrideForm = reactive({
   fixedPoints: 0 as number | null,
   freeQuota: null as number | null,
   reason: '',
-})
+});
 
 function openOverride(record: CreaftBindingRow) {
-  if (!record.bindingId) return
-  overrideTarget.value = record
+  if (!record.bindingId) return;
+  overrideTarget.value = record;
   // 默认填当前生效值而不是 0：多数改价是"在现价上调一点"，填 0 等于给一次误操作让路
-  overrideForm.fixedPoints = record.effectiveFixedPoints ?? frozenFixedPoints(record) ?? 0
-  overrideForm.freeQuota = record.effectiveFreeQuota
-  overrideForm.reason = ''
-  overrideVisible.value = true
+  overrideForm.fixedPoints = record.effectiveFixedPoints ?? frozenFixedPoints(record) ?? 0;
+  overrideForm.freeQuota = record.effectiveFreeQuota;
+  overrideForm.reason = '';
+  overrideVisible.value = true;
 }
 
 async function handleSaveOverride() {
-  const target = overrideTarget.value
-  if (!target?.bindingId) return
+  const target = overrideTarget.value;
+  if (!target?.bindingId) return;
   if (overrideForm.fixedPoints === null || overrideForm.fixedPoints < 0) {
-    message.warning('固定点数必填且不能为负')
-    return
+    message.warning('固定点数必填且不能为负');
+    return;
   }
   if (!overrideForm.reason.trim()) {
-    message.warning('请填写覆盖原因')
-    return
+    message.warning('请填写覆盖原因');
+    return;
   }
-  overrideSaving.value = true
+  overrideSaving.value = true;
   try {
     await saveCreaftBindingPolicyOverride(target.bindingId, {
       fixedPoints: overrideForm.fixedPoints,
@@ -537,36 +562,36 @@ async function handleSaveOverride() {
       freeQuota:
         target.billingPolicyKind === 'FREE_THEN_FIXED' ? overrideForm.freeQuota : undefined,
       reason: overrideForm.reason.trim(),
-    })
-    message.success('已覆盖，立即生效')
-    overrideVisible.value = false
-    loadList()
+    });
+    message.success('已覆盖，立即生效');
+    overrideVisible.value = false;
+    loadList();
   } catch {
     /* CATALOG_PRICE / NO_CHARGE 等由后端拒绝并说明原因，拦截器已提示 */
   } finally {
-    overrideSaving.value = false
+    overrideSaving.value = false;
   }
 }
 
 async function handleClearOverride() {
-  const target = overrideTarget.value
-  if (!target?.bindingId) return
+  const target = overrideTarget.value;
+  if (!target?.bindingId) return;
   try {
-    await clearCreaftBindingPolicyOverride(target.bindingId)
-    message.success('已清除覆盖，回到契约冻结值')
-    overrideVisible.value = false
-    loadList()
+    await clearCreaftBindingPolicyOverride(target.bindingId);
+    message.success('已清除覆盖，回到契约冻结值');
+    overrideVisible.value = false;
+    loadList();
   } catch {
     /* 拦截器已提示 */
   }
 }
 
 async function handleDisable(record: CreaftBindingRow) {
-  if (!record.bindingId) return
+  if (!record.bindingId) return;
   try {
-    await disableCreaftBinding(record.bindingId)
-    message.success('已停用')
-    loadList()
+    await disableCreaftBinding(record.bindingId);
+    message.success('已停用');
+    loadList();
   } catch {
     /* 拦截器已提示 */
   }

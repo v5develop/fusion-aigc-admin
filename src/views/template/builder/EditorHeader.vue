@@ -34,21 +34,21 @@
 </template>
 
 <script setup lang="ts">
-import Icon from '@/components/Icon/index.vue'
-import { $t } from '@/locales'
+import Icon from '@/components/Icon/index.vue';
+import { $t } from '@/locales';
 
 defineProps<{
-  name: string
-  saving?: boolean
-}>()
+  name: string;
+  saving?: boolean;
+}>();
 
 const emit = defineEmits<{
-  (e: 'back'): void
-  (e: 'update:name', value: string): void
-  (e: 'preview'): void
-  (e: 'save'): void
-  (e: 'publish'): void
-}>()
+  (e: 'back'): void;
+  (e: 'update:name', value: string): void;
+  (e: 'preview'): void;
+  (e: 'save'): void;
+  (e: 'publish'): void;
+}>();
 </script>
 
 <style scoped>

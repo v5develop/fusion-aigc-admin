@@ -1,38 +1,36 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import type { Notification } from '@/types/layout';
 
-import type { Notification } from '@/types/layout'
+import { defineStore } from 'pinia';
+import { ref, computed } from 'vue';
 
 export const useNotificationStore = defineStore('notification', () => {
-  const notifications = ref<Notification[]>([])
+  const notifications = ref<Notification[]>([]);
 
-  const unreadCount = computed(() =>
-    notifications.value.filter((n) => !n.read).length,
-  )
+  const unreadCount = computed(() => notifications.value.filter((n) => !n.read).length);
 
   function addNotification(notification: Notification) {
-    notifications.value.unshift(notification)
+    notifications.value.unshift(notification);
   }
 
   function markAsRead(id: string) {
-    const item = notifications.value.find((n) => n.id === id)
+    const item = notifications.value.find((n) => n.id === id);
     if (item) {
-      item.read = true
+      item.read = true;
     }
   }
 
   function markAllAsRead() {
     notifications.value.forEach((n) => {
-      n.read = true
-    })
+      n.read = true;
+    });
   }
 
   function removeNotification(id: string) {
-    notifications.value = notifications.value.filter((n) => n.id !== id)
+    notifications.value = notifications.value.filter((n) => n.id !== id);
   }
 
   function clearAll() {
-    notifications.value = []
+    notifications.value = [];
   }
 
   return {
@@ -43,5 +41,5 @@ export const useNotificationStore = defineStore('notification', () => {
     markAllAsRead,
     removeNotification,
     clearAll,
-  }
-})
+  };
+});

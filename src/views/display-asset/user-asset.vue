@@ -196,7 +196,12 @@
               {{ current.createTime }}
             </a-descriptions-item>
             <a-descriptions-item :label="$t('userAsset.resultUrl')" :span="2">
-              <a v-if="current.resultUrl" :href="current.resultUrl" target="_blank" rel="noreferrer">
+              <a
+                v-if="current.resultUrl"
+                :href="current.resultUrl"
+                target="_blank"
+                rel="noreferrer"
+              >
                 {{ current.resultUrl }}
               </a>
               <span v-else class="muted">-</span>
@@ -232,17 +237,18 @@
 </template>
 
 <script setup lang="ts">
-import { message } from 'antdv-next'
-import type { Dayjs } from 'dayjs'
-import { ref, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
+import type { ProTableColumn } from '@/types/pro';
+import type { Dayjs } from 'dayjs';
 
-import ProTable from '@/components/Pro/ProTable/index.vue'
+import { message } from 'antdv-next';
+import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
 import {
   getAssetCategories,
   getAssetCategoryEntryOptions,
   type AssetCategory,
-} from '@/api/asset-category'
+} from '@/api/asset-category';
 import {
   getUserAssetList,
   getUserAssetAspectRatios,
@@ -250,20 +256,20 @@ import {
   deleteUserAsset,
   type UserAsset,
   type UserAssetItem,
-} from '@/api/user-asset'
-import type { ProTableColumn } from '@/types/pro'
+} from '@/api/user-asset';
+import ProTable from '@/components/Pro/ProTable/index.vue';
 
-const { t } = useI18n()
-const tableRef = ref<InstanceType<typeof ProTable> | null>(null)
+const { t } = useI18n();
+const tableRef = ref<InstanceType<typeof ProTable> | null>(null);
 
 // ---- 下拉数据源 ----
 /**
  * 聚合分类树与入口候选项都取自「素材分类管理」那套接口（asset_category:view）：
  * 分类是入口的集合，两份数据必须同源，否则筛选下拉里会出现分类和入口对不上的选项。
  */
-const categoryTree = ref<AssetCategory[]>([])
-const entryOptions = ref<{ label: string; value: string }[]>([])
-const ratioOptions = ref<{ label: string; value: string }[]>([])
+const categoryTree = ref<AssetCategory[]>([]);
+const entryOptions = ref<{ label: string; value: string }[]>([]);
+const ratioOptions = ref<{ label: string; value: string }[]>([]);
 
 /** 一级分类下拉：值是 categoryCode，后端会把它展开成其下全部二级的入口之并 */
 const l1Options = computed(() =>
@@ -271,7 +277,7 @@ const l1Options = computed(() =>
     label: `${c.categoryName} (${c.categoryCode})`,
     value: c.categoryCode,
   })),
-)
+);
 
 /**
  * 二级分类下拉，平铺**全部**一级下的二级，标签带上父级名。
@@ -285,22 +291,22 @@ const l2Options = computed(() =>
       value: l2.categoryCode,
     })),
   ),
-)
+);
 
 async function loadOptions() {
   try {
-    categoryTree.value = (await getAssetCategories()) || []
+    categoryTree.value = (await getAssetCategories()) || [];
   } catch {
     /* 拦截器已提示；下拉为空时其余筛选照常可用 */
   }
   try {
     // 用 entry-options 而不是从分类树里刨：树里只有已归类的入口，
     // 而未归类入口的素材恰恰是最需要按入口捞出来看的那批
-    const res = await getAssetCategoryEntryOptions()
+    const res = await getAssetCategoryEntryOptions();
     entryOptions.value = (res?.options || []).map((o) => ({
       label: `${o.entryName} (${o.entryCode})`,
       value: o.entryCode,
-    }))
+    }));
   } catch {
     /* 同上 */
   }
@@ -308,53 +314,53 @@ async function loadOptions() {
     ratioOptions.value = ((await getUserAssetAspectRatios()) || []).map((r) => ({
       label: r,
       value: r,
-    }))
+    }));
   } catch {
     /* 同上 */
   }
 }
-loadOptions()
+loadOptions();
 
 // ---- 展示映射 ----
 function mediaTypeLabel(value: string | null) {
-  if (value === 'video') return t('userAsset.mediaVideo')
-  if (value === 'image') return t('userAsset.mediaImage')
-  return value || '-'
+  if (value === 'video') return t('userAsset.mediaVideo');
+  if (value === 'image') return t('userAsset.mediaImage');
+  return value || '-';
 }
 
 function sourceTypeLabel(value: number | null) {
-  if (value === 1) return t('userAsset.sourceUpload')
-  if (value === 2) return t('userAsset.sourceAi')
-  return '-'
+  if (value === 1) return t('userAsset.sourceUpload');
+  if (value === 2) return t('userAsset.sourceAi');
+  return '-';
 }
 
 function statusLabel(value: number | null) {
-  if (value === 0) return t('userAsset.statusDraft')
-  if (value === 1) return t('userAsset.statusNormal')
-  return '-'
+  if (value === 0) return t('userAsset.statusDraft');
+  if (value === 1) return t('userAsset.statusNormal');
+  return '-';
 }
 
 /** 宽高任意一边为 0 都算未知：后端把「探测失败」的哨兵值统一夹成了 0 */
 function hasSize(record: UserAsset) {
-  return Boolean(record.width && record.height)
+  return Boolean(record.width && record.height);
 }
 
 function sizeLabel(record: UserAsset) {
-  return hasSize(record) ? `${record.width}×${record.height}` : t('userAsset.sizeUnknown')
+  return hasSize(record) ? `${record.width}×${record.height}` : t('userAsset.sizeUnknown');
 }
 
 /** 已删除的行整行压灰，运营扫一眼就能把它们和在库的分开 */
 function rowClassName(record: UserAsset) {
-  return record.userDeleted ? 'row-deleted' : ''
+  return record.userDeleted ? 'row-deleted' : '';
 }
 
 // ---- 列与筛选 ----
 const mediaTypeOptions = computed(() => [
   { label: t('userAsset.mediaImage'), value: 'image' },
   { label: t('userAsset.mediaVideo'), value: 'video' },
-])
+]);
 
-const selectProps = { allowClear: true, showSearch: true, optionFilterProp: 'label' }
+const selectProps = { allowClear: true, showSearch: true, optionFilterProp: 'label' };
 
 const columns = computed<ProTableColumn[]>(() => [
   // 下面 8 列 hideInTable：它们是纯筛选项，表格里要么没有对应的一列（keyword 一个词
@@ -462,7 +468,13 @@ const columns = computed<ProTableColumn[]>(() => [
     width: 90,
     align: 'center' as const,
   },
-  { title: t('userAsset.size'), dataIndex: 'size', key: 'size', width: 110, align: 'center' as const },
+  {
+    title: t('userAsset.size'),
+    dataIndex: 'size',
+    key: 'size',
+    width: 110,
+    align: 'center' as const,
+  },
   {
     title: t('userAsset.sourceType'),
     dataIndex: 'sourceType',
@@ -490,23 +502,22 @@ const columns = computed<ProTableColumn[]>(() => [
     align: 'center' as const,
     fixed: 'right' as const,
   },
-])
+]);
 
 /**
  * 后端 startTime/endTime 是 `@DateTimeFormat(ISO.DATE_TIME)` 的 LocalDateTime，
  * 要的是 `2026-08-28T00:00:00` 这种带 T 的形式。dayjs 里 T 是格式化保留字，
  * 必须写成 `[T]` 转义，写成 'YYYY-MM-DD HH:mm:ss' 后端直接 400。
  */
-const ISO_LOCAL = 'YYYY-MM-DD[T]HH:mm:ss'
+const ISO_LOCAL = 'YYYY-MM-DD[T]HH:mm:ss';
 
 async function loadData(params: Record<string, unknown>) {
-  const range = params.createTime as [Dayjs, Dayjs] | undefined
+  const range = params.createTime as [Dayjs, Dayjs] | undefined;
 
   const res = await getUserAssetList({
     keyword: (params.keyword as string) || undefined,
     // 二级优先于一级：分类是入口的集合，选了更精确的那个就该按它筛
-    assetCategory:
-      (params.assetCategory as string) || (params.categoryL1 as string) || undefined,
+    assetCategory: (params.assetCategory as string) || (params.categoryL1 as string) || undefined,
     entryCode: (params.entryCodeFilter as string) || undefined,
     mediaType: (params.mediaTypeFilter as string) || undefined,
     aspectRatio: (params.aspectRatioFilter as string) || undefined,
@@ -517,25 +528,23 @@ async function loadData(params: Record<string, unknown>) {
     // 后端 endTime 是开区间（create_time < endTime），所以送次日零点而不是当日
     // 23:59:59。create_time 是秒精度 datetime，用 endOf('day') 会把恰好落在
     // 23:59:59 那一秒创建的素材漏掉——量少但真实存在，且完全看不出来
-    endTime: range?.[1]
-      ? range[1].startOf('day').add(1, 'day').format(ISO_LOCAL)
-      : undefined,
+    endTime: range?.[1] ? range[1].startOf('day').add(1, 'day').format(ISO_LOCAL) : undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
-  })
-  return { data: res.list || [], total: res.total || 0, success: true }
+  });
+  return { data: res.list || [], total: res.total || 0, success: true };
 }
 
 // ---- 详情 ----
-const detailVisible = ref(false)
-const detailLoading = ref(false)
-const current = ref<UserAsset | null>(null)
+const detailVisible = ref(false);
+const detailLoading = ref(false);
+const current = ref<UserAsset | null>(null);
 
-const detailUrl = computed(() => current.value?.resultUrl || '')
+const detailUrl = computed(() => current.value?.resultUrl || '');
 
 /** 缩略图：优先封面，没有就退回产物本身（视频会退到 mp4，所以渲染必须按 mediaType 判） */
 function thumbOf(record: UserAsset) {
-  return record.coverUrl || record.resultUrl || ''
+  return record.coverUrl || record.resultUrl || '';
 }
 
 /**
@@ -544,8 +553,8 @@ function thumbOf(record: UserAsset) {
  * 而空占位至少能看出「这条缺封面」。
  */
 function itemThumb(item: UserAssetItem) {
-  if (item.coverUrl) return item.coverUrl
-  return item.mediaType === 'image' ? item.mediaUrl || '' : ''
+  if (item.coverUrl) return item.coverUrl;
+  return item.mediaType === 'image' ? item.mediaUrl || '' : '';
 }
 
 /**
@@ -553,29 +562,29 @@ function itemThumb(item: UserAssetItem) {
  * 空着等一个来回会让抽屉先白屏一下。
  */
 async function openDetail(record: UserAsset) {
-  current.value = record
-  detailVisible.value = true
-  detailLoading.value = true
+  current.value = record;
+  detailVisible.value = true;
+  detailLoading.value = true;
   try {
-    current.value = await getUserAssetDetail(record.id)
+    current.value = await getUserAssetDetail(record.id);
   } catch {
     /* 拦截器已提示；抽屉里仍是列表带来的那份数据，只是没有子资产 */
   } finally {
-    detailLoading.value = false
+    detailLoading.value = false;
   }
 }
 
 async function handleDelete(record: UserAsset) {
   try {
-    await deleteUserAsset(record.id)
-    message.success(t('userAsset.deleteSuccess'))
-    tableRef.value?.refresh()
+    await deleteUserAsset(record.id);
+    message.success(t('userAsset.deleteSuccess'));
+    tableRef.value?.refresh();
   } catch {
     /* 拦截器已提示 */
   }
 }
 
-const VIDEO_EXTENSIONS = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.flv', '.m4v']
+const VIDEO_EXTENSIONS = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.flv', '.m4v'];
 
 /**
  * 这条 URL 该不该用 <video> 渲染。
@@ -589,12 +598,12 @@ const VIDEO_EXTENSIONS = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.flv', '.m4v
  */
 function isVideoUrl(url: string | null | undefined, mediaType?: string | null): boolean {
   if (url) {
-    const path = url.split('?')[0].toLowerCase()
-    if (VIDEO_EXTENSIONS.some((ext) => path.endsWith(ext))) return true
+    const path = url.split('?')[0].toLowerCase();
+    if (VIDEO_EXTENSIONS.some((ext) => path.endsWith(ext))) return true;
     // 后缀明确是图片就别再信素材级类型：视频素材的封面就是图片
-    if (/\.(jpe?g|png|webp|gif|bmp|avif|heic)$/.test(path)) return false
+    if (/\.(jpe?g|png|webp|gif|bmp|avif|heic)$/.test(path)) return false;
   }
-  return mediaType === 'video'
+  return mediaType === 'video';
 }
 </script>
 

@@ -158,7 +158,8 @@
               placeholder="填 Prompt Lab code（如 scriptReplication@doubao）"
             />
             <div class="muted" style="margin-top: 4px">
-              非空=该 LOCAL 优化步用此 code 取代 handler 内定默认；再叠加<b>目标模型维度</b>（自动带提交模型）。空=用默认。
+              非空=该 LOCAL 优化步用此 code 取代 handler
+              内定默认；再叠加<b>目标模型维度</b>（自动带提交模型）。空=用默认。
             </div>
           </a-form-item>
           <a-divider style="margin: 8px 0" />

@@ -7,10 +7,19 @@
       </a-button>
     </div>
 
-    <a-alert type="info" show-icon style="margin-bottom: 16px" :message="$t('creationBackfill.hint')" />
+    <a-alert
+      type="info"
+      show-icon
+      style="margin-bottom: 16px"
+      :message="$t('creationBackfill.hint')"
+    />
 
     <!-- ==================== 创作入口码 ==================== -->
-    <a-card variant="borderless" :title="$t('creationBackfill.entryTitle')" style="margin-bottom: 16px">
+    <a-card
+      variant="borderless"
+      :title="$t('creationBackfill.entryTitle')"
+      style="margin-bottom: 16px"
+    >
       <p class="card-desc">{{ $t('creationBackfill.entryDesc') }}</p>
 
       <a-row :gutter="16" class="stat-row">
@@ -84,10 +93,19 @@
 
       <a-form layout="inline" class="param-form">
         <a-form-item :label="$t('creationBackfill.scope')">
-          <a-select v-model:value="entryForm.scope" :options="entryScopeOptions" style="width: 160px" />
+          <a-select
+            v-model:value="entryForm.scope"
+            :options="entryScopeOptions"
+            style="width: 160px"
+          />
         </a-form-item>
         <a-form-item :label="$t('creationBackfill.limit')">
-          <a-input-number v-model:value="entryForm.limit" :min="1" :max="ENTRY_MAX_LIMIT" style="width: 120px" />
+          <a-input-number
+            v-model:value="entryForm.limit"
+            :min="1"
+            :max="ENTRY_MAX_LIMIT"
+            style="width: 120px"
+          />
         </a-form-item>
         <a-form-item :label="$t('creationBackfill.offset')">
           <a-input-number v-model:value="entryForm.offset" :min="0" style="width: 120px" />
@@ -165,10 +183,19 @@
 
       <a-form layout="inline" class="param-form">
         <a-form-item :label="$t('creationBackfill.scope')">
-          <a-select v-model:value="coverForm.scope" :options="coverScopeOptions" style="width: 160px" />
+          <a-select
+            v-model:value="coverForm.scope"
+            :options="coverScopeOptions"
+            style="width: 160px"
+          />
         </a-form-item>
         <a-form-item :label="$t('creationBackfill.limit')">
-          <a-input-number v-model:value="coverForm.limit" :min="1" :max="COVER_MAX_LIMIT" style="width: 120px" />
+          <a-input-number
+            v-model:value="coverForm.limit"
+            :min="1"
+            :max="COVER_MAX_LIMIT"
+            style="width: 120px"
+          />
         </a-form-item>
         <a-form-item :label="$t('creationBackfill.offset')">
           <a-input-number v-model:value="coverForm.offset" :min="0" style="width: 120px" />
@@ -176,11 +203,7 @@
         <a-form-item>
           <a-space>
             <!-- 预览只读、不抢锁，所以只要 task:view，也不跟着 coverRunning 禁用 -->
-            <a-button
-              v-permission="'task:view'"
-              :loading="coverPreviewing"
-              @click="previewCover"
-            >
+            <a-button v-permission="'task:view'" :loading="coverPreviewing" @click="previewCover">
               {{ $t('creationBackfill.coverPreview') }}
             </a-button>
             <a-button
@@ -244,12 +267,13 @@
 </template>
 
 <script setup lang="ts">
-import { message } from 'antdv-next'
-import dayjs from 'dayjs'
-import { computed, reactive, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
+import type { VideoCoverCandidate } from '@/api/creation-backfill';
 
-import type { VideoCoverCandidate } from '@/api/creation-backfill'
+import { message } from 'antdv-next';
+import dayjs from 'dayjs';
+import { computed, reactive, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
 import {
   backfillEntryCode,
   backfillVideoCover,
@@ -262,58 +286,58 @@ import {
   type VideoCoverRemaining,
   type VideoCoverReport,
   type VideoCoverScope,
-} from '@/api/creation-backfill'
+} from '@/api/creation-backfill';
 
-const { t } = useI18n()
+const { t } = useI18n();
 
 /** 与后端 service 里的 MAX_LIMIT 对齐：填超了后端会静默截断，界面上先拦住免得对不上数 */
-const ENTRY_MAX_LIMIT = 500
-const COVER_MAX_LIMIT = 200
+const ENTRY_MAX_LIMIT = 500;
+const COVER_MAX_LIMIT = 200;
 /** 执行记录只留在内存里，刷新页面就没了；留太多也没人回看 */
-const HISTORY_LIMIT = 20
+const HISTORY_LIMIT = 20;
 
 interface HistoryRow {
-  key: number
-  time: string
-  params: string
-  summary: string
+  key: number;
+  time: string;
+  params: string;
+  summary: string;
 }
 
 // ---------------- 欠账数字 ----------------
 
-const remainingLoading = ref(false)
-const entryRemaining = ref<EntryCodeRemaining | null>(null)
-const coverRemaining = ref<VideoCoverRemaining | null>(null)
+const remainingLoading = ref(false);
+const entryRemaining = ref<EntryCodeRemaining | null>(null);
+const coverRemaining = ref<VideoCoverRemaining | null>(null);
 
 /**
  * 两条线的 remaining 一起拉。它们互不相干，但运维看的是同一件事「还欠多少」，
  * 分开刷会出现一半新一半旧的画面。
  */
 async function loadRemaining() {
-  remainingLoading.value = true
+  remainingLoading.value = true;
   try {
     const [entry, cover] = await Promise.allSettled([
       getEntryCodeRemaining(),
       getVideoCoverRemaining(),
-    ])
+    ]);
     // allSettled 而不是 all：一侧接口挂了不该把另一侧已经拿到的数字也抹掉
-    if (entry.status === 'fulfilled') entryRemaining.value = entry.value
-    if (cover.status === 'fulfilled') coverRemaining.value = cover.value
+    if (entry.status === 'fulfilled') entryRemaining.value = entry.value;
+    if (cover.status === 'fulfilled') coverRemaining.value = cover.value;
   } finally {
-    remainingLoading.value = false
+    remainingLoading.value = false;
   }
 }
-loadRemaining()
+loadRemaining();
 
-const unregisteredCount = computed(() => entryRemaining.value?.unregisteredTasks ?? 0)
+const unregisteredCount = computed(() => entryRemaining.value?.unregisteredTasks ?? 0);
 
 /** 未注册入口码明细，按条数从多到少——先补影响面最大的那个 offer */
 const unregisteredRows = computed(() => {
-  const map = entryRemaining.value?.unregisteredByCode || {}
+  const map = entryRemaining.value?.unregisteredByCode || {};
   return Object.entries(map)
     .map(([code, count]) => ({ code, count: Number(count) || 0 }))
-    .sort((a, b) => b.count - a.count)
-})
+    .sort((a, b) => b.count - a.count);
+});
 
 const unregisteredColumns = computed(() => [
   { title: t('creationBackfill.entryCodeCol'), dataIndex: 'code' },
@@ -323,7 +347,7 @@ const unregisteredColumns = computed(() => [
     width: 120,
     align: 'right' as const,
   },
-])
+]);
 
 // ---------------- 参数 ----------------
 
@@ -332,49 +356,49 @@ const entryForm = reactive({
   limit: 200,
   offset: 0,
   dryRun: false,
-})
+});
 
 const coverForm = reactive({
   scope: 'both' as VideoCoverScope,
   limit: 50,
   offset: 0,
-})
+});
 
 const entryScopeOptions = computed(() => [
   { value: 'both', label: t('creationBackfill.scopeBoth') },
   { value: 'task', label: t('creationBackfill.scopeTask') },
   { value: 'asset', label: t('creationBackfill.scopeAsset') },
-])
+]);
 
 const coverScopeOptions = computed(() => [
   { value: 'both', label: t('creationBackfill.scopeBoth') },
   { value: 'asset', label: t('creationBackfill.scopeAsset') },
   { value: 'task', label: t('creationBackfill.scopeTask') },
-])
+]);
 
 function scopeLabel(scope: string) {
-  if (scope === 'task') return t('creationBackfill.scopeTask')
-  if (scope === 'asset') return t('creationBackfill.scopeAsset')
-  return t('creationBackfill.scopeBoth')
+  if (scope === 'task') return t('creationBackfill.scopeTask');
+  if (scope === 'asset') return t('creationBackfill.scopeAsset');
+  return t('creationBackfill.scopeBoth');
 }
 
 // ---------------- 执行 ----------------
 
-const entryRunning = ref(false)
-const coverRunning = ref(false)
-const coverPreviewing = ref(false)
-const coverCandidates = ref<(VideoCoverCandidate & { key: string })[]>([])
-const entryReport = ref<EntryCodeReport | null>(null)
-const coverReport = ref<VideoCoverReport | null>(null)
-const entryHistory = ref<HistoryRow[]>([])
-const coverHistory = ref<HistoryRow[]>([])
+const entryRunning = ref(false);
+const coverRunning = ref(false);
+const coverPreviewing = ref(false);
+const coverCandidates = ref<(VideoCoverCandidate & { key: string })[]>([]);
+const entryReport = ref<EntryCodeReport | null>(null);
+const coverReport = ref<VideoCoverReport | null>(null);
+const entryHistory = ref<HistoryRow[]>([]);
+const coverHistory = ref<HistoryRow[]>([]);
 
 /** 追加一条执行记录，超出上限的从尾部丢——最新的排在最前面 */
 function pushHistory(list: typeof entryHistory, params: string, summary: string) {
   list.value = [
     { key: Date.now(), time: dayjs().format('HH:mm:ss'), params, summary },
     ...list.value,
-  ].slice(0, HISTORY_LIMIT)
+  ].slice(0, HISTORY_LIMIT);
 }
 
 function paramsText(scope: string, limit: number, offset: number, dryRun?: boolean) {
@@ -382,17 +406,17 @@ function paramsText(scope: string, limit: number, offset: number, dryRun?: boole
     scope: scopeLabel(scope),
     limit,
     offset,
-  })
-  return dryRun ? `${base} · ${t('creationBackfill.dryRunTag')}` : base
+  });
+  return dryRun ? `${base} · ${t('creationBackfill.dryRunTag')}` : base;
 }
 
 async function runEntry() {
   // loading 期间按钮已 disabled，这里再挡一次：键盘回车/双击能在 disabled 生效前挤进第二次调用
-  if (entryRunning.value) return
-  entryRunning.value = true
+  if (entryRunning.value) return;
+  entryRunning.value = true;
   try {
-    const report = await backfillEntryCode({ ...entryForm })
-    entryReport.value = report
+    const report = await backfillEntryCode({ ...entryForm });
+    entryReport.value = report;
     pushHistory(
       entryHistory,
       paramsText(entryForm.scope, entryForm.limit, entryForm.offset, entryForm.dryRun),
@@ -406,19 +430,19 @@ async function runEntry() {
           ...entryResult(report?.assets),
         }),
       ].join('；'),
-    )
-    const filled = entryResult(report?.tasks).filled + entryResult(report?.assets).filled
+    );
+    const filled = entryResult(report?.tasks).filled + entryResult(report?.assets).filled;
     message.success(
       entryForm.dryRun
         ? t('creationBackfill.dryRunDone', { count: filled })
         : t('creationBackfill.runDone', { count: filled }),
-    )
+    );
     // 试跑不写库，欠账不会变，但重刷一次没有坏处、还能顺带确认数字确实没动
-    loadRemaining()
+    loadRemaining();
   } catch {
     /* 拦截器已提示（含「正在执行，请稍后重试」这种撞锁的情况） */
   } finally {
-    entryRunning.value = false
+    entryRunning.value = false;
   }
 }
 
@@ -427,31 +451,31 @@ async function runEntry() {
  * 后端不抢锁，所以别人正在跑回填时照样能看。
  */
 async function previewCover() {
-  if (coverPreviewing.value) return
-  coverPreviewing.value = true
+  if (coverPreviewing.value) return;
+  coverPreviewing.value = true;
   try {
-    const p = await previewVideoCover({ ...coverForm })
+    const p = await previewVideoCover({ ...coverForm });
     // 两侧 id 空间不同，key 必须带上 side 才不会撞
     coverCandidates.value = [...(p?.assets ?? []), ...(p?.tasks ?? [])].map((c) => ({
       ...c,
       key: `${c.side}-${c.id}`,
-    }))
+    }));
     message.success(
       t('creationBackfill.coverPreviewDone', { count: coverCandidates.value.length }),
-    )
+    );
   } catch {
     /* 拦截器已提示 */
   } finally {
-    coverPreviewing.value = false
+    coverPreviewing.value = false;
   }
 }
 
 async function runCover() {
-  if (coverRunning.value) return
-  coverRunning.value = true
+  if (coverRunning.value) return;
+  coverRunning.value = true;
   try {
-    const report = await backfillVideoCover({ ...coverForm })
-    coverReport.value = report
+    const report = await backfillVideoCover({ ...coverForm });
+    coverReport.value = report;
     pushHistory(
       coverHistory,
       paramsText(coverForm.scope, coverForm.limit, coverForm.offset),
@@ -465,16 +489,16 @@ async function runCover() {
           ...coverResult(report?.tasks),
         }),
       ].join('；'),
-    )
-    const generated = coverResult(report?.assets).generated + coverResult(report?.tasks).generated
-    message.success(t('creationBackfill.coverRunDone', { count: generated }))
+    );
+    const generated = coverResult(report?.assets).generated + coverResult(report?.tasks).generated;
+    message.success(t('creationBackfill.coverRunDone', { count: generated }));
     // 跑完之后这份预览就过期了（补好的已退出候选集合），留着会让人以为还欠这些
-    coverCandidates.value = []
-    loadRemaining()
+    coverCandidates.value = [];
+    loadRemaining();
   } catch {
     /* 拦截器已提示 */
   } finally {
-    coverRunning.value = false
+    coverRunning.value = false;
   }
 }
 
@@ -482,7 +506,7 @@ async function runCover() {
 
 /** 没跑的方向后端给的是空结果，但别假设字段一定在——缺字段渲染成 undefined 会显示空白格 */
 function entryResult(r?: { scanned?: number; filled?: number; stuck?: number } | null) {
-  return { scanned: r?.scanned ?? 0, filled: r?.filled ?? 0, stuck: r?.stuck ?? 0 }
+  return { scanned: r?.scanned ?? 0, filled: r?.filled ?? 0, stuck: r?.stuck ?? 0 };
 }
 
 function coverResult(
@@ -493,33 +517,33 @@ function coverResult(
     generated: r?.generated ?? 0,
     failed: r?.failed ?? 0,
     crossFixed: r?.crossFixed ?? 0,
-  }
+  };
 }
 
 const entryResultRows = computed(() => {
-  const r = entryReport.value
-  if (!r) return []
+  const r = entryReport.value;
+  if (!r) return [];
   return [
     { key: 'task', side: t('creationBackfill.sideTask'), ...entryResult(r.tasks) },
     { key: 'asset', side: t('creationBackfill.sideAsset'), ...entryResult(r.assets) },
-  ]
-})
+  ];
+});
 
 const coverResultRows = computed(() => {
-  const r = coverReport.value
-  if (!r) return []
+  const r = coverReport.value;
+  if (!r) return [];
   return [
     { key: 'asset', side: t('creationBackfill.sideAsset'), ...coverResult(r.assets) },
     { key: 'task', side: t('creationBackfill.sideTask'), ...coverResult(r.tasks) },
-  ]
-})
+  ];
+});
 
 const entryResultColumns = computed(() => [
   { title: t('creationBackfill.colSide'), dataIndex: 'side', width: 160 },
   { title: t('creationBackfill.colScanned'), dataIndex: 'scanned', width: 120 },
   { title: t('creationBackfill.colFilled'), dataIndex: 'filled', width: 120 },
   { title: t('creationBackfill.colStuck'), dataIndex: 'stuck' },
-])
+]);
 
 const coverResultColumns = computed(() => [
   { title: t('creationBackfill.colSide'), dataIndex: 'side', width: 160 },
@@ -527,7 +551,7 @@ const coverResultColumns = computed(() => [
   { title: t('creationBackfill.colGenerated'), dataIndex: 'generated', width: 120 },
   { title: t('creationBackfill.colFailed'), dataIndex: 'failed', width: 120 },
   { title: t('creationBackfill.colCrossFixed'), dataIndex: 'crossFixed' },
-])
+]);
 
 const coverCandidateColumns = computed(() => [
   { title: t('creationBackfill.colSide'), dataIndex: 'side', width: 90 },
@@ -536,13 +560,13 @@ const coverCandidateColumns = computed(() => [
   { title: t('creationBackfill.colReason'), dataIndex: 'reason', width: 220 },
   // 源地址是判断「补不上是不是因为地址失效」的唯一线索，宽一点、可省略但要能悬停看全
   { title: t('creationBackfill.colResultUrl'), dataIndex: 'resultUrl', ellipsis: true },
-])
+]);
 
 const historyColumns = computed(() => [
   { title: t('creationBackfill.colTime'), dataIndex: 'time', width: 100 },
   { title: t('creationBackfill.colParams'), dataIndex: 'params', width: 320 },
   { title: t('creationBackfill.colResult'), dataIndex: 'summary' },
-])
+]);
 </script>
 
 <style scoped>

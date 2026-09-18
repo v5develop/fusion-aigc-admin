@@ -18,10 +18,7 @@
         <span v-if="config.required" class="slider-widget__required">*</span>
       </span>
       <a-tooltip v-if="config.helpText" :title="config.helpText">
-        <Icon
-          icon="antdv-next:QuestionCircleOutlined"
-          class="slider-widget__help"
-        />
+        <Icon icon="antdv-next:QuestionCircleOutlined" class="slider-widget__help" />
       </a-tooltip>
     </div>
 
@@ -76,27 +73,28 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import type { RenderMode, SliderWidgetConfig } from '@/types/template-builder';
 
-import Icon from '@/components/Icon/index.vue'
-import type { RenderMode, SliderWidgetConfig } from '@/types/template-builder'
+import { computed } from 'vue';
+
+import Icon from '@/components/Icon/index.vue';
 
 const props = withDefaults(
   defineProps<{
-    config: SliderWidgetConfig
-    mode: RenderMode
-    formValues?: Record<string, unknown>
-    isSelected?: boolean
+    config: SliderWidgetConfig;
+    mode: RenderMode;
+    formValues?: Record<string, unknown>;
+    isSelected?: boolean;
   }>(),
   {
     formValues: undefined,
     isSelected: false,
   },
-)
+);
 
 const emit = defineEmits<{
-  (e: 'update:form-values', key: string, value: unknown): void
-}>()
+  (e: 'update:form-values', key: string, value: unknown): void;
+}>();
 
 const rootClass = computed(() => [
   'slider-widget',
@@ -104,81 +102,77 @@ const rootClass = computed(() => [
     'widget-wrapper': props.mode === 'builder',
     'widget-selected': props.mode === 'builder' && props.isSelected,
   },
-])
+]);
 
 /** builder 永远只读；viewer 下尊重 widget 级 disabled */
-const isDisabled = computed(
-  () => props.mode === 'builder' || props.config.disabled === true,
-)
+const isDisabled = computed(() => props.mode === 'builder' || props.config.disabled === true);
 
-const isRange = computed(() => props.config.range === true)
+const isRange = computed(() => props.config.range === true);
 
-const min = computed(() => props.config.min ?? 0)
-const max = computed(() => props.config.max ?? 100)
-const step = computed(() => props.config.step ?? 1)
+const min = computed(() => props.config.min ?? 0);
+const max = computed(() => props.config.max ?? 100);
+const step = computed(() => props.config.step ?? 1);
 
 /** 原始值：viewer 优先取表单值，否则回退默认值 */
 const rawValue = computed<unknown>(() => {
   if (props.mode === 'viewer') {
-    const fromForm = props.formValues?.[props.config.key]
-    if (fromForm !== undefined) return fromForm
+    const fromForm = props.formValues?.[props.config.key];
+    if (fromForm !== undefined) return fromForm;
   }
-  return props.config.defaultValue
-})
+  return props.config.defaultValue;
+});
 
 /** 将任意输入夹紧到 [min, max] 区间 */
 function clamp(value: number): number {
-  return Math.min(Math.max(value, min.value), max.value)
+  return Math.min(Math.max(value, min.value), max.value);
 }
 
 function toNumber(value: unknown, fallback: number): number {
-  return typeof value === 'number' && Number.isFinite(value) ? value : fallback
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
 }
 
 /** 单值受控值 */
-const singleValue = computed<number>(() =>
-  clamp(toNumber(rawValue.value, min.value)),
-)
+const singleValue = computed<number>(() => clamp(toNumber(rawValue.value, min.value)));
 
 /** 范围受控值，归一化为 [number, number] */
 const rangeValue = computed<[number, number]>(() => {
-  const raw = rawValue.value
+  const raw = rawValue.value;
   if (Array.isArray(raw)) {
-    const lo = clamp(toNumber(raw[0], min.value))
-    const hi = clamp(toNumber(raw[1], max.value))
-    return lo <= hi ? [lo, hi] : [hi, lo]
+    const lo = clamp(toNumber(raw[0], min.value));
+    const hi = clamp(toNumber(raw[1], max.value));
+    return lo <= hi ? [lo, hi] : [hi, lo];
   }
-  return [min.value, max.value]
-})
+  return [min.value, max.value];
+});
 
 /** a-slider 受控值：range 模式给数组，单值模式给数字 */
 const sliderValue = computed<number | [number, number]>(() =>
   isRange.value ? rangeValue.value : singleValue.value,
-)
+);
 
 function emitValue(value: number | [number, number]): void {
-  if (props.mode !== 'viewer') return
-  emit('update:form-values', props.config.key, value)
+  if (props.mode !== 'viewer') return;
+  emit('update:form-values', props.config.key, value);
 }
 
 function onSliderChange(value: number | [number, number]): void {
-  emitValue(value)
+  emitValue(value);
 }
 
 function onSingleInputChange(value: number | string | null): void {
-  emitValue(clamp(toNumber(typeof value === 'string' ? Number(value) : value, min.value)))
+  emitValue(clamp(toNumber(typeof value === 'string' ? Number(value) : value, min.value)));
 }
 
 function onRangeMinChange(value: number | string | null): void {
-  const lo = clamp(toNumber(typeof value === 'string' ? Number(value) : value, min.value))
-  const hi = rangeValue.value[1]
-  emitValue([Math.min(lo, hi), hi])
+  const lo = clamp(toNumber(typeof value === 'string' ? Number(value) : value, min.value));
+  const hi = rangeValue.value[1];
+  emitValue([Math.min(lo, hi), hi]);
 }
 
 function onRangeMaxChange(value: number | string | null): void {
-  const hi = clamp(toNumber(typeof value === 'string' ? Number(value) : value, max.value))
-  const lo = rangeValue.value[0]
-  emitValue([lo, Math.max(hi, lo)])
+  const hi = clamp(toNumber(typeof value === 'string' ? Number(value) : value, max.value));
+  const lo = rangeValue.value[0];
+  emitValue([lo, Math.max(hi, lo)]);
 }
 </script>
 

@@ -11,11 +11,7 @@
         />
       </a-col>
       <a-col :xs="24" :sm="12" :lg="8">
-        <ProStatCard
-          :label="$t('cost.totalCount')"
-          :value="stats.totalCount"
-          color="#52c41a"
-        />
+        <ProStatCard :label="$t('cost.totalCount')" :value="stats.totalCount" color="#52c41a" />
       </a-col>
       <a-col :xs="24" :sm="12" :lg="8">
         <ProStatCard
@@ -27,12 +23,7 @@
     </a-row>
 
     <a-card :title="$t('cost.title')">
-      <ProTable
-        :columns="columns"
-        :request="loadData"
-        :search="{}"
-        row-key="id"
-      >
+      <ProTable :columns="columns" :request="loadData" :search="{}" row-key="id">
         <template #emptyText>
           <a-empty :description="$t('cost.noCostData')" />
         </template>
@@ -42,19 +33,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
-import ProTable from '@/components/Pro/ProTable/index.vue'
-import ProStatCard from '@/components/Pro/ProStatCard/index.vue'
-import { getCostList, getCostStats } from '@/api/cost'
+import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n()
+import { getCostList, getCostStats } from '@/api/cost';
+import ProStatCard from '@/components/Pro/ProStatCard/index.vue';
+import ProTable from '@/components/Pro/ProTable/index.vue';
+
+const { t } = useI18n();
 
 const stats = ref({
   todayCost: 0,
   totalCount: 0,
   costByModel: {} as Record<string, number>,
-})
+});
 
 const columns = [
   {
@@ -86,7 +78,7 @@ const columns = [
     dataIndex: 'modelId',
     width: 180,
     customRender: ({ record }: { record: { modelName?: string; modelId: number } }) => {
-      return record.modelName ? `${record.modelName} (${record.modelId})` : record.modelId
+      return record.modelName ? `${record.modelName} (${record.modelId})` : record.modelId;
     },
   },
   {
@@ -100,10 +92,10 @@ const columns = [
     dataIndex: 'costSource',
     width: 100,
     customRender: ({ record }: { record: { costSource?: string } }) => {
-      const source = record.costSource
-      if (source === 'billed') return '供应商计费'
-      if (source === 'estimated') return '预估'
-      return '-'
+      const source = record.costSource;
+      if (source === 'billed') return '供应商计费';
+      if (source === 'estimated') return '预估';
+      return '-';
     },
   },
   {
@@ -122,7 +114,7 @@ const columns = [
     dataIndex: 'createTime',
     width: 180,
   },
-]
+];
 
 async function loadData(params: Record<string, unknown>) {
   const res = await getCostList({
@@ -133,20 +125,20 @@ async function loadData(params: Record<string, unknown>) {
     endDate: params.endDate as string | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
-  })
+  });
   return {
     data: res.list || [],
     total: res.total || 0,
     success: true,
-  }
+  };
 }
 
 onMounted(async () => {
   try {
-    const res = await getCostStats({})
-    stats.value = res
+    const res = await getCostStats({});
+    stats.value = res;
   } catch (error) {
-    console.error('Failed to load cost stats:', error)
+    console.error('Failed to load cost stats:', error);
   }
-})
+});
 </script>

@@ -1,13 +1,6 @@
 import { defineMock } from 'vite-plugin-mock-dev-server';
 
 import {
-  mockUnionConfig,
-  mockAIProviderConfig,
-  mockStorageConfigs,
-  mockSystemConfig,
-} from '../data/settings.data';
-
-import {
   mockFeatures,
   mockModels,
   mockPricing,
@@ -21,11 +14,17 @@ import {
   mockRechargeConsumptions,
   mockUserPointsLogs,
 } from '../data/billing.data';
+import {
+  mockUnionConfig,
+  mockAIProviderConfig,
+  mockStorageConfigs,
+  mockSystemConfig,
+} from '../data/settings.data';
 
 // In-memory storage for settings updates
 const unionConfig = { ...mockUnionConfig };
 const aiProviderConfig = { ...mockAIProviderConfig };
-const storageConfigs = mockStorageConfigs.map(item => ({ ...item }));
+const storageConfigs = mockStorageConfigs.map((item) => ({ ...item }));
 const systemConfig = { ...mockSystemConfig };
 
 // In-memory storage for billing data
@@ -104,7 +103,7 @@ export default defineMock([
     url: '/api/v1/admin/storage/config/create',
     method: 'POST',
     body: (req) => {
-      const id = storageConfigs.length ? Math.max(...storageConfigs.map(item => item.id)) + 1 : 1;
+      const id = storageConfigs.length ? Math.max(...storageConfigs.map((item) => item.id)) + 1 : 1;
       const newConfig = {
         id,
         status: 1,
@@ -123,7 +122,7 @@ export default defineMock([
     url: '/api/v1/admin/storage/config/update',
     method: 'PUT',
     body: (req) => {
-      const idx = storageConfigs.findIndex(item => item.id === Number(req.body.id));
+      const idx = storageConfigs.findIndex((item) => item.id === Number(req.body.id));
       if (idx === -1) return { code: 404, message: '存储配置不存在', data: null, success: false };
       Object.assign(storageConfigs[idx], req.body, { updateTime: new Date().toISOString() });
       return { code: 0, message: 'Success', data: true, success: true };
@@ -136,9 +135,11 @@ export default defineMock([
     method: 'PUT',
     body: (req) => {
       const id = Number(req.query?.id);
-      const config = storageConfigs.find(item => item.id === id);
+      const config = storageConfigs.find((item) => item.id === id);
       if (!config) return { code: 404, message: '存储配置不存在', data: null, success: false };
-      storageConfigs.forEach(item => { item.isDefault = item.id === id; });
+      storageConfigs.forEach((item) => {
+        item.isDefault = item.id === id;
+      });
       return { code: 0, message: 'Success', data: true, success: true };
     },
   },
@@ -187,10 +188,10 @@ export default defineMock([
       const { pageNo = 1, pageSize = 10, featureCode, status } = req.query || {};
       let filtered = [...features];
       if (featureCode) {
-        filtered = filtered.filter(f => f.featureCode.includes(featureCode));
+        filtered = filtered.filter((f) => f.featureCode.includes(featureCode));
       }
       if (status !== undefined && status !== '') {
-        filtered = filtered.filter(f => f.status === Number(status));
+        filtered = filtered.filter((f) => f.status === Number(status));
       }
       const start = (Number(pageNo) - 1) * Number(pageSize);
       const end = start + Number(pageSize);
@@ -227,7 +228,7 @@ export default defineMock([
     method: 'PUT',
     body: (req) => {
       const id = Number(req.params.id);
-      const idx = features.findIndex(f => f.id === id);
+      const idx = features.findIndex((f) => f.id === id);
       if (idx === -1) return { code: 404, message: '创作能力不存在', data: null, success: false };
       Object.assign(features[idx], req.body);
       return { code: 0, message: 'Success', data: true, success: true };
@@ -240,7 +241,7 @@ export default defineMock([
     method: 'DELETE',
     body: (req) => {
       const id = Number(req.params.id);
-      const idx = features.findIndex(f => f.id === id);
+      const idx = features.findIndex((f) => f.id === id);
       if (idx === -1) return { code: 404, message: '创作能力不存在', data: null, success: false };
       features[idx].status = 0;
       return { code: 0, message: 'Success', data: true, success: true };
@@ -288,7 +289,7 @@ export default defineMock([
     method: 'POST',
     body: (req) => {
       const grantId = Number(req.params.grantId);
-      const grant = featureGrants.find(g => g.id === grantId);
+      const grant = featureGrants.find((g) => g.id === grantId);
       if (!grant) return { code: 404, message: '记录不存在', data: null, success: false };
       grant.status = 3;
       return { code: 0, message: 'Success', data: true, success: true };
@@ -366,7 +367,7 @@ export default defineMock([
     method: 'PUT',
     body: (req) => {
       const id = Number(req.params.id);
-      const idx = models.findIndex(m => m.id === id);
+      const idx = models.findIndex((m) => m.id === id);
       if (idx === -1) return { code: 404, message: '模型不存在', data: null, success: false };
       Object.assign(models[idx], req.body);
       return { code: 0, message: 'Success', data: true, success: true };
@@ -378,7 +379,7 @@ export default defineMock([
     method: 'DELETE',
     body: (req) => {
       const id = Number(req.params.id);
-      const idx = models.findIndex(m => m.id === id);
+      const idx = models.findIndex((m) => m.id === id);
       if (idx === -1) return { code: 404, message: '模型不存在', data: null, success: false };
       models.splice(idx, 1);
       return { code: 0, message: 'Success', data: true, success: true };
@@ -412,7 +413,11 @@ export default defineMock([
     url: '/api/v1/admin/pricing',
     method: 'POST',
     body: (req) => {
-      const newPricing = { id: pricing.length + 1, ...req.body, createTime: new Date().toISOString() };
+      const newPricing = {
+        id: pricing.length + 1,
+        ...req.body,
+        createTime: new Date().toISOString(),
+      };
       pricing.push(newPricing);
       return { code: 0, message: 'Success', data: newPricing.id, success: true };
     },
@@ -423,7 +428,7 @@ export default defineMock([
     method: 'PUT',
     body: (req) => {
       const id = Number(req.params.id);
-      const idx = pricing.findIndex(p => p.id === id);
+      const idx = pricing.findIndex((p) => p.id === id);
       if (idx === -1) return { code: 404, message: '定价不存在', data: null, success: false };
       Object.assign(pricing[idx], req.body);
       return { code: 0, message: 'Success', data: true, success: true };
@@ -435,7 +440,7 @@ export default defineMock([
     method: 'DELETE',
     body: (req) => {
       const id = Number(req.params.id);
-      const idx = pricing.findIndex(p => p.id === id);
+      const idx = pricing.findIndex((p) => p.id === id);
       if (idx === -1) return { code: 404, message: '定价不存在', data: null, success: false };
       pricing.splice(idx, 1);
       return { code: 0, message: 'Success', data: true, success: true };
@@ -588,9 +593,10 @@ export default defineMock([
     method: 'POST',
     body: (req) => {
       const { id, action } = req.body;
-      const diff = differences.find(d => d.id === id);
+      const diff = differences.find((d) => d.id === id);
       if (!diff) return { code: 404, message: '差异记录不存在', data: null, success: false };
-      if (diff.status !== 'OPEN') return { code: 400, message: '该差异已处理', data: null, success: false };
+      if (diff.status !== 'OPEN')
+        return { code: 400, message: '该差异已处理', data: null, success: false };
       const statusMap: Record<string, string> = {
         compensate: 'COMPENSATED',
         deduct: 'DEDUCTED',
@@ -610,16 +616,16 @@ export default defineMock([
       const { pageNo = 1, pageSize = 10, userId, bizType, billingStatus, status } = req.query || {};
       let filtered = [...billingExceptions];
       if (userId) {
-        filtered = filtered.filter(e => e.userId === Number(userId));
+        filtered = filtered.filter((e) => e.userId === Number(userId));
       }
       if (bizType) {
-        filtered = filtered.filter(e => e.bizType === bizType);
+        filtered = filtered.filter((e) => e.bizType === bizType);
       }
       if (billingStatus) {
-        filtered = filtered.filter(e => e.billingStatus === billingStatus);
+        filtered = filtered.filter((e) => e.billingStatus === billingStatus);
       }
       if (status) {
-        filtered = filtered.filter(e => e.status === status);
+        filtered = filtered.filter((e) => e.status === status);
       }
       const start = (Number(pageNo) - 1) * Number(pageSize);
       const end = start + Number(pageSize);
@@ -640,7 +646,7 @@ export default defineMock([
     method: 'POST',
     body: (req) => {
       const id = Number(req.params.id);
-      const ex = billingExceptions.find(e => e.id === id);
+      const ex = billingExceptions.find((e) => e.id === id);
       if (!ex) return { code: 404, message: '异常记录不存在', data: null, success: false };
       ex.status = 'RESOLVED';
       return { code: 0, message: 'Success', data: true, success: true };
@@ -653,7 +659,7 @@ export default defineMock([
     body: (req) => {
       const { id, remark } = req.body;
       if (!remark) return { code: 400, message: '忽略原因不能为空', data: null, success: false };
-      const ex = billingExceptions.find(e => e.id === id);
+      const ex = billingExceptions.find((e) => e.id === id);
       if (!ex) return { code: 404, message: '异常记录不存在', data: null, success: false };
       ex.status = 'IGNORED';
       return { code: 0, message: 'Success', data: true, success: true };
@@ -671,7 +677,7 @@ export default defineMock([
       data: {
         todayConsumption: 1250,
         monthConsumption: 18750,
-        todayThirdPartyCost: 12.50,
+        todayThirdPartyCost: 12.5,
       },
       success: true,
     }),
@@ -688,7 +694,7 @@ export default defineMock([
       if (!rechargeIds || !Array.isArray(rechargeIds)) {
         return { code: 400, message: '充值单号列表不能为空', data: null, success: false };
       }
-      const result = mockRechargeConsumptions.filter(r => rechargeIds.includes(r.rechargeId));
+      const result = mockRechargeConsumptions.filter((r) => rechargeIds.includes(r.rechargeId));
       return { code: 0, message: 'Success', data: result, success: true };
     },
   },

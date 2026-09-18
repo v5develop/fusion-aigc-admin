@@ -198,8 +198,8 @@
 </template>
 
 <script setup lang="ts">
-import { message } from 'antdv-next'
-import { computed, reactive, ref } from 'vue'
+import { message } from 'antdv-next';
+import { computed, reactive, ref } from 'vue';
 
 import {
   createCreaftTemplate,
@@ -210,45 +210,45 @@ import {
   updateCreaftTemplate,
   type CreaftTemplateRow,
   type CreaftTemplateType,
-} from '@/api/creaft-compat'
+} from '@/api/creaft-compat';
 
 const DESCRIPTIONS: Record<CreaftTemplateType, string> = {
   PLAZA:
     '创意广场模板，被 GET /api/v1/plaza-templates/list 与 /plaza-templates/tags 读。标签多值取并集；列表排序就是这一页的先后。',
   LOCAL_LIFE:
     '本地生活官方模板，被 GET /api/v1/local-life-templates/list、/{id}、/categories 读，按分类筛。',
-}
+};
 
-const rows = ref<CreaftTemplateRow[]>([])
-const loading = ref(false)
+const rows = ref<CreaftTemplateRow[]>([]);
+const loading = ref(false);
 /** 默认落在创意广场：阶段 6 卡的就是它（整站 0 模板 0 标签） */
-const typeFilter = ref<CreaftTemplateType>('PLAZA')
-const categoryFilter = ref<string>('')
-const enabledFilter = ref<'' | 1 | 0>('')
-const keyword = ref('')
-const categories = ref<string[]>([])
-const tags = ref<string[]>([])
+const typeFilter = ref<CreaftTemplateType>('PLAZA');
+const categoryFilter = ref<string>('');
+const enabledFilter = ref<'' | 1 | 0>('');
+const keyword = ref('');
+const categories = ref<string[]>([]);
+const tags = ref<string[]>([]);
 
 const typeOptions: { label: string; value: CreaftTemplateType }[] = [
   { label: '创意广场 PLAZA', value: 'PLAZA' },
   { label: '本地生活 LOCAL_LIFE', value: 'LOCAL_LIFE' },
-]
-const typeFilterOptions = typeOptions
+];
+const typeFilterOptions = typeOptions;
 const enabledFilterOptions = [
   { label: '全部状态', value: '' },
   { label: '启用', value: 1 },
   { label: '停用', value: 0 },
-]
+];
 const categoryFilterOptions = computed(() => [
   { label: '全部分类', value: '' },
   ...categories.value.map((c) => ({ label: c, value: c })),
-])
-const categoryOptions = computed(() => categories.value.map((c) => ({ label: c, value: c })))
-const tagOptions = computed(() => tags.value.map((t) => ({ label: t, value: t })))
-const typeHint = computed(() => DESCRIPTIONS[typeFilter.value])
+]);
+const categoryOptions = computed(() => categories.value.map((c) => ({ label: c, value: c })));
+const tagOptions = computed(() => tags.value.map((t) => ({ label: t, value: t })));
+const typeHint = computed(() => DESCRIPTIONS[typeFilter.value]);
 
 function filterCategoryOption(input: string, option: { value: string }) {
-  return option.value.toLowerCase().includes(input.toLowerCase())
+  return option.value.toLowerCase().includes(input.toLowerCase());
 }
 
 const columns = [
@@ -260,23 +260,23 @@ const columns = [
   { title: '排序', dataIndex: 'sortOrder', width: 80, align: 'center' as const },
   { title: '状态', dataIndex: 'enabled', width: 90, align: 'center' as const },
   { title: '操作', dataIndex: 'operation', key: 'operation', width: 140, align: 'center' as const },
-]
+];
 
-let keywordTimer: ReturnType<typeof setTimeout> | undefined
+let keywordTimer: ReturnType<typeof setTimeout> | undefined;
 function onKeywordChange() {
-  clearTimeout(keywordTimer)
-  keywordTimer = setTimeout(loadList, 300)
+  clearTimeout(keywordTimer);
+  keywordTimer = setTimeout(loadList, 300);
 }
 
 function onTypeChange() {
   // 分类是按类型分的：切类型不清掉旧筛选，会出现「明明有模板却一条不显示」
-  categoryFilter.value = ''
-  loadList()
-  loadOptions()
+  categoryFilter.value = '';
+  loadList();
+  loadOptions();
 }
 
 async function loadList() {
-  loading.value = true
+  loading.value = true;
   try {
     rows.value =
       (await getCreaftTemplates({
@@ -284,53 +284,53 @@ async function loadList() {
         category: categoryFilter.value || undefined,
         keyword: keyword.value.trim() || undefined,
         enabled: enabledFilter.value === '' ? undefined : enabledFilter.value,
-      })) || []
+      })) || [];
   } catch {
     /* 拦截器已提示 */
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 async function loadOptions() {
   try {
-    categories.value = (await getCreaftTemplateCategories(typeFilter.value)) || []
-    tags.value = (await getCreaftTemplateTags()) || []
+    categories.value = (await getCreaftTemplateCategories(typeFilter.value)) || [];
+    tags.value = (await getCreaftTemplateTags()) || [];
   } catch {
     /* 下拉候选缺失不影响录入：两个字段都允许直接输入 */
   }
 }
 
-loadList()
-loadOptions()
+loadList();
+loadOptions();
 
 // ---- 载荷查看 ----
-const payloadVisible = ref(false)
-const payloadText = ref('')
+const payloadVisible = ref(false);
+const payloadText = ref('');
 
 function openPayload(record: CreaftTemplateRow) {
-  payloadText.value = pretty(record.payloadJson)
-  payloadVisible.value = true
+  payloadText.value = pretty(record.payloadJson);
+  payloadVisible.value = true;
 }
 
 function pretty(json: string | null) {
-  if (!json) return '{}'
+  if (!json) return '{}';
   try {
-    return JSON.stringify(JSON.parse(json), null, 2)
+    return JSON.stringify(JSON.parse(json), null, 2);
   } catch {
     // 库里本来就可能有手工塞进去的脏值，原样显示比抛错有用
-    return json
+    return json;
   }
 }
 
 function hasPrompt(record: CreaftTemplateRow) {
-  return !!record.payloadJson && record.payloadJson.includes('"prompt"')
+  return !!record.payloadJson && record.payloadJson.includes('"prompt"');
 }
 
 // ---- 新增 / 编辑 ----
-const modalVisible = ref(false)
-const saving = ref(false)
-const editId = ref<number | null>(null)
+const modalVisible = ref(false);
+const saving = ref(false);
+const editId = ref<number | null>(null);
 
 const form = reactive({
   templateType: 'PLAZA' as CreaftTemplateType,
@@ -341,15 +341,15 @@ const form = reactive({
   payloadJson: '',
   sortOrder: 0,
   enabled: 1,
-})
+});
 
 const enabled = computed({
   get: () => form.enabled === 1,
   set: (value: boolean) => (form.enabled = value ? 1 : 0),
-})
+});
 
 function openCreate() {
-  editId.value = null
+  editId.value = null;
   Object.assign(form, {
     templateType: typeFilter.value,
     title: '',
@@ -359,12 +359,12 @@ function openCreate() {
     payloadJson: '',
     sortOrder: 0,
     enabled: 1,
-  })
-  modalVisible.value = true
+  });
+  modalVisible.value = true;
 }
 
 function openEdit(record: CreaftTemplateRow) {
-  editId.value = record.id
+  editId.value = record.id;
   Object.assign(form, {
     templateType: record.templateType,
     title: record.title,
@@ -374,29 +374,29 @@ function openEdit(record: CreaftTemplateRow) {
     payloadJson: pretty(record.payloadJson),
     sortOrder: record.sortOrder ?? 0,
     enabled: record.enabled ?? 1,
-  })
-  modalVisible.value = true
+  });
+  modalVisible.value = true;
 }
 
 async function handleSubmit() {
   if (!form.title.trim()) {
-    message.warning('标题必填')
-    return
+    message.warning('标题必填');
+    return;
   }
   // 后端也校验，但在这里挡一次能指出具体哪儿不是对象——服务端只会说「必须是 JSON 对象」
   if (form.payloadJson.trim()) {
     try {
-      const parsed = JSON.parse(form.payloadJson)
+      const parsed = JSON.parse(form.payloadJson);
       if (typeof parsed !== 'object' || Array.isArray(parsed) || parsed === null) {
-        message.warning('模板载荷必须是 JSON 对象（形如 {"key": ...}），数组和标量都不行')
-        return
+        message.warning('模板载荷必须是 JSON 对象（形如 {"key": ...}），数组和标量都不行');
+        return;
       }
     } catch {
-      message.warning('模板载荷不是合法 JSON')
-      return
+      message.warning('模板载荷不是合法 JSON');
+      return;
     }
   }
-  saving.value = true
+  saving.value = true;
   try {
     const payload = {
       templateType: form.templateType,
@@ -408,25 +408,25 @@ async function handleSubmit() {
       payloadJson: form.payloadJson.trim() || undefined,
       sortOrder: form.sortOrder ?? 0,
       enabled: form.enabled,
-    }
-    if (editId.value) await updateCreaftTemplate(editId.value, payload)
-    else await createCreaftTemplate(payload)
-    message.success('已保存')
-    modalVisible.value = false
-    loadList()
-    loadOptions()
+    };
+    if (editId.value) await updateCreaftTemplate(editId.value, payload);
+    else await createCreaftTemplate(payload);
+    message.success('已保存');
+    modalVisible.value = false;
+    loadList();
+    loadOptions();
   } catch {
     /* 拦截器已提示 */
   } finally {
-    saving.value = false
+    saving.value = false;
   }
 }
 
 async function handleDelete(record: CreaftTemplateRow) {
   try {
-    await deleteCreaftTemplate(record.id)
-    message.success('已删除')
-    loadList()
+    await deleteCreaftTemplate(record.id);
+    message.success('已删除');
+    loadList();
   } catch {
     /* 拦截器已提示 */
   }

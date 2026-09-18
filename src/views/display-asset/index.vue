@@ -383,10 +383,10 @@
 </template>
 
 <script setup lang="ts">
-import { PlayCircleOutlined } from '@antdv-next/icons'
-import { message } from 'antdv-next'
-import { ref, reactive, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { PlayCircleOutlined } from '@antdv-next/icons';
+import { message } from 'antdv-next';
+import { ref, reactive, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import {
   getDisplayAssetList,
@@ -403,50 +403,50 @@ import {
   type DisplayAsset,
   type DisplayAssetType,
   type SameStyleRecipe,
-} from '@/api/display-asset'
-import { getCategoryTree, type DisplayCategoryNode } from '@/api/display-category'
-import { getModelOptions } from '@/api/model'
-import ProTable from '@/components/Pro/ProTable/index.vue'
+} from '@/api/display-asset';
+import { getCategoryTree, type DisplayCategoryNode } from '@/api/display-category';
+import { getModelOptions } from '@/api/model';
+import ProTable from '@/components/Pro/ProTable/index.vue';
 
-const { t } = useI18n()
-const tableRef = ref<InstanceType<typeof ProTable> | null>(null)
+const { t } = useI18n();
+const tableRef = ref<InstanceType<typeof ProTable> | null>(null);
 
 const typeOptions = [
   { label: t('displayAsset.typeImage'), value: 'image' },
   { label: t('displayAsset.typeVideo'), value: 'video' },
-]
+];
 
 // ---- 下拉数据源 ----
-const tree = ref<DisplayCategoryNode[]>([])
-const categoryNameMap = reactive<Record<number, string>>({})
-const categoryLoading = ref(false)
+const tree = ref<DisplayCategoryNode[]>([]);
+const categoryNameMap = reactive<Record<number, string>>({});
+const categoryLoading = ref(false);
 
 async function loadCategories() {
-  categoryLoading.value = true
+  categoryLoading.value = true;
   try {
-    tree.value = (await getCategoryTree(false)) || []
+    tree.value = (await getCategoryTree(false)) || [];
     for (const l1 of tree.value) {
-      categoryNameMap[l1.id] = l1.categoryName
-      for (const l2 of l1.children ?? []) categoryNameMap[l2.id] = l2.categoryName
+      categoryNameMap[l1.id] = l1.categoryName;
+      for (const l2 of l1.children ?? []) categoryNameMap[l2.id] = l2.categoryName;
     }
   } catch {
     /* 拦截器已提示 */
   } finally {
-    categoryLoading.value = false
+    categoryLoading.value = false;
   }
 }
-loadCategories()
+loadCategories();
 
 function categoryName(id: number) {
-  return categoryNameMap[id] ?? String(id)
+  return categoryNameMap[id] ?? String(id);
 }
 
 const l1Options = computed(() =>
   tree.value.map((c) => ({ label: `${c.categoryName} (${c.categoryCode})`, value: c.id })),
-)
+);
 function l2OptionsOf(l1Id?: number) {
-  const l1 = l1Id ? tree.value.find((c) => c.id === l1Id) : undefined
-  return (l1?.children ?? []).map((c) => ({ label: c.categoryName, value: c.id }))
+  const l1 = l1Id ? tree.value.find((c) => c.id === l1Id) : undefined;
+  return (l1?.children ?? []).map((c) => ({ label: c.categoryName, value: c.id }));
 }
 
 /** 三态：0 草稿 / 1 已发布 / 2 已下架。缺项会让列表显示裸数字 */
@@ -454,49 +454,49 @@ const STATUS = {
   0: { label: () => t('displayAsset.statusDraft'), color: 'default' },
   1: { label: () => t('displayAsset.statusPublished'), color: 'green' },
   2: { label: () => t('displayAsset.statusOffline'), color: 'orange' },
-} as Record<number, { label: () => string; color: string }>
+} as Record<number, { label: () => string; color: string }>;
 function statusLabel(v: number) {
-  return STATUS[v]?.label() ?? String(v)
+  return STATUS[v]?.label() ?? String(v);
 }
 function statusColor(v: number) {
-  return STATUS[v]?.color ?? 'default'
+  return STATUS[v]?.color ?? 'default';
 }
 
-const entryCodeOptions = ref<{ label: string; value: string }[]>([])
-const entryCodeLoading = ref(false)
+const entryCodeOptions = ref<{ label: string; value: string }[]>([]);
+const entryCodeLoading = ref(false);
 async function loadEntryCodes() {
-  entryCodeLoading.value = true
+  entryCodeLoading.value = true;
   try {
-    const res = await getDisplayEntryCodes()
+    const res = await getDisplayEntryCodes();
     entryCodeOptions.value = (res || []).map((e) => ({
       label: `${e.entryName} (${e.entryCode})`,
       value: e.entryCode,
-    }))
+    }));
   } catch {
     /* 拦截器已提示 */
   } finally {
-    entryCodeLoading.value = false
+    entryCodeLoading.value = false;
   }
 }
 
 // modelCode → modelId：后端本地模型提交必须带 modelId，这里选完就带上，省得后端再反查
-const modelIdByCode = reactive<Record<string, number>>({})
-const modelOptions = ref<{ label: string; value: string }[]>([])
-const modelLoading = ref(false)
+const modelIdByCode = reactive<Record<string, number>>({});
+const modelOptions = ref<{ label: string; value: string }[]>([]);
+const modelLoading = ref(false);
 async function loadModels() {
-  modelLoading.value = true
+  modelLoading.value = true;
   try {
-    const res = await getModelOptions()
+    const res = await getModelOptions();
     modelOptions.value = (res || [])
       .filter((m) => m.status === 1)
       .map((m) => {
-        modelIdByCode[m.code] = m.id
-        return { label: `${m.name} (${m.code})`, value: m.code }
-      })
+        modelIdByCode[m.code] = m.id;
+        return { label: `${m.name} (${m.code})`, value: m.code };
+      });
   } catch {
     /* 拦截器已提示 */
   } finally {
-    modelLoading.value = false
+    modelLoading.value = false;
   }
 }
 
@@ -570,7 +570,7 @@ const columns = computed(() => [
     align: 'center' as const,
     fixed: 'right' as const,
   },
-])
+]);
 
 async function loadData(params: Record<string, unknown>) {
   const res = await getDisplayAssetList({
@@ -580,14 +580,14 @@ async function loadData(params: Record<string, unknown>) {
     status: params.status as number | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
-  })
-  return { data: res.list || [], total: res.total || 0, success: true }
+  });
+  return { data: res.list || [], total: res.total || 0, success: true };
 }
 
 // ---- 素材 CRUD ----
-const assetModalVisible = ref(false)
-const assetSubmitLoading = ref(false)
-const editId = ref<number | null>(null)
+const assetModalVisible = ref(false);
+const assetSubmitLoading = ref(false);
+const editId = ref<number | null>(null);
 
 const assetForm = reactive({
   categoryL1Id: undefined as number | undefined,
@@ -599,11 +599,11 @@ const assetForm = reactive({
   width: undefined as number | undefined,
   height: undefined as number | undefined,
   sortOrder: 0,
-})
-const assetL2Options = computed(() => l2OptionsOf(assetForm.categoryL1Id))
+});
+const assetL2Options = computed(() => l2OptionsOf(assetForm.categoryL1Id));
 /** 换一级后旧二级不再属于它 */
 function onAssetL1Change() {
-  assetForm.categoryL2Id = undefined
+  assetForm.categoryL2Id = undefined;
 }
 
 function resetAssetForm() {
@@ -617,17 +617,17 @@ function resetAssetForm() {
     width: undefined,
     height: undefined,
     sortOrder: 0,
-  })
+  });
 }
 
 function openCreate() {
-  editId.value = null
-  resetAssetForm()
-  assetModalVisible.value = true
+  editId.value = null;
+  resetAssetForm();
+  assetModalVisible.value = true;
 }
 
 function openEdit(record: DisplayAsset) {
-  editId.value = record.id
+  editId.value = record.id;
   Object.assign(assetForm, {
     categoryL1Id: record.categoryL1Id || undefined,
     categoryL2Id: record.categoryL2Id || undefined,
@@ -638,16 +638,16 @@ function openEdit(record: DisplayAsset) {
     width: record.width,
     height: record.height,
     sortOrder: record.sortOrder ?? 0,
-  })
-  assetModalVisible.value = true
+  });
+  assetModalVisible.value = true;
 }
 
 async function handleAssetSubmit() {
   if (!assetForm.url?.trim()) {
-    message.warning(t('displayAsset.urlRequired'))
-    return
+    message.warning(t('displayAsset.urlRequired'));
+    return;
   }
-  assetSubmitLoading.value = true
+  assetSubmitLoading.value = true;
   try {
     // 不传 extra：同款配方走专用接口维护，这里带上会把配方整段覆盖掉
     const payload = {
@@ -657,71 +657,71 @@ async function handleAssetSubmit() {
       // 0 = 解除关联；传 undefined 会被后端当「不改」，运营就清不掉已填的来源
       sourceTaskId: assetForm.sourceTaskId ?? 0,
       url: assetForm.url.trim(),
-    }
-    if (editId.value) await updateDisplayAsset(editId.value, payload)
-    else await createDisplayAsset(payload)
-    message.success(t('common.saveSuccess'))
-    assetModalVisible.value = false
-    tableRef.value?.refresh()
+    };
+    if (editId.value) await updateDisplayAsset(editId.value, payload);
+    else await createDisplayAsset(payload);
+    message.success(t('common.saveSuccess'));
+    assetModalVisible.value = false;
+    tableRef.value?.refresh();
   } catch {
     /* 拦截器已提示 */
   } finally {
-    assetSubmitLoading.value = false
+    assetSubmitLoading.value = false;
   }
 }
 
-const statusLoadingId = ref<number | null>(null)
+const statusLoadingId = ref<number | null>(null);
 
 async function handlePublish(record: DisplayAsset) {
-  statusLoadingId.value = record.id
+  statusLoadingId.value = record.id;
   try {
-    await publishDisplayAsset(record.id)
+    await publishDisplayAsset(record.id);
     // 配了默认推荐位的会顺带挂上推荐位，文案要说清楚，否则运营不知道已经对外可见了
     message.success(
       record.categoryL1Id
         ? t('displayAsset.publishedAndPinned')
         : t('displayAsset.publishedPending'),
-    )
-    tableRef.value?.refresh()
+    );
+    tableRef.value?.refresh();
   } catch {
     /* 拦截器已提示 */
   } finally {
-    statusLoadingId.value = null
+    statusLoadingId.value = null;
   }
 }
 
 async function handleOffline(record: DisplayAsset) {
-  statusLoadingId.value = record.id
+  statusLoadingId.value = record.id;
   try {
-    await offlineDisplayAsset(record.id)
-    message.success(t('displayAsset.offlineSuccess'))
-    tableRef.value?.refresh()
+    await offlineDisplayAsset(record.id);
+    message.success(t('displayAsset.offlineSuccess'));
+    tableRef.value?.refresh();
   } catch {
     /* 拦截器已提示 */
   } finally {
-    statusLoadingId.value = null
+    statusLoadingId.value = null;
   }
 }
 
 async function handleDelete(record: DisplayAsset) {
   try {
-    await deleteDisplayAsset(record.id)
-    message.success(t('common.deleteSuccess'))
-    tableRef.value?.refresh()
+    await deleteDisplayAsset(record.id);
+    message.success(t('common.deleteSuccess'));
+    tableRef.value?.refresh();
   } catch {
     /* 拦截器已提示 */
   }
 }
 
 // ---- 做同款配方 ----
-const sameStyleDrawerVisible = ref(false)
-const sameStyleAsset = ref<DisplayAsset | null>(null)
-const ssSaving = ref(false)
-const ssRemoving = ref(false)
+const sameStyleDrawerVisible = ref(false);
+const sameStyleAsset = ref<DisplayAsset | null>(null);
+const ssSaving = ref(false);
+const ssRemoving = ref(false);
 // extra 里是否已存在配方。不能用列表那个 sameStyle 标志代替：停用的配方 sameStyle=false，
 // 拿它控制「移除配方」按钮会让停用后的配方从 UI 上再也删不掉。
-const ssHasRecipe = ref(false)
-const ssParamsText = ref('')
+const ssHasRecipe = ref(false);
+const ssParamsText = ref('');
 const ssForm = reactive<SameStyleRecipe>({
   enabled: true,
   entryCode: '',
@@ -731,32 +731,32 @@ const ssForm = reactive<SameStyleRecipe>({
   requiredImages: 0,
   editableFields: [],
   tips: '',
-})
+});
 
-const ssParamsInvalid = computed(() => parseParams(ssParamsText.value) === undefined)
+const ssParamsInvalid = computed(() => parseParams(ssParamsText.value) === undefined);
 
 /** 解析参数 JSON：空串→{}；非法→undefined（供校验区分「没填」与「填错」） */
 function parseParams(text: string): Record<string, unknown> | undefined {
-  const s = text.trim()
-  if (!s) return {}
+  const s = text.trim();
+  if (!s) return {};
   try {
-    const obj = JSON.parse(s)
-    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return undefined
-    return obj as Record<string, unknown>
+    const obj = JSON.parse(s);
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return undefined;
+    return obj as Record<string, unknown>;
   } catch {
-    return undefined
+    return undefined;
   }
 }
 
 function onModelChange(code: string) {
-  ssForm.modelId = code ? modelIdByCode[code] : undefined
+  ssForm.modelId = code ? modelIdByCode[code] : undefined;
 }
 
 async function openSameStyle(record: DisplayAsset) {
-  sameStyleAsset.value = record
+  sameStyleAsset.value = record;
   // 下拉懒加载：列表页不必为了两个下拉先打两个接口
-  if (!entryCodeOptions.value.length) loadEntryCodes()
-  if (!modelOptions.value.length) loadModels()
+  if (!entryCodeOptions.value.length) loadEntryCodes();
+  if (!modelOptions.value.length) loadModels();
 
   Object.assign(ssForm, {
     enabled: true,
@@ -767,18 +767,18 @@ async function openSameStyle(record: DisplayAsset) {
     requiredImages: 0,
     editableFields: [],
     tips: '',
-  })
-  ssParamsText.value = ''
-  ssHasRecipe.value = false
-  sameStyleDrawerVisible.value = true
+  });
+  ssParamsText.value = '';
+  ssHasRecipe.value = false;
+  sameStyleDrawerVisible.value = true;
 
   // 按详情重取而不是用列表那行：列表可能已经放了一会儿，别拿旧 extra 覆盖别人刚改的配方
   try {
-    const detail = await getDisplayAsset(record.id)
-    sameStyleAsset.value = detail
-    const recipe = readRecipe(detail.extra)
+    const detail = await getDisplayAsset(record.id);
+    sameStyleAsset.value = detail;
+    const recipe = readRecipe(detail.extra);
     if (recipe) {
-      ssHasRecipe.value = true
+      ssHasRecipe.value = true;
       Object.assign(ssForm, {
         enabled: recipe.enabled !== false,
         entryCode: recipe.entryCode || '',
@@ -788,8 +788,8 @@ async function openSameStyle(record: DisplayAsset) {
         requiredImages: recipe.requiredImages ?? 0,
         editableFields: recipe.editableFields || [],
         tips: recipe.tips || '',
-      })
-      ssParamsText.value = recipe.params ? JSON.stringify(recipe.params, null, 2) : ''
+      });
+      ssParamsText.value = recipe.params ? JSON.stringify(recipe.params, null, 2) : '';
     }
   } catch {
     /* 拦截器已提示；抽屉保持空表单可新配 */
@@ -798,55 +798,55 @@ async function openSameStyle(record: DisplayAsset) {
 
 /** 从 extra JSON 串里取 sameStyle 子键；脏数据一律当未配置，不弹错打断运营 */
 function readRecipe(extra?: string): SameStyleRecipe | null {
-  if (!extra?.trim()) return null
+  if (!extra?.trim()) return null;
   try {
-    const obj = JSON.parse(extra)
-    return (obj?.sameStyle as SameStyleRecipe) || null
+    const obj = JSON.parse(extra);
+    return (obj?.sameStyle as SameStyleRecipe) || null;
   } catch {
-    return null
+    return null;
   }
 }
 
 async function handleSaveSameStyle() {
-  if (!sameStyleAsset.value) return
+  if (!sameStyleAsset.value) return;
   if (!ssForm.entryCode?.trim()) {
-    message.warning(t('displayAsset.ssEntryCodeRequired'))
-    return
+    message.warning(t('displayAsset.ssEntryCodeRequired'));
+    return;
   }
   if (!ssForm.modelCode && !ssForm.modelId) {
-    message.warning(t('displayAsset.ssModelRequired'))
-    return
+    message.warning(t('displayAsset.ssModelRequired'));
+    return;
   }
-  const params = parseParams(ssParamsText.value)
+  const params = parseParams(ssParamsText.value);
   if (params === undefined) {
-    message.error(t('displayAsset.ssParamsInvalid'))
-    return
+    message.error(t('displayAsset.ssParamsInvalid'));
+    return;
   }
-  ssSaving.value = true
+  ssSaving.value = true;
   try {
-    await saveSameStyle(sameStyleAsset.value.id, { ...ssForm, params })
-    message.success(t('displayAsset.ssSaveSuccess'))
-    sameStyleDrawerVisible.value = false
-    tableRef.value?.refresh()
+    await saveSameStyle(sameStyleAsset.value.id, { ...ssForm, params });
+    message.success(t('displayAsset.ssSaveSuccess'));
+    sameStyleDrawerVisible.value = false;
+    tableRef.value?.refresh();
   } catch {
     /* 后端会校验 entryCode/模型，失败原因由拦截器提示 */
   } finally {
-    ssSaving.value = false
+    ssSaving.value = false;
   }
 }
 
 async function handleRemoveSameStyle() {
-  if (!sameStyleAsset.value) return
-  ssRemoving.value = true
+  if (!sameStyleAsset.value) return;
+  ssRemoving.value = true;
   try {
-    await removeSameStyle(sameStyleAsset.value.id)
-    message.success(t('displayAsset.ssRemoveSuccess'))
-    sameStyleDrawerVisible.value = false
-    tableRef.value?.refresh()
+    await removeSameStyle(sameStyleAsset.value.id);
+    message.success(t('displayAsset.ssRemoveSuccess'));
+    sameStyleDrawerVisible.value = false;
+    tableRef.value?.refresh();
   } catch {
     /* 拦截器已提示 */
   } finally {
-    ssRemoving.value = false
+    ssRemoving.value = false;
   }
 }
 </script>

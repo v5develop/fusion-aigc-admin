@@ -1,5 +1,6 @@
-import { request } from '@/utils/request'
-import type { CheckInSettings } from '@/types/api'
+import type { CheckInSettings } from '@/types/api';
+
+import { request } from '@/utils/request';
 
 /**
  * 每日签到规则。
@@ -10,7 +11,7 @@ import type { CheckInSettings } from '@/types/api'
  * 所以页面上看到的就是用户真正会拿到的规则。
  */
 export function getCheckInSettings() {
-  return request.get<CheckInSettings>('/api/v1/admin/settings/check-in')
+  return request.get<CheckInSettings>('/api/v1/admin/settings/check-in');
 }
 
 /**
@@ -19,5 +20,5 @@ export function getCheckInSettings() {
  * 但那样一次失手就会把奖励梯度一起改掉。
  */
 export function saveCheckInSettings(data: CheckInSettings) {
-  return request.put<boolean>('/api/v1/admin/settings/check-in', data)
+  return request.put<boolean>('/api/v1/admin/settings/check-in', data);
 }

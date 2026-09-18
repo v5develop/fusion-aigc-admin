@@ -52,29 +52,27 @@
 </template>
 
 <script setup lang="ts">
-import { $t } from '@/locales'
-import type { TextareaWidgetConfig } from '@/types/template-builder'
+import type { TextareaWidgetConfig } from '@/types/template-builder';
+
+import { $t } from '@/locales';
 
 const props = defineProps<{
-  widget: TextareaWidgetConfig
-}>()
+  widget: TextareaWidgetConfig;
+}>();
 
 const emit = defineEmits<{
-  (e: 'update', patch: Record<string, unknown>): void
-}>()
+  (e: 'update', patch: Record<string, unknown>): void;
+}>();
 
 function onUpdate<K extends keyof TextareaWidgetConfig>(
   field: K,
   value: TextareaWidgetConfig[K],
 ): void {
-  emit('update', { [field]: value })
+  emit('update', { [field]: value });
 }
 
-function onUpdateNumber(
-  field: 'minRows' | 'maxRows' | 'maxLength',
-  value: number | null,
-): void {
-  emit('update', { [field]: value === null ? undefined : value })
+function onUpdateNumber(field: 'minRows' | 'maxRows' | 'maxLength', value: number | null): void {
+  emit('update', { [field]: value === null ? undefined : value });
 }
 </script>
 

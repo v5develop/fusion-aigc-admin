@@ -1,3 +1,3 @@
-import SliderCaptcha from './SliderCaptcha.vue'
+import SliderCaptcha from './SliderCaptcha.vue';
 
-export { SliderCaptcha }
+export { SliderCaptcha };

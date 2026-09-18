@@ -20,16 +20,8 @@
   <div class="property-panel">
     <a-tabs v-model:activeKey="activeTab" size="small" class="property-panel__tabs">
       <a-tab-pane key="section" :tab="$t('template.sectionProps')">
-        <SectionProps
-          v-if="activeSection"
-          :section="activeSection"
-          @update="onSectionUpdate"
-        />
-        <a-empty
-          v-else
-          class="property-panel__empty"
-          :description="$t('template.selectSection')"
-        />
+        <SectionProps v-if="activeSection" :section="activeSection" @update="onSectionUpdate" />
+        <a-empty v-else class="property-panel__empty" :description="$t('template.selectSection')" />
       </a-tab-pane>
 
       <a-tab-pane key="widget" :tab="$t('template.widgetProps')">
@@ -49,124 +41,112 @@
                 :widget="activeWidget"
                 @update="onWidgetUpdate"
               />
-              <a-empty
-                v-else
-                class="property-panel__empty"
-                :description="$t('common.noData')"
-              />
+              <a-empty v-else class="property-panel__empty" :description="$t('common.noData')" />
             </a-tab-pane>
           </a-tabs>
         </template>
-        <a-empty
-          v-else
-          class="property-panel__empty"
-          :description="$t('template.selectWidget')"
-        />
+        <a-empty v-else class="property-panel__empty" :description="$t('template.selectWidget')" />
       </a-tab-pane>
     </a-tabs>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, type Component } from 'vue'
+import type { TemplateSection, WidgetConfig, WidgetType } from '@/types/template-builder';
 
-import { $t } from '@/locales'
-import type {
-  TemplateSection,
-  WidgetConfig,
-  WidgetType,
-} from '@/types/template-builder'
+import { computed, ref, watch, type Component } from 'vue';
 
-import CommonProps from './props/CommonProps.vue'
-import SectionProps from './props/SectionProps.vue'
+import { $t } from '@/locales';
 
-import InputProps from './props/InputProps.vue'
-import TextareaProps from './props/TextareaProps.vue'
-import SelectProps from './props/SelectProps.vue'
-import NumberProps from './props/NumberProps.vue'
-import SwitchProps from './props/SwitchProps.vue'
-import SliderProps from './props/SliderProps.vue'
-import ImageUploaderProps from './props/ImageUploaderProps.vue'
-import ImageSelectProps from './props/ImageSelectProps.vue'
-import FileUploaderProps from './props/FileUploaderProps.vue'
-import ChipInputProps from './props/ChipInputProps.vue'
-import ActionButtonsProps from './props/ActionButtonsProps.vue'
-import ToolbarProps from './props/ToolbarProps.vue'
-import ColorPickerProps from './props/ColorPickerProps.vue'
-import RadioImageProps from './props/RadioImageProps.vue'
-import PresetSelectProps from './props/PresetSelectProps.vue'
-import PromptInputProps from './props/PromptInputProps.vue'
+import ActionButtonsProps from './props/ActionButtonsProps.vue';
+import ChipInputProps from './props/ChipInputProps.vue';
+import ColorPickerProps from './props/ColorPickerProps.vue';
+import CommonProps from './props/CommonProps.vue';
+import FileUploaderProps from './props/FileUploaderProps.vue';
+import ImageSelectProps from './props/ImageSelectProps.vue';
+import ImageUploaderProps from './props/ImageUploaderProps.vue';
+import InputProps from './props/InputProps.vue';
+import NumberProps from './props/NumberProps.vue';
+import PresetSelectProps from './props/PresetSelectProps.vue';
+import PromptInputProps from './props/PromptInputProps.vue';
+import RadioImageProps from './props/RadioImageProps.vue';
+import SectionProps from './props/SectionProps.vue';
+import SelectProps from './props/SelectProps.vue';
+import SliderProps from './props/SliderProps.vue';
+import SwitchProps from './props/SwitchProps.vue';
+import TextareaProps from './props/TextareaProps.vue';
+import ToolbarProps from './props/ToolbarProps.vue';
 
 const props = withDefaults(
   defineProps<{
-    activeSection?: TemplateSection | null
-    activeWidget?: WidgetConfig | null
+    activeSection?: TemplateSection | null;
+    activeWidget?: WidgetConfig | null;
   }>(),
   {
     activeSection: null,
     activeWidget: null,
   },
-)
+);
 
 const emit = defineEmits<{
-  (e: 'update-section', patch: Partial<TemplateSection>): void
-  (e: 'update-widget', patch: Record<string, unknown>): void
-}>()
+  (e: 'update-section', patch: Partial<TemplateSection>): void;
+  (e: 'update-widget', patch: Record<string, unknown>): void;
+}>();
 
-const activeTab = ref<'section' | 'widget'>('section')
-const widgetActiveTab = ref<'basic' | 'type'>('basic')
+const activeTab = ref<'section' | 'widget'>('section');
+const widgetActiveTab = ref<'basic' | 'type'>('basic');
 
 /** 选中 widget 时自动跳到组件属性页；取消 widget 选中后若有区域则回到区域属性页 */
 watch(
   () => props.activeWidget,
   (widget) => {
     if (widget) {
-      activeTab.value = 'widget'
-      widgetActiveTab.value = 'basic'
+      activeTab.value = 'widget';
+      widgetActiveTab.value = 'basic';
     } else if (props.activeSection) {
-      activeTab.value = 'section'
+      activeTab.value = 'section';
     }
   },
-)
+);
 watch(
   () => props.activeSection,
   (section) => {
-    if (section && !props.activeWidget) activeTab.value = 'section'
+    if (section && !props.activeWidget) activeTab.value = 'section';
   },
-)
+);
 
 /** type → 属性编辑器组件 的静态映射表 (15 个) */
 const WIDGET_PROPS_MAP: Record<WidgetType, Component> = {
-  'input': InputProps,
-  'textarea': TextareaProps,
-  'select': SelectProps,
-  'number': NumberProps,
-  'switch': SwitchProps,
-  'slider': SliderProps,
+  input: InputProps,
+  textarea: TextareaProps,
+  select: SelectProps,
+  number: NumberProps,
+  switch: SwitchProps,
+  slider: SliderProps,
   'image-uploader': ImageUploaderProps,
   'image-select': ImageSelectProps,
   'file-uploader': FileUploaderProps,
   'chip-input': ChipInputProps,
   'action-buttons': ActionButtonsProps,
-  'toolbar': ToolbarProps,
+  toolbar: ToolbarProps,
   'color-picker': ColorPickerProps,
   'radio-image': RadioImageProps,
   'preset-select': PresetSelectProps,
   'prompt-input': PromptInputProps,
-}
+};
 
 const widgetPropsComponent = computed<Component | null>(() => {
-  const widget = props.activeWidget
-  if (!widget) return null
-  return WIDGET_PROPS_MAP[widget.type] ?? null
-})
+  const widget = props.activeWidget;
+  if (!widget) return null;
+  return WIDGET_PROPS_MAP[widget.type] ?? null;
+});
 
 function onSectionUpdate(patch: Partial<TemplateSection>): void {
-  emit('update-section', patch)
+  emit('update-section', patch);
 }
 
 function onWidgetUpdate(patch: Record<string, unknown>): void {
-  emit('update-widget', patch)
+  emit('update-widget', patch);
 }
 </script>
 

@@ -1,4 +1,4 @@
-import { request } from '@/utils/request'
+import { request } from '@/utils/request';
 
 /**
  * 存量数据回填（一次性运维接口）。
@@ -8,8 +8,8 @@ import { request } from '@/utils/request'
  */
 
 /** 回填方向。后端对拼错的值兜底成 both（运维接口不该因为大小写报 400），前端仍只给这三个 */
-export type EntryCodeScope = 'task' | 'asset' | 'both'
-export type VideoCoverScope = 'asset' | 'task' | 'both'
+export type EntryCodeScope = 'task' | 'asset' | 'both';
+export type VideoCoverScope = 'asset' | 'task' | 'both';
 
 // ---------------- 创作入口码 ----------------
 
@@ -21,9 +21,9 @@ export type VideoCoverScope = 'asset' | 'task' | 'both'
  */
 export interface EntryCodeRemaining {
   /** 还有多少条创作任务 entry_code 为空 */
-  tasks: number
+  tasks: number;
   /** 还有多少条素材 entry_code 为空 */
-  assets: number
+  assets: number;
   /**
    * entry_code **有值**、但那个值不是任何启用中的 offer 的任务数。
    *
@@ -31,9 +31,9 @@ export interface EntryCodeRemaining {
    * 素材库聚合分类进不去任何 tab、后台内容列表按 entry_code 等值也筛不到，全程不报错。
    * 补的是**计费 offer 配置**，不是再跑一次回填。
    */
-  unregisteredTasks: number
+  unregisteredTasks: number;
   /** 上面那批按入口码分组（码 → 条数），用来直接定位是哪个 offer 配置缺了 */
-  unregisteredByCode: Record<string, number>
+  unregisteredByCode: Record<string, number>;
 }
 
 /**
@@ -42,23 +42,23 @@ export interface EntryCodeRemaining {
  * @param stuck   推导不出、留空的行数；它不会降到 0，见 EntryCodeRemaining 注释
  */
 export interface EntryCodeResult {
-  scanned: number
-  filled: number
-  stuck: number
+  scanned: number;
+  filled: number;
+  stuck: number;
 }
 
 export interface EntryCodeReport {
-  tasks: EntryCodeResult
-  assets: EntryCodeResult
+  tasks: EntryCodeResult;
+  assets: EntryCodeResult;
 }
 
 export interface EntryCodeBackfillParams {
-  scope: EntryCodeScope
-  limit: number
+  scope: EntryCodeScope;
+  limit: number;
   /** 跳过队头那批永远补不上的死数据；接口每次都从头扫，不推游标就会原地打转 */
-  offset: number
+  offset: number;
   /** 只统计不写库。后端在 dryRun 下不抢分布式锁，可以和别人的回填并行看影响面 */
-  dryRun: boolean
+  dryRun: boolean;
 }
 
 /**
@@ -66,10 +66,10 @@ export interface EntryCodeBackfillParams {
  * 超时只是浏览器侧放弃等待，后端仍在跑并占着 Redis 锁——此时重试只会撞「正在执行」，
  * 所以宁可把等待放宽到分钟级，让调用方拿到真实结果。
  */
-const BACKFILL_TIMEOUT = 180_000
+const BACKFILL_TIMEOUT = 180_000;
 
 export function getEntryCodeRemaining() {
-  return request.get<EntryCodeRemaining>('/api/v1/admin/creation/entry-code/remaining')
+  return request.get<EntryCodeRemaining>('/api/v1/admin/creation/entry-code/remaining');
 }
 
 export function backfillEntryCode(params: EntryCodeBackfillParams) {
@@ -77,15 +77,15 @@ export function backfillEntryCode(params: EntryCodeBackfillParams) {
   return request.post<EntryCodeReport>('/api/v1/admin/creation/entry-code/backfill', undefined, {
     params,
     timeout: BACKFILL_TIMEOUT,
-  })
+  });
 }
 
 // ---------------- 视频封面 ----------------
 
 /** 两侧各还剩多少条待补；同样是「待补条数」，ffmpeg 抽不出帧的那批会一直留着 */
 export interface VideoCoverRemaining {
-  assets: number
-  tasks: number
+  assets: number;
+  tasks: number;
 }
 
 /**
@@ -95,15 +95,15 @@ export interface VideoCoverRemaining {
  * @param crossFixed 顺带修好的**另一侧**行数（asset 方向指任务，task 方向指素材）
  */
 export interface VideoCoverResult {
-  scanned: number
-  generated: number
-  failed: number
-  crossFixed: number
+  scanned: number;
+  generated: number;
+  failed: number;
+  crossFixed: number;
 }
 
 export interface VideoCoverReport {
-  assets: VideoCoverResult
-  tasks: VideoCoverResult
+  assets: VideoCoverResult;
+  tasks: VideoCoverResult;
 }
 
 /**
@@ -111,40 +111,40 @@ export interface VideoCoverReport {
  * 它返回的是候选行清单而不是计数，与 entry_code 回填的 dryRun 语义不同。
  */
 export interface VideoCoverBackfillParams {
-  scope: VideoCoverScope
-  limit: number
-  offset: number
+  scope: VideoCoverScope;
+  limit: number;
+  offset: number;
 }
 
 /** dry-run 里的一行候选 */
 export interface VideoCoverCandidate {
   /** asset / task：两侧 id 空间不同，混在一个列表里必须能分辨 */
-  side: string
-  id: number
+  side: string;
+  id: number;
   /** 素材侧给 source_task_id，可能为空 */
-  taskId: string | null
+  taskId: string | null;
   /** 抽帧要用的源地址。判断「补不上是不是因为地址失效」全靠它 */
-  resultUrl: string | null
-  coverUrl: string | null
+  resultUrl: string | null;
+  coverUrl: string | null;
   /** 命中判据的原因，后端已翻成人话 */
-  reason: string
+  reason: string;
 }
 
 export interface VideoCoverPreview {
-  assets: VideoCoverCandidate[]
-  tasks: VideoCoverCandidate[]
-  remaining: VideoCoverRemaining
+  assets: VideoCoverCandidate[];
+  tasks: VideoCoverCandidate[];
+  remaining: VideoCoverRemaining;
 }
 
 export function getVideoCoverRemaining() {
-  return request.get<VideoCoverRemaining>('/api/v1/admin/creation/video-cover/remaining')
+  return request.get<VideoCoverRemaining>('/api/v1/admin/creation/video-cover/remaining');
 }
 
 export function backfillVideoCover(params: VideoCoverBackfillParams) {
   return request.post<VideoCoverReport>('/api/v1/admin/creation/video-cover/backfill', undefined, {
     params,
     timeout: BACKFILL_TIMEOUT,
-  })
+  });
 }
 
 /**
@@ -160,5 +160,5 @@ export function backfillVideoCover(params: VideoCoverBackfillParams) {
 export function previewVideoCover(params: VideoCoverBackfillParams) {
   return request.get<VideoCoverPreview>('/api/v1/admin/creation/video-cover/preview', {
     params,
-  })
+  });
 }

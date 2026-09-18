@@ -20,20 +20,13 @@
         <span v-if="config.required" class="iu-widget__required">*</span>
       </span>
       <a-tooltip v-if="config.helpText" :title="config.helpText">
-        <Icon
-          icon="antdv-next:QuestionCircleOutlined"
-          class="iu-widget__help"
-        />
+        <Icon icon="antdv-next:QuestionCircleOutlined" class="iu-widget__help" />
       </a-tooltip>
     </div>
 
     <div class="image-uploader">
       <div class="uploaded-grid" :class="`preview-${config.previewSize || 'medium'}`">
-        <div
-          v-for="(img, idx) in displayImages"
-          :key="`${img.url}-${idx}`"
-          class="image-item"
-        >
+        <div v-for="(img, idx) in displayImages" :key="`${img.url}-${idx}`" class="image-item">
           <img :src="img.url" :alt="img.name || `image-${idx + 1}`" class="preview-image" />
           <button
             v-if="mode === 'viewer' && !config.disabled"
@@ -86,39 +79,39 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from 'vue'
-
-import { message } from 'antdv-next'
-
-import Icon from '@/components/Icon/index.vue'
-import { $t } from '@/locales'
 import type {
   ImageUploaderWidgetConfig,
   RenderMode,
   UploadedImage,
-} from '@/types/template-builder'
+} from '@/types/template-builder';
+
+import { message } from 'antdv-next';
+import { computed, onBeforeUnmount, ref } from 'vue';
+
+import Icon from '@/components/Icon/index.vue';
+import { $t } from '@/locales';
 
 const props = withDefaults(
   defineProps<{
-    config: ImageUploaderWidgetConfig
-    mode: RenderMode
-    formValues?: Record<string, unknown>
-    isSelected?: boolean
+    config: ImageUploaderWidgetConfig;
+    mode: RenderMode;
+    formValues?: Record<string, unknown>;
+    isSelected?: boolean;
   }>(),
   {
     formValues: undefined,
     isSelected: false,
   },
-)
+);
 
 const emit = defineEmits<{
-  (e: 'update:form-values', key: string, value: unknown): void
-}>()
+  (e: 'update:form-values', key: string, value: unknown): void;
+}>();
 
-const fileInputRef = ref<HTMLInputElement | null>(null)
-const isDragOver = ref(false)
+const fileInputRef = ref<HTMLInputElement | null>(null);
+const isDragOver = ref(false);
 /** 本组件创建的 objectURL，卸载时统一释放 */
-const ownedObjectUrls = ref<string[]>([])
+const ownedObjectUrls = ref<string[]>([]);
 
 const rootClass = computed(() => [
   'iu-widget',
@@ -126,97 +119,97 @@ const rootClass = computed(() => [
     'widget-wrapper': props.mode === 'builder',
     'widget-selected': props.mode === 'builder' && props.isSelected,
   },
-])
+]);
 
-const maxCount = computed(() => props.config.maxCount ?? 5)
+const maxCount = computed(() => props.config.maxCount ?? 5);
 
 /** 当前已上传图片（viewer 取表单值；builder 展示示例图占位） */
 const currentImages = computed<UploadedImage[]>(() => {
   if (props.mode === 'viewer') {
-    const fromForm = props.formValues?.[props.config.key]
-    if (Array.isArray(fromForm)) return fromForm as UploadedImage[]
-    return []
+    const fromForm = props.formValues?.[props.config.key];
+    if (Array.isArray(fromForm)) return fromForm as UploadedImage[];
+    return [];
   }
-  return []
-})
+  return [];
+});
 
 /** builder 模式用 exampleImages 渲染占位预览 */
 const displayImages = computed<UploadedImage[]>(() => {
   if (props.mode === 'builder') {
-    return (props.config.exampleImages ?? []).map((url) => ({ url }))
+    return (props.config.exampleImages ?? []).map((url) => ({ url }));
   }
-  return currentImages.value
-})
+  return currentImages.value;
+});
 
 const canAddMore = computed(() => {
-  if (props.mode === 'builder') return true
-  if (props.config.disabled) return false
-  return displayImages.value.length < maxCount.value
-})
+  if (props.mode === 'builder') return true;
+  if (props.config.disabled) return false;
+  return displayImages.value.length < maxCount.value;
+});
 
 function triggerUpload(): void {
-  if (props.mode !== 'viewer' || props.config.disabled) return
-  fileInputRef.value?.click()
+  if (props.mode !== 'viewer' || props.config.disabled) return;
+  fileInputRef.value?.click();
 }
 
 function makePreview(file: File): UploadedImage {
-  const url = URL.createObjectURL(file)
-  ownedObjectUrls.value.push(url)
-  return { url, name: file.name, size: file.size }
+  const url = URL.createObjectURL(file);
+  ownedObjectUrls.value.push(url);
+  return { url, name: file.name, size: file.size };
 }
 
 function acceptFiles(files: FileList | File[]): void {
-  if (props.mode !== 'viewer' || props.config.disabled) return
-  const imageFiles = Array.from(files).filter((f) => f.type.startsWith('image/'))
-  if (imageFiles.length === 0) return
+  if (props.mode !== 'viewer' || props.config.disabled) return;
+  const imageFiles = Array.from(files).filter((f) => f.type.startsWith('image/'));
+  if (imageFiles.length === 0) return;
 
-  const maxBytes = props.config.maxSizeMB ? props.config.maxSizeMB * 1024 * 1024 : 0
-  const valid: File[] = []
+  const maxBytes = props.config.maxSizeMB ? props.config.maxSizeMB * 1024 * 1024 : 0;
+  const valid: File[] = [];
   for (const f of imageFiles) {
     if (maxBytes > 0 && f.size > maxBytes) {
-      message.warning(`${f.name} 超过 ${props.config.maxSizeMB}MB`)
-      continue
+      message.warning(`${f.name} 超过 ${props.config.maxSizeMB}MB`);
+      continue;
     }
-    valid.push(f)
+    valid.push(f);
   }
-  if (valid.length === 0) return
+  if (valid.length === 0) return;
 
-  const remaining = maxCount.value - currentImages.value.length
-  const accepted = valid.slice(0, Math.max(0, remaining))
+  const remaining = maxCount.value - currentImages.value.length;
+  const accepted = valid.slice(0, Math.max(0, remaining));
   if (accepted.length < valid.length) {
-    message.warning(`最多上传 ${maxCount.value} 张`)
+    message.warning(`最多上传 ${maxCount.value} 张`);
   }
 
-  const next = [...currentImages.value, ...accepted.map(makePreview)]
-  emit('update:form-values', props.config.key, next)
+  const next = [...currentImages.value, ...accepted.map(makePreview)];
+  emit('update:form-values', props.config.key, next);
 }
 
 function onFileChange(event: Event): void {
-  const target = event.target as HTMLInputElement
-  if (target.files) acceptFiles(target.files)
-  target.value = ''
+  const target = event.target as HTMLInputElement;
+  if (target.files) acceptFiles(target.files);
+  target.value = '';
 }
 
 function onDrop(event: DragEvent): void {
-  isDragOver.value = false
-  if (event.dataTransfer?.files) acceptFiles(event.dataTransfer.files)
+  isDragOver.value = false;
+  if (event.dataTransfer?.files) acceptFiles(event.dataTransfer.files);
 }
 
 function removeImage(idx: number): void {
-  if (props.mode !== 'viewer') return
-  const next = currentImages.value.slice()
-  const [removed] = next.splice(idx, 1)
+  if (props.mode !== 'viewer') return;
+  const next = currentImages.value.slice();
+  const [removed] = next.splice(idx, 1);
   if (removed && ownedObjectUrls.value.includes(removed.url)) {
-    URL.revokeObjectURL(removed.url)
-    ownedObjectUrls.value = ownedObjectUrls.value.filter((u) => u !== removed.url)
+    URL.revokeObjectURL(removed.url);
+    ownedObjectUrls.value = ownedObjectUrls.value.filter((u) => u !== removed.url);
   }
-  emit('update:form-values', props.config.key, next)
+  emit('update:form-values', props.config.key, next);
 }
 
 onBeforeUnmount(() => {
-  ownedObjectUrls.value.forEach((u) => URL.revokeObjectURL(u))
-  ownedObjectUrls.value = []
-})
+  ownedObjectUrls.value.forEach((u) => URL.revokeObjectURL(u));
+  ownedObjectUrls.value = [];
+});
 </script>
 
 <style scoped>

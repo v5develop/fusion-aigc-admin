@@ -1,12 +1,6 @@
 <template>
   <div class="page-container">
-    <ProTable
-      ref="tableRef"
-      :columns="columns"
-      :request="loadData"
-      :search="{}"
-      row-key="id"
-    >
+    <ProTable ref="tableRef" :columns="columns" :request="loadData" :search="{}" row-key="id">
       <template #emptyText>
         <a-empty :description="$t('prompt.noPromptData')" />
       </template>
@@ -54,9 +48,7 @@
           />
         </template>
 
-        <template v-if="column.dataIndex === 'version'">
-          v{{ record.version || 1 }}
-        </template>
+        <template v-if="column.dataIndex === 'version'"> v{{ record.version || 1 }} </template>
 
         <template v-if="column.key === 'operation'">
           <a-space :size="4">
@@ -66,10 +58,7 @@
             <a-button type="link" size="small" @click="handleCopy(record)">
               {{ $t('prompt.copy') }}
             </a-button>
-            <a-popconfirm
-              :title="$t('prompt.confirmDelete')"
-              @confirm="handleDelete(record)"
-            >
+            <a-popconfirm :title="$t('prompt.confirmDelete')" @confirm="handleDelete(record)">
               <a-button type="link" size="small" danger>
                 {{ $t('common.delete') }}
               </a-button>
@@ -82,16 +71,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { message } from 'antdv-next'
-import { useI18n } from 'vue-i18n'
-import ProTable from '@/components/Pro/ProTable/index.vue'
-import { getPromptList, deletePrompt, updatePromptSort, type PromptRecord } from '@/api/prompt'
+import { message } from 'antdv-next';
+import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
-const router = useRouter()
-const { t } = useI18n()
-const tableRef = ref<InstanceType<typeof ProTable>>()
+import { getPromptList, deletePrompt, updatePromptSort, type PromptRecord } from '@/api/prompt';
+import ProTable from '@/components/Pro/ProTable/index.vue';
+
+const router = useRouter();
+const { t } = useI18n();
+const tableRef = ref<InstanceType<typeof ProTable>>();
 
 const categoryOptions = [
   { label: t('prompt.categoryEcommerce'), value: 'ecommerce' },
@@ -99,10 +89,10 @@ const categoryOptions = [
   { label: t('prompt.categoryVideo'), value: 'video' },
   { label: t('prompt.categoryAgent'), value: 'agent' },
   { label: t('prompt.categoryGeneral'), value: 'general' },
-]
+];
 
 function categoryLabel(value?: string) {
-  return categoryOptions.find(item => item.value === value)?.label || value || '-'
+  return categoryOptions.find((item) => item.value === value)?.label || value || '-';
 }
 
 const columns = [
@@ -187,16 +177,16 @@ const columns = [
     align: 'center' as const,
     fixed: 'right' as const,
   },
-]
+];
 
 interface SorterParam {
-  field?: string
-  order?: 'ascend' | 'descend'
+  field?: string;
+  order?: 'ascend' | 'descend';
 }
 
 async function loadData(params: Record<string, unknown>) {
-  const rawSorter = params.sorter as SorterParam | SorterParam[] | undefined
-  const sorter = Array.isArray(rawSorter) ? rawSorter[0] : rawSorter
+  const rawSorter = params.sorter as SorterParam | SorterParam[] | undefined;
+  const sorter = Array.isArray(rawSorter) ? rawSorter[0] : rawSorter;
   const res = await getPromptList({
     keyword: params.name as string | undefined,
     category: params.category as string | undefined,
@@ -205,47 +195,47 @@ async function loadData(params: Record<string, unknown>) {
     sortOrder: sorter?.order,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
-  })
+  });
   return {
     data: res.list || [],
     total: res.total || 0,
     success: true,
-  }
+  };
 }
 
 function handleCreate() {
-  router.push('/prompt/create')
+  router.push('/prompt/create');
 }
 
 function handleEdit(record: PromptRecord) {
-  router.push(`/prompt/edit/${record.id}`)
+  router.push(`/prompt/edit/${record.id}`);
 }
 
 function handleCopy(record: PromptRecord) {
-  router.push(`/prompt/create?copyFrom=${record.id}`)
+  router.push(`/prompt/create?copyFrom=${record.id}`);
 }
 
 async function handleDelete(record: PromptRecord) {
   try {
-    await deletePrompt(record.id)
-    message.success(t('common.deleteSuccess'))
-    tableRef.value?.refresh()
+    await deletePrompt(record.id);
+    message.success(t('common.deleteSuccess'));
+    tableRef.value?.refresh();
   } catch {
-    message.error(t('common.deleteFailed'))
+    message.error(t('common.deleteFailed'));
   }
 }
 
 async function handleSortChange(record: PromptRecord, value: number | string | null) {
-  const next = Number(value)
+  const next = Number(value);
   if (!Number.isFinite(next) || next === record.sortOrder) {
-    return
+    return;
   }
   try {
-    await updatePromptSort(record.id, next)
-    record.sortOrder = next
-    message.success(t('prompt.sortUpdateSuccess'))
+    await updatePromptSort(record.id, next);
+    record.sortOrder = next;
+    message.success(t('prompt.sortUpdateSuccess'));
   } catch {
-    message.error(t('prompt.sortUpdateFailed'))
+    message.error(t('prompt.sortUpdateFailed'));
   }
 }
 </script>

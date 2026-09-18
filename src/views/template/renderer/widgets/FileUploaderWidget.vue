@@ -76,39 +76,35 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from 'vue'
+import type { FileUploaderWidgetConfig, RenderMode, UploadedImage } from '@/types/template-builder';
 
-import { message } from 'antdv-next'
+import { message } from 'antdv-next';
+import { computed, onBeforeUnmount, ref } from 'vue';
 
-import Icon from '@/components/Icon/index.vue'
-import { $t } from '@/locales'
-import type {
-  FileUploaderWidgetConfig,
-  RenderMode,
-  UploadedImage,
-} from '@/types/template-builder'
+import Icon from '@/components/Icon/index.vue';
+import { $t } from '@/locales';
 
 const props = withDefaults(
   defineProps<{
-    config: FileUploaderWidgetConfig
-    mode: RenderMode
-    formValues?: Record<string, unknown>
-    isSelected?: boolean
+    config: FileUploaderWidgetConfig;
+    mode: RenderMode;
+    formValues?: Record<string, unknown>;
+    isSelected?: boolean;
   }>(),
   {
     formValues: undefined,
     isSelected: false,
   },
-)
+);
 
 const emit = defineEmits<{
-  (e: 'update:form-values', key: string, value: unknown): void
-}>()
+  (e: 'update:form-values', key: string, value: unknown): void;
+}>();
 
-const fileInputRef = ref<HTMLInputElement | null>(null)
-const isDragOver = ref(false)
+const fileInputRef = ref<HTMLInputElement | null>(null);
+const isDragOver = ref(false);
 /** 本组件创建的 objectURL，卸载时统一释放 */
-const ownedObjectUrls = ref<string[]>([])
+const ownedObjectUrls = ref<string[]>([]);
 
 const rootClass = computed(() => [
   'fu-widget',
@@ -116,96 +112,96 @@ const rootClass = computed(() => [
     'widget-wrapper': props.mode === 'builder',
     'widget-selected': props.mode === 'builder' && props.isSelected,
   },
-])
+]);
 
-const maxCount = computed(() => props.config.maxCount ?? 5)
+const maxCount = computed(() => props.config.maxCount ?? 5);
 
 /** viewer 取表单值；builder 无占位文件 */
 const currentFiles = computed<UploadedImage[]>(() => {
   if (props.mode === 'viewer') {
-    const fromForm = props.formValues?.[props.config.key]
-    if (Array.isArray(fromForm)) return fromForm as UploadedImage[]
+    const fromForm = props.formValues?.[props.config.key];
+    if (Array.isArray(fromForm)) return fromForm as UploadedImage[];
   }
-  return []
-})
+  return [];
+});
 
-const displayFiles = computed<UploadedImage[]>(() => currentFiles.value)
+const displayFiles = computed<UploadedImage[]>(() => currentFiles.value);
 
 const canAddMore = computed(() => {
-  if (props.mode === 'builder') return true
-  if (props.config.disabled) return false
-  return displayFiles.value.length < maxCount.value
-})
+  if (props.mode === 'builder') return true;
+  if (props.config.disabled) return false;
+  return displayFiles.value.length < maxCount.value;
+});
 
 function triggerUpload(): void {
-  if (props.mode !== 'viewer' || props.config.disabled) return
-  fileInputRef.value?.click()
+  if (props.mode !== 'viewer' || props.config.disabled) return;
+  fileInputRef.value?.click();
 }
 
 function makeEntry(file: File): UploadedImage {
-  const url = URL.createObjectURL(file)
-  ownedObjectUrls.value.push(url)
-  return { url, name: file.name, size: file.size }
+  const url = URL.createObjectURL(file);
+  ownedObjectUrls.value.push(url);
+  return { url, name: file.name, size: file.size };
 }
 
 function acceptFiles(files: FileList | File[]): void {
-  if (props.mode !== 'viewer' || props.config.disabled) return
-  const list = Array.from(files)
-  if (list.length === 0) return
+  if (props.mode !== 'viewer' || props.config.disabled) return;
+  const list = Array.from(files);
+  if (list.length === 0) return;
 
-  const maxBytes = props.config.maxSizeMB ? props.config.maxSizeMB * 1024 * 1024 : 0
-  const valid: File[] = []
+  const maxBytes = props.config.maxSizeMB ? props.config.maxSizeMB * 1024 * 1024 : 0;
+  const valid: File[] = [];
   for (const f of list) {
     if (maxBytes > 0 && f.size > maxBytes) {
-      message.warning(`${f.name} 超过 ${props.config.maxSizeMB}MB`)
-      continue
+      message.warning(`${f.name} 超过 ${props.config.maxSizeMB}MB`);
+      continue;
     }
-    valid.push(f)
+    valid.push(f);
   }
-  if (valid.length === 0) return
+  if (valid.length === 0) return;
 
-  const remaining = maxCount.value - currentFiles.value.length
-  const accepted = valid.slice(0, Math.max(0, remaining))
+  const remaining = maxCount.value - currentFiles.value.length;
+  const accepted = valid.slice(0, Math.max(0, remaining));
   if (accepted.length < valid.length) {
-    message.warning(`最多上传 ${maxCount.value} 个文件`)
+    message.warning(`最多上传 ${maxCount.value} 个文件`);
   }
 
-  const next = [...currentFiles.value, ...accepted.map(makeEntry)]
-  emit('update:form-values', props.config.key, next)
+  const next = [...currentFiles.value, ...accepted.map(makeEntry)];
+  emit('update:form-values', props.config.key, next);
 }
 
 function onFileChange(event: Event): void {
-  const target = event.target as HTMLInputElement
-  if (target.files) acceptFiles(target.files)
-  target.value = ''
+  const target = event.target as HTMLInputElement;
+  if (target.files) acceptFiles(target.files);
+  target.value = '';
 }
 
 function onDrop(event: DragEvent): void {
-  isDragOver.value = false
-  if (event.dataTransfer?.files) acceptFiles(event.dataTransfer.files)
+  isDragOver.value = false;
+  if (event.dataTransfer?.files) acceptFiles(event.dataTransfer.files);
 }
 
 function removeFile(idx: number): void {
-  if (props.mode !== 'viewer') return
-  const next = currentFiles.value.slice()
-  const [removed] = next.splice(idx, 1)
+  if (props.mode !== 'viewer') return;
+  const next = currentFiles.value.slice();
+  const [removed] = next.splice(idx, 1);
   if (removed && ownedObjectUrls.value.includes(removed.url)) {
-    URL.revokeObjectURL(removed.url)
-    ownedObjectUrls.value = ownedObjectUrls.value.filter((u) => u !== removed.url)
+    URL.revokeObjectURL(removed.url);
+    ownedObjectUrls.value = ownedObjectUrls.value.filter((u) => u !== removed.url);
   }
-  emit('update:form-values', props.config.key, next)
+  emit('update:form-values', props.config.key, next);
 }
 
 function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 onBeforeUnmount(() => {
-  ownedObjectUrls.value.forEach((u) => URL.revokeObjectURL(u))
-  ownedObjectUrls.value = []
-})
+  ownedObjectUrls.value.forEach((u) => URL.revokeObjectURL(u));
+  ownedObjectUrls.value = [];
+});
 </script>
 
 <style scoped>

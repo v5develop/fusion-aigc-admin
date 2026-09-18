@@ -464,7 +464,8 @@ export default {
     loadFailed: 'Failed to load user info',
     grantCapability: 'Grant Capability',
     resetCredential: 'Reset Username/Password',
-    resetCredentialWarn: "Resetting immediately invalidates this user's sessions on every device (they must re-login). Leave a field blank to keep it unchanged.",
+    resetCredentialWarn:
+      "Resetting immediately invalidates this user's sessions on every device (they must re-login). Leave a field blank to keep it unchanged.",
     resetCredentialEmpty: 'Enter a new username or a new password (at least one)',
     resetCredentialSuccess: 'Reset done; the user has been signed out on every device',
     newUsername: 'New Username',
@@ -1802,7 +1803,8 @@ export default {
       import: 'Import',
       exportSuccess: 'Exported successfully',
       importTip: 'Paste JSON format route configuration data',
-      importPlaceholder: 'Example:\n[\n  {\n    "path": "/api/users",\n    "upstream": "http://localhost:8081",\n    "method": "GET",\n    "stripPrefix": true,\n    "priority": 0\n  }\n]',
+      importPlaceholder:
+        'Example:\n[\n  {\n    "path": "/api/users",\n    "upstream": "http://localhost:8081",\n    "method": "GET",\n    "stripPrefix": true,\n    "priority": 0\n  }\n]',
       importRequired: 'Please enter import data',
       importFormatError: 'Format error, please enter a valid JSON array',
       importSuccess: 'Import completed: {imported} succeeded, {failed} failed',
@@ -1917,10 +1919,13 @@ export default {
       export: 'Export',
       import: 'Import',
       exportSuccess: 'Exported successfully',
-      importTip: 'Paste JSON format Sentinel rules configuration data (including flowRules and circuitRules)',
-      importPlaceholder: 'Example:\n{\n  "flowRules": [\n    {\n      "resource": "/api/users",\n      "threshold": 100,\n      "strategy": 0,\n      "controlBehavior": 0\n    }\n  ],\n  "circuitRules": []\n}',
+      importTip:
+        'Paste JSON format Sentinel rules configuration data (including flowRules and circuitRules)',
+      importPlaceholder:
+        'Example:\n{\n  "flowRules": [\n    {\n      "resource": "/api/users",\n      "threshold": 100,\n      "strategy": 0,\n      "controlBehavior": 0\n    }\n  ],\n  "circuitRules": []\n}',
       importRequired: 'Please enter import data',
-      importFormatError: 'Format error, please enter a valid JSON object containing flowRules and circuitRules arrays',
+      importFormatError:
+        'Format error, please enter a valid JSON object containing flowRules and circuitRules arrays',
       importSuccess: 'Import completed: {imported} succeeded, {failed} failed',
     },
     middleware: {
@@ -2319,7 +2324,8 @@ export default {
       import: 'Import',
       exportSuccess: 'Export successful',
       importTip: 'Please paste JSON format protocol route configuration data',
-      importPlaceholder: 'Example:\n[\n  {\n    "name": "User Service",\n    "path": "/api/users",\n    "upstream": "http://localhost:8081",\n    "protocol": "http",\n    "enabled": true\n  }\n]',
+      importPlaceholder:
+        'Example:\n[\n  {\n    "name": "User Service",\n    "path": "/api/users",\n    "upstream": "http://localhost:8081",\n    "protocol": "http",\n    "enabled": true\n  }\n]',
       importRequired: 'Please enter import data',
       importFormatError: 'Format error, please enter a valid JSON array',
       importSuccess: 'Import completed: {imported} successful, {failed} failed',
@@ -2490,15 +2496,19 @@ export default {
     confirmDeleteModel: 'Are you sure you want to delete this model?',
     modelCode: 'Model Code',
     maxConcurrency: 'Max Concurrency',
-    maxConcurrencyHint: 'Maximum tasks processed concurrently by this model. Leave empty for system default.',
+    maxConcurrencyHint:
+      'Maximum tasks processed concurrently by this model. Leave empty for system default.',
     generationTimeout: 'Generation Timeout (s)',
-    generationTimeoutHint: 'Maximum wall-clock time for a single generation task. Leave empty to use the system default.',
+    generationTimeoutHint:
+      'Maximum wall-clock time for a single generation task. Leave empty to use the system default.',
     supportVision: 'Vision Support',
-    supportVisionHint: 'When enabled, this model can accept image input (images are passed in scenarios like prompt optimization and image recognition).',
+    supportVisionHint:
+      'When enabled, this model can accept image input (images are passed in scenarios like prompt optimization and image recognition).',
     supportReasoning: 'Reasoning Support',
     supportReasoningHint: 'When enabled, this model uses reasoning/thinking mode.',
     enableSearch: 'Web Search',
-    enableSearchHint: 'Controls whether the model searches the web. When enabled, responses are slower; disabled by default to speed up prompt optimization and similar scenarios. Currently only Bailian (DashScope) models honor this toggle; other providers are not yet controlled by it.',
+    enableSearchHint:
+      'Controls whether the model searches the web. When enabled, responses are slower; disabled by default to speed up prompt optimization and similar scenarios. Currently only Bailian (DashScope) models honor this toggle; other providers are not yet controlled by it.',
     modelName: 'Model Name',
     modelType: 'Model Type',
     provider: 'Provider',
@@ -2550,7 +2560,8 @@ export default {
     resolutionHint: 'Resolution tier key; leave blank to apply to all resolutions.',
     durationPlaceholder: 'Blank = generic',
     durationHint: 'Duration tier key (seconds); leave blank to apply to all durations.',
-    durationHintPerSecond: 'Usually leave blank for per-second pricing (unit price is duration-independent; total is auto-multiplied by duration).',
+    durationHintPerSecond:
+      'Usually leave blank for per-second pricing (unit price is duration-independent; total is auto-multiplied by duration).',
     effectiveTime: 'Effective Time',
     expireTime: 'Expire Time',
     expireTimePlaceholder: 'Blank = never expires',
@@ -2569,7 +2580,8 @@ export default {
     actionTypeRequired: 'Please select action type',
     pricePointsRequired: 'Please enter points cost (0 allowed, negative rejected)',
     pricePointsPlaceholder: 'Points cost; 0 means free',
-    pricePointsZeroHint: 'Only Doubao Factory models (which run on the user own bound account) may be priced at 0; other models are rejected by the server. Blank is not 0 and also fails validation.',
+    pricePointsZeroHint:
+      'Only Doubao Factory models (which run on the user own bound account) may be priced at 0; other models are rejected by the server. Blank is not 0 and also fails validation.',
     modelRequired: 'Please select a model',
     updateSuccess: 'Pricing updated successfully',
     createSuccess: 'Pricing created successfully',
@@ -2592,7 +2604,8 @@ export default {
     costAmount: 'Cost Amount (CNY)',
     costUnit: 'Cost Unit',
     actionType: 'Action Type',
-    actionTypeHint: 'Currently matched by model + meter; this field is not used in pricing lookup yet.',
+    actionTypeHint:
+      'Currently matched by model + meter; this field is not used in pricing lookup yet.',
     provider: 'Provider',
     providerModel: 'Provider Model',
     unitPerImage: 'Per Image',
@@ -2746,7 +2759,8 @@ export default {
     defaultDurationSeconds: 'Default Duration (s)',
     defaultResolutionPlaceholder: 'e.g. 720p, 1080p',
     defaultDurationPlaceholder: 'e.g. 5',
-    defaultDurationHint: 'Fallback billed seconds when the user does not specify a duration in per-second pricing scenarios.',
+    defaultDurationHint:
+      'Fallback billed seconds when the user does not specify a duration in per-second pricing scenarios.',
     includedOutputs: 'Outputs',
     componentCode: 'Step Code',
     stepCode: 'Step Key',
@@ -2755,12 +2769,14 @@ export default {
     costType: 'Cost Type',
     actionType: 'Action Type',
     actionTypePlaceholder: 'Blank = fixed base_points',
-    actionTypeHint: 'Which model-pricing row this step uses: priced by the row matched on (model, action type). Whether it bills per-image / per-second / per-request is decided by that pricing row price unit, not by this field. Leave blank to use Base Points as a fixed unit price.',
+    actionTypeHint:
+      'Which model-pricing row this step uses: priced by the row matched on (model, action type). Whether it bills per-image / per-second / per-request is decided by that pricing row price unit, not by this field. Leave blank to use Base Points as a fixed unit price.',
     basePoints: 'Base Points',
     basePointsPlaceholder: 'Fixed / fallback price',
     modelId: 'Model ID',
     priceMultiplier: 'Price Multiplier',
-    priceMultiplierHint: 'Final points = unit × count × this value; default 1 = no effect, 0.9 = 10% off / 0.5 = half / 1.5 = markup. Pricing only; does not drive execution or affect cost.',
+    priceMultiplierHint:
+      'Final points = unit × count × this value; default 1 = no effect, 0.9 = 10% off / 0.5 = half / 1.5 = markup. Pricing only; does not drive execution or affect cost.',
     refreshCache: 'Refresh Cache',
     cacheRefreshed: 'Cache refreshed',
     createSuccess: 'Created',
@@ -2847,7 +2863,8 @@ export default {
     grantSourceRegister: 'Registration gift',
     grantSourceCampaign: 'Campaign gift',
     grantSourceAdmin: 'Manual gift',
-    grantSourceDesc: 'Gifted points do not count towards the paid tier, which is what decides whether outputs are watermarked. Top-up sources cannot be selected here.',
+    grantSourceDesc:
+      'Gifted points do not count towards the paid tier, which is what decides whether outputs are watermarked. Top-up sources cannot be selected here.',
     userIdRequired: 'Please select a user',
     amountRequired: 'Please enter adjust points',
     amountPositive: 'Points must be greater than 0',
@@ -2869,7 +2886,8 @@ export default {
     secondConfirmContent: 'This operation will affect user billing. Are you sure to continue?',
     highRiskOperation: 'High Risk Operation',
     highRiskConfirmTitle: 'High Risk Operation Confirmation',
-    highRiskConfirmContent: 'This is a high-risk billing operation requiring second confirmation. Please verify:',
+    highRiskConfirmContent:
+      'This is a high-risk billing operation requiring second confirmation. Please verify:',
     operationType: 'Operation Type',
     targetUser: 'Target User',
     operationAmount: 'Operation Amount',
@@ -2984,10 +3002,13 @@ export default {
     refundDesc: 'Points refund API for alliance platform to refund consumed points',
     unionLoginDesc: 'Union login API for alliance users to login to local system',
     bindUnionDesc: 'Bind union API for local users to bind alliance accounts',
-    getUnionUserInfoDesc: 'Get union user info API, query local system user by unionUserId; returns data: null when user not found',
-    checkUserExistsDesc: 'Check if union user exists, determine whether the user has been registered by unionUserId',
+    getUnionUserInfoDesc:
+      'Get union user info API, query local system user by unionUserId; returns data: null when user not found',
+    checkUserExistsDesc:
+      'Check if union user exists, determine whether the user has been registered by unionUserId',
     checkUserExistsResultDesc: 'true-user exists false-user not found',
-    registerUnionUserDesc: 'Register union user API, sync alliance user to local system; updates profile if unionUserId already exists',
+    registerUnionUserDesc:
+      'Register union user API, sync alliance user to local system; updates profile if unionUserId already exists',
     featuresDesc: 'Get available features list for alliance platform reference',
     featureNameDesc: 'Feature name (i18n)',
     featureDescDesc: 'Feature description (i18n)',
@@ -3002,7 +3023,8 @@ export default {
     unionUserStatusDesc: 'Account status: active/frozen/deactivating/deactivated',
     createdAtDesc: 'User register time (ISO-8601)',
     maskPhoneDesc: 'Masked phone number (e.g. 138****1234)',
-    userNotFoundDesc: 'data is null means the union user has not been registered in the local system',
+    userNotFoundDesc:
+      'data is null means the union user has not been registered in the local system',
     phoneDesc: 'Phone number',
     grantIdDesc: 'Grant ID, unique identifier for a grant request',
     rechargeIdDesc: 'Recharge ID, unique identifier for a recharge request',
@@ -3014,9 +3036,12 @@ export default {
     pointsAmountDesc: 'Points amount to grant',
     expireTimeDesc: 'Feature expiration time',
     sourceGrantIdDesc: 'Original grant ID, required when revoking',
-    rechargeExpireTimeDesc: 'Points expiry time (expiry of this recharged points batch; unused points are voided after expiry; never expires if omitted)',
-    rechargeBizTypeDesc: 'Source business type: subscription (subscription grant) / recharge (normal recharge), case-insensitive; defaults to normal recharge when omitted',
-    sourceBizTypeDesc: 'Original business type, aligned with recharge bizType: subscription (subscription grant) / recharge (normal recharge)',
+    rechargeExpireTimeDesc:
+      'Points expiry time (expiry of this recharged points batch; unused points are voided after expiry; never expires if omitted)',
+    rechargeBizTypeDesc:
+      'Source business type: subscription (subscription grant) / recharge (normal recharge), case-insensitive; defaults to normal recharge when omitted',
+    sourceBizTypeDesc:
+      'Original business type, aligned with recharge bizType: subscription (subscription grant) / recharge (normal recharge)',
     sourceBizIdDesc: 'Original business ID',
     refundAmountDesc: 'Points amount to refund',
     externalIdDesc: 'External transaction ID, unique request identifier from alliance',
@@ -3031,44 +3056,61 @@ export default {
     bindTokenDesc: 'Union bind token, issued by alliance platform',
     bindSuccessDesc: 'Whether binding was successful',
     signatureEnabled: 'Signature Verification',
-    signatureEnabledTip: 'When enabled, all requests are signature-verified; signature and IP whitelist cannot both be disabled.',
+    signatureEnabledTip:
+      'When enabled, all requests are signature-verified; signature and IP whitelist cannot both be disabled.',
     whitelistEnabled: 'IP Whitelist',
-    whitelistEnabledTip: 'When enabled, all requests are checked against the source IP whitelist; signature and IP whitelist cannot both be disabled.',
-    authMethodRequiredTip: 'Signature verification and IP whitelist cannot both be disabled, otherwise union APIs would have no authentication.',
-    authMethodSwitchedTip: 'The other authentication method has been enabled automatically; union APIs must keep at least one.',
+    whitelistEnabledTip:
+      'When enabled, all requests are checked against the source IP whitelist; signature and IP whitelist cannot both be disabled.',
+    authMethodRequiredTip:
+      'Signature verification and IP whitelist cannot both be disabled, otherwise union APIs would have no authentication.',
+    authMethodSwitchedTip:
+      'The other authentication method has been enabled automatically; union APIs must keep at least one.',
     whitelistIps: 'Whitelist IPs',
     whitelistIpsPlaceholder: 'One IP or CIDR per line, e.g. 192.168.1.100 or 10.0.0.0/8',
     whitelistIpsTip: 'Supports exact IPs and CIDR notation (e.g. 192.168.1.0/24)',
     trustedProxies: 'Trusted Proxies',
     advancedTag: 'Advanced',
     trustedProxiesPlaceholder: 'One proxy IP or CIDR per line, e.g. 10.0.0.10 or 10.0.0.0/24',
-    trustedProxiesTip: 'Only required when a reverse proxy/gateway sits in front of the API; leave empty for direct deployments. X-Forwarded-For is only parsed to resolve the real client IP when the direct peer is a trusted proxy, preventing whitelist bypass via spoofed headers.',
+    trustedProxiesTip:
+      'Only required when a reverse proxy/gateway sits in front of the API; leave empty for direct deployments. X-Forwarded-For is only parsed to resolve the real client IP when the direct peer is a trusted proxy, preventing whitelist bypass via spoofed headers.',
     offlineRequireTimestamp: 'Require Timestamp When Signature-Free',
-    offlineRequireTimestampTip: 'Whitelist bypass has no HMAC/nonce replay protection. When enabled, requests must carry X-Union-Timestamp within the 5-minute tolerance window, narrowing "unlimited replay" to "replay within the window", combined with business idempotency. Keeping it enabled is recommended.',
+    offlineRequireTimestampTip:
+      'Whitelist bypass has no HMAC/nonce replay protection. When enabled, requests must carry X-Union-Timestamp within the 5-minute tolerance window, narrowing "unlimited replay" to "replay within the window", combined with business idempotency. Keeping it enabled is recommended.',
     signatureGuideTitle: 'Signature Algorithm Guide',
-    signatureGuideIntro: 'Union calls to this system must carry an HMAC-SHA256 signature in request headers. When both signature verification and IP whitelist are enabled, both the signature and source IP must pass; the signature may be skipped only when signature verification is turned off and the source IP is in the whitelist.',
+    signatureGuideIntro:
+      'Union calls to this system must carry an HMAC-SHA256 signature in request headers. When both signature verification and IP whitelist are enabled, both the signature and source IP must pass; the signature may be skipped only when signature verification is turned off and the source IP is in the whitelist.',
     authModesTitle: 'Two Authentication Modes',
     authModeSignedTitle: 'Signed Mode',
-    authModeSignedDesc: 'Default mode. Every request computes an HMAC-SHA256 signature with appSecret; the server verifies the signature plus timestamp window and nonce replay protection, providing integrity and anti-forgery. Required for public-network integration.',
+    authModeSignedDesc:
+      'Default mode. Every request computes an HMAC-SHA256 signature with appSecret; the server verifies the signature plus timestamp window and nonce replay protection, providing integrity and anti-forgery. Required for public-network integration.',
     authModeUnsignedTitle: 'Unsigned Mode (IP Whitelist)',
-    authModeUnsignedDesc: 'Effective only when the source IP is whitelisted and signature verification is disabled; no signature is computed. Requests must still carry X-Union-Timestamp and X-Union-Nonce (replay protection within the 5-minute window). Only for trusted intranet networks.',
+    authModeUnsignedDesc:
+      'Effective only when the source IP is whitelisted and signature verification is disabled; no signature is computed. Requests must still carry X-Union-Timestamp and X-Union-Nonce (replay protection within the 5-minute window). Only for trusted intranet networks.',
     authModeHeaders: 'Required headers: ',
     signatureHeaders: 'Signature Headers',
     signatureSteps: 'String-to-Sign & Computation',
     signatureParamsTitle: 'Signature Parameters',
     signatureParamField: 'Parameter / Placeholder',
     sigParamMethodDesc: 'HTTP method in uppercase, e.g. POST, GET.',
-    sigParamUriDesc: 'Request path (without query string or domain), e.g. /api/v1/union/feature-grants.',
-    sigParamQueryDesc: 'Canonical query string: all query params sorted by key ascending and joined as key=value with &; empty string when there are no query params.',
-    sigParamBodyDesc: 'SHA-256 digest of the raw request body bytes in lowercase hex; digest of an empty string when there is no body.',
+    sigParamUriDesc:
+      'Request path (without query string or domain), e.g. /api/v1/union/feature-grants.',
+    sigParamQueryDesc:
+      'Canonical query string: all query params sorted by key ascending and joined as key=value with &; empty string when there are no query params.',
+    sigParamBodyDesc:
+      'SHA-256 digest of the raw request body bytes in lowercase hex; digest of an empty string when there is no body.',
     sigParamTimestampDesc: 'Same Unix epoch seconds as the X-Union-Timestamp header.',
     sigParamNonceDesc: 'Same one-time random string as the X-Union-Nonce header.',
     sigParamAppKeyDesc: 'Same union app identifier as the X-Union-App-Key header.',
-    sigParamAppSecretDesc: 'Union app secret (HMAC key), held only by both parties; never expose it or put it in the request.',
-    sigParamSignatureDesc: 'HMAC-SHA256 of stringToSign using appSecret, lowercase hex, placed in the X-Union-Signature header.',
-    signatureGuideNote: 'Timestamp tolerance window is 5 minutes; nonce cannot repeat within the window; the body is part of the signature, so any tampering fails verification.',
-    rechargeConsumptionDesc: 'Batch query recharge consumption summary interface, query the issued amount, consumed amount, remaining amount and expiration status of multiple recharge IDs in batch',
-    userPointsLogDesc: 'Paginated query user points consumption detail interface, reflecting the complete flow record of user total points changes',
+    sigParamAppSecretDesc:
+      'Union app secret (HMAC key), held only by both parties; never expose it or put it in the request.',
+    sigParamSignatureDesc:
+      'HMAC-SHA256 of stringToSign using appSecret, lowercase hex, placed in the X-Union-Signature header.',
+    signatureGuideNote:
+      'Timestamp tolerance window is 5 minutes; nonce cannot repeat within the window; the body is part of the signature, so any tampering fails verification.',
+    rechargeConsumptionDesc:
+      'Batch query recharge consumption summary interface, query the issued amount, consumed amount, remaining amount and expiration status of multiple recharge IDs in batch',
+    userPointsLogDesc:
+      'Paginated query user points consumption detail interface, reflecting the complete flow record of user total points changes',
     rechargeIdsDesc: 'Recharge ID list, used for batch query',
     rechargePointsAmountDesc: 'Total recharge points amount',
     consumedAmountDesc: 'Consumed points',
@@ -3076,7 +3118,8 @@ export default {
     expiredDesc: 'Whether expired',
     pageDesc: 'Page number, starting from 1',
     pageSizeDesc: 'Number of items per page',
-    changeTypeFilterDesc: 'Change type filter, omit to query all union-related types (RECHARGE/CONSUME/REFUND/GRANT)',
+    changeTypeFilterDesc:
+      'Change type filter, omit to query all union-related types (RECHARGE/CONSUME/REFUND/GRANT)',
     totalDesc: 'Total number of records',
     listDesc: 'Data list',
     changeTypeDesc: 'Change type: RECHARGE/CONSUME/REFUND/GRANT',
@@ -3131,9 +3174,11 @@ export default {
     confirmEnable: 'Confirm re-enabling this app?',
     confirmRotate: 'Rotation generates a new secret (plaintext shown once). Continue?',
     rotateGraceful: 'Graceful rotation',
-    rotateGracefulHint: 'Keep the old secret in a grace period for zero-downtime clients; otherwise replaces in place and revokes the old secret immediately',
+    rotateGracefulHint:
+      'Keep the old secret in a grace period for zero-downtime clients; otherwise replaces in place and revokes the old secret immediately',
     secretTitle: 'App Secret (shown only this time)',
-    secretWarning: 'The plaintext secret is shown only once. Please save it immediately. It cannot be retrieved again after closing.',
+    secretWarning:
+      'The plaintext secret is shown only once. Please save it immediately. It cannot be retrieved again after closing.',
     statusMap: {
       pending: 'Pending Review',
       enabled: 'Enabled',
@@ -3151,7 +3196,7 @@ export default {
       delete: 'Delete Admin',
       resetPassword: 'Reset Password',
       confirmDelete: 'Are you sure you want to delete this admin?',
-      confirmResetPassword: 'Are you sure you want to reset this admin\'s password?',
+      confirmResetPassword: "Are you sure you want to reset this admin's password?",
       username: 'Username',
       realName: 'Real Name',
       email: 'Email',
@@ -3168,7 +3213,8 @@ export default {
       password: 'Password',
       passwordRequired: 'Please enter password',
       passwordPlaceholder: 'Please enter password',
-      passwordPattern: 'Password must be at least 8 characters with uppercase, lowercase, and numbers',
+      passwordPattern:
+        'Password must be at least 8 characters with uppercase, lowercase, and numbers',
       emailPlaceholder: 'Please enter email',
       phonePlaceholder: 'Please enter phone',
       rolesRequired: 'Please select at least one role',
@@ -3177,7 +3223,8 @@ export default {
       createSuccess: 'Admin created successfully',
       deleteSuccess: 'Admin deleted successfully',
       resetSuccess: 'Password reset successfully',
-      resetPasswordConfirm: 'Are you sure you want to reset password for user {username} to 123456?',
+      resetPasswordConfirm:
+        'Are you sure you want to reset password for user {username} to 123456?',
       toggleStatusConfirm: 'Are you sure you want to {action} user {username}?',
       deleteConfirm: 'Are you sure you want to delete user {username}?',
       noUserData: 'No admin data',
@@ -3249,7 +3296,8 @@ export default {
     expireTime: 'Expire Time',
     status: 'Status',
     revoke: 'Revoke',
-    confirmRevoke: 'Are you sure you want to revoke this feature? After revocation, the user will no longer be able to use this feature.',
+    confirmRevoke:
+      'Are you sure you want to revoke this feature? After revocation, the user will no longer be able to use this feature.',
     revokeSuccess: 'Feature revoked successfully',
     sourceMap: {
       union: 'Alliance Grant',
@@ -3369,7 +3417,8 @@ export default {
   },
   settingsStorage: {
     title: 'Storage Configuration',
-    realConfigTip: 'This page uses the real file storage configuration model. Local storage only needs a disk path; object storage is connected through the backend S3-compatible strategy. Qiniu is not shown because the backend does not implement it yet.',
+    realConfigTip:
+      'This page uses the real file storage configuration model. Local storage only needs a disk path; object storage is connected through the backend S3-compatible strategy. Qiniu is not shown because the backend does not implement it yet.',
     name: 'Config Name',
     nameRequired: 'Please enter config name',
     namePlaceholder: 'Example: Default Local Storage, Aliyun Hangzhou OSS',
@@ -3399,20 +3448,24 @@ export default {
     awsAccessKeyPlaceholder: 'Enter Access Key ID',
     awsSecretKeyLabel: 'Secret Access Key',
     awsSecretKeyPlaceholder: 'Enter Secret Access Key',
-    maskedSecretHint: 'Masked credentials are loaded; leaving them unchanged will not overwrite backend secrets.',
+    maskedSecretHint:
+      'Masked credentials are loaded; leaving them unchanged will not overwrite backend secrets.',
     endpoint: 'Endpoint',
     endpointRequired: 'Please enter endpoint',
     endpointInvalid: 'Endpoint must be an HTTP or HTTPS URL',
     basePath: 'Storage Root Path / Object Prefix',
     basePathRequired: 'Please enter local storage root path',
     localBasePathPlaceholder: 'Example: ./data/media or /data/media',
-    localBasePathHint: 'Local files are written to this directory and served by backend /media/... paths.',
+    localBasePathHint:
+      'Local files are written to this directory and served by backend /media/... paths.',
     objectPrefixPlaceholder: 'Example: ai-fusion/, optional',
     objectPrefixHint: 'Object key prefix in object storage, not a local path.',
     customDomain: 'Access Domain / CDN Domain',
     customDomainPlaceholder: 'Example: https://cdn.example.com, optional',
-    customDomainHint: 'When set, backend uses this domain to generate file access URLs. Otherwise it uses bucket + endpoint.',
-    stsRoleArnHint: 'Required for STS temporary-credential direct upload on this storage. Leave empty to support only presigned / POST policy upload.',
+    customDomainHint:
+      'When set, backend uses this domain to generate file access URLs. Otherwise it uses bucket + endpoint.',
+    stsRoleArnHint:
+      'Required for STS temporary-credential direct upload on this storage. Leave empty to support only presigned / POST policy upload.',
     stsRoleArn: 'STS Role ARN',
     stsRoleArnPlaceholder: 'arn:aws:iam::123456789012:role/direct-upload',
     stsRegion: 'STS Region',
@@ -3430,7 +3483,8 @@ export default {
     awsStsRegion: 'STS Region',
     awsStsRegionPlaceholder: 'us-east-1',
     stsRegionSameAsRegion: 'Same as Region',
-    stsRegionHint: 'Usually same as the storage bucket region, used for generating temporary access credentials',
+    stsRegionHint:
+      'Usually same as the storage bucket region, used for generating temporary access credentials',
     customDomainInvalid: 'Invalid access domain format',
     remark: 'Remark',
     remarkPlaceholder: 'Enter remark, optional',
@@ -3477,13 +3531,15 @@ export default {
     enabledOn: 'Level-based queue priority enabled',
     enabledOff: 'Disabled; everyone shares one priority (queue falls back to FIFO)',
     weights: 'Weights',
-    weightsDesc: 'JSON object: rechargeAmountWeight, paidMonthWeight, topPackageAmountWeight. Leave empty to change only the switch.',
+    weightsDesc:
+      'JSON object: rechargeAmountWeight, paidMonthWeight, topPackageAmountWeight. Leave empty to change only the switch.',
     create: 'New level',
     edit: 'Edit level',
     levelCode: 'Level code',
     levelName: 'Level name',
     minScore: 'Minimum score',
-    minScoreDesc: 'Inclusive. The lowest level must be 0, otherwise users who never paid match no level at all.',
+    minScoreDesc:
+      'Inclusive. The lowest level must be 0, otherwise users who never paid match no level at all.',
     queuePriority: 'Queue priority',
     queuePriorityDesc: 'Higher dequeues first; within the same priority, FIFO still holds.',
     deleteConfirm: 'This level will no longer be matched. Delete it?',
@@ -3495,15 +3551,20 @@ export default {
     create: 'New Package',
     edit: 'Edit Package',
     packageCode: 'Package Code',
-    packageCodeDesc: 'Stable public identifier. Deleting a package archives its code with a suffix, so the same code can be reused.',
+    packageCodeDesc:
+      'Stable public identifier. Deleting a package archives its code with a suffix, so the same code can be reused.',
     name: 'Package Name',
     priceMajor: 'Price (major unit)',
-    priceDesc: 'Entered in major units and converted to minor units on submit. Must be greater than 0 — a zero-amount order is rejected by the payment gateway, so it can be placed but never paid. To hand out points, use check-in / invites / admin grants instead.',
+    priceDesc:
+      'Entered in major units and converted to minor units on submit. Must be greater than 0 — a zero-amount order is rejected by the payment gateway, so it can be placed but never paid. To hand out points, use check-in / invites / admin grants instead.',
     basePoints: 'Base Points',
-    basePointsDesc: 'Must equal price x rate = {expected}; put any extra give-away in bonus points. Changing the price syncs this field automatically.',
-    basePointsDescNoRate: 'Must equal price x rate. No package exists yet, so the rate is unknown here; the server validates on submit and returns the exact number.',
+    basePointsDesc:
+      'Must equal price x rate = {expected}; put any extra give-away in bonus points. Changing the price syncs this field automatically.',
+    basePointsDescNoRate:
+      'Must equal price x rate. No package exists yet, so the rate is unknown here; the server validates on submit and returns the exact number.',
     rateMismatch: 'Rate mismatch',
-    rateMismatchTip: 'The exchange rate changed but this package did not follow, so it still sells points at the old rate. Base points should be {expected} under the current rate — review and save again.',
+    rateMismatchTip:
+      'The exchange rate changed but this package did not follow, so it still sells points at the old rate. Base points should be {expected} under the current rate — review and save again.',
     bonusPoints: 'Bonus Points',
     bonusDesc: 'Stored separately from base points so the product card can show them apart.',
     points: 'Points (base + bonus)',
@@ -3512,7 +3573,8 @@ export default {
     recommended: 'Recommended',
     enabledOn: 'Listed — visible to users immediately',
     enabledOff: 'Delisted — stale pages can no longer check out at the old price',
-    deleteConfirm: 'This package will no longer be sellable. Existing orders are unaffected. Delete it?',
+    deleteConfirm:
+      'This package will no longer be sellable. Existing orders are unaffected. Delete it?',
   },
 
   checkIn: {
@@ -3522,7 +3584,8 @@ export default {
     enabledOn: 'Daily check-in enabled',
     enabledOff: 'Daily check-in disabled',
     rewards: 'Streak Rewards',
-    rewardsDesc: 'Comma-separated; index is the streak day. The list repeats once exceeded — e.g. 10,10,10,10,10,10,60 gives a day-7 bonus.',
+    rewardsDesc:
+      'Comma-separated; index is the streak day. The list repeats once exceeded — e.g. 10,10,10,10,10,10,60 gives a day-7 bonus.',
     rewardsRequired: 'Enter at least one reward value',
     day: 'Day {day}',
     pointsValidDays: 'Gift Points Validity (days)',
@@ -3573,7 +3636,8 @@ export default {
     tokenExpireHours: 'Token Validity Period',
     tokenExpireHoursHint: 'Login token validity duration (hours)',
     maxLoginAttempts: 'Max Login Attempts',
-    maxLoginAttemptsHint: 'Account will be locked after exceeding this number of consecutive failed login attempts',
+    maxLoginAttemptsHint:
+      'Account will be locked after exceeding this number of consecutive failed login attempts',
     lockDuration: 'Account Lock Duration',
     enableCaptcha: 'Enable Captcha',
     enableCaptchaHint: 'Require captcha during login',
@@ -3591,38 +3655,52 @@ export default {
     creation: 'Creation',
     videoWatermark: 'Video display watermark',
     videoWatermarkDesc: 'Display watermarked; downloads still return the original',
-    videoWatermarkHint: 'When enabled, a background sweep generates a watermarked copy of each video: display uses the watermarked version while downloads still return the original. The cost is a full re-encode plus a second stored copy per video, which is far heavier than the on-the-fly image watermark, so it is off by default. A watermark logo path must also be configured, otherwise only covers are produced.',
+    videoWatermarkHint:
+      'When enabled, a background sweep generates a watermarked copy of each video: display uses the watermarked version while downloads still return the original. The cost is a full re-encode plus a second stored copy per video, which is far heavier than the on-the-fly image watermark, so it is off by default. A watermark logo path must also be configured, otherwise only covers are produced.',
     videoWatermarkOn: 'Video display watermark enabled; newly generated videos will be watermarked',
-    videoWatermarkOff: 'Video display watermark disabled; already-generated watermarked videos remain in use',
+    videoWatermarkOff:
+      'Video display watermark disabled; already-generated watermarked videos remain in use',
     blindWatermark: 'Image blind watermark',
-    blindWatermarkDesc: 'Embeds invisible tracing info into every generated image; requires the blind-watermark service URL',
-    blindWatermarkOn: 'Image blind watermark enabled; newly generated images will carry tracing info',
+    blindWatermarkDesc:
+      'Embeds invisible tracing info into every generated image; requires the blind-watermark service URL',
+    blindWatermarkOn:
+      'Image blind watermark enabled; newly generated images will carry tracing info',
     blindWatermarkOff: 'Image blind watermark disabled; already-embedded images remain extractable',
     displayWatermark: 'Visible image watermark',
-    displayWatermarkDesc: 'Master switch. Free users get watermarks on view, download and asset library; off means nobody does',
+    displayWatermarkDesc:
+      'Master switch. Free users get watermarks on view, download and asset library; off means nobody does',
     displayWatermarkOn: 'Visible image watermark enabled',
     displayWatermarkOff: 'Visible image watermark disabled; existing copies are no longer served',
     paidViewWatermark: 'Watermark paid users on view',
-    paidViewWatermarkDesc: 'Paid tier only. Off = no watermark at all for paid users; on = watermark on view, clean on download. Free users are unaffected',
+    paidViewWatermarkDesc:
+      'Paid tier only. Off = no watermark at all for paid users; on = watermark on view, clean on download. Free users are unaffected',
     paidViewWatermarkOn: 'Paid users will see watermarks',
     paidViewWatermarkOff: 'Paid users will no longer see watermarks',
     userTier: 'Free / paid tiering',
-    userTierDesc: 'Decided by whether the user ever received paid-source points, not by balance. Off means everyone is treated as paid',
+    userTierDesc:
+      'Decided by whether the user ever received paid-source points, not by balance. Off means everyone is treated as paid',
     userTierOn: 'Free / paid tiering enabled',
     userTierOff: 'Tiering disabled; everyone is treated as paid (no free-tier watermark)',
-    agentModelHint: 'Models for backend Agent scenarios such as prompt optimization. Auto-routed by whether the request carries images: no image uses the text profile, with image uses the vision profile. Each profile falls back to the yaml config when unset or unavailable. (Profiles here are model roles, unrelated to user permission roles.)',
+    agentModelHint:
+      'Models for backend Agent scenarios such as prompt optimization. Auto-routed by whether the request carries images: no image uses the text profile, with image uses the vision profile. Each profile falls back to the yaml config when unset or unavailable. (Profiles here are model roles, unrelated to user permission roles.)',
     agentModelPlaceholder: 'Select a model',
-    agentModelSelectHint: 'Only enabled text chat models can be selected; leave empty to use the yaml fallback config',
+    agentModelSelectHint:
+      'Only enabled text chat models can be selected; leave empty to use the yaml fallback config',
     agentModelSupportVision: 'Vision Supported',
     agentProfileText: 'Text profile (no-image prompt optimization)',
-    agentProfileTextHint: 'Handles prompt rewriting without reference images. Bind a lightweight, fast model (e.g. qwen-flash) to reduce latency.',
+    agentProfileTextHint:
+      'Handles prompt rewriting without reference images. Bind a lightweight, fast model (e.g. qwen-flash) to reduce latency.',
     agentProfileVision: 'Vision profile (image prompt optimization)',
-    agentProfileVisionHint: 'Handles multimodal prompt optimization with reference images. Requires a vision-capable model.',
-    agentProfileVisionSelectHint: 'Only enabled vision-capable text chat models can be selected; leave empty to use the yaml fallback config',
+    agentProfileVisionHint:
+      'Handles multimodal prompt optimization with reference images. Requires a vision-capable model.',
+    agentProfileVisionSelectHint:
+      'Only enabled vision-capable text chat models can be selected; leave empty to use the yaml fallback config',
     aiWritingModel: 'AI Writing Model',
-    aiWritingModelHint: "Dedicated prompt-optimization model for the frontend \"AI Writing\" button. A standalone profile, decoupled from the image/video pipeline's internal auto-optimization. Falls back to the default routing (version binding → TEXT/VISION profile) when unset.",
+    aiWritingModelHint:
+      'Dedicated prompt-optimization model for the frontend "AI Writing" button. A standalone profile, decoupled from the image/video pipeline\'s internal auto-optimization. Falls back to the default routing (version binding → TEXT/VISION profile) when unset.',
     aiWritingModelLabel: 'AI Writing dedicated model',
-    aiWritingModelSelectHint: 'Only enabled text chat models can be selected; leave empty to skip the dedicated config and fall back to default routing. When writing with images, a non-vision model automatically falls back to the vision profile.',
+    aiWritingModelSelectHint:
+      'Only enabled text chat models can be selected; leave empty to skip the dedicated config and fall back to default routing. When writing with images, a non-vision model automatically falls back to the vision profile.',
     saveSuccess: 'System parameters saved successfully',
   },
 
@@ -3659,11 +3737,14 @@ export default {
     scopeTask: 'Creation tasks only',
     scopeAsset: 'Assets only',
     limit: 'Batch size',
-    limitHint: 'At most {max} rows per batch; a larger value is silently truncated by the backend, so the numbers here would no longer match what was actually scanned.',
+    limitHint:
+      'At most {max} rows per batch; a larger value is silently truncated by the backend, so the numbers here would no longer match what was actually scanned.',
     offset: 'Offset',
-    offsetHint: 'The endpoint rescans from the top every time, so a clump of never-fixable rows at the head makes it spin in place - use the offset to skip past them.',
+    offsetHint:
+      'The endpoint rescans from the top every time, so a clump of never-fixable rows at the head makes it spin in place - use the offset to skip past them.',
     dryRun: 'Dry run',
-    dryRunHint: 'A dry run only counts, it never writes. The backend does not take the distributed lock in this mode, so it can run alongside someone else\'s backfill.',
+    dryRunHint:
+      "A dry run only counts, it never writes. The backend does not take the distributed lock in this mode, so it can run alongside someone else's backfill.",
     dryRunTag: 'dry run',
     run: 'Run one batch',
     runDone: '{count} rows filled in this batch',
@@ -3671,8 +3752,10 @@ export default {
     coverRunDone: '{count} covers generated in this batch',
     history: 'Run history',
     paramsSummary: '{scope} · batch {limit} · offset {offset}',
-    idempotentHint: 'Running it repeatedly is safe: the backfill is idempotent, already-fixed rows are never picked again.',
-    scriptHint: 'For a large backlog use the command-line script {script} instead: it advances the cursor on its own, so you do not have to move the offset by hand.',
+    idempotentHint:
+      'Running it repeatedly is safe: the backfill is idempotent, already-fixed rows are never picked again.',
+    scriptHint:
+      'For a large backlog use the command-line script {script} instead: it advances the cursor on its own, so you do not have to move the offset by hand.',
     colTime: 'Time',
     colParams: 'Parameters',
     colResult: 'Result',
@@ -3698,8 +3781,9 @@ export default {
     entryUnregisteredDesc:
       'These tasks already have entry_code filled, so they are not part of the "to fill" counts above, and no amount of re-running the backfill will change them. The gap is on the other side: no enabled billing offer registers that code. Everything downstream degrades silently - the entry chip in the user task center does not render; filtering the admin content list by entry returns nothing; the asset-library category aggregation is a plain IN intersection, so these assets land in no tab at all; "make a similar one" looks the offer up, fails, and is swallowed into "not supported yet". Nothing is ever reported as an error - only a WARN line nobody reads.',
     entryUnregisteredAction:
-      'What needs fixing is the billing offer configuration, not another backfill run: create and enable the matching offer for each entry code below (the usual cause is an environment where that entry\'s offer seed script was never run).',
-    entryUnregisteredNone: 'Every filled entry code resolves to an enabled offer - entry-related features are healthy.',
+      "What needs fixing is the billing offer configuration, not another backfill run: create and enable the matching offer for each entry code below (the usual cause is an environment where that entry's offer seed script was never run).",
+    entryUnregisteredNone:
+      'Every filled entry code resolves to an enabled offer - entry-related features are healthy.',
     entryCodeCol: 'Entry code',
     entryCountCol: 'Tasks',
     entryHistorySide: '{side} scanned {scanned} / filled {filled} / left empty {stuck}',
@@ -3718,7 +3802,8 @@ export default {
     colTaskId: 'Task ID',
     colReason: 'Why picked',
     colResultUrl: 'Source URL (for extraction)',
-    coverHistorySide: '{side} scanned {scanned} / generated {generated} / failed {failed} / cross-fixed {crossFixed}',
+    coverHistorySide:
+      '{side} scanned {scanned} / generated {generated} / failed {failed} / cross-fixed {crossFixed}',
   },
 
   creationTask: {
@@ -3821,7 +3906,8 @@ export default {
     batchCancel: 'Batch Cancel',
     confirmCancel: 'Are you sure you want to cancel this task?',
     confirmRetry: 'Are you sure you want to retry this task?',
-    confirmForceFail: 'Force this task to failed? It becomes terminal (no more retries) and any unsettled reservation is refunded.',
+    confirmForceFail:
+      'Force this task to failed? It becomes terminal (no more retries) and any unsettled reservation is refunded.',
     confirmBatchCancel: 'Are you sure you want to cancel {count} selected tasks?',
     cancelSuccess: 'Cancelled successfully',
     retrySuccess: 'Retry submitted successfully',
@@ -3835,7 +3921,8 @@ export default {
     blockPermanent: 'Permanent (irreversible)',
     blockReason: 'Block Reason',
     blockReasonPlaceholder: 'Optional reason',
-    blockConfirmContent: 'After blocking, users cannot see this task content or assets (assets delisted). Permanent block cannot be undone.',
+    blockConfirmContent:
+      'After blocking, users cannot see this task content or assets (assets delisted). Permanent block cannot be undone.',
     unblockConfirm: 'Unblock this task? Display and assets will be restored.',
     blockSuccess: 'Blocked',
     unblockSuccess: 'Unblocked',
@@ -3893,7 +3980,8 @@ export default {
     coverImage: 'Cover Image',
     coverImagePlaceholder: 'Cover thumbnail URL, shown on the home card',
     content: 'Prompt Content',
-    contentPlaceholder: 'Use ｛｛key｝｝ to insert placeholder components, e.g. Upload ｛｛productImage｝｝ and generate the main image for ｛｛productName｝｝',
+    contentPlaceholder:
+      'Use ｛｛key｝｝ to insert placeholder components, e.g. Upload ｛｛productImage｝｝ and generate the main image for ｛｛productName｝｝',
     contentRequired: 'Please enter prompt content',
     insertVariableHint: 'Click to insert variable:',
     detectedVariables: 'Detected variables',
@@ -4030,7 +4118,8 @@ export default {
     sortOrder: 'Sort',
     extra: 'Extra',
     extraPlaceholder: 'Optional, JSON or note',
-    sharedMaterialHint: 'The material itself (URL/title/size/extra) is globally deduplicated by URL and shared across every module/slot that references it; editing these fields affects all placements. Module/slot/sort/status apply only to this placement.',
+    sharedMaterialHint:
+      'The material itself (URL/title/size/extra) is globally deduplicated by URL and shared across every module/slot that references it; editing these fields affects all placements. Module/slot/sort/status apply only to this placement.',
     tagDrawerTitle: 'Asset Tagging',
     multiSelect: 'Multi',
     clear: 'Clear',
@@ -4060,7 +4149,8 @@ export default {
     categoryL2: 'Default slot - level 2',
     categoryPlaceholder: 'Leave empty to land in "Pending" after publish',
     categoryL2Placeholder: 'Optional - level 1 only',
-    defaultSlotHint: 'Used to auto-pin a recommendation slot on publish; the same asset can still be pinned to other slots later.',
+    defaultSlotHint:
+      'Used to auto-pin a recommendation slot on publish; the same asset can still be pinned to other slots later.',
     noDefaultSlot: 'No default slot',
     statusDraft: 'Draft',
     statusPublished: 'Published',
@@ -4068,7 +4158,8 @@ export default {
     publish: 'Publish',
     publishedAndPinned: 'Published and pinned - visible to users',
     publishedPending: 'Published. Assign a category under "Pending" to make it visible',
-    confirmOffline: 'Users will no longer see it. The slot and its order are kept and restored on re-publish. Continue?',
+    confirmOffline:
+      'Users will no longer see it. The slot and its order are kept and restored on re-publish. Continue?',
     categoryDisabled: 'disabled',
     type: 'Type',
     typeImage: 'Image',
@@ -4079,7 +4170,8 @@ export default {
     urlPlaceholder: 'Enter image / video URL',
     urlRequired: 'Asset URL is required',
     size: 'Size',
-    sizeHint: 'Leave empty to auto-detect on save; if detection fails it stays 0 and the feed falls back to reflow after load',
+    sizeHint:
+      'Leave empty to auto-detect on save; if detection fails it stays 0 and the feed falls back to reflow after load',
     width: 'Width',
     height: 'Height',
     sortOrder: 'Sort',
@@ -4095,11 +4187,14 @@ export default {
     sameStyleOn: 'Configured',
     sameStyleOff: 'Not set',
     sameStyleDerived: 'From source',
-    derivedTip: 'The recipe is derived from the linked creation automatically. To tweak the prompt or params, configure one manually - it takes precedence.',
-    publishBlockedNoRecipe: 'No Make-Similar recipe, cannot publish - an item users cannot remix is a dead end in the feed. Configure one, or fill in the source creation data ID.',
+    derivedTip:
+      'The recipe is derived from the linked creation automatically. To tweak the prompt or params, configure one manually - it takes precedence.',
+    publishBlockedNoRecipe:
+      'No Make-Similar recipe, cannot publish - an item users cannot remix is a dead end in the feed. Configure one, or fill in the source creation data ID.',
     sourceTask: 'Source creation',
     sourceTaskPlaceholder: 'The "Data ID" from Creation Contents, optional',
-    sourceTaskHint: 'When set, the recipe is derived from that creation automatically. Assets uploaded from outside have no source and must be configured manually.',
+    sourceTaskHint:
+      'When set, the recipe is derived from that creation automatically. Assets uploaded from outside have no source and must be configured manually.',
     configSameStyle: 'Recipe',
     sameStyleDrawerTitle: 'Make-Similar Recipe',
     sameStyleHint:
@@ -4138,8 +4233,10 @@ export default {
     title: 'Content Categories',
     hint: 'Two levels: level-1 drives the user-facing top tabs and display-asset grouping, level-2 is the sub-filter for recommendations. App and PC may use different categories — that is what the platform field expresses, APP+PC meaning shared. Level and parent are fixed after creation: changing them would silently reinterpret every asset and recommendation already hanging under the node, so delete and recreate instead.',
     platform: 'Platform',
-    platformHint: 'APP+PC means shared by both ends; pick a single end if the category only exists there.',
-    platformLockedByParent: 'Parent category is limited to {platform}; a level-2 cannot exceed its parent.',
+    platformHint:
+      'APP+PC means shared by both ends; pick a single end if the category only exists there.',
+    platformLockedByParent:
+      'Parent category is limited to {platform}; a level-2 cannot exceed its parent.',
     platformFilter: 'View by platform:',
     platformAll: 'All',
     empty: 'No categories yet - use "Add level-1 category"',
@@ -4147,14 +4244,16 @@ export default {
     addL2: '+ Level-2 Category',
     addChild: 'Add child',
     editTitle: 'Edit Category',
-    confirmDeleteL1: 'Deleting a level-1 category also deletes all of its level-2 children. Continue?',
+    confirmDeleteL1:
+      'Deleting a level-1 category also deletes all of its level-2 children. Continue?',
     confirmDeleteL2: 'Delete this level-2 category?',
     name: 'Name',
     namePlaceholder: 'e.g. Store Visits / Food Store Visits',
     nameRequired: 'Name is required',
     code: 'Code',
     codePlaceholder: 'e.g. exploreShop / foodShop',
-    codeHint: 'lowerCamelCase, unique under the same parent. Level-1 codes are referenced by value from display assets and cannot be changed while assets still use them.',
+    codeHint:
+      'lowerCamelCase, unique under the same parent. Level-1 codes are referenced by value from display assets and cannot be changed while assets still use them.',
     codeRequired: 'Code is required',
     level: 'Level',
     l1: 'Level 1',
@@ -4178,7 +4277,8 @@ export default {
     detailTitle: 'Content Detail',
     noOutput: 'This task has no output yet',
     slideHint: '{count} outputs - swipe to browse',
-    watermarkHint: 'Shown here are the delivered watermarked files (aligned per position, falling back to the raw file only where a watermark is missing), identical to what users see.',
+    watermarkHint:
+      'Shown here are the delivered watermarked files (aligned per position, falling back to the raw file only where a watermark is missing), identical to what users see.',
     thumbnail: 'Preview',
     dataId: 'Data ID',
     taskId: 'Task ID',
@@ -4198,7 +4298,8 @@ export default {
     recommended: 'Recommended',
     recommend: 'Recommend',
     recommendTitle: 'Add to Recommendation Slot',
-    recommendHint: 'Recommending only creates a relation and never touches the source content. One item can sit in several category slots, but not twice in the same one.',
+    recommendHint:
+      'Recommending only creates a relation and never touches the source content. One item can sit in several category slots, but not twice in the same one.',
     recommendSuccess: 'Recommended',
     blockedUserDeleted: 'Deleted by the user - cannot be recommended',
     blockedByAdmin: 'Blocked - cannot be recommended',
@@ -4215,7 +4316,8 @@ export default {
 
   contentRecommend: {
     sortEditHint: 'Click to edit the sort order',
-    dragMixedPositions: 'This list spans several category positions, so drag-sorting is off — sort order is stored per (level-1 + level-2) position. Pick a level-2 category as well, or type a number in the Sort column.',
+    dragMixedPositions:
+      'This list spans several category positions, so drag-sorting is off — sort order is stored per (level-1 + level-2) position. Pick a level-2 category as well, or type a number in the Sort column.',
     sortSaved: 'Sort order saved',
     detailTitle: 'Recommendation detail',
     noMedia: 'This content has no media to show',
@@ -4227,7 +4329,8 @@ export default {
     editTitle: 'Edit Recommendation',
     remove: 'Remove',
     removeSuccess: 'Recommendation removed',
-    confirmRemove: 'The content will no longer appear in this slot (the source is not deleted). Continue?',
+    confirmRemove:
+      'The content will no longer appear in this slot (the source is not deleted). Continue?',
     reorderSuccess: 'Order saved',
     thumbnail: 'Preview',
     sourceId: 'Data ID',
@@ -4244,7 +4347,8 @@ export default {
     l1Required: 'Level-1 category is required',
     platform: 'Platform',
     platformHint: 'APP+PC pushes to both ends.',
-    platformLocked: 'The selected category is only shown on {platform}; the recommendation cannot exceed that scope.',
+    platformLocked:
+      'The selected category is only shown on {platform}; the recommendation cannot exceed that scope.',
     sortOrder: 'Sort',
     sourceState: 'Source',
     valid: 'OK',
@@ -4258,7 +4362,8 @@ export default {
     filterSource: 'Source (all)',
     tabPinned: 'Pinned',
     tabPending: 'Pending',
-    pendingHint: 'These display assets are published but not pinned to any slot yet - publishing alone does not make them visible. Assign a category and platform first.',
+    pendingHint:
+      'These display assets are published but not pinned to any slot yet - publishing alone does not make them visible. Assign a category and platform first.',
     pendingEmpty: 'Nothing pending',
     pinNow: 'Pin',
     noDefaultSlot: 'No default slot',
@@ -4270,15 +4375,18 @@ export default {
   entryRoute: {
     title: 'Entry Routes',
     hint: 'Maps a creation entry to the form page route on each client. When a user taps "Make Similar" in the feed, the backend picks the route for that client and returns it alongside the recipe. App and PC route formats differ (App scheme vs web route), so configure one row per client.',
-    missingHint: 'These creation entries have no route configured yet - "Make Similar" will fall back to the generic creation page: {list}',
+    missingHint:
+      'These creation entries have no route configured yet - "Make Similar" will fall back to the generic creation page: {list}',
     empty: 'No route mappings',
     add: '+ Add Route',
     editTitle: 'Edit Route',
-    confirmDelete: 'After deletion this entry falls back to the generic creation page on that client. Continue?',
+    confirmDelete:
+      'After deletion this entry falls back to the generic creation page on that client. Continue?',
     entryCode: 'Creation entry',
     entryRequired: 'Creation entry is required',
     platform: 'Client',
-    platformHint: 'Configure one row for App and one for PC; the missing side falls back to the generic page.',
+    platformHint:
+      'Configure one row for App and one for PC; the missing side falls back to the generic page.',
     platformAll: 'All clients',
     filterEntry: 'Filter by entry',
     route: 'Route',
@@ -4300,25 +4408,30 @@ export default {
     titleAddL2: 'New Level-2 Category',
     editTitle: 'Edit Category',
     empty: 'No asset categories yet - click "Add Level-1" to create one',
-    unclassifiedTitle: '{count} creation entries are not in any category - none of their assets are visible to users right now',
+    unclassifiedTitle:
+      '{count} creation entries are not in any category - none of their assets are visible to users right now',
     unclassifiedDesc:
       'The asset library only renders tabs from categories, so an entry that belongs to no category shows up in no tab at all. The assets are still in the library, but users can go through every tab and never find them - it simply looks like the assets are gone, with no error anywhere. Forgetting to categorise a newly onboarded creation entry is the usual cause. Please file the entries below into a category:',
     unclassifiedAction: 'Create a category for these entries',
     level: 'Level',
     l1: 'Level 1',
     l2: 'Level 2',
-    levelHint: 'The level is decided by how you got here: the top-right button creates a level-1, the "Add child" action on a level-1 row creates a level-2. It cannot be changed afterwards.',
+    levelHint:
+      'The level is decided by how you got here: the top-right button creates a level-1, the "Add child" action on a level-1 row creates a level-2. It cannot be changed afterwards.',
     parent: 'Parent',
     parentPlaceholder: 'Pick the parent level-1 category',
-    parentHint: 'Fixed once created - moving a level-2 to another parent moves it and its members into a different tab, so delete and recreate instead.',
+    parentHint:
+      'Fixed once created - moving a level-2 to another parent moves it and its members into a different tab, so delete and recreate instead.',
     parentRequired: 'Pick the parent level-1 category',
     code: 'Category code',
     codePlaceholder: 'e.g. imageAsset / productShot',
-    codeHint: 'lowerCamelCase, globally unique (both levels share one namespace). Clients filter assets by this value, so it cannot be changed after creation - to change it, create a new category and move the entries over.',
+    codeHint:
+      'lowerCamelCase, globally unique (both levels share one namespace). Clients filter assets by this value, so it cannot be changed after creation - to change it, create a new category and move the entries over.',
     codeRequired: 'Category code is required',
     name: 'Category name',
     namePlaceholder: 'e.g. Images / Product Shots',
-    nameHint: 'User-facing: a level-1 name is the tab label, a level-2 name is the chip inside that tab.',
+    nameHint:
+      'User-facing: a level-1 name is the tab label, a level-2 name is the chip inside that tab.',
     nameRequired: 'Category name is required',
     mediaType: 'Media type',
     mediaTypeAll: 'Any',
@@ -4345,16 +4458,22 @@ export default {
     sortOrder: 'Sort',
     sortOrderHint: 'Lower comes first; you can also drag rows in the table.',
     reorderSuccess: 'Order saved',
-    reorderSameLevelOnly: 'Only siblings can be reordered: level-1 against level-1, or level-2 within the same parent. Use "Edit" to change where a category belongs.',
+    reorderSameLevelOnly:
+      'Only siblings can be reordered: level-1 against level-1, or level-2 within the same parent. Use "Edit" to change where a category belongs.',
     status: 'Status',
-    statusHint: 'Once disabled the category is no longer sent to clients, so its member entries lose their place to surface.',
+    statusHint:
+      'Once disabled the category is no longer sent to clients, so its member entries lose their place to surface.',
     enabled: 'Enabled',
     disabled: 'Disabled',
     namesTruncated: '{names} and {count} entries in total',
-    confirmDelete: 'Deleting removes this chip from the client and detaches {names} from it - the ones that belonged here only become uncategorised, and their assets will no longer appear in any tab. Delete?',
-    confirmDeleteEmpty: 'This level-2 category has no member entries; deleting only removes the chip from the client. Delete?',
-    deleteL1Blocked: 'This level-1 still has level-2 categories. Delete those first — removing the level-1 would leave them pointing at a parent that no longer exists, so they vanish from this list and from the client while the assets stay in the database.',
-    confirmDeleteL1Empty: 'This level-1 category has no children; deleting only removes the tab from the client. Delete?',
+    confirmDelete:
+      'Deleting removes this chip from the client and detaches {names} from it - the ones that belonged here only become uncategorised, and their assets will no longer appear in any tab. Delete?',
+    confirmDeleteEmpty:
+      'This level-2 category has no member entries; deleting only removes the chip from the client. Delete?',
+    deleteL1Blocked:
+      'This level-1 still has level-2 categories. Delete those first — removing the level-1 would leave them pointing at a parent that no longer exists, so they vanish from this list and from the client while the assets stay in the database.',
+    confirmDeleteL1Empty:
+      'This level-1 category has no children; deleting only removes the tab from the client. Delete?',
   },
 
   userAsset: {
@@ -4395,14 +4514,17 @@ export default {
     type: 'Asset Type',
     resultUrl: 'Output URL',
     detailTitle: 'Asset Detail',
-    deletedAlert: 'This asset has been deleted and is invisible to the user. The file itself is still in storage; ask engineering if it has to be restored.',
+    deletedAlert:
+      'This asset has been deleted and is invisible to the user. The file itself is still in storage; ask engineering if it has to be restored.',
     noMedia: 'This asset has no previewable output',
     prompt: 'Prompt',
     noPrompt: 'No prompt recorded (user-uploaded assets never have one)',
     items: 'Sub-assets ({count})',
-    itemsHint: 'Only digital-human / custom-model assets carry sub-assets; ordinary outputs never show this block.',
+    itemsHint:
+      'Only digital-human / custom-model assets carry sub-assets; ordinary outputs never show this block.',
     alreadyDeleted: 'Already deleted on the client - nothing left to delete',
-    confirmDelete: 'This is the user\'s own asset. Deleting is a logical delete: the user stops seeing it immediately. The file stays in storage and is never physically removed, but restoring it needs engineering. Delete?',
+    confirmDelete:
+      "This is the user's own asset. Deleting is a logical delete: the user stops seeing it immediately. The file stays in storage and is never physically removed, but restoring it needs engineering. Delete?",
     deleteSuccess: 'Asset deleted - no longer visible to the user',
   },
 
@@ -4734,8 +4856,10 @@ export default {
 
     // PromptInputWidget
     promptTemplate: 'Prompt Template',
-    promptTemplatePlaceholder: 'Use ｛｛variableName｝｝ to insert placeholder components, e.g. Upload ｛｛productImage｝｝ and generate ｛｛productName｝｝ main image',
-    promptTemplateHint: 'e.g. Upload ｛｛productImage｝｝, generate product image, name is ｛｛productName｝｝',
+    promptTemplatePlaceholder:
+      'Use ｛｛variableName｝｝ to insert placeholder components, e.g. Upload ｛｛productImage｝｝ and generate ｛｛productName｝｝ main image',
+    promptTemplateHint:
+      'e.g. Upload ｛｛productImage｝｝, generate product image, name is ｛｛productName｝｝',
     referencePrompt: 'Reference from Library',
     mapVariablesToSlots: 'Map prompt variables to placeholders',
     promptMinHeight: 'Min Height',

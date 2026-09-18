@@ -3,7 +3,7 @@
     class="widget-wrapper toolbar-widget"
     :class="[
       `toolbar-${config.position || 'inline'}`,
-      { 'widget-selected': mode === 'builder' && isSelected }
+      { 'widget-selected': mode === 'builder' && isSelected },
     ]"
   >
     <div class="toolbar-items">
@@ -24,35 +24,40 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import type { ToolbarWidgetConfig, ToolbarItem, RenderMode } from '@/types/template-builder'
-import Icon from '@/components/Icon/index.vue'
+import type { ToolbarWidgetConfig, ToolbarItem, RenderMode } from '@/types/template-builder';
 
-const props = withDefaults(defineProps<{
-  config: ToolbarWidgetConfig
-  mode: RenderMode
-  formValues?: Record<string, unknown>
-  isSelected?: boolean
-}>(), { formValues: undefined, isSelected: false })
+import { computed } from 'vue';
 
-const emit = defineEmits<{ (e: 'update:form-values', key: string, value: unknown): void }>()
+import Icon from '@/components/Icon/index.vue';
+
+const props = withDefaults(
+  defineProps<{
+    config: ToolbarWidgetConfig;
+    mode: RenderMode;
+    formValues?: Record<string, unknown>;
+    isSelected?: boolean;
+  }>(),
+  { formValues: undefined, isSelected: false },
+);
+
+const emit = defineEmits<{ (e: 'update:form-values', key: string, value: unknown): void }>();
 
 /** 当前激活项 key：优先表单值，其次默认值，最后 items 中 active=true 的项 */
 const activeKey = computed<string>(() => {
-  const raw = props.formValues?.[props.config.key]
-  if (typeof raw === 'string') return raw
-  if (typeof props.config.defaultValue === 'string') return props.config.defaultValue
-  const flagged = props.config.items.find((item) => item.active)
-  return flagged?.key ?? ''
-})
+  const raw = props.formValues?.[props.config.key];
+  if (typeof raw === 'string') return raw;
+  if (typeof props.config.defaultValue === 'string') return props.config.defaultValue;
+  const flagged = props.config.items.find((item) => item.active);
+  return flagged?.key ?? '';
+});
 
 function isItemActive(item: ToolbarItem): boolean {
-  return activeKey.value ? activeKey.value === item.key : item.active === true
+  return activeKey.value ? activeKey.value === item.key : item.active === true;
 }
 
 function handleItemClick(item: ToolbarItem): void {
-  if (props.mode === 'builder') return
-  emit('update:form-values', props.config.key, item.key)
+  if (props.mode === 'builder') return;
+  emit('update:form-values', props.config.key, item.key);
 }
 </script>
 
@@ -114,9 +119,15 @@ function handleItemClick(item: ToolbarItem): void {
   justify-content: center;
 }
 
-.icon-small { font-size: 18px; }
-.icon-medium { font-size: 22px; }
-.icon-large { font-size: 26px; }
+.icon-small {
+  font-size: 18px;
+}
+.icon-medium {
+  font-size: 22px;
+}
+.icon-large {
+  font-size: 26px;
+}
 
 .item-label {
   font-size: var(--font-size-xs);

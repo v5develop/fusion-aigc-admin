@@ -69,21 +69,13 @@
               {{ $t('template.presetSelectValuesInvalid') }}
             </span>
           </div>
-          <a-button
-            type="text"
-            class="preset-select-props__remove"
-            @click="onRemovePreset(index)"
-          >
+          <a-button type="text" class="preset-select-props__remove" @click="onRemovePreset(index)">
             <Icon icon="antdv-next:DeleteOutlined" />
           </a-button>
         </div>
       </div>
 
-      <a-empty
-        v-else
-        :description="$t('template.presetSelectPresetsEmpty')"
-        :image="undefined"
-      />
+      <a-empty v-else :description="$t('template.presetSelectPresetsEmpty')" :image="undefined" />
 
       <a-button block class="preset-select-props__add" @click="onAddPreset">
         <Icon icon="antdv-next:PlusOutlined" />
@@ -94,10 +86,7 @@
     <a-divider />
 
     <a-form-item :label="$t('template.presetSelectLinkedWidgets')">
-      <div
-        v-if="(widget.linkedWidgets?.length ?? 0) > 0"
-        class="preset-select-props__list"
-      >
+      <div v-if="(widget.linkedWidgets?.length ?? 0) > 0" class="preset-select-props__list">
         <div
           v-for="(link, index) in widget.linkedWidgets"
           :key="index"
@@ -117,11 +106,7 @@
               @update:value="onLinkedUpdate(index, 'fieldPath', $event)"
             />
           </div>
-          <a-button
-            type="text"
-            class="preset-select-props__remove"
-            @click="onRemoveLinked(index)"
-          >
+          <a-button type="text" class="preset-select-props__remove" @click="onRemoveLinked(index)">
             <Icon icon="antdv-next:DeleteOutlined" />
           </a-button>
         </div>
@@ -142,172 +127,159 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from 'vue'
-
-import Icon from '@/components/Icon/index.vue'
-import { $t } from '@/locales'
 import type {
   PresetLinkedWidget,
   PresetOption,
   PresetSelectWidgetConfig,
-} from '@/types/template-builder'
+} from '@/types/template-builder';
+
+import { reactive } from 'vue';
+
+import Icon from '@/components/Icon/index.vue';
+import { $t } from '@/locales';
 
 const props = defineProps<{
-  widget: PresetSelectWidgetConfig
-}>()
+  widget: PresetSelectWidgetConfig;
+}>();
 
 const emit = defineEmits<{
-  (e: 'update', patch: Record<string, unknown>): void
-}>()
+  (e: 'update', patch: Record<string, unknown>): void;
+}>();
 
-type DisplayMode = NonNullable<PresetSelectWidgetConfig['displayMode']>
+type DisplayMode = NonNullable<PresetSelectWidgetConfig['displayMode']>;
 
 const displayModeOptions: { label: string; value: DisplayMode }[] = [
   { label: $t('template.presetSelectModeCards'), value: 'cards' },
   { label: $t('template.presetSelectModeList'), value: 'list' },
   { label: $t('template.presetSelectModeGrid'), value: 'grid' },
-]
+];
 
 /** values 字段的 JSON 编辑草稿与解析错误状态，按行下标维护 */
-const valuesDraft = reactive<Record<number, string>>({})
-const valuesError = reactive<Record<number, boolean>>({})
+const valuesDraft = reactive<Record<number, string>>({});
+const valuesError = reactive<Record<number, boolean>>({});
 
 /** 可选文本字段：清空回传删除，避免落地空串 */
-type OptionalPresetField = 'coverUrl' | 'description'
+type OptionalPresetField = 'coverUrl' | 'description';
 const OPTIONAL_PRESET_FIELDS: ReadonlySet<OptionalPresetField> = new Set([
   'coverUrl',
   'description',
-])
+]);
 
 function onUpdate<K extends keyof PresetSelectWidgetConfig>(
   field: K,
   value: PresetSelectWidgetConfig[K] | undefined,
 ): void {
-  emit('update', { [field]: value })
+  emit('update', { [field]: value });
 }
 
 function onDisplayModeUpdate(value: unknown): void {
   if (value === undefined || value === null || value === '') {
-    onUpdate('displayMode', undefined)
-    return
+    onUpdate('displayMode', undefined);
+    return;
   }
-  onUpdate('displayMode', value as DisplayMode)
+  onUpdate('displayMode', value as DisplayMode);
 }
 
 /** 清空所有 values 草稿/错误状态（行增删时下标偏移，避免错位） */
 function resetValuesState(): void {
-  for (const key of Object.keys(valuesDraft)) delete valuesDraft[Number(key)]
-  for (const key of Object.keys(valuesError)) delete valuesError[Number(key)]
+  for (const key of Object.keys(valuesDraft)) delete valuesDraft[Number(key)];
+  for (const key of Object.keys(valuesError)) delete valuesError[Number(key)];
 }
 
 function valuesText(index: number, values: Record<string, unknown>): string {
-  const draft = valuesDraft[index]
-  if (draft !== undefined) return draft
-  return JSON.stringify(values ?? {}, null, 2)
+  const draft = valuesDraft[index];
+  if (draft !== undefined) return draft;
+  return JSON.stringify(values ?? {}, null, 2);
 }
 
-function isOptionalPresetField(
-  field: keyof PresetOption,
-): field is OptionalPresetField {
-  return OPTIONAL_PRESET_FIELDS.has(field as OptionalPresetField)
+function isOptionalPresetField(field: keyof PresetOption): field is OptionalPresetField {
+  return OPTIONAL_PRESET_FIELDS.has(field as OptionalPresetField);
 }
 
-type PresetTextField = 'id' | 'label' | 'coverUrl' | 'description'
+type PresetTextField = 'id' | 'label' | 'coverUrl' | 'description';
 
-function onPresetTextUpdate(
-  index: number,
-  field: PresetTextField,
-  value: string,
-): void {
+function onPresetTextUpdate(index: number, field: PresetTextField, value: string): void {
   const next = props.widget.presets.map((preset, i) => {
-    if (i !== index) return { ...preset }
-    const updated: PresetOption = { ...preset }
+    if (i !== index) return { ...preset };
+    const updated: PresetOption = { ...preset };
     if (isOptionalPresetField(field)) {
-      if (value === '') delete updated[field]
-      else updated[field] = value
+      if (value === '') delete updated[field];
+      else updated[field] = value;
     } else {
-      updated[field] = value
+      updated[field] = value;
     }
-    return updated
-  })
-  onUpdate('presets', next)
+    return updated;
+  });
+  onUpdate('presets', next);
 }
 
 function parseValues(text: string): Record<string, unknown> | null {
-  const trimmed = text.trim()
-  if (trimmed === '') return {}
-  let parsed: unknown
+  const trimmed = text.trim();
+  if (trimmed === '') return {};
+  let parsed: unknown;
   try {
-    parsed = JSON.parse(trimmed)
+    parsed = JSON.parse(trimmed);
   } catch {
-    return null
+    return null;
   }
-  if (
-    typeof parsed !== 'object' ||
-    parsed === null ||
-    Array.isArray(parsed)
-  ) {
-    return null
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    return null;
   }
-  return parsed as Record<string, unknown>
+  return parsed as Record<string, unknown>;
 }
 
 function onPresetValuesInput(index: number, text: string): void {
-  valuesDraft[index] = text
-  const parsed = parseValues(text)
+  valuesDraft[index] = text;
+  const parsed = parseValues(text);
   if (parsed === null) {
-    valuesError[index] = true
-    return
+    valuesError[index] = true;
+    return;
   }
-  valuesError[index] = false
+  valuesError[index] = false;
   const next = props.widget.presets.map((preset, i) =>
     i === index ? { ...preset, values: parsed } : { ...preset },
-  )
-  onUpdate('presets', next)
+  );
+  onUpdate('presets', next);
 }
 
 function onRemovePreset(index: number): void {
-  const next = props.widget.presets
-    .filter((_, i) => i !== index)
-    .map((preset) => ({ ...preset }))
-  resetValuesState()
-  onUpdate('presets', next)
+  const next = props.widget.presets.filter((_, i) => i !== index).map((preset) => ({ ...preset }));
+  resetValuesState();
+  onUpdate('presets', next);
 }
 
 function onAddPreset(): void {
   const next: PresetOption[] = [
     ...props.widget.presets.map((preset) => ({ ...preset })),
     { id: '', label: '', values: {} },
-  ]
-  resetValuesState()
-  onUpdate('presets', next)
+  ];
+  resetValuesState();
+  onUpdate('presets', next);
 }
 
-type LinkedField = 'widgetKey' | 'fieldPath'
+type LinkedField = 'widgetKey' | 'fieldPath';
 
 function onLinkedUpdate(index: number, field: LinkedField, value: string): void {
-  const current = props.widget.linkedWidgets ?? []
-  const next = current.map((link, i) =>
-    i === index ? { ...link, [field]: value } : { ...link },
-  )
-  onUpdate('linkedWidgets', next)
+  const current = props.widget.linkedWidgets ?? [];
+  const next = current.map((link, i) => (i === index ? { ...link, [field]: value } : { ...link }));
+  onUpdate('linkedWidgets', next);
 }
 
 function onRemoveLinked(index: number): void {
-  const current = props.widget.linkedWidgets ?? []
+  const current = props.widget.linkedWidgets ?? [];
   const next: PresetLinkedWidget[] = current
     .filter((_, i) => i !== index)
-    .map((link) => ({ ...link }))
-  onUpdate('linkedWidgets', next)
+    .map((link) => ({ ...link }));
+  onUpdate('linkedWidgets', next);
 }
 
 function onAddLinked(): void {
-  const current = props.widget.linkedWidgets ?? []
+  const current = props.widget.linkedWidgets ?? [];
   const next: PresetLinkedWidget[] = [
     ...current.map((link) => ({ ...link })),
     { widgetKey: '', fieldPath: '' },
-  ]
-  onUpdate('linkedWidgets', next)
+  ];
+  onUpdate('linkedWidgets', next);
 }
 </script>
 

@@ -98,6 +98,9 @@
 </template>
 
 <script setup lang="ts">
+import type { UserLevelRule } from '@/types/api';
+
+import { message } from 'antdv-next';
 /**
  * 经验等级 LV0..LVn 管理。
  *
@@ -105,9 +108,9 @@
  * 它不参与水印这类权利边界 —— 那个看的是设置页的「免费/付费分层」开关。
  * 两者混在一起的后果：改一次运营梯度，用户已有产物就会突然长出或掉掉水印。
  */
-import { ref, reactive, onMounted } from 'vue'
-import { message } from 'antdv-next'
-import { useI18n } from 'vue-i18n'
+import { ref, reactive, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+
 import {
   getUserLevelRules,
   createUserLevelRule,
@@ -115,25 +118,24 @@ import {
   deleteUserLevelRule,
   getUserLevelSettings,
   saveUserLevelSettings,
-} from '@/api/user-level'
-import type { UserLevelRule } from '@/types/api'
+} from '@/api/user-level';
 
-const { t } = useI18n()
+const { t } = useI18n();
 
 const WEIGHTS_PLACEHOLDER =
-  '{"rechargeAmountWeight":1.0,"paidMonthWeight":20.0,"topPackageAmountWeight":0.5}'
+  '{"rechargeAmountWeight":1.0,"paidMonthWeight":20.0,"topPackageAmountWeight":0.5}';
 
-const rules = ref<UserLevelRule[]>([])
-const loading = ref(false)
-const settings = reactive({ enabled: true })
-const weightsText = ref('')
-const savingSettings = ref(false)
+const rules = ref<UserLevelRule[]>([]);
+const loading = ref(false);
+const settings = reactive({ enabled: true });
+const weightsText = ref('');
+const savingSettings = ref(false);
 
-const modalOpen = ref(false)
-const saving = ref(false)
-const editing = ref<UserLevelRule | null>(null)
+const modalOpen = ref(false);
+const saving = ref(false);
+const editing = ref<UserLevelRule | null>(null);
 // 与 profile 页一致：不引框架内部类型，避免 antdv-next 版本升级时类型路径漂移
-const formRef = ref()
+const formRef = ref();
 const form = reactive<UserLevelRule>({
   levelCode: '',
   levelName: '',
@@ -142,14 +144,14 @@ const form = reactive<UserLevelRule>({
   sort: 0,
   enabled: true,
   remark: '',
-})
+});
 
 const formRules: Record<string, Array<Record<string, unknown>>> = {
   levelCode: [{ required: true, message: 'LV0..LVn' }],
   levelName: [{ required: true }],
   minScore: [{ required: true }],
   queuePriority: [{ required: true }],
-}
+};
 
 const columns = [
   { title: t('userLevel.levelCode'), dataIndex: 'levelCode', key: 'levelCode' },
@@ -159,58 +161,58 @@ const columns = [
   { title: t('common.enabled'), key: 'enabled' },
   { title: t('common.remark'), dataIndex: 'remark', key: 'remark' },
   { title: t('common.action'), key: 'action', width: 160 },
-]
+];
 
 async function loadRules() {
-  loading.value = true
+  loading.value = true;
   try {
-    rules.value = await getUserLevelRules()
+    rules.value = await getUserLevelRules();
   } catch {
     /* 错误已由拦截器提示 */
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 async function loadSettings() {
   try {
-    const data = await getUserLevelSettings()
-    settings.enabled = data.enabled
-    weightsText.value = data.weights ?? ''
+    const data = await getUserLevelSettings();
+    settings.enabled = data.enabled;
+    weightsText.value = data.weights ?? '';
   } catch {
     /* 错误已由拦截器提示 */
   }
 }
 
 async function handleToggleEnabled(checked: boolean) {
-  savingSettings.value = true
+  savingSettings.value = true;
   try {
     // 只改开关时不带 weights：后端约定 weights 为空=不动系数。
     // 把当前输入框内容一起提交，会把运营正在编辑但还没想好的中间态写进 DB。
-    await saveUserLevelSettings({ enabled: checked })
-    message.success(checked ? t('userLevel.enabledOn') : t('userLevel.enabledOff'))
+    await saveUserLevelSettings({ enabled: checked });
+    message.success(checked ? t('userLevel.enabledOn') : t('userLevel.enabledOff'));
   } catch {
-    settings.enabled = !checked
+    settings.enabled = !checked;
   } finally {
-    savingSettings.value = false
+    savingSettings.value = false;
   }
 }
 
 async function handleSaveWeights() {
-  savingSettings.value = true
+  savingSettings.value = true;
   try {
-    await saveUserLevelSettings({ enabled: settings.enabled, weights: weightsText.value })
-    message.success(t('common.saveSuccess'))
-    await loadSettings()
+    await saveUserLevelSettings({ enabled: settings.enabled, weights: weightsText.value });
+    message.success(t('common.saveSuccess'));
+    await loadSettings();
   } catch {
     /* 后端会拒绝不可解析的 JSON 并给出原因 */
   } finally {
-    savingSettings.value = false
+    savingSettings.value = false;
   }
 }
 
 function openCreate() {
-  editing.value = null
+  editing.value = null;
   Object.assign(form, {
     levelCode: '',
     levelName: '',
@@ -219,50 +221,50 @@ function openCreate() {
     sort: rules.value.length,
     enabled: true,
     remark: '',
-  })
-  modalOpen.value = true
+  });
+  modalOpen.value = true;
 }
 
 function openEdit(record: UserLevelRule) {
-  editing.value = record
-  Object.assign(form, { ...record })
-  modalOpen.value = true
+  editing.value = record;
+  Object.assign(form, { ...record });
+  modalOpen.value = true;
 }
 
 async function handleSubmit() {
-  await formRef.value?.validate()
-  saving.value = true
+  await formRef.value?.validate();
+  saving.value = true;
   try {
     if (editing.value?.id) {
-      await updateUserLevelRule(editing.value.id, { ...form })
+      await updateUserLevelRule(editing.value.id, { ...form });
     } else {
-      await createUserLevelRule({ ...form })
+      await createUserLevelRule({ ...form });
     }
-    message.success(t('common.saveSuccess'))
-    modalOpen.value = false
-    await loadRules()
+    message.success(t('common.saveSuccess'));
+    modalOpen.value = false;
+    await loadRules();
   } catch {
     /* 错误已由拦截器提示 */
   } finally {
-    saving.value = false
+    saving.value = false;
   }
 }
 
 async function handleDelete(record: UserLevelRule) {
-  if (!record.id) return
+  if (!record.id) return;
   try {
-    await deleteUserLevelRule(record.id)
-    message.success(t('common.deleteSuccess'))
-    await loadRules()
+    await deleteUserLevelRule(record.id);
+    message.success(t('common.deleteSuccess'));
+    await loadRules();
   } catch {
     /* 错误已由拦截器提示 */
   }
 }
 
 onMounted(() => {
-  loadRules()
-  loadSettings()
-})
+  loadRules();
+  loadSettings();
+});
 </script>
 
 <style scoped>

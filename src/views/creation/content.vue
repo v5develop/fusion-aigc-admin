@@ -43,7 +43,9 @@
           <template v-if="column.dataIndex === 'mediaType'">
             <!-- 列按 mediaType 筛，但展示原始 type：运营要看到具体是哪种任务，
                  光显示 image/video 会把 12 种电商入口糊成一坨 -->
-            <a-tag :color="record.mediaType === 'video' ? 'purple' : 'blue'">{{ record.type }}</a-tag>
+            <a-tag :color="record.mediaType === 'video' ? 'purple' : 'blue'">{{
+              record.type
+            }}</a-tag>
           </template>
 
           <template v-if="column.dataIndex === 'entryCode'">
@@ -100,11 +102,7 @@
     </a-card>
 
     <!-- 内容详情：多产物走幻灯片 -->
-    <a-drawer
-      v-model:open="viewerVisible"
-      :title="$t('creationContent.detailTitle')"
-      :size="640"
-    >
+    <a-drawer v-model:open="viewerVisible" :title="$t('creationContent.detailTitle')" :size="640">
       <template v-if="current">
         <div class="viewer-media">
           <a-empty v-if="!current.urls.length" :description="$t('creationContent.noOutput')" />
@@ -242,22 +240,22 @@
 </template>
 
 <script setup lang="ts">
-import { message } from 'antdv-next'
-import { ref, reactive, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { message } from 'antdv-next';
+import { ref, reactive, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-import ProTable from '@/components/Pro/ProTable/index.vue'
-import { addRecommend } from '@/api/content-recommend'
+import { addRecommend } from '@/api/content-recommend';
 import {
   getCreationContentList,
   getContentEntryCodes,
   type CreationContentItem,
-} from '@/api/creation-content'
-import { getCategoryTree, type DisplayCategoryNode, type Platform } from '@/api/display-category'
+} from '@/api/creation-content';
+import { getCategoryTree, type DisplayCategoryNode, type Platform } from '@/api/display-category';
+import ProTable from '@/components/Pro/ProTable/index.vue';
 
-const { t } = useI18n()
+const { t } = useI18n();
 // 推荐成功后要刷新列表拿回 recommended 标记
-const tableRef = ref<InstanceType<typeof ProTable> | null>(null)
+const tableRef = ref<InstanceType<typeof ProTable> | null>(null);
 
 // 与后端 CreationTaskStatus 枚举一一对应，缺项会让列表直接显示裸数字
 const STATUS = {
@@ -267,39 +265,39 @@ const STATUS = {
   3: { label: () => t('creationContent.statusFailed'), color: 'red' },
   4: { label: () => t('creationContent.statusCancelled'), color: 'default' },
   5: { label: () => t('creationContent.statusPartial'), color: 'orange' },
-} as Record<number, { label: () => string; color: string }>
+} as Record<number, { label: () => string; color: string }>;
 
 function statusLabel(s: number) {
-  return STATUS[s]?.label() ?? String(s)
+  return STATUS[s]?.label() ?? String(s);
 }
 function statusColor(s: number) {
-  return STATUS[s]?.color ?? 'default'
+  return STATUS[s]?.color ?? 'default';
 }
 
 // ---- 创作入口下拉 ----
-const entryOptions = ref<{ label: string; value: string }[]>([])
-const entryNameMap = reactive<Record<string, string>>({})
+const entryOptions = ref<{ label: string; value: string }[]>([]);
+const entryNameMap = reactive<Record<string, string>>({});
 async function loadEntryCodes() {
   try {
-    const res = (await getContentEntryCodes()) || []
+    const res = (await getContentEntryCodes()) || [];
     entryOptions.value = res.map((e) => {
-      entryNameMap[e.entryCode] = e.entryName
-      return { label: `${e.entryName} (${e.entryCode})`, value: e.entryCode }
-    })
+      entryNameMap[e.entryCode] = e.entryName;
+      return { label: `${e.entryName} (${e.entryCode})`, value: e.entryCode };
+    });
   } catch {
     /* 拦截器已提示；下拉为空时其余筛选照常可用 */
   }
 }
-loadEntryCodes()
+loadEntryCodes();
 
 function entryName(code: string) {
-  return entryNameMap[code] || code
+  return entryNameMap[code] || code;
 }
 
 const boolOptions = computed(() => [
   { label: t('common.yes'), value: true },
   { label: t('common.no'), value: false },
-])
+]);
 
 const columns = computed(() => [
   {
@@ -374,7 +372,7 @@ const columns = computed(() => [
     align: 'center' as const,
     fixed: 'right' as const,
   },
-])
+]);
 
 async function loadData(params: Record<string, unknown>) {
   const res = await getCreationContentList({
@@ -388,20 +386,20 @@ async function loadData(params: Record<string, unknown>) {
     recommended: params.recommended as boolean | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
-  })
-  return { data: res.list || [], total: res.total || 0, success: true }
+  });
+  return { data: res.list || [], total: res.total || 0, success: true };
 }
 
 // ---- 详情 / 幻灯片 ----
-const viewerVisible = ref(false)
-const current = ref<CreationContentItem | null>(null)
+const viewerVisible = ref(false);
+const current = ref<CreationContentItem | null>(null);
 
 function openViewer(record: CreationContentItem) {
-  current.value = record
-  viewerVisible.value = true
+  current.value = record;
+  viewerVisible.value = true;
 }
 
-const VIDEO_EXTENSIONS = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.flv', '.m4v']
+const VIDEO_EXTENSIONS = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.flv', '.m4v'];
 
 /**
  * 这条产物是不是视频。
@@ -414,83 +412,83 @@ const VIDEO_EXTENSIONS = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.flv', '.m4v
  */
 function isVideoUrl(url: string | null | undefined, mediaType?: string | null): boolean {
   if (url) {
-    const path = url.split('?')[0].toLowerCase()
-    if (VIDEO_EXTENSIONS.some((ext) => path.endsWith(ext))) return true
+    const path = url.split('?')[0].toLowerCase();
+    if (VIDEO_EXTENSIONS.some((ext) => path.endsWith(ext))) return true;
     // 后缀明确是图片就别再信任务级类型：混合产出时以文件本身为准
-    if (/\.(jpe?g|png|webp|gif|bmp|avif|heic)$/.test(path)) return false
+    if (/\.(jpe?g|png|webp|gif|bmp|avif|heic)$/.test(path)) return false;
   }
-  return mediaType === 'video'
+  return mediaType === 'video';
 }
 
 /** 当前查看项的某条产物是不是视频 */
 function currentIsVideo(url: string): boolean {
-  return isVideoUrl(url, current.value?.mediaType)
+  return isVideoUrl(url, current.value?.mediaType);
 }
 
 /** 用户原始提交体，原样出 JSON——键名与嵌套结构本身就是排查依据，逐字段渲染反而会丢信息 */
 const payloadJson = computed(() => {
-  const payload = current.value?.submitPayload
-  if (!payload || !Object.keys(payload).length) return ''
-  return JSON.stringify(payload, null, 2)
-})
+  const payload = current.value?.submitPayload;
+  if (!payload || !Object.keys(payload).length) return '';
+  return JSON.stringify(payload, null, 2);
+});
 
 async function copyPayload() {
   try {
-    await navigator.clipboard.writeText(payloadJson.value)
-    message.success(t('creationContent.copied'))
+    await navigator.clipboard.writeText(payloadJson.value);
+    message.success(t('creationContent.copied'));
   } catch {
     // 非 https 或浏览器不给权限时 clipboard 不可用，JSON 就在页面上，让用户自己选中复制
-    message.warning(t('creationContent.copyFailed'))
+    message.warning(t('creationContent.copyFailed'));
   }
 }
 
 // ---- 推荐到分类位 ----
-const recommendVisible = ref(false)
-const recommending = ref(false)
-const tree = ref<DisplayCategoryNode[]>([])
+const recommendVisible = ref(false);
+const recommending = ref(false);
+const tree = ref<DisplayCategoryNode[]>([]);
 
 const recForm = reactive({
   sourceId: undefined as number | undefined,
   categoryL1Id: undefined as number | undefined,
   categoryL2Id: undefined as number | undefined,
   platform: 'APP' as Platform,
-})
+});
 
 const l1Options = computed(() =>
   tree.value.map((c) => ({ label: `${c.categoryName} (${c.categoryCode})`, value: c.id })),
-)
+);
 const recL2Options = computed(() => {
   const l1 = recForm.categoryL1Id
     ? tree.value.find((c) => c.id === recForm.categoryL1Id)
-    : undefined
-  return (l1?.children ?? []).map((c) => ({ label: c.categoryName, value: c.id }))
-})
+    : undefined;
+  return (l1?.children ?? []).map((c) => ({ label: c.categoryName, value: c.id }));
+});
 
 /** 推荐平台必须被所挂分类覆盖（一级二级取更窄的），越界选项直接摘掉 */
 const recAllowedPlatforms = computed<Platform[]>(() => {
   const l1 = recForm.categoryL1Id
     ? tree.value.find((c) => c.id === recForm.categoryL1Id)
-    : undefined
+    : undefined;
   const l2 = recForm.categoryL2Id
     ? l1?.children.find((c) => c.id === recForm.categoryL2Id)
-    : undefined
+    : undefined;
   const narrowest = [l1?.platform, l2?.platform].find((p) => p && p !== 'BOTH') as
     | Platform
-    | undefined
-  return narrowest ? [narrowest] : ['APP', 'PC', 'BOTH']
-})
+    | undefined;
+  return narrowest ? [narrowest] : ['APP', 'PC', 'BOTH'];
+});
 const recPlatformHint = computed(() =>
   recAllowedPlatforms.value.length === 1
     ? t('contentRecommend.platformLocked', {
         platform: recAllowedPlatforms.value[0] === 'APP' ? 'APP' : 'PC',
       })
     : t('contentRecommend.platformHint'),
-)
+);
 
 function onRecL1Change() {
-  recForm.categoryL2Id = undefined
+  recForm.categoryL2Id = undefined;
   if (!recAllowedPlatforms.value.includes(recForm.platform)) {
-    recForm.platform = recAllowedPlatforms.value[0]
+    recForm.platform = recAllowedPlatforms.value[0];
   }
 }
 
@@ -505,14 +503,14 @@ function canRecommend(record: CreationContentItem) {
     !record.userDeleted &&
     !(record.blockStatus && record.blockStatus > 0) &&
     record.urls.length > 0
-  )
+  );
 }
 
 function recommendBlockedReason(record: CreationContentItem) {
-  if (record.userDeleted) return t('creationContent.blockedUserDeleted')
-  if (record.blockStatus && record.blockStatus > 0) return t('creationContent.blockedByAdmin')
-  if (record.status !== 2) return t('creationContent.blockedNotSuccess')
-  return t('creationContent.blockedNoOutput')
+  if (record.userDeleted) return t('creationContent.blockedUserDeleted');
+  if (record.blockStatus && record.blockStatus > 0) return t('creationContent.blockedByAdmin');
+  if (record.status !== 2) return t('creationContent.blockedNotSuccess');
+  return t('creationContent.blockedNoOutput');
 }
 
 async function openRecommend(record: CreationContentItem) {
@@ -521,11 +519,11 @@ async function openRecommend(record: CreationContentItem) {
     categoryL1Id: undefined,
     categoryL2Id: undefined,
     platform: 'APP' as Platform,
-  })
-  recommendVisible.value = true
+  });
+  recommendVisible.value = true;
   if (!tree.value.length) {
     try {
-      tree.value = (await getCategoryTree(true)) || []
+      tree.value = (await getCategoryTree(true)) || [];
     } catch {
       /* 拦截器已提示；下拉为空时无法提交，用户会看到必填校验 */
     }
@@ -534,10 +532,10 @@ async function openRecommend(record: CreationContentItem) {
 
 async function submitRecommend() {
   if (!recForm.categoryL1Id) {
-    message.warning(t('contentRecommend.l1Required'))
-    return
+    message.warning(t('contentRecommend.l1Required'));
+    return;
   }
-  recommending.value = true
+  recommending.value = true;
   try {
     await addRecommend({
       sourceType: 'CREATION_TASK',
@@ -545,14 +543,14 @@ async function submitRecommend() {
       categoryL1Id: recForm.categoryL1Id,
       categoryL2Id: recForm.categoryL2Id ?? 0,
       platform: recForm.platform,
-    })
-    message.success(t('creationContent.recommendSuccess'))
-    recommendVisible.value = false
-    tableRef.value?.refresh()
+    });
+    message.success(t('creationContent.recommendSuccess'));
+    recommendVisible.value = false;
+    tableRef.value?.refresh();
   } catch {
     /* 重复推荐、源不可用、平台越界的报错由拦截器提示 */
   } finally {
-    recommending.value = false
+    recommending.value = false;
   }
 }
 </script>

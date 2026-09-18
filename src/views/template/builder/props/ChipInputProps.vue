@@ -99,11 +99,7 @@
                 @update:value="onChipUpdate(index, 'insertText', $event)"
               />
             </div>
-            <a-button
-              type="text"
-              class="chip-input-props__remove"
-              @click="onRemoveChip(index)"
-            >
+            <a-button type="text" class="chip-input-props__remove" @click="onRemoveChip(index)">
               <Icon icon="antdv-next:DeleteOutlined" />
             </a-button>
           </div>
@@ -121,76 +117,72 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import type { ChipInputWidgetConfig, ChipOption } from '@/types/template-builder';
 
-import draggable from 'vuedraggable'
+import { computed } from 'vue';
+import draggable from 'vuedraggable';
 
-import Icon from '@/components/Icon/index.vue'
-import { $t } from '@/locales'
-import type { ChipInputWidgetConfig, ChipOption } from '@/types/template-builder'
+import Icon from '@/components/Icon/index.vue';
+import { $t } from '@/locales';
 
 const props = defineProps<{
-  widget: ChipInputWidgetConfig
-}>()
+  widget: ChipInputWidgetConfig;
+}>();
 
 const emit = defineEmits<{
-  (e: 'update', patch: Record<string, unknown>): void
-}>()
+  (e: 'update', patch: Record<string, unknown>): void;
+}>();
 
-type ChipTheme = NonNullable<ChipInputWidgetConfig['chipTheme']>
+type ChipTheme = NonNullable<ChipInputWidgetConfig['chipTheme']>;
 
 const chipThemeOptions: { label: string; value: ChipTheme }[] = [
   { label: 'Default', value: 'default' },
   { label: 'Colorful', value: 'colorful' },
   { label: 'Outlined', value: 'outlined' },
-]
+];
 
-const presetChips = computed<ChipOption[]>(() => props.widget.presetChips ?? [])
+const presetChips = computed<ChipOption[]>(() => props.widget.presetChips ?? []);
 
 function toNumber(value: unknown, fallback: number): number {
-  return typeof value === 'number' && !Number.isNaN(value) ? value : fallback
+  return typeof value === 'number' && !Number.isNaN(value) ? value : fallback;
 }
 
 function onUpdate<K extends keyof ChipInputWidgetConfig>(
   field: K,
   value: ChipInputWidgetConfig[K],
 ): void {
-  emit('update', { [field]: value })
+  emit('update', { [field]: value });
 }
 
 function commitChips(next: ChipOption[]): void {
-  emit('update', { presetChips: next })
+  emit('update', { presetChips: next });
 }
 
-function onChipUpdate(
-  index: number,
-  field: 'key' | 'label' | 'insertText',
-  value: string,
-): void {
+function onChipUpdate(index: number, field: 'key' | 'label' | 'insertText', value: string): void {
   const next = presetChips.value.map((chip, i) => {
-    if (i !== index) return { ...chip }
-    const updated: ChipOption = { ...chip }
+    if (i !== index) return { ...chip };
+    const updated: ChipOption = { ...chip };
     if (field === 'insertText') {
-      if (value === '') delete updated.insertText
-      else updated.insertText = value
+      if (value === '') delete updated.insertText;
+      else updated.insertText = value;
     } else {
-      updated[field] = value
+      updated[field] = value;
     }
-    return updated
-  })
-  commitChips(next)
+    return updated;
+  });
+  commitChips(next);
 }
 
 function onRemoveChip(index: number): void {
-  commitChips(presetChips.value.filter((_, i) => i !== index))
+  commitChips(presetChips.value.filter((_, i) => i !== index));
 }
 
 function onAddChip(): void {
-  commitChips([...presetChips.value.map((c) => ({ ...c })), { key: '', label: '' }])
+  commitChips([...presetChips.value.map((c) => ({ ...c })), { key: '', label: '' }]);
 }
 
 function onReorder(next: ChipOption[]): void {
-  commitChips(next.map((c) => ({ ...c })))
+  commitChips(next.map((c) => ({ ...c })));
 }
 </script>
 

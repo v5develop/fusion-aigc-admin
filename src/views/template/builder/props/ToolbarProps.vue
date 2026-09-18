@@ -75,11 +75,7 @@
                 {{ $t('template.toolbarItemActive') }}
               </a-checkbox>
             </div>
-            <a-button
-              type="text"
-              class="toolbar-props__remove"
-              @click="onRemoveItem(index)"
-            >
+            <a-button type="text" class="toolbar-props__remove" @click="onRemoveItem(index)">
               <Icon icon="antdv-next:DeleteOutlined" />
             </a-button>
           </div>
@@ -97,84 +93,80 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import type { ToolbarItem, ToolbarWidgetConfig } from '@/types/template-builder';
 
-import draggable from 'vuedraggable'
+import { computed } from 'vue';
+import draggable from 'vuedraggable';
 
-import Icon from '@/components/Icon/index.vue'
-import { $t } from '@/locales'
-import type { ToolbarItem, ToolbarWidgetConfig } from '@/types/template-builder'
+import Icon from '@/components/Icon/index.vue';
+import { $t } from '@/locales';
 
 const props = defineProps<{
-  widget: ToolbarWidgetConfig
-}>()
+  widget: ToolbarWidgetConfig;
+}>();
 
 const emit = defineEmits<{
-  (e: 'update', patch: Record<string, unknown>): void
-}>()
+  (e: 'update', patch: Record<string, unknown>): void;
+}>();
 
-type Position = NonNullable<ToolbarWidgetConfig['position']>
-type IconSize = NonNullable<ToolbarWidgetConfig['iconSize']>
+type Position = NonNullable<ToolbarWidgetConfig['position']>;
+type IconSize = NonNullable<ToolbarWidgetConfig['iconSize']>;
 
 const positionOptions: { label: string; value: Position }[] = [
   { label: 'Inline', value: 'inline' },
   { label: 'Fixed Bottom', value: 'fixed-bottom' },
-]
+];
 
 const iconSizeOptions: { label: string; value: IconSize }[] = [
   { label: 'Small', value: 'small' },
   { label: 'Medium', value: 'medium' },
   { label: 'Large', value: 'large' },
-]
+];
 
-const items = computed<ToolbarItem[]>(() => props.widget.items ?? [])
+const items = computed<ToolbarItem[]>(() => props.widget.items ?? []);
 
 function onUpdate<K extends keyof ToolbarWidgetConfig>(
   field: K,
   value: ToolbarWidgetConfig[K],
 ): void {
-  emit('update', { [field]: value })
+  emit('update', { [field]: value });
 }
 
 function commitItems(next: ToolbarItem[]): void {
-  emit('update', { items: next })
+  emit('update', { items: next });
 }
 
-function onItemUpdate(
-  index: number,
-  field: 'key' | 'label' | 'icon',
-  value: string,
-): void {
+function onItemUpdate(index: number, field: 'key' | 'label' | 'icon', value: string): void {
   const next = items.value.map((item, i) =>
     i === index ? { ...item, [field]: value } : { ...item },
-  )
-  commitItems(next)
+  );
+  commitItems(next);
 }
 
 function onItemActive(index: number, checked: boolean): void {
   const next = items.value.map((item, i) => {
-    if (i !== index) return { ...item }
-    const updated: ToolbarItem = { ...item }
-    if (checked) updated.active = true
-    else delete updated.active
-    return updated
-  })
-  commitItems(next)
+    if (i !== index) return { ...item };
+    const updated: ToolbarItem = { ...item };
+    if (checked) updated.active = true;
+    else delete updated.active;
+    return updated;
+  });
+  commitItems(next);
 }
 
 function onRemoveItem(index: number): void {
-  commitItems(items.value.filter((_, i) => i !== index))
+  commitItems(items.value.filter((_, i) => i !== index));
 }
 
 function onAddItem(): void {
   commitItems([
     ...items.value.map((item) => ({ ...item })),
     { key: '', label: '', icon: 'antdv-next:AppstoreOutlined' },
-  ])
+  ]);
 }
 
 function onReorder(next: ToolbarItem[]): void {
-  commitItems(next.map((item) => ({ ...item })))
+  commitItems(next.map((item) => ({ ...item })));
 }
 </script>
 

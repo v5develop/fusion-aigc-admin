@@ -1,6 +1,7 @@
-import { request } from '@/utils/request'
-import type { AxiosRequestConfig } from 'axios'
-import type { PageResult } from '@/types/api'
+import type { PageResult } from '@/types/api';
+import type { AxiosRequestConfig } from 'axios';
+
+import { request } from '@/utils/request';
 
 // Task status enum
 export enum TaskStatus {
@@ -12,203 +13,203 @@ export enum TaskStatus {
 }
 
 // Task type enum — 数据库存储小驼峰格式（如 productSetImages、hitVideo），列表筛选仍可用大类
-export type TaskType = string
+export type TaskType = string;
 
 // Creation Task record
 export interface CreationTask {
-  id: number
-  taskId: string
-  userId: number
-  username?: string
-  type: TaskType
-  typeName?: string
-  mode: number
+  id: number;
+  taskId: string;
+  userId: number;
+  username?: string;
+  type: TaskType;
+  typeName?: string;
+  mode: number;
   /** 用户原始入参：用户端完整原始请求体快照（仅入口主任务有值，子任务/派生任务为 null）*/
-  requestParams?: string
+  requestParams?: string;
   /** 出口/执行入参：下发执行方（AIGC/第三方 API）的入参快照 */
-  params?: string
+  params?: string;
   /** 执行方任务 ID：执行方返回的任务标识（本地 task_id / 豆包 arkId / wavespeed requestId / comet taskId）*/
-  executionTaskId?: string
-  status: TaskStatus
+  executionTaskId?: string;
+  status: TaskStatus;
   /** 屏蔽状态：0未屏蔽 1屏蔽(可取消) 2永久屏蔽(不可逆) */
-  blockStatus?: number
-  blockReason?: string
-  blockTime?: string
-  statusText?: string
-  resultUrl?: string
+  blockStatus?: number;
+  blockReason?: string;
+  blockTime?: string;
+  statusText?: string;
+  resultUrl?: string;
   /**
    * 全部产物 URL。一次调用出 N 张的 task_type（批量 44/57/58/59/60、原生多图 65/66）
    * 把 N 张全落在同一个任务行上，此时 resultUrl 只是其中首张。
    * 只渲染 resultUrl 会让运营在排查「用户说少给图」时看到 1 张而误判为「本来就只出了一张」。
    * 单产物任务该字段为空数组/缺省，回退 resultUrl。
    */
-  resultUrls?: string[]
-  errorMsg?: string
-  category?: string
-  ownerType?: number
-  ownerId?: number
-  parentTaskId?: string
+  resultUrls?: string[];
+  errorMsg?: string;
+  category?: string;
+  ownerType?: number;
+  ownerId?: number;
+  parentTaskId?: string;
   /** 是否有子任务（列表可展开标记） */
-  hasChildren?: boolean
+  hasChildren?: boolean;
   /** 子任务数量（父任务聚合） */
-  childCount?: number
+  childCount?: number;
   /** 子任务合计消耗点数（父任务聚合，已退款/已取消/已过期不计） */
-  totalPricePoints?: number
+  totalPricePoints?: number;
   /** 子任务聚合计费状态（父任务聚合折叠值） */
-  aggregatedBillingStatus?: string
+  aggregatedBillingStatus?: string;
   /** 是否可重试（后端权威：失败+未屏蔽+非子任务+可续跑的编排管线父任务）。据此显隐重试按钮 */
-  canRetry?: boolean
+  canRetry?: boolean;
   /** 是否可强制完成（未交付且未屏蔽的父任务）。据此显隐强制完成按钮 */
-  canForceComplete?: boolean
+  canForceComplete?: boolean;
   /** 是否可强制失败（失败/部分成功且未屏蔽未锁）。置终态封禁重试。据此显隐强制失败按钮 */
-  canForceFail?: boolean
+  canForceFail?: boolean;
   /** 是否可取消（排队/处理中且未屏蔽的父任务）。据此显隐取消按钮 */
-  canCancel?: boolean
+  canCancel?: boolean;
   /** 后台重试次数（达 app.creation.retry.max-attempts 上限后 canRetry=false） */
-  retryCount?: number
-  featureCode?: string
-  modelId?: number
-  modelName?: string
-  reservationNo?: string
-  billingStatus?: string
-  pricePoints?: number
-  language?: string
-  watermark?: string
-  createTime: string
-  updateTime: string
-  children?: CreationTask[]
+  retryCount?: number;
+  featureCode?: string;
+  modelId?: number;
+  modelName?: string;
+  reservationNo?: string;
+  billingStatus?: string;
+  pricePoints?: number;
+  language?: string;
+  watermark?: string;
+  createTime: string;
+  updateTime: string;
+  children?: CreationTask[];
   /** 子任务列表：详情接口 GET /{id} 返回的子任务挂在 subTasks（非 children） */
-  subTasks?: CreationTask[]
+  subTasks?: CreationTask[];
   // ---- 子任务成本字段（组合任务子任务列表）----
-  costSource?: string
-  estimatedCost?: number
-  meterType?: string
-  meterValue?: number
-  providerModel?: string
-  reservationLines?: ReservationLine[]
+  costSource?: string;
+  estimatedCost?: number;
+  meterType?: string;
+  meterValue?: number;
+  providerModel?: string;
+  reservationLines?: ReservationLine[];
 }
 
 export interface ReservationLine {
-  lineNo: number
-  componentCode: string
-  stepCode: string
-  mode: number
-  reservedPoints: number
-  confirmedPoints: number
-  refundedPoints: number
-  status: string
-  outputRef: string
+  lineNo: number;
+  componentCode: string;
+  stepCode: string;
+  mode: number;
+  reservedPoints: number;
+  confirmedPoints: number;
+  refundedPoints: number;
+  status: string;
+  outputRef: string;
 }
 
 // Task list query params
 export interface CreationTaskQuery {
-  type?: string
-  status?: number | string
-  userId?: number | string
-  modelId?: number | string
-  featureCode?: string
-  billingStatus?: string
-  category?: string
-  startTime?: string
-  endTime?: string
-  keyword?: string
-  page: number
-  pageSize: number
+  type?: string;
+  status?: number | string;
+  userId?: number | string;
+  modelId?: number | string;
+  featureCode?: string;
+  billingStatus?: string;
+  category?: string;
+  startTime?: string;
+  endTime?: string;
+  keyword?: string;
+  page: number;
+  pageSize: number;
 }
 
 // Dashboard stats
 export interface CreationDashboardStats {
-  todayTasks: number
-  todayCompleted: number
-  todayFailed: number
-  successRate: number
-  queuing: number
-  processing: number
+  todayTasks: number;
+  todayCompleted: number;
+  todayFailed: number;
+  successRate: number;
+  queuing: number;
+  processing: number;
 }
 
 // Dashboard trend
 export interface CreationDashboardTrend {
-  labels: string[]
-  taskCounts: number[]
-  successCounts: number[]
-  failedCounts: number[]
+  labels: string[];
+  taskCounts: number[];
+  successCounts: number[];
+  failedCounts: number[];
 }
 
 // Dashboard distribution
 export interface CreationDashboardDistribution {
-  statusDistribution: { name: string; value: number }[]
-  typeDistribution: { name: string; value: number }[]
+  statusDistribution: { name: string; value: number }[];
+  typeDistribution: { name: string; value: number }[];
 }
 
 // Dashboard ranking
 export interface CreationDashboardRanking {
-  modelRanking: { name: string; value: number }[]
-  userRanking: { name: string; value: number }[]
+  modelRanking: { name: string; value: number }[];
+  userRanking: { name: string; value: number }[];
 }
 
 // Dashboard heatmap
 export interface CreationDashboardHeatmap {
-  hours: number[]
-  days: string[]
-  values: number[][]
+  hours: number[];
+  days: string[];
+  values: number[][];
 }
 
 // Dashboard duration stats
 export interface CreationDashboardDuration {
-  types: string[]
-  p50: number[]
-  p90: number[]
-  p99: number[]
+  types: string[];
+  p50: number[];
+  p90: number[];
+  p99: number[];
 }
 
 // Dashboard error stats
 export interface CreationDashboardErrors {
-  errors: { errorMsg: string; count: number; percentage: number }[]
+  errors: { errorMsg: string; count: number; percentage: number }[];
 }
 
 // Combined dashboard data
 export interface CreationDashboardData {
-  stats: CreationDashboardStats
-  trend?: CreationDashboardTrend
-  distribution?: CreationDashboardDistribution
-  ranking?: CreationDashboardRanking
-  heatmap?: CreationDashboardHeatmap
-  duration?: CreationDashboardDuration
-  errors?: CreationDashboardErrors
+  stats: CreationDashboardStats;
+  trend?: CreationDashboardTrend;
+  distribution?: CreationDashboardDistribution;
+  ranking?: CreationDashboardRanking;
+  heatmap?: CreationDashboardHeatmap;
+  duration?: CreationDashboardDuration;
+  errors?: CreationDashboardErrors;
 }
 
 // API functions
 
 export function getCreationTaskList(params: CreationTaskQuery) {
-  return request.get<PageResult<CreationTask>>('/api/v1/admin/creation/tasks', { params })
+  return request.get<PageResult<CreationTask>>('/api/v1/admin/creation/tasks', { params });
 }
 
 export function getCreationTaskDetail(id: number) {
-  return request.get<CreationTask>(`/api/v1/admin/creation/tasks/${id}`)
+  return request.get<CreationTask>(`/api/v1/admin/creation/tasks/${id}`);
 }
 
 // API 请求日志（afv_api_request_log），用于错误信息详情展示
 export interface ApiRequestLog {
-  id: number
+  id: number;
   /** 客户端名称：AIGC/COMET/WAVESPEED */
-  clientName: string
+  clientName: string;
   /** 请求类型：SUBMIT/POLL */
-  requestType: string
+  requestType: string;
   /** 外部任务ID */
-  taskId?: string
-  requestUrl?: string
-  httpMethod?: string
-  requestBody?: string
-  responseStatus?: number
-  responseBody?: string
-  success: boolean
-  errorMessage?: string
-  costTime?: number
-  createTime: string
+  taskId?: string;
+  requestUrl?: string;
+  httpMethod?: string;
+  requestBody?: string;
+  responseStatus?: number;
+  responseBody?: string;
+  success: boolean;
+  errorMessage?: string;
+  costTime?: number;
+  createTime: string;
 }
 
 export function getCreationTaskApiLogs(id: number) {
-  return request.get<ApiRequestLog[]>(`/api/v1/admin/creation/tasks/${id}/api-logs`)
+  return request.get<ApiRequestLog[]>(`/api/v1/admin/creation/tasks/${id}/api-logs`);
 }
 
 // 按父任务ID查询子任务列表（列表展开行用）
@@ -216,107 +217,107 @@ export function getCreationTaskChildren(taskId: string, config?: AxiosRequestCon
   return request.get<CreationTask[]>(
     `/api/v1/admin/creation/tasks/${encodeURIComponent(taskId)}/children`,
     config,
-  )
+  );
 }
 
 export function cancelCreationTask(taskId: string) {
-  return request.post(`/api/v1/admin/creation/tasks/${taskId}/cancel`)
+  return request.post(`/api/v1/admin/creation/tasks/${taskId}/cancel`);
 }
 
 export function retryCreationTask(taskId: string) {
-  return request.post(`/api/v1/admin/creation/tasks/${taskId}/retry`)
+  return request.post(`/api/v1/admin/creation/tasks/${taskId}/retry`);
 }
 
 export function forceCompleteCreationTask(taskId: string, resultUrl?: string) {
-  return request.post(`/api/v1/admin/creation/tasks/${taskId}/force-complete`, { resultUrl })
+  return request.post(`/api/v1/admin/creation/tasks/${taskId}/force-complete`, { resultUrl });
 }
 
 // 强制失败（置终态、封禁重试；FAN_OUT 父任务逐个处理失败子）
 export function forceFailCreationTask(taskId: string) {
-  return request.post(`/api/v1/admin/creation/tasks/${taskId}/force-fail`)
+  return request.post(`/api/v1/admin/creation/tasks/${taskId}/force-fail`);
 }
 
 // 屏蔽任务（遮罩用户端内容 + 素材库下架；permanent=true 永久不可逆）
 export function blockCreationTask(taskId: string, data: { permanent?: boolean; reason?: string }) {
-  return request.post(`/api/v1/admin/creation/tasks/${taskId}/block`, data)
+  return request.post(`/api/v1/admin/creation/tasks/${taskId}/block`, data);
 }
 
 // 取消屏蔽（恢复展示 + 素材上架；永久屏蔽不可取消）
 export function unblockCreationTask(taskId: string) {
-  return request.post(`/api/v1/admin/creation/tasks/${taskId}/unblock`)
+  return request.post(`/api/v1/admin/creation/tasks/${taskId}/unblock`);
 }
 
 export function fixTaskContentType(id: number) {
-  return request.post(`/api/v1/admin/creation/tasks/${id}/fix-content-type`)
+  return request.post(`/api/v1/admin/creation/tasks/${id}/fix-content-type`);
 }
 
 export function exportCreationTasks(params: CreationTaskQuery) {
   return request.get('/api/v1/admin/creation/tasks/export', {
     params,
     responseType: 'blob',
-  })
+  });
 }
 
 export function batchCancelCreationTasks(taskIds: string[]) {
-  return request.post('/api/v1/admin/creation/tasks/batch-cancel', { taskIds })
+  return request.post('/api/v1/admin/creation/tasks/batch-cancel', { taskIds });
 }
 
 export function getCreationDashboardData(params?: { days?: number }) {
-  return request.get<CreationDashboardData>('/api/v1/admin/creation/dashboard', { params })
+  return request.get<CreationDashboardData>('/api/v1/admin/creation/dashboard', { params });
 }
 
 // ======================== Composite Cost Summary ========================
 
 export interface CompositeCostSummary {
-  parentTaskId: string
-  totalEstimatedCost: number
-  costCount: number
-  breakdown: CompositeCostItem[]
+  parentTaskId: string;
+  totalEstimatedCost: number;
+  costCount: number;
+  breakdown: CompositeCostItem[];
 }
 
 export interface CompositeCostItem {
-  stepCode: string
-  taskId: string
-  costSource: string
-  pointsConsumed: number
-  meterType: string
-  meterValue?: number
-  createTime?: string
+  stepCode: string;
+  taskId: string;
+  costSource: string;
+  pointsConsumed: number;
+  meterType: string;
+  meterValue?: number;
+  createTime?: string;
 }
 
 export function getCompositeCostSummary(parentTaskId: string) {
   return request.get<CompositeCostSummary>('/api/v1/admin/costs/composite-summary', {
     params: { parentTaskId },
-  })
+  });
 }
 
 // ======================== Pipeline Steps (交付 B) ========================
 
 export interface PipelineParentTask {
-  taskId: string
-  status: number
-  orchestrationStep: number
-  pipelineType: string
-  topology: string
-  settlementType: string
+  taskId: string;
+  status: number;
+  orchestrationStep: number;
+  pipelineType: string;
+  topology: string;
+  settlementType: string;
 }
 
 export interface PipelineStep {
-  code: string
-  kind: string
-  status: string
-  externalTaskId?: string
-  resultUrl?: string
-  errorMsg?: string
-  mode?: number
-  handler?: string
+  code: string;
+  kind: string;
+  status: string;
+  externalTaskId?: string;
+  resultUrl?: string;
+  errorMsg?: string;
+  mode?: number;
+  handler?: string;
 }
 
 export interface PipelineStepsResponse {
-  parentTask: PipelineParentTask
-  steps: PipelineStep[]
+  parentTask: PipelineParentTask;
+  steps: PipelineStep[];
 }
 
 export function getPipelineSteps(taskId: string) {
-  return request.get<PipelineStepsResponse>(`/api/v1/admin/creation/tasks/${taskId}/steps`)
+  return request.get<PipelineStepsResponse>(`/api/v1/admin/creation/tasks/${taskId}/steps`);
 }

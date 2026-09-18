@@ -304,7 +304,8 @@ export default {
     sortOrder: 'Sort',
     extra: 'Extra',
     extraPlaceholder: 'Optional, JSON or note',
-    sharedMaterialHint: 'The material itself (URL/title/size/extra) is globally deduplicated by URL and shared across every module/slot that references it; editing these fields affects all placements. Module/slot/sort/status apply only to this placement.',
+    sharedMaterialHint:
+      'The material itself (URL/title/size/extra) is globally deduplicated by URL and shared across every module/slot that references it; editing these fields affects all placements. Module/slot/sort/status apply only to this placement.',
     tagDrawerTitle: 'Asset Tagging',
     multiSelect: 'Multi',
     clear: 'Clear',
@@ -334,7 +335,8 @@ export default {
     categoryL2: 'Default slot - level 2',
     categoryPlaceholder: 'Leave empty to land in "Pending" after publish',
     categoryL2Placeholder: 'Optional - level 1 only',
-    defaultSlotHint: 'Used to auto-pin a recommendation slot on publish; the same asset can still be pinned to other slots later.',
+    defaultSlotHint:
+      'Used to auto-pin a recommendation slot on publish; the same asset can still be pinned to other slots later.',
     noDefaultSlot: 'No default slot',
     statusDraft: 'Draft',
     statusPublished: 'Published',
@@ -342,7 +344,8 @@ export default {
     publish: 'Publish',
     publishedAndPinned: 'Published and pinned - visible to users',
     publishedPending: 'Published. Assign a category under "Pending" to make it visible',
-    confirmOffline: 'Users will no longer see it. The slot and its order are kept and restored on re-publish. Continue?',
+    confirmOffline:
+      'Users will no longer see it. The slot and its order are kept and restored on re-publish. Continue?',
     categoryDisabled: 'disabled',
     type: 'Type',
     typeImage: 'Image',
@@ -353,7 +356,8 @@ export default {
     urlPlaceholder: 'Enter image / video URL',
     urlRequired: 'Asset URL is required',
     size: 'Size',
-    sizeHint: 'Leave empty to auto-detect on save; if detection fails it stays 0 and the feed falls back to reflow after load',
+    sizeHint:
+      'Leave empty to auto-detect on save; if detection fails it stays 0 and the feed falls back to reflow after load',
     width: 'Width',
     height: 'Height',
     sortOrder: 'Sort',
@@ -369,11 +373,14 @@ export default {
     sameStyleOn: 'Configured',
     sameStyleOff: 'Not set',
     sameStyleDerived: 'From source',
-    derivedTip: 'The recipe is derived from the linked creation automatically. To tweak the prompt or params, configure one manually - it takes precedence.',
-    publishBlockedNoRecipe: 'No Make-Similar recipe, cannot publish - an item users cannot remix is a dead end in the feed. Configure one, or fill in the source creation data ID.',
+    derivedTip:
+      'The recipe is derived from the linked creation automatically. To tweak the prompt or params, configure one manually - it takes precedence.',
+    publishBlockedNoRecipe:
+      'No Make-Similar recipe, cannot publish - an item users cannot remix is a dead end in the feed. Configure one, or fill in the source creation data ID.',
     sourceTask: 'Source creation',
     sourceTaskPlaceholder: 'The "Data ID" from Creation Contents, optional',
-    sourceTaskHint: 'When set, the recipe is derived from that creation automatically. Assets uploaded from outside have no source and must be configured manually.',
+    sourceTaskHint:
+      'When set, the recipe is derived from that creation automatically. Assets uploaded from outside have no source and must be configured manually.',
     configSameStyle: 'Recipe',
     sameStyleDrawerTitle: 'Make-Similar Recipe',
     sameStyleHint:
@@ -412,8 +419,10 @@ export default {
     title: 'Content Categories',
     hint: 'Two levels: level-1 drives the user-facing top tabs and display-asset grouping, level-2 is the sub-filter for recommendations. App and PC may use different categories — that is what the platform field expresses, APP+PC meaning shared. Level and parent are fixed after creation: changing them would silently reinterpret every asset and recommendation already hanging under the node, so delete and recreate instead.',
     platform: 'Platform',
-    platformHint: 'APP+PC means shared by both ends; pick a single end if the category only exists there.',
-    platformLockedByParent: 'Parent category is limited to {platform}; a level-2 cannot exceed its parent.',
+    platformHint:
+      'APP+PC means shared by both ends; pick a single end if the category only exists there.',
+    platformLockedByParent:
+      'Parent category is limited to {platform}; a level-2 cannot exceed its parent.',
     platformFilter: 'View by platform:',
     platformAll: 'All',
     empty: 'No categories yet - use "Add level-1 category"',
@@ -421,14 +430,16 @@ export default {
     addL2: '+ Level-2 Category',
     addChild: 'Add child',
     editTitle: 'Edit Category',
-    confirmDeleteL1: 'Deleting a level-1 category also deletes all of its level-2 children. Continue?',
+    confirmDeleteL1:
+      'Deleting a level-1 category also deletes all of its level-2 children. Continue?',
     confirmDeleteL2: 'Delete this level-2 category?',
     name: 'Name',
     namePlaceholder: 'e.g. Store Visits / Food Store Visits',
     nameRequired: 'Name is required',
     code: 'Code',
     codePlaceholder: 'e.g. exploreShop / foodShop',
-    codeHint: 'lowerCamelCase, unique under the same parent. Level-1 codes are referenced by value from display assets and cannot be changed while assets still use them.',
+    codeHint:
+      'lowerCamelCase, unique under the same parent. Level-1 codes are referenced by value from display assets and cannot be changed while assets still use them.',
     codeRequired: 'Code is required',
     level: 'Level',
     l1: 'Level 1',
@@ -452,7 +463,8 @@ export default {
     detailTitle: 'Content Detail',
     noOutput: 'This task has no output yet',
     slideHint: '{count} outputs - swipe to browse',
-    watermarkHint: 'Shown here are the delivered watermarked files (aligned per position, falling back to the raw file only where a watermark is missing), identical to what users see.',
+    watermarkHint:
+      'Shown here are the delivered watermarked files (aligned per position, falling back to the raw file only where a watermark is missing), identical to what users see.',
     thumbnail: 'Preview',
     dataId: 'Data ID',
     taskId: 'Task ID',
@@ -472,7 +484,8 @@ export default {
     recommended: 'Recommended',
     recommend: 'Recommend',
     recommendTitle: 'Add to Recommendation Slot',
-    recommendHint: 'Recommending only creates a relation and never touches the source content. One item can sit in several category slots, but not twice in the same one.',
+    recommendHint:
+      'Recommending only creates a relation and never touches the source content. One item can sit in several category slots, but not twice in the same one.',
     recommendSuccess: 'Recommended',
     blockedUserDeleted: 'Deleted by the user - cannot be recommended',
     blockedByAdmin: 'Blocked - cannot be recommended',
@@ -489,7 +502,8 @@ export default {
 
   contentRecommend: {
     sortEditHint: 'Click to edit the sort order',
-    dragMixedPositions: 'This list spans several category positions, so drag-sorting is off — sort order is stored per (level-1 + level-2) position. Pick a level-2 category as well, or type a number in the Sort column.',
+    dragMixedPositions:
+      'This list spans several category positions, so drag-sorting is off — sort order is stored per (level-1 + level-2) position. Pick a level-2 category as well, or type a number in the Sort column.',
     sortSaved: 'Sort order saved',
     detailTitle: 'Recommendation detail',
     noMedia: 'This content has no media to show',
@@ -501,7 +515,8 @@ export default {
     editTitle: 'Edit Recommendation',
     remove: 'Remove',
     removeSuccess: 'Recommendation removed',
-    confirmRemove: 'The content will no longer appear in this slot (the source is not deleted). Continue?',
+    confirmRemove:
+      'The content will no longer appear in this slot (the source is not deleted). Continue?',
     reorderSuccess: 'Order saved',
     thumbnail: 'Preview',
     sourceId: 'Data ID',
@@ -518,7 +533,8 @@ export default {
     l1Required: 'Level-1 category is required',
     platform: 'Platform',
     platformHint: 'APP+PC pushes to both ends.',
-    platformLocked: 'The selected category is only shown on {platform}; the recommendation cannot exceed that scope.',
+    platformLocked:
+      'The selected category is only shown on {platform}; the recommendation cannot exceed that scope.',
     sortOrder: 'Sort',
     sourceState: 'Source',
     valid: 'OK',
@@ -532,7 +548,8 @@ export default {
     filterSource: 'Source (all)',
     tabPinned: 'Pinned',
     tabPending: 'Pending',
-    pendingHint: 'These display assets are published but not pinned to any slot yet - publishing alone does not make them visible. Assign a category and platform first.',
+    pendingHint:
+      'These display assets are published but not pinned to any slot yet - publishing alone does not make them visible. Assign a category and platform first.',
     pendingEmpty: 'Nothing pending',
     pinNow: 'Pin',
     noDefaultSlot: 'No default slot',
@@ -544,15 +561,18 @@ export default {
   entryRoute: {
     title: 'Entry Routes',
     hint: 'Maps a creation entry to the form page route on each client. When a user taps "Make Similar" in the feed, the backend picks the route for that client and returns it alongside the recipe. App and PC route formats differ (App scheme vs web route), so configure one row per client.',
-    missingHint: 'These creation entries have no route configured yet - "Make Similar" will fall back to the generic creation page: {list}',
+    missingHint:
+      'These creation entries have no route configured yet - "Make Similar" will fall back to the generic creation page: {list}',
     empty: 'No route mappings',
     add: '+ Add Route',
     editTitle: 'Edit Route',
-    confirmDelete: 'After deletion this entry falls back to the generic creation page on that client. Continue?',
+    confirmDelete:
+      'After deletion this entry falls back to the generic creation page on that client. Continue?',
     entryCode: 'Creation entry',
     entryRequired: 'Creation entry is required',
     platform: 'Client',
-    platformHint: 'Configure one row for App and one for PC; the missing side falls back to the generic page.',
+    platformHint:
+      'Configure one row for App and one for PC; the missing side falls back to the generic page.',
     platformAll: 'All clients',
     filterEntry: 'Filter by entry',
     route: 'Route',
@@ -574,25 +594,30 @@ export default {
     titleAddL2: 'New Level-2 Category',
     editTitle: 'Edit Category',
     empty: 'No asset categories yet - click "Add Level-1" to create one',
-    unclassifiedTitle: '{count} creation entries are not in any category - none of their assets are visible to users right now',
+    unclassifiedTitle:
+      '{count} creation entries are not in any category - none of their assets are visible to users right now',
     unclassifiedDesc:
       'The asset library only renders tabs from categories, so an entry that belongs to no category shows up in no tab at all. The assets are still in the library, but users can go through every tab and never find them - it simply looks like the assets are gone, with no error anywhere. Forgetting to categorise a newly onboarded creation entry is the usual cause. Please file the entries below into a category:',
     unclassifiedAction: 'Create a category for these entries',
     level: 'Level',
     l1: 'Level 1',
     l2: 'Level 2',
-    levelHint: 'The level is decided by how you got here: the top-right button creates a level-1, the "Add child" action on a level-1 row creates a level-2. It cannot be changed afterwards.',
+    levelHint:
+      'The level is decided by how you got here: the top-right button creates a level-1, the "Add child" action on a level-1 row creates a level-2. It cannot be changed afterwards.',
     parent: 'Parent',
     parentPlaceholder: 'Pick the parent level-1 category',
-    parentHint: 'Fixed once created - moving a level-2 to another parent moves it and its members into a different tab, so delete and recreate instead.',
+    parentHint:
+      'Fixed once created - moving a level-2 to another parent moves it and its members into a different tab, so delete and recreate instead.',
     parentRequired: 'Pick the parent level-1 category',
     code: 'Category code',
     codePlaceholder: 'e.g. imageAsset / productShot',
-    codeHint: 'lowerCamelCase, globally unique (both levels share one namespace). Clients filter assets by this value, so it cannot be changed after creation - to change it, create a new category and move the entries over.',
+    codeHint:
+      'lowerCamelCase, globally unique (both levels share one namespace). Clients filter assets by this value, so it cannot be changed after creation - to change it, create a new category and move the entries over.',
     codeRequired: 'Category code is required',
     name: 'Category name',
     namePlaceholder: 'e.g. Images / Product Shots',
-    nameHint: 'User-facing: a level-1 name is the tab label, a level-2 name is the chip inside that tab.',
+    nameHint:
+      'User-facing: a level-1 name is the tab label, a level-2 name is the chip inside that tab.',
     nameRequired: 'Category name is required',
     mediaType: 'Media type',
     mediaTypeAll: 'Any',
@@ -619,16 +644,22 @@ export default {
     sortOrder: 'Sort',
     sortOrderHint: 'Lower comes first; you can also drag rows in the table.',
     reorderSuccess: 'Order saved',
-    reorderSameLevelOnly: 'Only siblings can be reordered: level-1 against level-1, or level-2 within the same parent. Use "Edit" to change where a category belongs.',
+    reorderSameLevelOnly:
+      'Only siblings can be reordered: level-1 against level-1, or level-2 within the same parent. Use "Edit" to change where a category belongs.',
     status: 'Status',
-    statusHint: 'Once disabled the category is no longer sent to clients, so its member entries lose their place to surface.',
+    statusHint:
+      'Once disabled the category is no longer sent to clients, so its member entries lose their place to surface.',
     enabled: 'Enabled',
     disabled: 'Disabled',
     namesTruncated: '{names} and {count} entries in total',
-    confirmDelete: 'Deleting removes this chip from the client and detaches {names} from it - the ones that belonged here only become uncategorised, and their assets will no longer appear in any tab. Delete?',
-    confirmDeleteEmpty: 'This level-2 category has no member entries; deleting only removes the chip from the client. Delete?',
-    deleteL1Blocked: 'This level-1 still has level-2 categories. Delete those first — removing the level-1 would leave them pointing at a parent that no longer exists, so they vanish from this list and from the client while the assets stay in the database.',
-    confirmDeleteL1Empty: 'This level-1 category has no children; deleting only removes the tab from the client. Delete?',
+    confirmDelete:
+      'Deleting removes this chip from the client and detaches {names} from it - the ones that belonged here only become uncategorised, and their assets will no longer appear in any tab. Delete?',
+    confirmDeleteEmpty:
+      'This level-2 category has no member entries; deleting only removes the chip from the client. Delete?',
+    deleteL1Blocked:
+      'This level-1 still has level-2 categories. Delete those first — removing the level-1 would leave them pointing at a parent that no longer exists, so they vanish from this list and from the client while the assets stay in the database.',
+    confirmDeleteL1Empty:
+      'This level-1 category has no children; deleting only removes the tab from the client. Delete?',
   },
 
   userAsset: {
@@ -669,14 +700,17 @@ export default {
     type: 'Asset Type',
     resultUrl: 'Output URL',
     detailTitle: 'Asset Detail',
-    deletedAlert: 'This asset has been deleted and is invisible to the user. The file itself is still in storage; ask engineering if it has to be restored.',
+    deletedAlert:
+      'This asset has been deleted and is invisible to the user. The file itself is still in storage; ask engineering if it has to be restored.',
     noMedia: 'This asset has no previewable output',
     prompt: 'Prompt',
     noPrompt: 'No prompt recorded (user-uploaded assets never have one)',
     items: 'Sub-assets ({count})',
-    itemsHint: 'Only digital-human / custom-model assets carry sub-assets; ordinary outputs never show this block.',
+    itemsHint:
+      'Only digital-human / custom-model assets carry sub-assets; ordinary outputs never show this block.',
     alreadyDeleted: 'Already deleted on the client - nothing left to delete',
-    confirmDelete: 'This is the user\'s own asset. Deleting is a logical delete: the user stops seeing it immediately. The file stays in storage and is never physically removed, but restoring it needs engineering. Delete?',
+    confirmDelete:
+      "This is the user's own asset. Deleting is a logical delete: the user stops seeing it immediately. The file stays in storage and is never physically removed, but restoring it needs engineering. Delete?",
     deleteSuccess: 'Asset deleted - no longer visible to the user',
   },
 
@@ -860,7 +894,8 @@ export default {
   user: {
     title: 'ユーザー管理',
     resetCredential: 'ユーザー名/パスワードをリセット',
-    resetCredentialWarn: 'リセットすると全デバイスのログインが即時無効になります（再ログインが必要）。空欄は変更しません。',
+    resetCredentialWarn:
+      'リセットすると全デバイスのログインが即時無効になります（再ログインが必要）。空欄は変更しません。',
     resetCredentialEmpty: '新しいユーザー名または新しいパスワードを入力してください',
     resetCredentialSuccess: 'リセットしました。ユーザーは全デバイスでログアウトされました',
     newUsername: '新しいユーザー名',
@@ -2257,7 +2292,8 @@ export default {
       import: 'インポート',
       exportSuccess: 'エクスポートに成功しました',
       importTip: 'JSON形式のルート設定データを貼り付けてください',
-      importPlaceholder: '例：\n[\n  {\n    "path": "/api/users",\n    "upstream": "http://localhost:8081",\n    "method": "GET",\n    "stripPrefix": true,\n    "priority": 0\n  }\n]',
+      importPlaceholder:
+        '例：\n[\n  {\n    "path": "/api/users",\n    "upstream": "http://localhost:8081",\n    "method": "GET",\n    "stripPrefix": true,\n    "priority": 0\n  }\n]',
       importRequired: 'インポートデータを入力してください',
       importFormatError: 'フォーマットエラー、有効なJSON配列を入力してください',
       importSuccess: 'インポート完了：成功 {imported} 件、失敗 {failed} 件',
@@ -2372,10 +2408,13 @@ export default {
       export: 'エクスポート',
       import: 'インポート',
       exportSuccess: 'エクスポートに成功しました',
-      importTip: 'JSON形式のSentinelルール設定データを貼り付けてください（flowRulesとcircuitRulesを含む）',
-      importPlaceholder: '例：\n{\n  "flowRules": [\n    {\n      "resource": "/api/users",\n      "threshold": 100,\n      "strategy": 0,\n      "controlBehavior": 0\n    }\n  ],\n  "circuitRules": []\n}',
+      importTip:
+        'JSON形式のSentinelルール設定データを貼り付けてください（flowRulesとcircuitRulesを含む）',
+      importPlaceholder:
+        '例：\n{\n  "flowRules": [\n    {\n      "resource": "/api/users",\n      "threshold": 100,\n      "strategy": 0,\n      "controlBehavior": 0\n    }\n  ],\n  "circuitRules": []\n}',
       importRequired: 'インポートデータを入力してください',
-      importFormatError: 'フォーマットエラー、flowRulesとcircuitRules配列を含む有効なJSONオブジェクトを入力してください',
+      importFormatError:
+        'フォーマットエラー、flowRulesとcircuitRules配列を含む有効なJSONオブジェクトを入力してください',
       importSuccess: 'インポート完了：成功 {imported} 件、失敗 {failed} 件',
     },
     middleware: {
@@ -2755,7 +2794,8 @@ export default {
       import: 'インポート',
       exportSuccess: 'エクスポート成功',
       importTip: 'JSON形式のプロトコルルート構成データを貼り付けてください',
-      importPlaceholder: '例:\n[\n  {\n    "name": "ユーザーサービス",\n    "path": "/api/users",\n    "upstream": "http://localhost:8081",\n    "protocol": "http",\n    "enabled": true\n  }\n]',
+      importPlaceholder:
+        '例:\n[\n  {\n    "name": "ユーザーサービス",\n    "path": "/api/users",\n    "upstream": "http://localhost:8081",\n    "protocol": "http",\n    "enabled": true\n  }\n]',
       importRequired: 'インポートデータを入力してください',
       importFormatError: 'フォーマットエラー、有効なJSON配列を入力してください',
       importSuccess: 'インポート完了：成功 {imported}件、失敗 {failed}件',
@@ -3033,7 +3073,8 @@ export default {
     paramOptional: '任意',
     paramDesc: '説明',
     grantDesc: '创作能力付与API、アライアンスプラットフォームがユーザー创作能力付与に使用',
-    rechargeDesc: 'ポイントチャージAPI、アライアンスプラットフォームがユーザーポイントチャージに使用',
+    rechargeDesc:
+      'ポイントチャージAPI、アライアンスプラットフォームがユーザーポイントチャージに使用',
     revokeDesc: '创作能力取消API、アライアンスプラットフォームが既に付与した创作能力を取り消す',
     refundDesc: 'ポイント返金API、アライアンスプラットフォームが消費済みポイントを返金',
     unionLoginDesc: 'アライアンスログインAPI、アライアンスユーザーがローカルシステムにログイン',
@@ -3052,9 +3093,12 @@ export default {
     pointsAmountDesc: '付与ポイント数',
     expireTimeDesc: '创作能力有効期限',
     sourceGrantIdDesc: '元の付与番号、取消時に対応する付与記録を指定',
-    rechargeExpireTimeDesc: 'ポイント有効期限（当該チャージバッチのポイント期限、期限切れの未使用分は失効；未指定時は無期限）',
-    rechargeBizTypeDesc: 'ソース業務タイプ：subscription（サブスク付与）/ recharge（通常チャージ）、大文字小文字を区別しない；未指定時は通常チャージとして計上',
-    sourceBizTypeDesc: '元の業務タイプ、チャージ bizType と一致：subscription（サブスク付与）/ recharge（通常チャージ）',
+    rechargeExpireTimeDesc:
+      'ポイント有効期限（当該チャージバッチのポイント期限、期限切れの未使用分は失効；未指定時は無期限）',
+    rechargeBizTypeDesc:
+      'ソース業務タイプ：subscription（サブスク付与）/ recharge（通常チャージ）、大文字小文字を区別しない；未指定時は通常チャージとして計上',
+    sourceBizTypeDesc:
+      '元の業務タイプ、チャージ bizType と一致：subscription（サブスク付与）/ recharge（通常チャージ）',
     sourceBizIdDesc: '元の業務番号',
     refundAmountDesc: '返金ポイント数',
     externalIdDesc: '外部取引番号、アライアンス側リクエストの一意識別子',
@@ -3069,42 +3113,57 @@ export default {
     bindTokenDesc: 'アライアンスバインドトークン、アライアンスプラットフォームが発行',
     bindSuccessDesc: 'バインドが成功したかどうか',
     signatureEnabled: '署名検証',
-    signatureEnabledTip: '有効にすると、すべてのリクエストで署名を検証します。署名とIPホワイトリストは同時に無効にできません。',
+    signatureEnabledTip:
+      '有効にすると、すべてのリクエストで署名を検証します。署名とIPホワイトリストは同時に無効にできません。',
     whitelistEnabled: 'IP ホワイトリスト',
-    whitelistEnabledTip: '有効にすると、すべてのリクエストで送信元IPがホワイトリスト内か検証します。署名とIPホワイトリストは同時に無効にできません。',
-    authMethodRequiredTip: '署名検証と IP ホワイトリストを同時に無効にすることはできません。さもないとユニオン API は認証なしになります。',
-    authMethodSwitchedTip: 'もう一方の認証方式が自動的に有効になりました。ユニオン API は少なくとも1つの認証を保持する必要があります。',
+    whitelistEnabledTip:
+      '有効にすると、すべてのリクエストで送信元IPがホワイトリスト内か検証します。署名とIPホワイトリストは同時に無効にできません。',
+    authMethodRequiredTip:
+      '署名検証と IP ホワイトリストを同時に無効にすることはできません。さもないとユニオン API は認証なしになります。',
+    authMethodSwitchedTip:
+      'もう一方の認証方式が自動的に有効になりました。ユニオン API は少なくとも1つの認証を保持する必要があります。',
     whitelistIps: 'ホワイトリスト IP',
     whitelistIpsPlaceholder: '1行に1つのIPまたはCIDR、例：192.168.1.100 または 10.0.0.0/8',
     whitelistIpsTip: '正確なIPとCIDR表記をサポート（例：192.168.1.0/24）',
     trustedProxies: '信頼できるプロキシ',
     advancedTag: '高度な設定',
     trustedProxiesPlaceholder: '1行に1つのプロキシIPまたはCIDR、例：10.0.0.10 または 10.0.0.0/24',
-    trustedProxiesTip: 'API前段にリバースプロキシ/ゲートウェイがある場合のみ内部IPを入力します。直接デプロイの場合は空欄にしてください。直接接続元が信頼できるプロキシの場合のみX-Forwarded-Forを解析して実際のクライアントIPを取得し、偽造ヘッダーによるホワイトリスト回避を防ぎます。',
+    trustedProxiesTip:
+      'API前段にリバースプロキシ/ゲートウェイがある場合のみ内部IPを入力します。直接デプロイの場合は空欄にしてください。直接接続元が信頼できるプロキシの場合のみX-Forwarded-Forを解析して実際のクライアントIPを取得し、偽造ヘッダーによるホワイトリスト回避を防ぎます。',
     offlineRequireTimestamp: '署名なしアクセス時にタイムスタンプ必須',
-    offlineRequireTimestampTip: 'ホワイトリスト回避時はHMAC/Nonceによるリプレイ防止がありません。有効にすると、リクエストにX-Union-Timestampが含まれ5分の許容範囲内であることが必要となり、「無期限のリプレイ」を「許容範囲内のリプレイ」に狭め、業務冪等性と組み合わせます。有効のままにすることを推奨します。',
+    offlineRequireTimestampTip:
+      'ホワイトリスト回避時はHMAC/Nonceによるリプレイ防止がありません。有効にすると、リクエストにX-Union-Timestampが含まれ5分の許容範囲内であることが必要となり、「無期限のリプレイ」を「許容範囲内のリプレイ」に狭め、業務冪等性と組み合わせます。有効のままにすることを推奨します。',
     signatureGuideTitle: '署名リクエストアルゴリズムの説明',
-    signatureGuideIntro: 'ユニオンが本システムのAPIを呼び出す際、リクエストヘッダーにHMAC-SHA256署名を含める必要があります。署名検証とIPホワイトリストを同時に有効にした場合、署名と送信元IPの両方が通過する必要があります。署名検証を無効にし、かつ送信元IPがホワイトリストに該当する場合のみ署名を省略できます。',
+    signatureGuideIntro:
+      'ユニオンが本システムのAPIを呼び出す際、リクエストヘッダーにHMAC-SHA256署名を含める必要があります。署名検証とIPホワイトリストを同時に有効にした場合、署名と送信元IPの両方が通過する必要があります。署名検証を無効にし、かつ送信元IPがホワイトリストに該当する場合のみ署名を省略できます。',
     authModesTitle: '2つの認証モード',
     authModeSignedTitle: '署名モード',
-    authModeSignedDesc: 'デフォルトモード。各リクエストはappSecretでHMAC-SHA256署名を計算し、サーバーは署名検証＋タイムスタンプ範囲＋Nonceリプレイ防止を行い、完全性と偽造防止を提供します。公開ネットワーク連携では必須です。',
+    authModeSignedDesc:
+      'デフォルトモード。各リクエストはappSecretでHMAC-SHA256署名を計算し、サーバーは署名検証＋タイムスタンプ範囲＋Nonceリプレイ防止を行い、完全性と偽造防止を提供します。公開ネットワーク連携では必須です。',
     authModeUnsignedTitle: '署名省略モード（IPホワイトリスト）',
-    authModeUnsignedDesc: '送信元IPがホワイトリストに該当し、かつ署名検証が無効な場合のみ有効で、署名を計算しません。ただしX-Union-TimestampとX-Union-Nonceは引き続き必要です（5分の範囲内でリプレイ防止）。信頼できる内部ネットワークでのみ使用してください。',
+    authModeUnsignedDesc:
+      '送信元IPがホワイトリストに該当し、かつ署名検証が無効な場合のみ有効で、署名を計算しません。ただしX-Union-TimestampとX-Union-Nonceは引き続き必要です（5分の範囲内でリプレイ防止）。信頼できる内部ネットワークでのみ使用してください。',
     authModeHeaders: '必須リクエストヘッダー：',
     signatureHeaders: '署名リクエストヘッダー',
     signatureSteps: '署名文字列の組み立てと計算',
     signatureParamsTitle: '署名パラメータの説明',
     signatureParamField: 'パラメータ / プレースホルダー',
     sigParamMethodDesc: 'HTTPメソッドの大文字、例：POST、GET。',
-    sigParamUriDesc: 'リクエストパス（クエリ文字列とドメインを除く）、例：/api/v1/union/feature-grants。',
-    sigParamQueryDesc: '正規化クエリ文字列：すべてのクエリパラメータをkey昇順でソートし、key=value形式で&で連結。クエリパラメータがない場合は空文字列。',
-    sigParamBodyDesc: 'リクエストボディ（生バイト）のSHA-256ダイジェスト（小文字16進数）。ボディがない場合は空文字列のダイジェスト。',
+    sigParamUriDesc:
+      'リクエストパス（クエリ文字列とドメインを除く）、例：/api/v1/union/feature-grants。',
+    sigParamQueryDesc:
+      '正規化クエリ文字列：すべてのクエリパラメータをkey昇順でソートし、key=value形式で&で連結。クエリパラメータがない場合は空文字列。',
+    sigParamBodyDesc:
+      'リクエストボディ（生バイト）のSHA-256ダイジェスト（小文字16進数）。ボディがない場合は空文字列のダイジェスト。',
     sigParamTimestampDesc: 'X-Union-Timestampヘッダーと同じUnix秒タイムスタンプ。',
     sigParamNonceDesc: 'X-Union-Nonceヘッダーと同じワンタイム乱数。',
     sigParamAppKeyDesc: 'X-Union-App-Keyヘッダーと同じユニオンアプリ識別子。',
-    sigParamAppSecretDesc: 'ユニオンアプリシークレット（HMACキー）。双方のみが保持し、絶対に漏らしたりリクエストに含めたりしないでください。',
-    sigParamSignatureDesc: 'stringToSignにappSecretで計算したHMAC-SHA256の結果（小文字16進数）。X-Union-Signatureヘッダーに入れます。',
-    signatureGuideNote: 'タイムスタンプ許容範囲は5分です。Nonceは範囲内で重複できません。リクエストボディも署名に含まれるため、改ざんすると検証に失敗します。',
+    sigParamAppSecretDesc:
+      'ユニオンアプリシークレット（HMACキー）。双方のみが保持し、絶対に漏らしたりリクエストに含めたりしないでください。',
+    sigParamSignatureDesc:
+      'stringToSignにappSecretで計算したHMAC-SHA256の結果（小文字16進数）。X-Union-Signatureヘッダーに入れます。',
+    signatureGuideNote:
+      'タイムスタンプ許容範囲は5分です。Nonceは範囲内で重複できません。リクエストボディも署名に含まれるため、改ざんすると検証に失敗します。',
     headerAppKeyDesc: 'ユニオンアプリ識別子（Appキー）',
     headerTimestampDesc: 'Unix秒タイムスタンプ、サーバー許容範囲内である必要があります',
     headerNonceDesc: 'リプレイ防止用のワンタイム乱数、範囲内で重複不可',
@@ -3150,7 +3209,8 @@ export default {
     confirmEnable: 'このアプリを再度有効化しますか？',
     confirmRotate: 'ローテーション後、旧キーは猶予期間に入ります。続行しますか？',
     secretTitle: 'アプリシークレット（今回のみ表示）',
-    secretWarning: 'シークレットの平文が表示されるのは今回限りです。直ちに安全に保存してください。閉じると再取得できません。',
+    secretWarning:
+      'シークレットの平文が表示されるのは今回限りです。直ちに安全に保存してください。閉じると再取得できません。',
     statusMap: {
       pending: '審査待ち',
       enabled: '有効',
@@ -3186,7 +3246,8 @@ export default {
 
   settingsStorage: {
     title: 'ストレージ設定',
-    realConfigTip: 'このページは実際のファイルストレージ設定モデルを使用します。ローカルストレージはディスクパスのみ、オブジェクトストレージはバックエンドの S3 互換戦略で接続します。Qiniu は未実装のため表示しません。',
+    realConfigTip:
+      'このページは実際のファイルストレージ設定モデルを使用します。ローカルストレージはディスクパスのみ、オブジェクトストレージはバックエンドの S3 互換戦略で接続します。Qiniu は未実装のため表示しません。',
     name: '設定名',
     nameRequired: '設定名を入力してください',
     namePlaceholder: '例：デフォルトローカルストレージ、Aliyun Hangzhou OSS',
@@ -3216,20 +3277,25 @@ export default {
     awsAccessKeyPlaceholder: 'Access Key ID を入力してください',
     awsSecretKeyLabel: 'Secret Access Key',
     awsSecretKeyPlaceholder: 'Secret Access Key を入力してください',
-    maskedSecretHint: 'マスク済みの認証情報が読み込まれています。変更しない場合はバックエンドの秘密情報を上書きしません。',
+    maskedSecretHint:
+      'マスク済みの認証情報が読み込まれています。変更しない場合はバックエンドの秘密情報を上書きしません。',
     endpoint: 'Endpoint',
     endpointRequired: 'Endpoint を入力してください',
     endpointInvalid: 'Endpoint は http または https URL である必要があります',
     basePath: '保存ルートパス / オブジェクトプレフィックス',
     basePathRequired: 'ローカル保存ルートパスを入力してください',
     localBasePathPlaceholder: '例：./data/media または /data/media',
-    localBasePathHint: 'ローカルファイルはこのディレクトリに書き込まれ、バックエンドの /media/... パスで配信されます。',
+    localBasePathHint:
+      'ローカルファイルはこのディレクトリに書き込まれ、バックエンドの /media/... パスで配信されます。',
     objectPrefixPlaceholder: '例：ai-fusion/、任意',
-    objectPrefixHint: 'オブジェクトストレージ内の key プレフィックスです。ローカルパスではありません。',
+    objectPrefixHint:
+      'オブジェクトストレージ内の key プレフィックスです。ローカルパスではありません。',
     customDomain: 'アクセスドメイン / CDN ドメイン',
     customDomainPlaceholder: '例：https://cdn.example.com、任意',
-    customDomainHint: '設定すると、バックエンドはこのドメインを優先してファイルアクセス URL を生成します。未設定時は bucket + endpoint を使用します。',
-    stsRoleArnHint: 'このストレージで STS 一時認証情報による直接アップロードを有効にするには設定が必要です。空のままにすると署名付き URL / POST policy のみ対応します。',
+    customDomainHint:
+      '設定すると、バックエンドはこのドメインを優先してファイルアクセス URL を生成します。未設定時は bucket + endpoint を使用します。',
+    stsRoleArnHint:
+      'このストレージで STS 一時認証情報による直接アップロードを有効にするには設定が必要です。空のままにすると署名付き URL / POST policy のみ対応します。',
     stsRoleArn: 'STS ロール ARN',
     stsRoleArnPlaceholder: 'arn:aws:iam::123456789012:role/direct-upload',
     stsRegion: 'STS リージョン',
@@ -3247,7 +3313,8 @@ export default {
     awsStsRegion: 'STS リージョン',
     awsStsRegionPlaceholder: 'us-east-1',
     stsRegionSameAsRegion: 'リージョンと同じ',
-    stsRegionHint: '通常はストレージバケットのリージョンと同じで、一時的なアクセス認証情報の生成に使用されます',
+    stsRegionHint:
+      '通常はストレージバケットのリージョンと同じで、一時的なアクセス認証情報の生成に使用されます',
     customDomainInvalid: 'アクセスドメイン形式が正しくありません',
     remark: '備考',
     remarkPlaceholder: '備考を入力してください（任意）',
@@ -3336,11 +3403,14 @@ export default {
     scopeTask: 'Creation tasks only',
     scopeAsset: 'Assets only',
     limit: 'Batch size',
-    limitHint: 'At most {max} rows per batch; a larger value is silently truncated by the backend, so the numbers here would no longer match what was actually scanned.',
+    limitHint:
+      'At most {max} rows per batch; a larger value is silently truncated by the backend, so the numbers here would no longer match what was actually scanned.',
     offset: 'Offset',
-    offsetHint: 'The endpoint rescans from the top every time, so a clump of never-fixable rows at the head makes it spin in place - use the offset to skip past them.',
+    offsetHint:
+      'The endpoint rescans from the top every time, so a clump of never-fixable rows at the head makes it spin in place - use the offset to skip past them.',
     dryRun: 'Dry run',
-    dryRunHint: 'A dry run only counts, it never writes. The backend does not take the distributed lock in this mode, so it can run alongside someone else\'s backfill.',
+    dryRunHint:
+      "A dry run only counts, it never writes. The backend does not take the distributed lock in this mode, so it can run alongside someone else's backfill.",
     dryRunTag: 'dry run',
     run: 'Run one batch',
     runDone: '{count} rows filled in this batch',
@@ -3348,8 +3418,10 @@ export default {
     coverRunDone: '{count} covers generated in this batch',
     history: 'Run history',
     paramsSummary: '{scope} · batch {limit} · offset {offset}',
-    idempotentHint: 'Running it repeatedly is safe: the backfill is idempotent, already-fixed rows are never picked again.',
-    scriptHint: 'For a large backlog use the command-line script {script} instead: it advances the cursor on its own, so you do not have to move the offset by hand.',
+    idempotentHint:
+      'Running it repeatedly is safe: the backfill is idempotent, already-fixed rows are never picked again.',
+    scriptHint:
+      'For a large backlog use the command-line script {script} instead: it advances the cursor on its own, so you do not have to move the offset by hand.',
     colTime: 'Time',
     colParams: 'Parameters',
     colResult: 'Result',
@@ -3375,8 +3447,9 @@ export default {
     entryUnregisteredDesc:
       'These tasks already have entry_code filled, so they are not part of the "to fill" counts above, and no amount of re-running the backfill will change them. The gap is on the other side: no enabled billing offer registers that code. Everything downstream degrades silently - the entry chip in the user task center does not render; filtering the admin content list by entry returns nothing; the asset-library category aggregation is a plain IN intersection, so these assets land in no tab at all; "make a similar one" looks the offer up, fails, and is swallowed into "not supported yet". Nothing is ever reported as an error - only a WARN line nobody reads.',
     entryUnregisteredAction:
-      'What needs fixing is the billing offer configuration, not another backfill run: create and enable the matching offer for each entry code below (the usual cause is an environment where that entry\'s offer seed script was never run).',
-    entryUnregisteredNone: 'Every filled entry code resolves to an enabled offer - entry-related features are healthy.',
+      "What needs fixing is the billing offer configuration, not another backfill run: create and enable the matching offer for each entry code below (the usual cause is an environment where that entry's offer seed script was never run).",
+    entryUnregisteredNone:
+      'Every filled entry code resolves to an enabled offer - entry-related features are healthy.',
     entryCodeCol: 'Entry code',
     entryCountCol: 'Tasks',
     entryHistorySide: '{side} scanned {scanned} / filled {filled} / left empty {stuck}',
@@ -3395,7 +3468,8 @@ export default {
     colTaskId: 'Task ID',
     colReason: 'Why picked',
     colResultUrl: 'Source URL (for extraction)',
-    coverHistorySide: '{side} scanned {scanned} / generated {generated} / failed {failed} / cross-fixed {crossFixed}',
+    coverHistorySide:
+      '{side} scanned {scanned} / generated {generated} / failed {failed} / cross-fixed {crossFixed}',
   },
 
   creationTask: {
@@ -3477,7 +3551,8 @@ export default {
     batchCancel: '一括キャンセル',
     confirmCancel: 'このタスクをキャンセルしますか？',
     confirmRetry: 'このタスクを再試行しますか？',
-    confirmForceFail: 'このタスクを強制的に失敗にしますか？終了状態となり再試行できず、未精算の予約は返金されます。',
+    confirmForceFail:
+      'このタスクを強制的に失敗にしますか？終了状態となり再試行できず、未精算の予約は返金されます。',
     confirmBatchCancel: '選択した{count}件のタスクをキャンセルしますか？',
     cancelSuccess: 'キャンセル成功',
     retrySuccess: '再試行成功',
@@ -3491,7 +3566,8 @@ export default {
     blockPermanent: '永久ブロック（不可逆）',
     blockReason: 'ブロック理由',
     blockReasonPlaceholder: '任意：理由を入力',
-    blockConfirmContent: 'ブロック後、ユーザーはこのタスクの内容や素材を閲覧できません（素材は非表示）。永久ブロックは解除できません。',
+    blockConfirmContent:
+      'ブロック後、ユーザーはこのタスクの内容や素材を閲覧できません（素材は非表示）。永久ブロックは解除できません。',
     unblockConfirm: 'ブロックを解除しますか？表示と素材が復元されます。',
     blockSuccess: 'ブロックしました',
     unblockSuccess: 'ブロックを解除しました',
@@ -3603,7 +3679,8 @@ export default {
     marginCny: '粗利(元)',
     marginRate: '粗利率',
     rate: 'ポイント換算率',
-    rateNotConfigured: 'ポイントからコストへの換算率が未設定です。売上/粗利が計算できない場合があります。',
+    rateNotConfigured:
+      'ポイントからコストへの換算率が未設定です。売上/粗利が計算できない場合があります。',
     saveRate: '保存',
     saveSuccess: '換算率を保存しました',
     rateHint: '1ポイントあたりのコスト金額(元)。売上と粗利の換算に使用します。',

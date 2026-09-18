@@ -40,18 +40,10 @@
           </template>
           <template v-else-if="column.key === 'operation'">
             <a-space>
-              <a-button
-                type="link"
-                size="small"
-                @click="handleOpenCompensation(record, 'RETRY')"
-              >
+              <a-button type="link" size="small" @click="handleOpenCompensation(record, 'RETRY')">
                 重试
               </a-button>
-              <a-button
-                type="link"
-                size="small"
-                @click="handleOpenCompensation(record, 'REFUND')"
-              >
+              <a-button type="link" size="small" @click="handleOpenCompensation(record, 'REFUND')">
                 退款
               </a-button>
               <a-button
@@ -115,13 +107,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { message } from 'antdv-next'
-import ProTable from '@/components/Pro/ProTable/index.vue'
-import { getExceptionTasks, getAgedHeldReservations, executeCompensation, recoverAgedHeldReservations } from '@/api/billing-exception'
-import { uuid } from '@/utils/helpers'
+import { message } from 'antdv-next';
+import { ref, computed } from 'vue';
 
-const activeTab = ref('tasks')
+import {
+  getExceptionTasks,
+  getAgedHeldReservations,
+  executeCompensation,
+  recoverAgedHeldReservations,
+} from '@/api/billing-exception';
+import ProTable from '@/components/Pro/ProTable/index.vue';
+import { uuid } from '@/utils/helpers';
+
+const activeTab = ref('tasks');
 
 const billingStatusMap: Record<string, string> = {
   HELD: '预扣占用',
@@ -131,7 +129,7 @@ const billingStatusMap: Record<string, string> = {
   SETTLEMENT_FAILED: '结算失败',
   PARTIALLY_REFUNDED: '部分退款',
   BILLING_PENDING_REVIEW: '待审核',
-}
+};
 
 const billingStatusColorMap: Record<string, string> = {
   HELD: 'blue',
@@ -141,7 +139,7 @@ const billingStatusColorMap: Record<string, string> = {
   CANCELLED: 'default',
   SETTLEMENT_FAILED: 'red',
   BILLING_PENDING_REVIEW: 'warning',
-}
+};
 
 const processStatusMap: Record<string, string> = {
   0: '排队中',
@@ -149,7 +147,7 @@ const processStatusMap: Record<string, string> = {
   2: '已完成',
   3: '失败',
   5: '部分成功',
-}
+};
 
 const processStatusColorMap: Record<string, string> = {
   0: 'default',
@@ -157,7 +155,7 @@ const processStatusColorMap: Record<string, string> = {
   2: 'success',
   3: 'error',
   5: 'warning',
-}
+};
 
 const taskColumns = [
   {
@@ -237,7 +235,7 @@ const taskColumns = [
     align: 'center' as const,
     fixed: 'right' as const,
   },
-]
+];
 
 const agedColumns = [
   { title: '扣费单号', dataIndex: 'reservationNo', width: 180 },
@@ -250,28 +248,28 @@ const agedColumns = [
   { title: '分类原因', dataIndex: 'classificationReason', width: 200 },
   { title: '过期时间', dataIndex: 'expireTime', width: 180 },
   { title: '创建时间', dataIndex: 'createTime', width: 180 },
-]
+];
 
-const recoverLoading = ref(false)
+const recoverLoading = ref(false);
 
 function getClassificationColor(reason: string): string {
-  if (!reason) return 'default'
-  if (reason.includes('FAILED')) return 'red'
-  if (reason.includes('UNSETTLED')) return 'orange'
-  if (reason.includes('RUNNING')) return 'blue'
-  return 'default'
+  if (!reason) return 'default';
+  if (reason.includes('FAILED')) return 'red';
+  if (reason.includes('UNSETTLED')) return 'orange';
+  if (reason.includes('RUNNING')) return 'blue';
+  return 'default';
 }
 
 async function handleRecover() {
   try {
-    recoverLoading.value = true
-    const count = await recoverAgedHeldReservations()
-    message.success(`恢复成功，共处理 ${count} 条记录`)
-    await loadAgedReservations()
+    recoverLoading.value = true;
+    const count = await recoverAgedHeldReservations();
+    message.success(`恢复成功，共处理 ${count} 条记录`);
+    await loadAgedReservations();
   } catch (error) {
-    console.error('Failed to recover aged held reservations:', error)
+    console.error('Failed to recover aged held reservations:', error);
   } finally {
-    recoverLoading.value = false
+    recoverLoading.value = false;
   }
 }
 
@@ -282,78 +280,81 @@ async function loadTasks(params: Record<string, unknown>) {
     billingStatus: params.billingStatus as string | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
-  })
+  });
   return {
     data: res.list || [],
     total: res.total || 0,
     success: true,
-  }
+  };
 }
 
-const agedList = ref<any[]>([])
-const agedLoading = ref(false)
+const agedList = ref<any[]>([]);
+const agedLoading = ref(false);
 
 async function loadAgedReservations() {
-  agedLoading.value = true
+  agedLoading.value = true;
   try {
-    const res = await getAgedHeldReservations({ limit: 100 })
-    agedList.value = res || []
+    const res = await getAgedHeldReservations({ limit: 100 });
+    agedList.value = res || [];
   } catch (error) {
-    console.error('Failed to load aged held reservations:', error)
+    console.error('Failed to load aged held reservations:', error);
   } finally {
-    agedLoading.value = false
+    agedLoading.value = false;
   }
 }
 
 // 补偿操作
-const submitting = ref(false)
-const compensationVisible = ref(false)
-const compensationForm = ref({ reason: '' })
-const compensationAction = ref('RETRY' as 'RETRY' | 'IGNORE' | 'REFUND')
-const compensationReservationNo = ref('')
+const submitting = ref(false);
+const compensationVisible = ref(false);
+const compensationForm = ref({ reason: '' });
+const compensationAction = ref('RETRY' as 'RETRY' | 'IGNORE' | 'REFUND');
+const compensationReservationNo = ref('');
 
 const compensationTitle = computed(() => {
-  const map = { RETRY: '重试结算', REFUND: '退款', IGNORE: '忽略' }
-  return map[compensationAction.value] || '补偿操作'
-})
+  const map = { RETRY: '重试结算', REFUND: '退款', IGNORE: '忽略' };
+  return map[compensationAction.value] || '补偿操作';
+});
 
-function handleOpenCompensation(record: { reservationNo: string }, action: 'RETRY' | 'IGNORE' | 'REFUND') {
-  compensationAction.value = action
-  compensationReservationNo.value = record.reservationNo
-  compensationForm.value.reason = ''
-  compensationVisible.value = true
+function handleOpenCompensation(
+  record: { reservationNo: string },
+  action: 'RETRY' | 'IGNORE' | 'REFUND',
+) {
+  compensationAction.value = action;
+  compensationReservationNo.value = record.reservationNo;
+  compensationForm.value.reason = '';
+  compensationVisible.value = true;
 }
 
 async function handleConfirmCompensation() {
-  const reason = compensationForm.value.reason.trim()
+  const reason = compensationForm.value.reason.trim();
   if (!reason) {
-    message.warning('请输入操作原因')
-    return
+    message.warning('请输入操作原因');
+    return;
   }
   if (/^\d+$/.test(reason) || reason.length < 2) {
-    message.warning('操作原因不能为纯数字且至少2个字符')
-    return
+    message.warning('操作原因不能为纯数字且至少2个字符');
+    return;
   }
   try {
-    submitting.value = true
+    submitting.value = true;
     await executeCompensation({
       actionType: compensationAction.value,
       reservationNo: compensationReservationNo.value,
       requestId: uuid(),
       reason,
-    })
-    message.success('操作成功')
-    compensationVisible.value = false
+    });
+    message.success('操作成功');
+    compensationVisible.value = false;
     // 刷新列表
     if (activeTab.value === 'tasks') {
       // ProTable 会自动刷新
     } else {
-      await loadAgedReservations()
+      await loadAgedReservations();
     }
   } catch (error) {
-    console.error('Failed to execute compensation:', error)
+    console.error('Failed to execute compensation:', error);
   } finally {
-    submitting.value = false
+    submitting.value = false;
   }
 }
 </script>

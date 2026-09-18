@@ -1,19 +1,17 @@
 <template>
   <div class="page-container">
     <a-card :title="$t('user.list')">
-      <ProTable
-        ref="proTableRef"
-        :columns="columns"
-        :request="loadData"
-        :search="{}"
-        row-key="id"
-      >
+      <ProTable ref="proTableRef" :columns="columns" :request="loadData" :search="{}" row-key="id">
         <template #emptyText>
           <a-empty :description="$t('user.noUserData')" />
         </template>
         <template #bodyCell="{ column, record }">
           <template v-if="column.dataIndex === 'avatar'">
-            <a-avatar v-if="record.avatar && !failedAvatars.has(record.avatar)" :src="record.avatar" @error="handleAvatarError(record)">
+            <a-avatar
+              v-if="record.avatar && !failedAvatars.has(record.avatar)"
+              :src="record.avatar"
+              @error="handleAvatarError(record)"
+            >
               {{ record.nickname?.charAt(0) }}
             </a-avatar>
             <a-avatar v-else>{{ record.nickname?.charAt(0) }}</a-avatar>
@@ -35,7 +33,10 @@
           </template>
 
           <template v-if="column.dataIndex === 'bindSource'">
-            <a-tag v-if="record.bindSource" :color="bindSourceColorMap[record.bindSource] || 'default'">
+            <a-tag
+              v-if="record.bindSource"
+              :color="bindSourceColorMap[record.bindSource] || 'default'"
+            >
               {{ bindSourceMap[record.bindSource] || record.bindSource }}
             </a-tag>
             <span v-else>-</span>
@@ -120,64 +121,72 @@
 </template>
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
-import { message } from 'antdv-next'
-import ProTable from '@/components/Pro/ProTable/index.vue'
-import { getUserList } from '@/api/user'
-import { adjustPoints } from '@/api/points'
-import { manualAddFeature, getFeatureOptions } from '@/api/feature'
-import { getLocale } from '@/locales'
-import { uuid } from '@/utils/helpers'
-import { ref, computed } from 'vue'
-import type { Dayjs } from 'dayjs'
-import type { Feature } from '@/types/api'
+import type { Feature } from '@/types/api';
+import type { Dayjs } from 'dayjs';
 
-const { t } = useI18n()
-const router = useRouter()
-const currentLocale = computed(() => getLocale())
+import { message } from 'antdv-next';
+import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
-const proTableRef = ref<InstanceType<typeof ProTable> | null>(null)
-const adjustModalVisible = ref(false)
-const adjustForm = ref({ userId: 0, username: '', amount: 0, reason: '', adjustType: 'ADD' as string })
-const failedAvatars = ref(new Set<string>())
+import { manualAddFeature, getFeatureOptions } from '@/api/feature';
+import { adjustPoints } from '@/api/points';
+import { getUserList } from '@/api/user';
+import ProTable from '@/components/Pro/ProTable/index.vue';
+import { getLocale } from '@/locales';
+import { uuid } from '@/utils/helpers';
+
+const { t } = useI18n();
+const router = useRouter();
+const currentLocale = computed(() => getLocale());
+
+const proTableRef = ref<InstanceType<typeof ProTable> | null>(null);
+const adjustModalVisible = ref(false);
+const adjustForm = ref({
+  userId: 0,
+  username: '',
+  amount: 0,
+  reason: '',
+  adjustType: 'ADD' as string,
+});
+const failedAvatars = ref(new Set<string>());
 
 // 授权创作能力
-const grantModalVisible = ref(false)
-const grantLoading = ref(false)
+const grantModalVisible = ref(false);
+const grantLoading = ref(false);
 const grantForm = ref<{
-  userId: number
-  username: string
-  featureCode: string | undefined
-  expireTime: Dayjs | undefined
-}>({ userId: 0, username: '', featureCode: undefined, expireTime: undefined })
-const featureOptions = ref<Feature[]>([])
+  userId: number;
+  username: string;
+  featureCode: string | undefined;
+  expireTime: Dayjs | undefined;
+}>({ userId: 0, username: '', featureCode: undefined, expireTime: undefined });
+const featureOptions = ref<Feature[]>([]);
 const featureSelectOptions = computed(() =>
   featureOptions.value.map((f) => ({
     label: f.featureName?.[currentLocale.value] || f.featureName?.['zh-CN'] || f.featureCode,
     value: f.featureCode,
-  }))
-)
+  })),
+);
 
 const statusMap: Record<number, string> = {
   1: t('common.enabled'),
   0: t('common.disabled'),
-}
+};
 
 const statusColorMap: Record<number, string> = {
   1: 'green',
   0: 'red',
-}
+};
 
 // 绑定来源展示：pool_bind = 多应用主动绑定；union_backfill = 联盟收编存量
 const bindSourceMap: Record<string, string> = {
   pool_bind: t('user.bindSourcePoolBind'),
   union_backfill: t('user.bindSourceUnionBackfill'),
-}
+};
 const bindSourceColorMap: Record<string, string> = {
   pool_bind: 'blue',
   union_backfill: 'purple',
-}
+};
 
 const columns = [
   {
@@ -278,13 +287,13 @@ const columns = [
     fixed: 'right' as const,
     align: 'center' as const,
   },
-]
+];
 
 async function loadData(params: Record<string, unknown>) {
   // createTime 为 dateRange 搜索，值为 [start, end] 的 dayjs 数组
-  const range = params.createTime as [Dayjs, Dayjs] | undefined
-  const startTime = range?.[0] ? range[0].startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined
-  const endTime = range?.[1] ? range[1].endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined
+  const range = params.createTime as [Dayjs, Dayjs] | undefined;
+  const startTime = range?.[0] ? range[0].startOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined;
+  const endTime = range?.[1] ? range[1].endOf('day').format('YYYY-MM-DD HH:mm:ss') : undefined;
 
   const res = await getUserList({
     keyword: params.keyword as string | undefined,
@@ -295,21 +304,21 @@ async function loadData(params: Record<string, unknown>) {
     endTime,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
-  })
+  });
   return {
     data: res.list || [],
     total: res.total || 0,
     success: true,
-  }
+  };
 }
 
 function handleViewDetail(record: Record<string, unknown>) {
-  router.push({ name: 'UserDetail', params: { id: String(record.id) } })
+  router.push({ name: 'UserDetail', params: { id: String(record.id) } });
 }
 
 function handleAvatarError(record: Record<string, unknown>) {
   if (record.avatar) {
-    failedAvatars.value.add(record.avatar as string)
+    failedAvatars.value.add(record.avatar as string);
   }
 }
 
@@ -320,23 +329,23 @@ function handleAdjustPoints(record: Record<string, unknown>) {
     amount: 0,
     reason: '',
     adjustType: 'ADD',
-  }
-  adjustModalVisible.value = true
+  };
+  adjustModalVisible.value = true;
 }
 
 async function handleConfirmAdjust() {
-  const reason = adjustForm.value.reason.trim()
+  const reason = adjustForm.value.reason.trim();
   if (!reason) {
-    message.warning('请输入调整原因')
-    return
+    message.warning('请输入调整原因');
+    return;
   }
   if (/^\d+$/.test(reason) || reason.length < 2) {
-    message.warning('调整原因不能为纯数字且至少2个字符')
-    return
+    message.warning('调整原因不能为纯数字且至少2个字符');
+    return;
   }
   if (adjustForm.value.amount <= 0) {
-    message.warning('调整点数必须大于0')
-    return
+    message.warning('调整点数必须大于0');
+    return;
   }
   try {
     await adjustPoints({
@@ -345,19 +354,19 @@ async function handleConfirmAdjust() {
       amount: adjustForm.value.amount,
       reason: adjustForm.value.reason,
       idempotencyKey: uuid(),
-    })
-    message.success(t('common.success'))
-    adjustModalVisible.value = false
-    proTableRef.value?.refresh()
+    });
+    message.success(t('common.success'));
+    adjustModalVisible.value = false;
+    proTableRef.value?.refresh();
   } catch (error) {
-    console.error('Adjust points failed:', error)
+    console.error('Adjust points failed:', error);
   }
 }
 
 async function loadFeatureOptions() {
   try {
-    const res = await getFeatureOptions()
-    featureOptions.value = res || []
+    const res = await getFeatureOptions();
+    featureOptions.value = res || [];
   } catch {
     // 能力选项获取失败不阻塞主流程
   }
@@ -369,37 +378,37 @@ function handleGrant(record: Record<string, unknown>) {
     username: (record.username as string) || (record.nickname as string) || '',
     featureCode: undefined,
     expireTime: undefined,
-  }
-  grantModalVisible.value = true
+  };
+  grantModalVisible.value = true;
   // 打开弹窗时确保能力选项已加载（兜底）
   if (featureOptions.value.length === 0) {
-    loadFeatureOptions()
+    loadFeatureOptions();
   }
 }
 
 async function handleConfirmGrant() {
   if (!grantForm.value.featureCode) {
-    message.error(t('featureGrant.featureCodeRequired'))
-    return
+    message.error(t('featureGrant.featureCodeRequired'));
+    return;
   }
   if (!grantForm.value.userId) {
-    message.error(t('user.userNotFound'))
-    return
+    message.error(t('user.userNotFound'));
+    return;
   }
-  grantLoading.value = true
+  grantLoading.value = true;
   try {
     await manualAddFeature({
       userId: grantForm.value.userId,
       featureCode: grantForm.value.featureCode,
       expireTime: grantForm.value.expireTime?.format('YYYY-MM-DD HH:mm:ss'),
-    })
-    message.success(t('featureGrant.manualAddSuccess'))
-    grantModalVisible.value = false
-    proTableRef.value?.refresh()
+    });
+    message.success(t('featureGrant.manualAddSuccess'));
+    grantModalVisible.value = false;
+    proTableRef.value?.refresh();
   } catch {
     // 错误已在 request 拦截器中处理
   } finally {
-    grantLoading.value = false
+    grantLoading.value = false;
   }
 }
 </script>

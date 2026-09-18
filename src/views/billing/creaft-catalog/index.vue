@@ -153,8 +153,9 @@
 </template>
 
 <script setup lang="ts">
-import { message } from 'antdv-next'
-import { computed, reactive, ref } from 'vue'
+import { message } from 'antdv-next';
+import { computed, reactive, ref } from 'vue';
+
 import {
   createCreaftCatalog,
   deleteCreaftCatalog,
@@ -162,21 +163,21 @@ import {
   updateCreaftCatalog,
   type CreaftCatalogRow,
   type CreaftCatalogType,
-} from '@/api/creaft-compat'
+} from '@/api/creaft-compat';
 
-const rows = ref<CreaftCatalogRow[]>([])
-const loading = ref(false)
+const rows = ref<CreaftCatalogRow[]>([]);
+const loading = ref(false);
 /** 默认落在平均耗时：仓库里没有任何迁移种过它，它是最常见的"接口回 4001"来源 */
-const typeFilter = ref<'' | CreaftCatalogType>('AVG_DURATION')
-const keyFilter = ref('')
+const typeFilter = ref<'' | CreaftCatalogType>('AVG_DURATION');
+const keyFilter = ref('');
 
 const typeOptions: { label: string; value: CreaftCatalogType }[] = [
   { label: '平均耗时 AVG_DURATION', value: 'AVG_DURATION' },
   { label: '能力清单 FEATURE', value: 'FEATURE' },
   { label: '模型可选项 MODEL_CONFIG', value: 'MODEL_CONFIG' },
   { label: '业务点数 BIZ_POINT', value: 'BIZ_POINT' },
-]
-const typeFilterOptions = [{ label: '全部类型', value: '' }, ...typeOptions]
+];
+const typeFilterOptions = [{ label: '全部类型', value: '' }, ...typeOptions];
 
 const DESCRIPTIONS: Record<CreaftCatalogType, string> = {
   AVG_DURATION:
@@ -184,15 +185,15 @@ const DESCRIPTIONS: Record<CreaftCatalogType, string> = {
   FEATURE: '被 GET /api/v2/features 读：按分组给标题。',
   MODEL_CONFIG: '模型可选项，按模型类型过滤。',
   BIZ_POINT: '业务点数表，取目录键 + 点数 + 附加载荷。',
-}
+};
 
 function typeDescription(type: CreaftCatalogType) {
-  return DESCRIPTIONS[type]
+  return DESCRIPTIONS[type];
 }
-const typeHint = computed(() => (typeFilter.value ? DESCRIPTIONS[typeFilter.value] : ''))
+const typeHint = computed(() => (typeFilter.value ? DESCRIPTIONS[typeFilter.value] : ''));
 const keyPlaceholder = computed(() =>
   form.catalogType === 'AVG_DURATION' ? '任务类型码，例如 ai-image-generator' : '目录键',
-)
+);
 
 const columns = [
   { title: '类型', dataIndex: 'catalogType', width: 170 },
@@ -201,34 +202,34 @@ const columns = [
   { title: '排序', dataIndex: 'sortOrder', width: 80, align: 'center' as const },
   { title: '状态', dataIndex: 'status', width: 90, align: 'center' as const },
   { title: '操作', dataIndex: 'operation', key: 'operation', width: 140, align: 'center' as const },
-]
+];
 
-let keyFilterTimer: ReturnType<typeof setTimeout> | undefined
+let keyFilterTimer: ReturnType<typeof setTimeout> | undefined;
 function onKeyFilterChange() {
-  clearTimeout(keyFilterTimer)
-  keyFilterTimer = setTimeout(loadList, 300)
+  clearTimeout(keyFilterTimer);
+  keyFilterTimer = setTimeout(loadList, 300);
 }
 
 async function loadList() {
-  loading.value = true
+  loading.value = true;
   try {
     rows.value =
       (await getCreaftCatalog({
         catalogType: typeFilter.value || undefined,
         catalogKey: keyFilter.value.trim() || undefined,
-      })) || []
+      })) || [];
   } catch {
     /* 拦截器已提示 */
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
-loadList()
+loadList();
 
 // ---- 新增 / 编辑 ----
-const modalVisible = ref(false)
-const saving = ref(false)
-const editId = ref<number | null>(null)
+const modalVisible = ref(false);
+const saving = ref(false);
+const editId = ref<number | null>(null);
 
 const form = reactive({
   catalogType: 'AVG_DURATION' as CreaftCatalogType,
@@ -241,12 +242,12 @@ const form = reactive({
   payloadJson: '',
   sortOrder: 0,
   status: 1,
-})
+});
 
 const enabled = computed({
   get: () => form.status === 1,
   set: (value: boolean) => (form.status = value ? 1 : 0),
-})
+});
 
 function reset(type: CreaftCatalogType) {
   Object.assign(form, {
@@ -260,17 +261,17 @@ function reset(type: CreaftCatalogType) {
     payloadJson: '',
     sortOrder: 0,
     status: 1,
-  })
+  });
 }
 
 function openCreate() {
-  editId.value = null
-  reset(typeFilter.value || 'AVG_DURATION')
-  modalVisible.value = true
+  editId.value = null;
+  reset(typeFilter.value || 'AVG_DURATION');
+  modalVisible.value = true;
 }
 
 function openEdit(record: CreaftCatalogRow) {
-  editId.value = record.id
+  editId.value = record.id;
   Object.assign(form, {
     catalogType: record.catalogType,
     catalogKey: record.catalogKey,
@@ -282,20 +283,20 @@ function openEdit(record: CreaftCatalogRow) {
     payloadJson: record.payloadJson || '',
     sortOrder: record.sortOrder ?? 0,
     status: record.status,
-  })
-  modalVisible.value = true
+  });
+  modalVisible.value = true;
 }
 
 async function handleSubmit() {
   if (!form.catalogKey.trim()) {
-    message.warning('目录键必填')
-    return
+    message.warning('目录键必填');
+    return;
   }
   if (form.catalogType === 'AVG_DURATION' && form.avgSeconds == null) {
-    message.warning('平均耗时必填，否则这一行读出来没有值')
-    return
+    message.warning('平均耗时必填，否则这一行读出来没有值');
+    return;
   }
-  saving.value = true
+  saving.value = true;
   try {
     const payload = {
       catalogType: form.catalogType,
@@ -308,24 +309,24 @@ async function handleSubmit() {
       payloadJson: form.payloadJson || undefined,
       sortOrder: form.sortOrder ?? 0,
       status: form.status,
-    }
-    if (editId.value) await updateCreaftCatalog(editId.value, payload)
-    else await createCreaftCatalog(payload)
-    message.success('已保存')
-    modalVisible.value = false
-    loadList()
+    };
+    if (editId.value) await updateCreaftCatalog(editId.value, payload);
+    else await createCreaftCatalog(payload);
+    message.success('已保存');
+    modalVisible.value = false;
+    loadList();
   } catch {
     /* 同类型下目录键重复由后端拒绝，原因由拦截器提示 */
   } finally {
-    saving.value = false
+    saving.value = false;
   }
 }
 
 async function handleDelete(record: CreaftCatalogRow) {
   try {
-    await deleteCreaftCatalog(record.id)
-    message.success('已删除')
-    loadList()
+    await deleteCreaftCatalog(record.id);
+    message.success('已删除');
+    loadList();
   } catch {
     /* 拦截器已提示 */
   }

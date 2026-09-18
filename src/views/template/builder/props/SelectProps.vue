@@ -89,11 +89,7 @@
                 {{ $t('template.selectOptionDisabled') }}
               </a-checkbox>
             </div>
-            <a-button
-              type="text"
-              class="select-props__remove"
-              @click="onRemoveOption(index)"
-            >
+            <a-button type="text" class="select-props__remove" @click="onRemoveOption(index)">
               <Icon icon="antdv-next:DeleteOutlined" />
             </a-button>
           </div>
@@ -111,47 +107,47 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import type { SelectOption, SelectWidgetConfig } from '@/types/template-builder';
 
-import draggable from 'vuedraggable'
+import { computed } from 'vue';
+import draggable from 'vuedraggable';
 
-import Icon from '@/components/Icon/index.vue'
-import { $t } from '@/locales'
-import type { SelectOption, SelectWidgetConfig } from '@/types/template-builder'
+import Icon from '@/components/Icon/index.vue';
+import { $t } from '@/locales';
 
 const props = defineProps<{
-  widget: SelectWidgetConfig
-}>()
+  widget: SelectWidgetConfig;
+}>();
 
 const emit = defineEmits<{
-  (e: 'update', patch: Record<string, unknown>): void
-}>()
+  (e: 'update', patch: Record<string, unknown>): void;
+}>();
 
-type TagRenderMode = NonNullable<SelectWidgetConfig['tagRenderMode']>
+type TagRenderMode = NonNullable<SelectWidgetConfig['tagRenderMode']>;
 
 const tagRenderModeOptions: { label: string; value: TagRenderMode }[] = [
   { label: $t('template.selectTagDefault'), value: 'default' },
   { label: $t('template.selectTagChip'), value: 'chip' },
-]
+];
 
-const options = computed<SelectOption[]>(() => props.widget.options ?? [])
+const options = computed<SelectOption[]>(() => props.widget.options ?? []);
 
-type OptionalField = 'icon' | 'description'
-const OPTIONAL_FIELDS: ReadonlySet<OptionalField> = new Set(['icon', 'description'])
+type OptionalField = 'icon' | 'description';
+const OPTIONAL_FIELDS: ReadonlySet<OptionalField> = new Set(['icon', 'description']);
 
 function onUpdate<K extends keyof SelectWidgetConfig>(
   field: K,
   value: SelectWidgetConfig[K],
 ): void {
-  emit('update', { [field]: value })
+  emit('update', { [field]: value });
 }
 
 function commitOptions(next: SelectOption[]): void {
-  emit('update', { options: next })
+  emit('update', { options: next });
 }
 
 function isOptional(field: keyof SelectOption): field is OptionalField {
-  return OPTIONAL_FIELDS.has(field as OptionalField)
+  return OPTIONAL_FIELDS.has(field as OptionalField);
 }
 
 function onOptionUpdate(
@@ -160,40 +156,40 @@ function onOptionUpdate(
   value: string,
 ): void {
   const next = options.value.map((opt, i) => {
-    if (i !== index) return { ...opt }
-    const updated: SelectOption = { ...opt }
+    if (i !== index) return { ...opt };
+    const updated: SelectOption = { ...opt };
     if (isOptional(field)) {
-      if (value === '') delete updated[field]
-      else updated[field] = value
+      if (value === '') delete updated[field];
+      else updated[field] = value;
     } else {
-      updated[field] = value
+      updated[field] = value;
     }
-    return updated
-  })
-  commitOptions(next)
+    return updated;
+  });
+  commitOptions(next);
 }
 
 function onOptionDisabled(index: number, checked: boolean): void {
   const next = options.value.map((opt, i) => {
-    if (i !== index) return { ...opt }
-    const updated: SelectOption = { ...opt }
-    if (checked) updated.disabled = true
-    else delete updated.disabled
-    return updated
-  })
-  commitOptions(next)
+    if (i !== index) return { ...opt };
+    const updated: SelectOption = { ...opt };
+    if (checked) updated.disabled = true;
+    else delete updated.disabled;
+    return updated;
+  });
+  commitOptions(next);
 }
 
 function onRemoveOption(index: number): void {
-  commitOptions(options.value.filter((_, i) => i !== index))
+  commitOptions(options.value.filter((_, i) => i !== index));
 }
 
 function onAddOption(): void {
-  commitOptions([...options.value.map((o) => ({ ...o })), { label: '', value: '' }])
+  commitOptions([...options.value.map((o) => ({ ...o })), { label: '', value: '' }]);
 }
 
 function onReorder(next: SelectOption[]): void {
-  commitOptions(next.map((o) => ({ ...o })))
+  commitOptions(next.map((o) => ({ ...o })));
 }
 </script>
 

@@ -1,12 +1,6 @@
 <template>
   <div class="page-container">
-    <ProTable
-      ref="tableRef"
-      :columns="columns"
-      :request="loadData"
-      :search="{}"
-      row-key="id"
-    >
+    <ProTable ref="tableRef" :columns="columns" :request="loadData" :search="{}" row-key="id">
       <template #emptyText>
         <a-empty :description="$t('admin.resource.noResourceData')" />
       </template>
@@ -56,28 +50,17 @@
           />
         </a-form-item>
         <a-divider orientation="left">{{ $t('admin.resource.resourceName') }}</a-divider>
-        <a-form-item
-          v-for="lang in langConfigs"
-          :key="lang.locale"
-          :label="lang.label"
-        >
+        <a-form-item v-for="lang in langConfigs" :key="lang.locale" :label="lang.label">
           <a-input
             v-model:value="resourceForm.names[lang.locale]"
             :placeholder="lang.placeholder"
           />
         </a-form-item>
         <a-form-item :label="$t('admin.resource.description')">
-          <a-textarea
-            v-model:value="resourceForm.description"
-            :rows="3"
-          />
+          <a-textarea v-model:value="resourceForm.description" :rows="3" />
         </a-form-item>
         <a-form-item :label="$t('admin.resource.sort')">
-          <a-input-number
-            v-model:value="resourceForm.sort"
-            :min="0"
-            style="width: 100%"
-          />
+          <a-input-number v-model:value="resourceForm.sort" :min="0" style="width: 100%" />
         </a-form-item>
         <a-form-item :label="$t('model.status')">
           <a-switch
@@ -92,23 +75,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { message, Modal } from 'antdv-next'
-import { useI18n } from 'vue-i18n'
-import ProTable from '@/components/Pro/ProTable/index.vue'
+import { message, Modal } from 'antdv-next';
+import { ref, reactive } from 'vue';
+import { useI18n } from 'vue-i18n';
+
 import {
   getAdminResourceList,
   createAdminResource,
   updateAdminResource,
   deleteAdminResource,
-} from '@/api/admin-resource'
+} from '@/api/admin-resource';
+import ProTable from '@/components/Pro/ProTable/index.vue';
 
-const { t, locale } = useI18n()
+const { t, locale } = useI18n();
 
 interface LangConfig {
-  locale: string
-  label: string
-  placeholder: string
+  locale: string;
+  label: string;
+  placeholder: string;
 }
 
 const langConfigs: LangConfig[] = [
@@ -116,14 +100,14 @@ const langConfigs: LangConfig[] = [
   { locale: 'en-US', label: 'English', placeholder: 'Please enter English name' },
   { locale: 'ja-JP', label: '日本語', placeholder: '日本語を入力してください' },
   { locale: 'ko-KR', label: '한국어', placeholder: '한국어를 입력하세요' },
-]
+];
 
 /**
  * 表格句柄。增删改之后必须重查——本页此前一个 ref 都没有，改完数据列表还是旧的，
  * 看着像没生效，运营会重复点第二次。
  * 用 refresh() 而不是 reload()：refresh 保持当前页码，在第 N 页处理完不会被甩回第一页。
  */
-const tableRef = ref()
+const tableRef = ref();
 
 const columns = [
   {
@@ -174,7 +158,7 @@ const columns = [
     align: 'center' as const,
     fixed: 'right' as const,
   },
-]
+];
 
 async function loadData(params: Record<string, unknown>) {
   const res = await getAdminResourceList({
@@ -182,28 +166,28 @@ async function loadData(params: Record<string, unknown>) {
     status: params.status as number | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
-  })
+  });
   return {
     data: res.list || [],
     total: res.total || 0,
     success: true,
-  }
+  };
 }
 
 function getResourceName(record: Record<string, unknown>): string {
-  const raw = record.resourceName as string
+  const raw = record.resourceName as string;
   try {
-    const parsed = JSON.parse(raw)
-    return parsed[locale.value] || parsed['zh-CN'] || parsed['en-US'] || raw
+    const parsed = JSON.parse(raw);
+    return parsed[locale.value] || parsed['zh-CN'] || parsed['en-US'] || raw;
   } catch {
-    return raw || ''
+    return raw || '';
   }
 }
 
-const resourceModalVisible = ref(false)
-const resourceSubmitLoading = ref(false)
-const isEdit = ref(false)
-const editId = ref<number | null>(null)
+const resourceModalVisible = ref(false);
+const resourceSubmitLoading = ref(false);
+const isEdit = ref(false);
+const editId = ref<number | null>(null);
 
 const resourceForm = reactive({
   resourceCode: '',
@@ -211,48 +195,48 @@ const resourceForm = reactive({
   description: '',
   sort: 0,
   statusChecked: 1,
-})
+});
 
 function parseResourceName(raw: string): Record<string, string> {
   try {
-    return JSON.parse(raw)
+    return JSON.parse(raw);
   } catch {
-    return {}
+    return {};
   }
 }
 
 function buildResourceName(): string {
-  return JSON.stringify(resourceForm.names)
+  return JSON.stringify(resourceForm.names);
 }
 
 function resetForm() {
-  resourceForm.resourceCode = ''
-  resourceForm.names = {}
-  resourceForm.description = ''
-  resourceForm.sort = 0
-  resourceForm.statusChecked = 1
+  resourceForm.resourceCode = '';
+  resourceForm.names = {};
+  resourceForm.description = '';
+  resourceForm.sort = 0;
+  resourceForm.statusChecked = 1;
 }
 
 function handleCreate() {
-  isEdit.value = false
-  editId.value = null
-  resetForm()
-  resourceModalVisible.value = true
+  isEdit.value = false;
+  editId.value = null;
+  resetForm();
+  resourceModalVisible.value = true;
 }
 
 function handleEdit(record: Record<string, unknown>) {
-  isEdit.value = true
-  editId.value = record.id as number
-  resourceForm.resourceCode = record.resourceCode as string
-  resourceForm.names = parseResourceName(record.resourceName as string)
-  resourceForm.description = (record.description as string) || ''
-  resourceForm.sort = (record.sort as number) || 0
-  resourceForm.statusChecked = record.status as number
-  resourceModalVisible.value = true
+  isEdit.value = true;
+  editId.value = record.id as number;
+  resourceForm.resourceCode = record.resourceCode as string;
+  resourceForm.names = parseResourceName(record.resourceName as string);
+  resourceForm.description = (record.description as string) || '';
+  resourceForm.sort = (record.sort as number) || 0;
+  resourceForm.statusChecked = record.status as number;
+  resourceModalVisible.value = true;
 }
 
 async function handleResourceSubmit() {
-  resourceSubmitLoading.value = true
+  resourceSubmitLoading.value = true;
   try {
     if (isEdit.value && editId.value) {
       await updateAdminResource(editId.value, {
@@ -260,8 +244,8 @@ async function handleResourceSubmit() {
         description: resourceForm.description,
         sort: resourceForm.sort,
         status: resourceForm.statusChecked,
-      })
-      message.success(t('admin.resource.updateSuccess'))
+      });
+      message.success(t('admin.resource.updateSuccess'));
     } else {
       await createAdminResource({
         resourceCode: resourceForm.resourceCode,
@@ -269,15 +253,15 @@ async function handleResourceSubmit() {
         description: resourceForm.description,
         sort: resourceForm.sort,
         status: resourceForm.statusChecked,
-      })
-      message.success(t('admin.resource.createSuccess'))
+      });
+      message.success(t('admin.resource.createSuccess'));
     }
-    resourceModalVisible.value = false
-    tableRef.value?.refresh()
+    resourceModalVisible.value = false;
+    tableRef.value?.refresh();
   } catch (error) {
-    console.error('Failed to save resource:', error)
+    console.error('Failed to save resource:', error);
   } finally {
-    resourceSubmitLoading.value = false
+    resourceSubmitLoading.value = false;
   }
 }
 
@@ -287,13 +271,13 @@ function handleDelete(record: Record<string, unknown>) {
     content: t('admin.resource.confirmDelete'),
     onOk: async () => {
       try {
-        await deleteAdminResource(record.id as number)
-        message.success(t('admin.resource.deleteSuccess'))
-        tableRef.value?.refresh()
+        await deleteAdminResource(record.id as number);
+        message.success(t('admin.resource.deleteSuccess'));
+        tableRef.value?.refresh();
       } catch (error) {
-        console.error('Failed to delete resource:', error)
+        console.error('Failed to delete resource:', error);
       }
     },
-  })
+  });
 }
 </script>

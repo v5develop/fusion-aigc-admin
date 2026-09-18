@@ -1,12 +1,6 @@
 <template>
   <div class="page-container">
-    <ProTable
-      ref="tableRef"
-      :columns="columns"
-      :request="loadData"
-      :search="{}"
-      row-key="id"
-    >
+    <ProTable ref="tableRef" :columns="columns" :request="loadData" :search="{}" row-key="id">
       <template #emptyText>
         <a-empty :description="$t('admin.role.noRoleData')" />
       </template>
@@ -49,22 +43,13 @@
     >
       <a-form :model="roleForm" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
         <a-form-item :label="$t('admin.role.roleCode')" v-if="!isEdit">
-          <a-input
-            v-model:value="roleForm.roleCode"
-            :placeholder="$t('admin.role.roleCode')"
-          />
+          <a-input v-model:value="roleForm.roleCode" :placeholder="$t('admin.role.roleCode')" />
         </a-form-item>
         <a-form-item :label="$t('admin.role.roleName')">
-          <a-input
-            v-model:value="roleForm.roleName"
-            :placeholder="$t('admin.role.roleName')"
-          />
+          <a-input v-model:value="roleForm.roleName" :placeholder="$t('admin.role.roleName')" />
         </a-form-item>
         <a-form-item :label="$t('admin.role.description')">
-          <a-textarea
-            v-model:value="roleForm.description"
-            :rows="3"
-          />
+          <a-textarea v-model:value="roleForm.description" :rows="3" />
         </a-form-item>
         <a-form-item :label="$t('model.status')">
           <a-switch
@@ -97,10 +82,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { message, Modal } from 'antdv-next'
-import { useI18n } from 'vue-i18n'
-import ProTable from '@/components/Pro/ProTable/index.vue'
+import { message, Modal } from 'antdv-next';
+import { ref, reactive } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+import { getPermissionTree } from '@/api/admin-permission';
 import {
   getAdminRoleList,
   createAdminRole,
@@ -109,10 +95,10 @@ import {
   getRolePermissions,
   saveRolePermissions,
   type Permission,
-} from '@/api/admin-role'
-import { getPermissionTree } from '@/api/admin-permission'
+} from '@/api/admin-role';
+import ProTable from '@/components/Pro/ProTable/index.vue';
 
-const { t, locale } = useI18n()
+const { t, locale } = useI18n();
 
 // Role list columns
 /**
@@ -120,7 +106,7 @@ const { t, locale } = useI18n()
  * 看着像没生效，运营会重复点第二次。
  * 用 refresh() 而不是 reload()：refresh 保持当前页码，在第 N 页处理完不会被甩回第一页。
  */
-const tableRef = ref()
+const tableRef = ref();
 
 const columns = [
   {
@@ -167,7 +153,7 @@ const columns = [
     align: 'center' as const,
     fixed: 'right' as const,
   },
-]
+];
 
 async function loadData(params: Record<string, unknown>) {
   const res = await getAdminRoleList({
@@ -176,72 +162,72 @@ async function loadData(params: Record<string, unknown>) {
     status: params.status as number | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
-  })
+  });
   return {
     data: res.list || [],
     total: res.total || 0,
     success: true,
-  }
+  };
 }
 
 // Role CRUD
-const roleModalVisible = ref(false)
-const roleSubmitLoading = ref(false)
-const isEdit = ref(false)
-const editId = ref<number | null>(null)
+const roleModalVisible = ref(false);
+const roleSubmitLoading = ref(false);
+const isEdit = ref(false);
+const editId = ref<number | null>(null);
 
 const roleForm = reactive({
   roleCode: '',
   roleName: '',
   description: '',
   statusChecked: 1,
-})
+});
 
 function handleCreate() {
-  isEdit.value = false
-  editId.value = null
-  roleForm.roleCode = ''
-  roleForm.roleName = ''
-  roleForm.description = ''
-  roleForm.statusChecked = 1
-  roleModalVisible.value = true
+  isEdit.value = false;
+  editId.value = null;
+  roleForm.roleCode = '';
+  roleForm.roleName = '';
+  roleForm.description = '';
+  roleForm.statusChecked = 1;
+  roleModalVisible.value = true;
 }
 
 function handleEdit(record: Record<string, unknown>) {
-  isEdit.value = true
-  editId.value = record.id as number
-  roleForm.roleCode = record.roleCode as string
-  roleForm.roleName = record.roleName as string
-  roleForm.description = (record.description as string) || ''
-  roleForm.statusChecked = record.status as number
-  roleModalVisible.value = true
+  isEdit.value = true;
+  editId.value = record.id as number;
+  roleForm.roleCode = record.roleCode as string;
+  roleForm.roleName = record.roleName as string;
+  roleForm.description = (record.description as string) || '';
+  roleForm.statusChecked = record.status as number;
+  roleModalVisible.value = true;
 }
 
 async function handleRoleSubmit() {
-  roleSubmitLoading.value = true
+  roleSubmitLoading.value = true;
   try {
     if (isEdit.value && editId.value) {
       await updateAdminRole(editId.value, {
         roleName: roleForm.roleName,
         description: roleForm.description,
         status: roleForm.statusChecked,
-      })
-      message.success(t('admin.role.updateSuccess'))
+      });
+      message.success(t('admin.role.updateSuccess'));
     } else {
       await createAdminRole({
         roleCode: roleForm.roleCode,
         roleName: roleForm.roleName,
         description: roleForm.description,
         status: roleForm.statusChecked,
-      })
-      message.success(t('admin.role.createSuccess'))
+      });
+      message.success(t('admin.role.createSuccess'));
     }
-    roleModalVisible.value = false
-    tableRef.value?.refresh()
+    roleModalVisible.value = false;
+    tableRef.value?.refresh();
   } catch (error) {
-    console.error('Failed to save role:', error)
+    console.error('Failed to save role:', error);
   } finally {
-    roleSubmitLoading.value = false
+    roleSubmitLoading.value = false;
   }
 }
 
@@ -251,91 +237,93 @@ function handleDelete(record: Record<string, unknown>) {
     content: t('admin.role.confirmDelete'),
     onOk: async () => {
       try {
-        await deleteAdminRole(record.id as number)
-        message.success(t('admin.role.deleteSuccess'))
-        tableRef.value?.refresh()
+        await deleteAdminRole(record.id as number);
+        message.success(t('admin.role.deleteSuccess'));
+        tableRef.value?.refresh();
       } catch (error) {
-        console.error('Failed to delete role:', error)
+        console.error('Failed to delete role:', error);
       }
     },
-  })
+  });
 }
 
 // Permission assignment
-const permModalVisible = ref(false)
-const permSubmitLoading = ref(false)
-const currentRoleId = ref<number | null>(null)
-const selectedPermissions = ref<string[]>([])
+const permModalVisible = ref(false);
+const permSubmitLoading = ref(false);
+const currentRoleId = ref<number | null>(null);
+const selectedPermissions = ref<string[]>([]);
 
 interface PermTreeNode {
-  key: string
-  title: string
-  children?: PermTreeNode[]
+  key: string;
+  title: string;
+  children?: PermTreeNode[];
 }
 
-const permTreeData = ref<PermTreeNode[]>([])
+const permTreeData = ref<PermTreeNode[]>([]);
 
 function getPermName(p: Permission): string {
   try {
-    const parsed = JSON.parse(p.permissionName)
-    return parsed[locale.value] || parsed['zh-CN'] || parsed['en-US'] || p.permissionCode
+    const parsed = JSON.parse(p.permissionName);
+    return parsed[locale.value] || parsed['zh-CN'] || parsed['en-US'] || p.permissionCode;
   } catch {
-    return p.permissionName || p.permissionCode
+    return p.permissionName || p.permissionCode;
   }
 }
 
-function buildPermTreeFromGroups(groups: Array<{ resource: string; resourceName: string; permissions: Permission[] }>): PermTreeNode[] {
-  return groups.map(group => ({
+function buildPermTreeFromGroups(
+  groups: Array<{ resource: string; resourceName: string; permissions: Permission[] }>,
+): PermTreeNode[] {
+  return groups.map((group) => ({
     key: `group_${group.resource}`,
     title: getResourceName(group),
     selectable: false,
-    children: group.permissions.map(p => ({
+    children: group.permissions.map((p) => ({
       key: p.permissionCode,
       title: getPermName(p),
     })),
-  }))
+  }));
 }
 
 function getResourceName(group: { resource: string; resourceName: string }): string {
   try {
     if (group.resourceName) {
-      const parsed = JSON.parse(group.resourceName)
-      return parsed[locale.value] || parsed['zh-CN'] || parsed['en-US'] || group.resource
+      const parsed = JSON.parse(group.resourceName);
+      return parsed[locale.value] || parsed['zh-CN'] || parsed['en-US'] || group.resource;
     }
-    return group.resource
+    return group.resource;
   } catch {
-    return group.resource
+    return group.resource;
   }
 }
 
 async function handleAssignPermission(record: Record<string, unknown>) {
-  currentRoleId.value = record.id as number
-  permModalVisible.value = true
+  currentRoleId.value = record.id as number;
+  permModalVisible.value = true;
 
   try {
     const [treeRes, assigned] = await Promise.all([
       getPermissionTree(),
       getRolePermissions(record.id as number),
-    ])
-    permTreeData.value = buildPermTreeFromGroups(treeRes)
-    selectedPermissions.value = assigned
+    ]);
+    permTreeData.value = buildPermTreeFromGroups(treeRes);
+    selectedPermissions.value = assigned;
   } catch (error) {
-    console.error('Failed to load permissions:', error)
+    console.error('Failed to load permissions:', error);
   }
 }
 
 async function handlePermSubmit() {
-  permSubmitLoading.value = true
+  permSubmitLoading.value = true;
   try {
     if (currentRoleId.value) {
-      await saveRolePermissions(currentRoleId.value, selectedPermissions.value)
-      message.success(t('common.saveSuccess'))
-      permModalVisible.value = false
+      await saveRolePermissions(currentRoleId.value, selectedPermissions.value);
+      message.success(t('common.saveSuccess'));
+      permModalVisible.value = false;
     }
   } catch (error) {
-    console.error('Failed to save permissions:', error)
+    console.error('Failed to save permissions:', error);
   } finally {
-    permSubmitLoading.value = false
+    permSubmitLoading.value = false;
   }
 }
 </script>

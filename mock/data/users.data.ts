@@ -5,7 +5,7 @@ export const adminUser = {
   avatar: '',
   roles: ['super_admin'],
   permissions: ['*'],
-}
+};
 
 export const regularUser = {
   id: 2,
@@ -14,4 +14,4 @@ export const regularUser = {
   avatar: '',
   roles: ['user'],
   permissions: ['user:view', 'template:view'],
-}
+};

@@ -11,11 +11,7 @@
 -->
 <template>
   <a-form class="common-props" layout="vertical" :colon="false">
-    <a-form-item
-      :label="$t('template.widgetKey')"
-      :validate-status="keyStatus"
-      :help="keyHelp"
-    >
+    <a-form-item :label="$t('template.widgetKey')" :validate-status="keyStatus" :help="keyHelp">
       <a-input
         :value="widget.key"
         :placeholder="$t('template.widgetKeyPlaceholder')"
@@ -84,38 +80,39 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import type { WidgetConfig } from '@/types/template-builder';
 
-import Icon from '@/components/Icon/index.vue'
-import { $t } from '@/locales'
-import type { WidgetConfig } from '@/types/template-builder'
+import { computed } from 'vue';
+
+import Icon from '@/components/Icon/index.vue';
+import { $t } from '@/locales';
 
 const props = defineProps<{
-  widget: WidgetConfig
-}>()
+  widget: WidgetConfig;
+}>();
 
 const emit = defineEmits<{
-  (e: 'update', patch: Record<string, unknown>): void
-}>()
+  (e: 'update', patch: Record<string, unknown>): void;
+}>();
 
 /** 合法变量名：字母/下划线开头，后续可为字母/数字/下划线 */
-const KEY_PATTERN = /^[A-Za-z_]\w*$/
+const KEY_PATTERN = /^[A-Za-z_]\w*$/;
 
 const keyStatus = computed<'' | 'error' | 'warning'>(() => {
-  const key = props.widget.key
-  if (!key || key.trim().length === 0) return 'error'
-  if (!KEY_PATTERN.test(key)) return 'warning'
-  return ''
-})
+  const key = props.widget.key;
+  if (!key || key.trim().length === 0) return 'error';
+  if (!KEY_PATTERN.test(key)) return 'warning';
+  return '';
+});
 
 const keyHelp = computed<string>(() => {
-  if (keyStatus.value === 'error') return $t('template.widgetKeyRequired')
-  if (keyStatus.value === 'warning') return $t('template.widgetKeyInvalid')
-  return ''
-})
+  if (keyStatus.value === 'error') return $t('template.widgetKeyRequired');
+  if (keyStatus.value === 'warning') return $t('template.widgetKeyInvalid');
+  return '';
+});
 
 function onUpdate(field: keyof WidgetConfig, value: unknown): void {
-  emit('update', { [field]: value })
+  emit('update', { [field]: value });
 }
 </script>
 

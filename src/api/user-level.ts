@@ -1,5 +1,6 @@
-import { request } from '@/utils/request'
-import type { UserLevelRule, UserLevelSettings } from '@/types/api'
+import type { UserLevelRule, UserLevelSettings } from '@/types/api';
+
+import { request } from '@/utils/request';
 
 /**
  * 经验等级 LV0..LVn。
@@ -11,27 +12,27 @@ import type { UserLevelRule, UserLevelSettings } from '@/types/api'
  * 金额一律按「主单位」计，命名与阈值刻意不带币种 —— 将来上国外市场只换币种与汇率归一。
  */
 export function getUserLevelRules() {
-  return request.get<UserLevelRule[]>('/api/v1/admin/user-levels')
+  return request.get<UserLevelRule[]>('/api/v1/admin/user-levels');
 }
 
 export function createUserLevelRule(data: UserLevelRule) {
-  return request.post<number>('/api/v1/admin/user-levels', data)
+  return request.post<number>('/api/v1/admin/user-levels', data);
 }
 
 export function updateUserLevelRule(id: number, data: UserLevelRule) {
-  return request.put<boolean>(`/api/v1/admin/user-levels/${id}`, data)
+  return request.put<boolean>(`/api/v1/admin/user-levels/${id}`, data);
 }
 
 /** 最低档（minScore=0）是兜底档位，后端会拒绝删除。 */
 export function deleteUserLevelRule(id: number) {
-  return request.delete<boolean>(`/api/v1/admin/user-levels/${id}`)
+  return request.delete<boolean>(`/api/v1/admin/user-levels/${id}`);
 }
 
 export function getUserLevelSettings() {
-  return request.get<UserLevelSettings>('/api/v1/admin/user-levels/settings')
+  return request.get<UserLevelSettings>('/api/v1/admin/user-levels/settings');
 }
 
 /** weights 留空表示只改开关、不动系数。后端会校验它是合法 JSON 对象，写坏了当场拒绝。 */
 export function saveUserLevelSettings(data: UserLevelSettings) {
-  return request.put<boolean>('/api/v1/admin/user-levels/settings', data)
+  return request.put<boolean>('/api/v1/admin/user-levels/settings', data);
 }

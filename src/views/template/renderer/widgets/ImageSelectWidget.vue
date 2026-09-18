@@ -18,10 +18,7 @@
         <span v-if="config.required" class="is-widget__required">*</span>
       </span>
       <a-tooltip v-if="config.helpText" :title="config.helpText">
-        <Icon
-          icon="antdv-next:QuestionCircleOutlined"
-          class="is-widget__help"
-        />
+        <Icon icon="antdv-next:QuestionCircleOutlined" class="is-widget__help" />
       </a-tooltip>
     </div>
 
@@ -38,11 +35,7 @@
         @click="toggleOption(opt.value)"
       >
         <div class="is-option__image-wrapper">
-          <img
-            :src="opt.thumbnailUrl || opt.imageUrl"
-            :alt="opt.label"
-            class="is-option__image"
-          />
+          <img :src="opt.thumbnailUrl || opt.imageUrl" :alt="opt.label" class="is-option__image" />
           <span v-if="opt.badge" class="is-option__badge">{{ opt.badge }}</span>
           <div v-if="isOptionSelected(opt.value)" class="is-option__check">
             <Icon icon="antdv-next:CheckCircleOutlined" />
@@ -57,29 +50,30 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import type { ImageSelectWidgetConfig, RenderMode } from '@/types/template-builder';
 
-import Icon from '@/components/Icon/index.vue'
-import type { ImageSelectWidgetConfig, RenderMode } from '@/types/template-builder'
+import { computed } from 'vue';
+
+import Icon from '@/components/Icon/index.vue';
 
 const props = withDefaults(
   defineProps<{
-    config: ImageSelectWidgetConfig
-    mode: RenderMode
-    formValues?: Record<string, unknown>
-    isSelected?: boolean
+    config: ImageSelectWidgetConfig;
+    mode: RenderMode;
+    formValues?: Record<string, unknown>;
+    isSelected?: boolean;
   }>(),
   {
     formValues: undefined,
     isSelected: false,
   },
-)
+);
 
 const emit = defineEmits<{
-  (e: 'update:form-values', key: string, value: unknown): void
-}>()
+  (e: 'update:form-values', key: string, value: unknown): void;
+}>();
 
-const isMultiple = computed(() => props.config.mode === 'multiple')
+const isMultiple = computed(() => props.config.mode === 'multiple');
 
 const rootClass = computed(() => [
   'is-widget',
@@ -87,40 +81,38 @@ const rootClass = computed(() => [
     'widget-wrapper': props.mode === 'builder',
     'widget-selected': props.mode === 'builder' && props.isSelected,
   },
-])
+]);
 
 /** 当前选中值（viewer 取表单值，否则回退默认值） */
 const rawValue = computed<unknown>(() => {
   if (props.mode === 'viewer') {
-    const fromForm = props.formValues?.[props.config.key]
-    if (fromForm !== undefined) return fromForm
+    const fromForm = props.formValues?.[props.config.key];
+    if (fromForm !== undefined) return fromForm;
   }
-  return props.config.defaultValue
-})
+  return props.config.defaultValue;
+});
 
 const selectedValues = computed<string[]>(() => {
-  const raw = rawValue.value
+  const raw = rawValue.value;
   if (isMultiple.value) {
-    return Array.isArray(raw) ? (raw as string[]) : []
+    return Array.isArray(raw) ? (raw as string[]) : [];
   }
-  return typeof raw === 'string' && raw ? [raw] : []
-})
+  return typeof raw === 'string' && raw ? [raw] : [];
+});
 
 function isOptionSelected(value: string): boolean {
-  return selectedValues.value.includes(value)
+  return selectedValues.value.includes(value);
 }
 
 function toggleOption(value: string): void {
-  if (props.mode !== 'viewer' || props.config.disabled) return
+  if (props.mode !== 'viewer' || props.config.disabled) return;
 
   if (isMultiple.value) {
-    const current = selectedValues.value
-    const next = current.includes(value)
-      ? current.filter((v) => v !== value)
-      : [...current, value]
-    emit('update:form-values', props.config.key, next)
+    const current = selectedValues.value;
+    const next = current.includes(value) ? current.filter((v) => v !== value) : [...current, value];
+    emit('update:form-values', props.config.key, next);
   } else {
-    emit('update:form-values', props.config.key, value)
+    emit('update:form-values', props.config.key, value);
   }
 }
 </script>

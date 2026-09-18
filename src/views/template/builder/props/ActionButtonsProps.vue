@@ -129,73 +129,73 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import type { ActionButton, ActionButtonsWidgetConfig } from '@/types/template-builder';
 
-import draggable from 'vuedraggable'
+import { computed } from 'vue';
+import draggable from 'vuedraggable';
 
-import Icon from '@/components/Icon/index.vue'
-import { $t } from '@/locales'
-import type { ActionButton, ActionButtonsWidgetConfig } from '@/types/template-builder'
+import Icon from '@/components/Icon/index.vue';
+import { $t } from '@/locales';
 
 const props = defineProps<{
-  widget: ActionButtonsWidgetConfig
-}>()
+  widget: ActionButtonsWidgetConfig;
+}>();
 
 const emit = defineEmits<{
-  (e: 'update', patch: Record<string, unknown>): void
-}>()
+  (e: 'update', patch: Record<string, unknown>): void;
+}>();
 
-type Direction = NonNullable<ActionButtonsWidgetConfig['direction']>
-type ButtonStyle = NonNullable<ActionButtonsWidgetConfig['buttonStyle']>
-type ButtonSize = NonNullable<ActionButtonsWidgetConfig['buttonSize']>
-type OnClickAction = NonNullable<ActionButtonsWidgetConfig['onClickAction']>
+type Direction = NonNullable<ActionButtonsWidgetConfig['direction']>;
+type ButtonStyle = NonNullable<ActionButtonsWidgetConfig['buttonStyle']>;
+type ButtonSize = NonNullable<ActionButtonsWidgetConfig['buttonSize']>;
+type OnClickAction = NonNullable<ActionButtonsWidgetConfig['onClickAction']>;
 
 const directionOptions: { label: string; value: Direction }[] = [
   { label: 'Horizontal', value: 'horizontal' },
   { label: 'Vertical', value: 'vertical' },
-]
+];
 
 const buttonStyleOptions: { label: string; value: ButtonStyle }[] = [
   { label: 'Outlined', value: 'outlined' },
   { label: 'Solid', value: 'solid' },
   { label: 'Text', value: 'text' },
-]
+];
 
 const buttonSizeOptions: { label: string; value: ButtonSize }[] = [
   { label: 'Small', value: 'small' },
   { label: 'Medium', value: 'medium' },
   { label: 'Large', value: 'large' },
-]
+];
 
 const onClickOptions: { label: string; value: OnClickAction }[] = [
   { label: 'Fill Prompt', value: 'fill-prompt' },
   { label: 'Switch Preset', value: 'switch-preset' },
   { label: 'Navigate', value: 'navigate' },
   { label: 'Custom', value: 'custom' },
-]
+];
 
-const buttons = computed<ActionButton[]>(() => props.widget.buttons ?? [])
+const buttons = computed<ActionButton[]>(() => props.widget.buttons ?? []);
 
-type OptionalField = 'icon' | 'fillTemplate'
-const OPTIONAL_FIELDS: ReadonlySet<OptionalField> = new Set(['icon', 'fillTemplate'])
+type OptionalField = 'icon' | 'fillTemplate';
+const OPTIONAL_FIELDS: ReadonlySet<OptionalField> = new Set(['icon', 'fillTemplate']);
 
 function toNumber(value: unknown, fallback: number): number {
-  return typeof value === 'number' && !Number.isNaN(value) ? value : fallback
+  return typeof value === 'number' && !Number.isNaN(value) ? value : fallback;
 }
 
 function onUpdate<K extends keyof ActionButtonsWidgetConfig>(
   field: K,
   value: ActionButtonsWidgetConfig[K],
 ): void {
-  emit('update', { [field]: value })
+  emit('update', { [field]: value });
 }
 
 function commitButtons(next: ActionButton[]): void {
-  emit('update', { buttons: next })
+  emit('update', { buttons: next });
 }
 
 function isOptional(field: keyof ActionButton): field is OptionalField {
-  return OPTIONAL_FIELDS.has(field as OptionalField)
+  return OPTIONAL_FIELDS.has(field as OptionalField);
 }
 
 function onButtonUpdate(
@@ -204,40 +204,40 @@ function onButtonUpdate(
   value: string,
 ): void {
   const next = buttons.value.map((btn, i) => {
-    if (i !== index) return { ...btn }
-    const updated: ActionButton = { ...btn }
+    if (i !== index) return { ...btn };
+    const updated: ActionButton = { ...btn };
     if (isOptional(field)) {
-      if (value === '') delete updated[field]
-      else updated[field] = value
+      if (value === '') delete updated[field];
+      else updated[field] = value;
     } else {
-      updated[field] = value
+      updated[field] = value;
     }
-    return updated
-  })
-  commitButtons(next)
+    return updated;
+  });
+  commitButtons(next);
 }
 
 function onButtonPrimary(index: number, checked: boolean): void {
   const next = buttons.value.map((btn, i) => {
-    if (i !== index) return { ...btn }
-    const updated: ActionButton = { ...btn }
-    if (checked) updated.primary = true
-    else delete updated.primary
-    return updated
-  })
-  commitButtons(next)
+    if (i !== index) return { ...btn };
+    const updated: ActionButton = { ...btn };
+    if (checked) updated.primary = true;
+    else delete updated.primary;
+    return updated;
+  });
+  commitButtons(next);
 }
 
 function onRemoveButton(index: number): void {
-  commitButtons(buttons.value.filter((_, i) => i !== index))
+  commitButtons(buttons.value.filter((_, i) => i !== index));
 }
 
 function onAddButton(): void {
-  commitButtons([...buttons.value.map((b) => ({ ...b })), { key: '', label: '' }])
+  commitButtons([...buttons.value.map((b) => ({ ...b })), { key: '', label: '' }]);
 }
 
 function onReorder(next: ActionButton[]): void {
-  commitButtons(next.map((b) => ({ ...b })))
+  commitButtons(next.map((b) => ({ ...b })));
 }
 </script>
 

@@ -6,7 +6,9 @@
       </template>
       <template #bodyCell="{ column, record }">
         <template v-if="column.dataIndex === 'bizType'">
-          <a-tag color="blue">{{ $t('moderationLog.bizTypeMap.' + record.bizType) || record.bizType }}</a-tag>
+          <a-tag color="blue">{{
+            $t('moderationLog.bizTypeMap.' + record.bizType) || record.bizType
+          }}</a-tag>
         </template>
         <template v-if="column.dataIndex === 'provider'">
           <a-tag :color="record.provider === 'template' ? 'gold' : 'geekblue'">
@@ -50,10 +52,16 @@
         <a-descriptions-item v-if="current.reason" :label="$t('moderationLog.reason')">
           <span class="mod-log-error">{{ decodeUnicode(current.reason) }}</span>
         </a-descriptions-item>
-        <a-descriptions-item v-if="current.requestContent" :label="$t('moderationLog.requestContent')">
+        <a-descriptions-item
+          v-if="current.requestContent"
+          :label="$t('moderationLog.requestContent')"
+        >
           <span class="mod-log-break">{{ decodeUnicode(current.requestContent) }}</span>
         </a-descriptions-item>
-        <a-descriptions-item v-if="current.rejectedTarget" :label="$t('moderationLog.rejectedTarget')">
+        <a-descriptions-item
+          v-if="current.rejectedTarget"
+          :label="$t('moderationLog.rejectedTarget')"
+        >
           <span class="mod-log-break">{{ decodeUnicode(current.rejectedTarget) }}</span>
         </a-descriptions-item>
         <a-descriptions-item v-if="current.rawResponse" :label="$t('moderationLog.rawResponse')">
@@ -72,26 +80,48 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import ProTable from '@/components/Pro/ProTable/index.vue'
-import { getModerationLogList } from '@/api/moderation-log'
-import type { ModerationLog } from '@/api/moderation-log'
-import { decodeUnicode } from '@/utils/helpers'
+import type { ModerationLog } from '@/api/moderation-log';
 
-const { t } = useI18n()
+import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-const detailOpen = ref(false)
-const current = ref<ModerationLog | null>(null)
+import { getModerationLogList } from '@/api/moderation-log';
+import ProTable from '@/components/Pro/ProTable/index.vue';
+import { decodeUnicode } from '@/utils/helpers';
+
+const { t } = useI18n();
+
+const detailOpen = ref(false);
+const current = ref<ModerationLog | null>(null);
 function showDetail(record: ModerationLog) {
-  current.value = record
-  detailOpen.value = true
+  current.value = record;
+  detailOpen.value = true;
 }
 
 const columns = [
-  { title: t('moderationLog.taskId'), dataIndex: 'taskId', search: true, searchType: 'input' as const, width: 180, ellipsis: true },
-  { title: t('moderationLog.outTaskId'), dataIndex: 'outTaskId', search: true, searchType: 'input' as const, width: 180, ellipsis: true },
-  { title: t('moderationLog.userId'), dataIndex: 'userId', search: true, searchType: 'input' as const, width: 90 },
+  {
+    title: t('moderationLog.taskId'),
+    dataIndex: 'taskId',
+    search: true,
+    searchType: 'input' as const,
+    width: 180,
+    ellipsis: true,
+  },
+  {
+    title: t('moderationLog.outTaskId'),
+    dataIndex: 'outTaskId',
+    search: true,
+    searchType: 'input' as const,
+    width: 180,
+    ellipsis: true,
+  },
+  {
+    title: t('moderationLog.userId'),
+    dataIndex: 'userId',
+    search: true,
+    searchType: 'input' as const,
+    width: 90,
+  },
   { title: t('moderationLog.username'), dataIndex: 'username', width: 110 },
   {
     title: t('moderationLog.bizType'),
@@ -134,11 +164,17 @@ const columns = [
   { title: t('moderationLog.scene'), dataIndex: 'scene', width: 110 },
   { title: t('moderationLog.label'), dataIndex: 'label', width: 120 },
   { title: t('common.createTime'), dataIndex: 'createTime', width: 170 },
-  { title: t('common.action'), dataIndex: 'action', width: 80, align: 'center' as const, fixed: 'right' as const },
-]
+  {
+    title: t('common.action'),
+    dataIndex: 'action',
+    width: 80,
+    align: 'center' as const,
+    fixed: 'right' as const,
+  },
+];
 
 async function loadData(params: Record<string, unknown>) {
-  const passedRaw = params.passed as string | undefined
+  const passedRaw = params.passed as string | undefined;
   const res = await getModerationLogList({
     taskId: (params.taskId as string) || undefined,
     outTaskId: (params.outTaskId as string) || undefined,
@@ -148,12 +184,12 @@ async function loadData(params: Record<string, unknown>) {
     bizType: (params.bizType as string) || undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
-  })
+  });
   return {
     data: res.list || [],
     total: res.total || 0,
     success: true,
-  }
+  };
 }
 </script>
 

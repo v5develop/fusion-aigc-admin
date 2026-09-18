@@ -18,10 +18,7 @@
         <span v-if="config.required" class="number-widget__required">*</span>
       </span>
       <a-tooltip v-if="config.helpText" :title="config.helpText">
-        <Icon
-          icon="antdv-next:QuestionCircleOutlined"
-          class="number-widget__help"
-        />
+        <Icon icon="antdv-next:QuestionCircleOutlined" class="number-widget__help" />
       </a-tooltip>
     </div>
 
@@ -42,27 +39,28 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import type { NumberWidgetConfig, RenderMode } from '@/types/template-builder';
 
-import Icon from '@/components/Icon/index.vue'
-import type { NumberWidgetConfig, RenderMode } from '@/types/template-builder'
+import { computed } from 'vue';
+
+import Icon from '@/components/Icon/index.vue';
 
 const props = withDefaults(
   defineProps<{
-    config: NumberWidgetConfig
-    mode: RenderMode
-    formValues?: Record<string, unknown>
-    isSelected?: boolean
+    config: NumberWidgetConfig;
+    mode: RenderMode;
+    formValues?: Record<string, unknown>;
+    isSelected?: boolean;
   }>(),
   {
     formValues: undefined,
     isSelected: false,
   },
-)
+);
 
 const emit = defineEmits<{
-  (e: 'update:form-values', key: string, value: unknown): void
-}>()
+  (e: 'update:form-values', key: string, value: unknown): void;
+}>();
 
 const rootClass = computed(() => [
   'number-widget',
@@ -70,36 +68,34 @@ const rootClass = computed(() => [
     'widget-wrapper': props.mode === 'builder',
     'widget-selected': props.mode === 'builder' && props.isSelected,
   },
-])
+]);
 
 /** builder 永远只读；viewer 下尊重 widget 级 disabled */
-const isDisabled = computed(
-  () => props.mode === 'builder' || props.config.disabled === true,
-)
+const isDisabled = computed(() => props.mode === 'builder' || props.config.disabled === true);
 
-const step = computed(() => props.config.step ?? 1)
+const step = computed(() => props.config.step ?? 1);
 
 function toNumber(value: unknown): number | null {
-  if (typeof value === 'number' && Number.isFinite(value)) return value
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
   if (typeof value === 'string' && value.trim() !== '') {
-    const parsed = Number(value)
-    if (Number.isFinite(parsed)) return parsed
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
   }
-  return null
+  return null;
 }
 
 /** 受控值：viewer 优先取表单值，否则回退默认值；归一化为 number | null */
 const numberValue = computed<number | null>(() => {
   if (props.mode === 'viewer') {
-    const fromForm = props.formValues?.[props.config.key]
-    if (fromForm !== undefined) return toNumber(fromForm)
+    const fromForm = props.formValues?.[props.config.key];
+    if (fromForm !== undefined) return toNumber(fromForm);
   }
-  return toNumber(props.config.defaultValue)
-})
+  return toNumber(props.config.defaultValue);
+});
 
 function onChange(value: number | string | null): void {
-  if (props.mode !== 'viewer') return
-  emit('update:form-values', props.config.key, toNumber(value))
+  if (props.mode !== 'viewer') return;
+  emit('update:form-values', props.config.key, toNumber(value));
 }
 </script>
 

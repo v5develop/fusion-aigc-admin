@@ -90,7 +90,8 @@
                     {{
                       currentObject[key]
                         ? api.getFieldConfigByPath(path, key)?.activeLabel || $t('common.enabled')
-                        : api.getFieldConfigByPath(path, key)?.inactiveLabel || $t('common.disabled')
+                        : api.getFieldConfigByPath(path, key)?.inactiveLabel ||
+                          $t('common.disabled')
                     }}
                   </span>
                 </div>

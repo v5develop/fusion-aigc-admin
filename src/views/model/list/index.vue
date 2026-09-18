@@ -58,10 +58,7 @@
           />
         </a-form-item>
         <a-form-item :label="$t('model.modelName')" required>
-          <a-input
-            v-model:value="formData.name"
-            :placeholder="$t('model.modelNamePlaceholder')"
-          />
+          <a-input v-model:value="formData.name" :placeholder="$t('model.modelNamePlaceholder')" />
         </a-form-item>
         <a-form-item :label="$t('model.modelType')" required>
           <a-select v-model:value="formData.modelType" :options="modelTypeOptions" />
@@ -124,16 +121,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { PlusOutlined } from '@antdv-next/icons'
-import { message, Modal } from 'antdv-next'
-import { useI18n } from 'vue-i18n'
-import ProTable from '@/components/Pro/ProTable/index.vue'
-import { getModelList, createModel, updateModel, deleteModel } from '@/api/model'
-import { getAiProviderList } from '@/api/config'
-import type { AIModel, AiProvider } from '@/types/api'
+import type { AIModel, AiProvider } from '@/types/api';
 
-const { t } = useI18n()
+import { PlusOutlined } from '@antdv-next/icons';
+import { message, Modal } from 'antdv-next';
+import { ref, reactive, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+import { getAiProviderList } from '@/api/config';
+import { getModelList, createModel, updateModel, deleteModel } from '@/api/model';
+import ProTable from '@/components/Pro/ProTable/index.vue';
+
+const { t } = useI18n();
 
 const modelTypeMap: Record<number, string> = {
   1: t('model.modelTypes.chat'),
@@ -141,7 +140,7 @@ const modelTypeMap: Record<number, string> = {
   3: t('model.modelTypes.video'),
   4: t('model.modelTypes.tts'),
   5: t('model.modelTypes.stt'),
-}
+};
 
 const modelTypeOptions = [
   { label: t('model.modelTypes.chat'), value: 1 },
@@ -149,7 +148,7 @@ const modelTypeOptions = [
   { label: t('model.modelTypes.video'), value: 3 },
   { label: t('model.modelTypes.tts'), value: 4 },
   { label: t('model.modelTypes.stt'), value: 5 },
-]
+];
 
 const columns = [
   {
@@ -205,13 +204,13 @@ const columns = [
     align: 'center' as const,
     fixed: 'right' as const,
   },
-]
+];
 
-const tableRef = ref()
-const modalVisible = ref(false)
-const submitLoading = ref(false)
-const isEdit = ref(false)
-const editId = ref<number | null>(null)
+const tableRef = ref();
+const modalVisible = ref(false);
+const submitLoading = ref(false);
+const isEdit = ref(false);
+const editId = ref<number | null>(null);
 
 const formData = reactive({
   code: '',
@@ -225,43 +224,43 @@ const formData = reactive({
   supportVision: false,
   supportReasoning: false,
   enableSearch: false,
-})
+});
 
 // 保存编辑前的 config JSON 其它键（temperature/top_p 等），提交时只覆盖 enableSearch，不丢失
-let configExtras: Record<string, unknown> = {}
+let configExtras: Record<string, unknown> = {};
 
 function parseConfig(config?: string): Record<string, unknown> {
-  if (!config) return {}
+  if (!config) return {};
   try {
-    const parsed = JSON.parse(config)
-    return parsed && typeof parsed === 'object' ? parsed : {}
+    const parsed = JSON.parse(config);
+    return parsed && typeof parsed === 'object' ? parsed : {};
   } catch {
-    return {}
+    return {};
   }
 }
 
 // 合并 enableSearch 到 config JSON，保留其它键；结果为空对象时返回 undefined 不落库空串
 function buildConfig(): string | undefined {
-  const merged: Record<string, unknown> = { ...configExtras }
+  const merged: Record<string, unknown> = { ...configExtras };
   if (formData.enableSearch) {
-    merged.enableSearch = true
+    merged.enableSearch = true;
   } else {
-    delete merged.enableSearch
-    delete merged.enable_search
+    delete merged.enableSearch;
+    delete merged.enable_search;
   }
-  return Object.keys(merged).length > 0 ? JSON.stringify(merged) : undefined
+  return Object.keys(merged).length > 0 ? JSON.stringify(merged) : undefined;
 }
 
-const apiConfigOptions = ref<{ label: string; value: number }[]>([])
+const apiConfigOptions = ref<{ label: string; value: number }[]>([]);
 
 async function loadApiConfigs() {
   try {
-    const configs = await getAiProviderList()
+    const configs = await getAiProviderList();
     apiConfigOptions.value = configs
       .filter((c: AiProvider) => c.status === 1)
-      .map((c: AiProvider) => ({ label: `${c.name} (${c.platform})`, value: c.id! }))
+      .map((c: AiProvider) => ({ label: `${c.name} (${c.platform})`, value: c.id! }));
   } catch (e) {
-    console.error('Failed to load API configs:', e)
+    console.error('Failed to load API configs:', e);
   }
 }
 
@@ -273,62 +272,61 @@ async function loadData(params: Record<string, unknown>) {
     status: params.status as number | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
-  })
+  });
   return {
     data: res.list || [],
     total: res.total || 0,
     success: true,
-  }
+  };
 }
 
 function handleCreate() {
-  isEdit.value = false
-  editId.value = null
-  formData.code = ''
-  formData.name = ''
-  formData.modelType = 2
-  formData.description = ''
-  formData.aiProviderId = undefined
-  formData.statusChecked = 1
-  formData.maxConcurrency = undefined
-  formData.generationTimeoutSeconds = undefined
-  formData.supportVision = false
-  formData.supportReasoning = false
-  formData.enableSearch = false
-  configExtras = {}
-  modalVisible.value = true
+  isEdit.value = false;
+  editId.value = null;
+  formData.code = '';
+  formData.name = '';
+  formData.modelType = 2;
+  formData.description = '';
+  formData.aiProviderId = undefined;
+  formData.statusChecked = 1;
+  formData.maxConcurrency = undefined;
+  formData.generationTimeoutSeconds = undefined;
+  formData.supportVision = false;
+  formData.supportReasoning = false;
+  formData.enableSearch = false;
+  configExtras = {};
+  modalVisible.value = true;
 }
 
 function handleEdit(record: AIModel) {
-  isEdit.value = true
-  editId.value = record.id
-  formData.code = record.code
-  formData.name = record.name
-  formData.modelType = record.modelType
-  formData.description = record.description
-  formData.aiProviderId = record.aiProviderId ?? record.apiConfigId
-  formData.statusChecked = record.status
-  formData.maxConcurrency = record.maxConcurrency ?? undefined
-  formData.generationTimeoutSeconds = record.generationTimeoutSeconds ?? undefined
-  formData.supportVision = record.supportVision ?? false
-  formData.supportReasoning = record.supportReasoning ?? false
-  configExtras = parseConfig(record.config)
-  formData.enableSearch =
-    configExtras.enableSearch === true || configExtras.enable_search === true
-  modalVisible.value = true
+  isEdit.value = true;
+  editId.value = record.id;
+  formData.code = record.code;
+  formData.name = record.name;
+  formData.modelType = record.modelType;
+  formData.description = record.description;
+  formData.aiProviderId = record.aiProviderId ?? record.apiConfigId;
+  formData.statusChecked = record.status;
+  formData.maxConcurrency = record.maxConcurrency ?? undefined;
+  formData.generationTimeoutSeconds = record.generationTimeoutSeconds ?? undefined;
+  formData.supportVision = record.supportVision ?? false;
+  formData.supportReasoning = record.supportReasoning ?? false;
+  configExtras = parseConfig(record.config);
+  formData.enableSearch = configExtras.enableSearch === true || configExtras.enable_search === true;
+  modalVisible.value = true;
 }
 
 async function handleSubmit() {
   if (!formData.code) {
-    message.error(t('model.modelCodeRequired'))
-    return
+    message.error(t('model.modelCodeRequired'));
+    return;
   }
   if (!formData.name) {
-    message.error(t('model.modelNameRequired'))
-    return
+    message.error(t('model.modelNameRequired'));
+    return;
   }
 
-  submitLoading.value = true
+  submitLoading.value = true;
   try {
     const data = {
       code: formData.code,
@@ -342,21 +340,21 @@ async function handleSubmit() {
       supportVision: formData.supportVision,
       supportReasoning: formData.supportReasoning,
       config: buildConfig(),
-    }
+    };
 
     if (isEdit.value && editId.value) {
-      await updateModel(editId.value, data)
-      message.success(t('model.updateSuccess'))
+      await updateModel(editId.value, data);
+      message.success(t('model.updateSuccess'));
     } else {
-      await createModel(data)
-      message.success(t('model.createSuccess'))
+      await createModel(data);
+      message.success(t('model.createSuccess'));
     }
-    modalVisible.value = false
-    tableRef.value?.reload()
+    modalVisible.value = false;
+    tableRef.value?.reload();
   } catch (error) {
-    console.error('Failed to save model:', error)
+    console.error('Failed to save model:', error);
   } finally {
-    submitLoading.value = false
+    submitLoading.value = false;
   }
 }
 
@@ -365,13 +363,13 @@ function handleDelete(record: AIModel) {
     title: t('common.warning'),
     content: t('model.confirmDeleteModel'),
     onOk: async () => {
-      await deleteModel(record.id)
-      message.success(t('model.deleteSuccess'))
+      await deleteModel(record.id);
+      message.success(t('model.deleteSuccess'));
     },
-  })
+  });
 }
 
 onMounted(() => {
-  loadApiConfigs()
-})
+  loadApiConfigs();
+});
 </script>

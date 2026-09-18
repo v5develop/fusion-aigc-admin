@@ -63,7 +63,7 @@
               </template>
               <span v-else class="muted">{{ $t('contentRecommend.noDefaultSlot') }}</span>
             </template>
-          <template v-if="column.dataIndex === 'sameStyle'">
+            <template v-if="column.dataIndex === 'sameStyle'">
               <a-tag :color="record.sameStyle ? 'green' : 'default'">
                 {{ record.sameStyle ? $t('common.yes') : $t('common.no') }}
               </a-tag>
@@ -83,180 +83,187 @@
       </template>
 
       <template v-else>
-      <div class="filter-bar">
-        <a-select
-          v-model:value="filters.categoryL1Id"
-          :options="l1Options"
-          allow-clear
-          show-search
-          option-filter-prop="label"
-          style="width: 200px"
-          :placeholder="$t('contentRecommend.filterL1')"
-          @change="onFilterL1Change"
-        />
-        <a-select
-          v-model:value="filters.categoryL2Id"
-          :options="filterL2Options"
-          allow-clear
-          show-search
-          option-filter-prop="label"
-          style="width: 200px"
-          :placeholder="$t('contentRecommend.filterL2')"
-          @change="loadList"
-        />
-        <a-select
-          v-model:value="filters.platform"
-          :options="platformOptions"
-          allow-clear
-          style="width: 150px"
-          :placeholder="$t('contentRecommend.filterPlatform')"
-          @change="loadList"
-        />
-        <a-select
-          v-model:value="filters.sourceType"
-          :options="sourceTypeOptions"
-          allow-clear
-          style="width: 180px"
-          :placeholder="$t('contentRecommend.filterSource')"
-          @change="loadList"
-        />
-        <a-button @click="resetFilters">{{ $t('common.reset') }}</a-button>
-      </div>
+        <div class="filter-bar">
+          <a-select
+            v-model:value="filters.categoryL1Id"
+            :options="l1Options"
+            allow-clear
+            show-search
+            option-filter-prop="label"
+            style="width: 200px"
+            :placeholder="$t('contentRecommend.filterL1')"
+            @change="onFilterL1Change"
+          />
+          <a-select
+            v-model:value="filters.categoryL2Id"
+            :options="filterL2Options"
+            allow-clear
+            show-search
+            option-filter-prop="label"
+            style="width: 200px"
+            :placeholder="$t('contentRecommend.filterL2')"
+            @change="loadList"
+          />
+          <a-select
+            v-model:value="filters.platform"
+            :options="platformOptions"
+            allow-clear
+            style="width: 150px"
+            :placeholder="$t('contentRecommend.filterPlatform')"
+            @change="loadList"
+          />
+          <a-select
+            v-model:value="filters.sourceType"
+            :options="sourceTypeOptions"
+            allow-clear
+            style="width: 180px"
+            :placeholder="$t('contentRecommend.filterSource')"
+            @change="loadList"
+          />
+          <a-button @click="resetFilters">{{ $t('common.reset') }}</a-button>
+        </div>
 
-      <a-alert
-        v-if="dragHint"
-        type="warning"
-        show-icon
-        banner
-        style="margin-bottom: 12px"
-        :message="dragHint"
-      />
+        <a-alert
+          v-if="dragHint"
+          type="warning"
+          show-icon
+          banner
+          style="margin-bottom: 12px"
+          :message="dragHint"
+        />
 
-      <a-table
-        :columns="columns"
-        :data-source="rows"
-        :loading="loading"
-        :pagination="pagination"
-        row-key="id"
-        size="middle"
-        :on-row="customRow"
-        @change="onTableChange"
-      >
-        <template #emptyText>
-          <a-empty :description="$t('contentRecommend.empty')" />
-        </template>
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'drag'">
-            <span :class="['drag-handle', canDrag ? '' : 'disabled']">⋮⋮</span>
+        <a-table
+          :columns="columns"
+          :data-source="rows"
+          :loading="loading"
+          :pagination="pagination"
+          row-key="id"
+          size="middle"
+          :on-row="customRow"
+          @change="onTableChange"
+        >
+          <template #emptyText>
+            <a-empty :description="$t('contentRecommend.empty')" />
           </template>
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.key === 'drag'">
+              <span :class="['drag-handle', canDrag ? '' : 'disabled']">⋮⋮</span>
+            </template>
 
-          <template v-if="column.dataIndex === 'thumbnail'">
-            <!--
+            <template v-if="column.dataIndex === 'thumbnail'">
+              <!--
               缩略图点击 = 查看详情。行本身是可拖拽的（:on-row 给了 draggable），
               所以这里用 button 而不是给 div 挂 @click：button 天然可聚焦、可回车触发，
               键盘操作的人也能打开详情，而不是只有鼠标能点。
               @click.stop 是必须的——不拦住的话点击会冒泡到行上，与拖拽起手势打架。
             -->
-            <button
-              v-if="record.thumbnail"
-              type="button"
-              class="thumb-wrap"
-              :title="$t('common.view')"
-              @click.stop="openDetail(record)"
-            >
-              <img :src="record.thumbnail" class="thumb-img" />
-              <span v-if="record.urls.length > 1" class="thumb-count">{{ record.urls.length }}</span>
-            </button>
-            <span v-else class="muted">-</span>
-          </template>
+              <button
+                v-if="record.thumbnail"
+                type="button"
+                class="thumb-wrap"
+                :title="$t('common.view')"
+                @click.stop="openDetail(record)"
+              >
+                <img :src="record.thumbnail" class="thumb-img" />
+                <span v-if="record.urls.length > 1" class="thumb-count">{{
+                  record.urls.length
+                }}</span>
+              </button>
+              <span v-else class="muted">-</span>
+            </template>
 
-          <template v-if="column.dataIndex === 'sourceId'">
-            <div>{{ record.sourceId }}</div>
-            <a-tag :color="record.sourceType === 'CREATION_TASK' ? 'purple' : 'blue'" size="small">
-              {{ sourceTypeLabel(record.sourceType) }}
-            </a-tag>
-          </template>
+            <template v-if="column.dataIndex === 'sourceId'">
+              <div>{{ record.sourceId }}</div>
+              <a-tag
+                :color="record.sourceType === 'CREATION_TASK' ? 'purple' : 'blue'"
+                size="small"
+              >
+                {{ sourceTypeLabel(record.sourceType) }}
+              </a-tag>
+            </template>
 
-          <template v-if="column.dataIndex === 'categoryL1Name'">
-            <span>{{ record.categoryL1Name || '-' }}</span>
-            <span v-if="record.categoryL2Name" class="muted"> / {{ record.categoryL2Name }}</span>
-          </template>
+            <template v-if="column.dataIndex === 'categoryL1Name'">
+              <span>{{ record.categoryL1Name || '-' }}</span>
+              <span v-if="record.categoryL2Name" class="muted"> / {{ record.categoryL2Name }}</span>
+            </template>
 
-          <template v-if="column.dataIndex === 'platform'">
-            <a-tag :color="platformColor(record.platform)">{{ platformLabel(record.platform) }}</a-tag>
-          </template>
+            <template v-if="column.dataIndex === 'platform'">
+              <a-tag :color="platformColor(record.platform)">{{
+                platformLabel(record.platform)
+              }}</a-tag>
+            </template>
 
-          <template v-if="column.dataIndex === 'sortOrder'">
-            <!--
+            <template v-if="column.dataIndex === 'sortOrder'">
+              <!--
               点一下才出输入框。这一列是读多写少——拖拽已经覆盖了常规排序，
               填数字只是跨页/混分类位置时的兜底；20 行常驻输入框会把这一列变成
               一堵框墙，而且失焦即存，路过点一下都可能误改。
               没有编辑权时就是一段纯文本，不给可点的样子。
             -->
-            <a-input-number
-              v-if="editingSortId === record.id"
-              ref="sortInputRef"
-              :value="record.id in sortDraft ? sortDraft[record.id] : record.sortOrder"
-              :min="0"
-              :max="99999"
-              :precision="0"
-              size="small"
-              style="width: 76px"
-              :disabled="savingSortId === record.id"
-              @change="(v: number | null) => (sortDraft[record.id] = v)"
-              @keydown="onSortKeydown($event, record)"
-              @blur="saveSortOrder(record)"
-            />
-            <span
-              v-else
-              :class="canEditSort ? 'sort-editable' : ''"
-              :title="canEditSort ? $t('contentRecommend.sortEditHint') : undefined"
-              @click="startEditSort(record)"
-            >
-              {{ record.sortOrder }}
-            </span>
-          </template>
-
-          <template v-if="column.dataIndex === 'sameStyle'">
-            <a-tag :color="record.sameStyle ? 'green' : 'default'">
-              {{ record.sameStyle ? $t('common.yes') : $t('common.no') }}
-            </a-tag>
-          </template>
-
-          <template v-if="column.dataIndex === 'sourceInvalid'">
-            <a-tooltip v-if="record.sourceInvalid" :title="record.invalidReason">
-              <a-tag color="red">{{ $t('contentRecommend.invalid') }}</a-tag>
-            </a-tooltip>
-            <a-tag v-else color="green">{{ $t('contentRecommend.valid') }}</a-tag>
-          </template>
-
-          <template v-if="column.key === 'operation'">
-            <a-space :size="4">
-              <!-- 查看只读，用 view 权限而不是 edit：没有编辑权的运营也该能看清一条推荐到底是什么 -->
-              <a-button type="link" size="small" @click="openDetail(record)">
-                {{ $t('common.view') }}
-              </a-button>
-              <a-button
-                v-permission="'content_recommend:edit'"
-                type="link"
+              <a-input-number
+                v-if="editingSortId === record.id"
+                ref="sortInputRef"
+                :value="record.id in sortDraft ? sortDraft[record.id] : record.sortOrder"
+                :min="0"
+                :max="99999"
+                :precision="0"
                 size="small"
-                @click="openEdit(record)"
+                style="width: 76px"
+                :disabled="savingSortId === record.id"
+                @change="(v: number | null) => (sortDraft[record.id] = v)"
+                @keydown="onSortKeydown($event, record)"
+                @blur="saveSortOrder(record)"
+              />
+              <span
+                v-else
+                :class="canEditSort ? 'sort-editable' : ''"
+                :title="canEditSort ? $t('contentRecommend.sortEditHint') : undefined"
+                @click="startEditSort(record)"
               >
-                {{ $t('common.edit') }}
-              </a-button>
-              <a-popconfirm
-                v-permission="'content_recommend:delete'"
-                :title="$t('contentRecommend.confirmRemove')"
-                @confirm="handleRemove(record)"
-              >
-                <a-button type="link" size="small" danger>
-                  {{ $t('contentRecommend.remove') }}
+                {{ record.sortOrder }}
+              </span>
+            </template>
+
+            <template v-if="column.dataIndex === 'sameStyle'">
+              <a-tag :color="record.sameStyle ? 'green' : 'default'">
+                {{ record.sameStyle ? $t('common.yes') : $t('common.no') }}
+              </a-tag>
+            </template>
+
+            <template v-if="column.dataIndex === 'sourceInvalid'">
+              <a-tooltip v-if="record.sourceInvalid" :title="record.invalidReason">
+                <a-tag color="red">{{ $t('contentRecommend.invalid') }}</a-tag>
+              </a-tooltip>
+              <a-tag v-else color="green">{{ $t('contentRecommend.valid') }}</a-tag>
+            </template>
+
+            <template v-if="column.key === 'operation'">
+              <a-space :size="4">
+                <!-- 查看只读，用 view 权限而不是 edit：没有编辑权的运营也该能看清一条推荐到底是什么 -->
+                <a-button type="link" size="small" @click="openDetail(record)">
+                  {{ $t('common.view') }}
                 </a-button>
-              </a-popconfirm>
-            </a-space>
+                <a-button
+                  v-permission="'content_recommend:edit'"
+                  type="link"
+                  size="small"
+                  @click="openEdit(record)"
+                >
+                  {{ $t('common.edit') }}
+                </a-button>
+                <a-popconfirm
+                  v-permission="'content_recommend:delete'"
+                  :title="$t('contentRecommend.confirmRemove')"
+                  @confirm="handleRemove(record)"
+                >
+                  <a-button type="link" size="small" danger>
+                    {{ $t('contentRecommend.remove') }}
+                  </a-button>
+                </a-popconfirm>
+              </a-space>
+            </template>
           </template>
-        </template>
-      </a-table>
+        </a-table>
       </template>
     </a-card>
 
@@ -296,7 +303,9 @@
             <span v-if="detail.categoryL2Name" class="muted"> / {{ detail.categoryL2Name }}</span>
           </a-descriptions-item>
           <a-descriptions-item :label="$t('contentRecommend.platform')">
-            <a-tag :color="platformColor(detail.platform)">{{ platformLabel(detail.platform) }}</a-tag>
+            <a-tag :color="platformColor(detail.platform)">{{
+              platformLabel(detail.platform)
+            }}</a-tag>
           </a-descriptions-item>
           <a-descriptions-item :label="$t('contentRecommend.sortOrder')">
             {{ detail.sortOrder }}
@@ -305,7 +314,9 @@
             <a-tag :color="detail.sameStyle ? 'green' : 'default'">
               {{ detail.sameStyle ? $t('common.yes') : $t('common.no') }}
             </a-tag>
-            <span v-if="!detail.sameStyle" class="muted"> {{ $t('contentRecommend.noSameStyleHint') }}</span>
+            <span v-if="!detail.sameStyle" class="muted">
+              {{ $t('contentRecommend.noSameStyleHint') }}</span
+            >
           </a-descriptions-item>
           <a-descriptions-item :label="$t('common.status')">
             <a-tag :color="detail.status === 1 ? 'green' : 'default'">
@@ -389,13 +400,10 @@
 </template>
 
 <script setup lang="ts">
-import { message } from 'antdv-next'
-import { ref, reactive, computed, nextTick } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { message } from 'antdv-next';
+import { ref, reactive, computed, nextTick } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-import { useAuthStore } from '@/stores/auth'
-
-import { getCategoryTree, type DisplayCategoryNode, type Platform } from '@/api/display-category'
 import {
   getRecommendList,
   addRecommend,
@@ -406,59 +414,63 @@ import {
   type ContentRecommendItem,
   type PendingAsset,
   type RecommendSourceType,
-} from '@/api/content-recommend'
+} from '@/api/content-recommend';
+import { getCategoryTree, type DisplayCategoryNode, type Platform } from '@/api/display-category';
+import { useAuthStore } from '@/stores/auth';
 
-const { t } = useI18n()
-const authStore = useAuthStore()
+const { t } = useI18n();
+const authStore = useAuthStore();
 
 function platformLabel(p: Platform) {
-  return p === 'APP' ? 'APP' : p === 'PC' ? 'PC' : 'APP+PC'
+  return p === 'APP' ? 'APP' : p === 'PC' ? 'PC' : 'APP+PC';
 }
 function platformColor(p: Platform) {
-  return p === 'APP' ? 'blue' : p === 'PC' ? 'green' : 'purple'
+  return p === 'APP' ? 'blue' : p === 'PC' ? 'green' : 'purple';
 }
 function sourceTypeLabel(s: RecommendSourceType) {
-  return s === 'CREATION_TASK' ? t('contentRecommend.sourceTask') : t('contentRecommend.sourceAsset')
+  return s === 'CREATION_TASK'
+    ? t('contentRecommend.sourceTask')
+    : t('contentRecommend.sourceAsset');
 }
 
 const platformOptions = computed(() =>
   (['APP', 'PC', 'BOTH'] as Platform[]).map((p) => ({ label: platformLabel(p), value: p })),
-)
+);
 const sourceTypeOptions = computed(() => [
   { label: t('contentRecommend.sourceTask'), value: 'CREATION_TASK' },
   { label: t('contentRecommend.sourceAsset'), value: 'DISPLAY_ASSET' },
-])
+]);
 
 // ---- 分类树 ----
-const tree = ref<DisplayCategoryNode[]>([])
+const tree = ref<DisplayCategoryNode[]>([]);
 const l1Options = computed(() =>
   tree.value.map((c) => ({ label: `${c.categoryName} (${c.categoryCode})`, value: c.id })),
-)
+);
 function l2OptionsOf(l1Id?: number) {
-  const l1 = l1Id ? tree.value.find((c) => c.id === l1Id) : undefined
-  return (l1?.children ?? []).map((c) => ({ label: c.categoryName, value: c.id }))
+  const l1 = l1Id ? tree.value.find((c) => c.id === l1Id) : undefined;
+  return (l1?.children ?? []).map((c) => ({ label: c.categoryName, value: c.id }));
 }
 async function loadTree() {
   try {
-    tree.value = (await getCategoryTree(true)) || []
+    tree.value = (await getCategoryTree(true)) || [];
   } catch {
     /* 拦截器已提示 */
   }
 }
-loadTree()
+loadTree();
 
 // ---- 列表 ----
-const rows = ref<ContentRecommendItem[]>([])
-const loading = ref(false)
+const rows = ref<ContentRecommendItem[]>([]);
+const loading = ref(false);
 const filters = reactive({
   categoryL1Id: undefined as number | undefined,
   categoryL2Id: undefined as number | undefined,
   platform: undefined as Platform | undefined,
   sourceType: undefined as RecommendSourceType | undefined,
-})
-const pagination = reactive({ current: 1, pageSize: 20, total: 0, showSizeChanger: true })
+});
+const pagination = reactive({ current: 1, pageSize: 20, total: 0, showSizeChanger: true });
 
-const filterL2Options = computed(() => l2OptionsOf(filters.categoryL1Id))
+const filterL2Options = computed(() => l2OptionsOf(filters.categoryL1Id));
 
 /**
  * 当前列表里出现了几个「分类位置」（L1:L2）。
@@ -466,7 +478,7 @@ const filterL2Options = computed(() => l2OptionsOf(filters.categoryL1Id))
  */
 const visiblePositions = computed(
   () => new Set(rows.value.map((r) => `${r.categoryL1Id}:${r.categoryL2Id}`)),
-)
+);
 
 /**
  * 能不能拖。判据必须与后端 reorder 的守卫一致：<b>可见行同属一个分类位置</b>。
@@ -486,14 +498,14 @@ const visiblePositions = computed(
  * 不再限制「整个位置必须在同一页」：后端已改成「把传入的这几条放回它们原先占据的
  * 那几个位次」，只动相对次序、不从 0 重新编号，所以第几页拖都对。
  */
-const canDrag = computed(() => rows.value.length > 1 && visiblePositions.value.size === 1)
+const canDrag = computed(() => rows.value.length > 1 && visiblePositions.value.size === 1);
 
 /** 不能拖时的原因，直接告诉运营下一步该做什么，而不是只说「需要选分类」 */
 const dragHint = computed(() => {
-  if (rows.value.length < 2) return ''
-  if (visiblePositions.value.size > 1) return t('contentRecommend.dragMixedPositions')
-  return ''
-})
+  if (rows.value.length < 2) return '';
+  if (visiblePositions.value.size > 1) return t('contentRecommend.dragMixedPositions');
+  return '';
+});
 
 const columns = computed(() => [
   { title: '', dataIndex: 'drag', key: 'drag', width: 40, align: 'center' as const },
@@ -538,10 +550,10 @@ const columns = computed(() => [
     width: 150,
     align: 'center' as const,
   },
-])
+]);
 
 async function loadList() {
-  loading.value = true
+  loading.value = true;
   try {
     const res = await getRecommendList({
       categoryL1Id: filters.categoryL1Id,
@@ -550,21 +562,21 @@ async function loadList() {
       sourceType: filters.sourceType,
       page: pagination.current,
       pageSize: pagination.pageSize,
-    })
-    rows.value = res.list || []
-    pagination.total = res.total || 0
+    });
+    rows.value = res.list || [];
+    pagination.total = res.total || 0;
   } catch {
     /* 拦截器已提示 */
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
-loadList()
+loadList();
 
 function onFilterL1Change() {
-  filters.categoryL2Id = undefined // 换一级后旧二级不再属于它
-  pagination.current = 1
-  loadList()
+  filters.categoryL2Id = undefined; // 换一级后旧二级不再属于它
+  pagination.current = 1;
+  loadList();
 }
 function resetFilters() {
   Object.assign(filters, {
@@ -572,29 +584,29 @@ function resetFilters() {
     categoryL2Id: undefined,
     platform: undefined,
     sourceType: undefined,
-  })
-  pagination.current = 1
-  loadList()
+  });
+  pagination.current = 1;
+  loadList();
 }
 function onTableChange(pg: { current?: number; pageSize?: number }) {
-  pagination.current = pg.current ?? 1
-  pagination.pageSize = pg.pageSize ?? 20
-  loadList()
+  pagination.current = pg.current ?? 1;
+  pagination.pageSize = pg.pageSize ?? 20;
+  loadList();
 }
 
 // ---- 待上推 ----
-const activeTab = ref<'pinned' | 'pending'>('pinned')
-const pendingRows = ref<PendingAsset[]>([])
-const pendingLoading = ref(false)
-const pendingTotal = ref(0)
+const activeTab = ref<'pinned' | 'pending'>('pinned');
+const pendingRows = ref<PendingAsset[]>([]);
+const pendingLoading = ref(false);
+const pendingTotal = ref(0);
 const pendingPagination = reactive({
   current: 1,
   pageSize: 20,
   get total() {
-    return pendingTotal.value
+    return pendingTotal.value;
   },
   showSizeChanger: true,
-})
+});
 
 const pendingColumns = computed(() => [
   {
@@ -619,39 +631,39 @@ const pendingColumns = computed(() => [
     width: 110,
     align: 'center' as const,
   },
-])
+]);
 
 async function loadPending() {
-  pendingLoading.value = true
+  pendingLoading.value = true;
   try {
     const res = await getPendingAssets({
       page: pendingPagination.current,
       pageSize: pendingPagination.pageSize,
-    })
-    pendingRows.value = res.list || []
-    pendingTotal.value = res.total || 0
+    });
+    pendingRows.value = res.list || [];
+    pendingTotal.value = res.total || 0;
   } catch {
     /* 拦截器已提示 */
   } finally {
-    pendingLoading.value = false
+    pendingLoading.value = false;
   }
 }
 // 首屏就拉一次：待上推数量要显示在 Tab 徽标上，等切过去才知道有多少就晚了
-loadPending()
+loadPending();
 
 function onTabChange() {
-  if (activeTab.value === 'pending') loadPending()
-  else loadList()
+  if (activeTab.value === 'pending') loadPending();
+  else loadList();
 }
 function onPendingPageChange(pg: { current?: number; pageSize?: number }) {
-  pendingPagination.current = pg.current ?? 1
-  pendingPagination.pageSize = pg.pageSize ?? 20
-  loadPending()
+  pendingPagination.current = pg.current ?? 1;
+  pendingPagination.pageSize = pg.pageSize ?? 20;
+  loadPending();
 }
 
 /** 从待上推直接上推荐位：沿用素材身上配的默认分类，运营只需确认平台 */
 function openPinPending(record: PendingAsset) {
-  editId.value = null
+  editId.value = null;
   Object.assign(form, {
     sourceType: 'DISPLAY_ASSET' as RecommendSourceType,
     sourceId: record.id,
@@ -659,51 +671,51 @@ function openPinPending(record: PendingAsset) {
     categoryL2Id: record.categoryL2Id || undefined,
     platform: 'APP' as Platform,
     status: 1,
-  })
-  syncPlatformToScope()
-  modalVisible.value = true
+  });
+  syncPlatformToScope();
+  modalVisible.value = true;
 }
 
 // ---- 拖拽排序 ----
-const dragIndex = ref<number | null>(null)
+const dragIndex = ref<number | null>(null);
 
 function customRow(_record: ContentRecommendItem, index: number) {
-  if (!canDrag.value) return {}
+  if (!canDrag.value) return {};
   return {
     draggable: true,
     ondragstart: () => (dragIndex.value = index),
     ondragover: (e: DragEvent) => e.preventDefault(),
     ondrop: (e: DragEvent) => {
-      e.preventDefault()
-      handleDrop(index)
+      e.preventDefault();
+      handleDrop(index);
     },
     ondragend: () => (dragIndex.value = null),
-  }
+  };
 }
 
 async function handleDrop(targetIndex: number) {
-  const from = dragIndex.value
-  dragIndex.value = null
-  if (from === null || from === targetIndex) return
+  const from = dragIndex.value;
+  dragIndex.value = null;
+  if (from === null || from === targetIndex) return;
 
-  const next = [...rows.value]
-  const [moved] = next.splice(from, 1)
-  next.splice(targetIndex, 0, moved)
-  const before = rows.value
-  rows.value = next // 先本地生效，失败再回滚，避免拖完等一个来回才动
+  const next = [...rows.value];
+  const [moved] = next.splice(from, 1);
+  next.splice(targetIndex, 0, moved);
+  const before = rows.value;
+  rows.value = next; // 先本地生效，失败再回滚，避免拖完等一个来回才动
 
   try {
-    await reorderRecommends(next.map((r) => r.id))
-    message.success(t('contentRecommend.reorderSuccess'))
-    loadList() // 拉回真实 sortOrder（后端按步长 10 重排）
+    await reorderRecommends(next.map((r) => r.id));
+    message.success(t('contentRecommend.reorderSuccess'));
+    loadList(); // 拉回真实 sortOrder（后端按步长 10 重排）
   } catch {
-    rows.value = before
+    rows.value = before;
   }
 }
 
 // ---- 查看详情 ----
-const detailVisible = ref(false)
-const detail = ref<ContentRecommendItem | null>(null)
+const detailVisible = ref(false);
+const detail = ref<ContentRecommendItem | null>(null);
 
 /**
  * 直接用列表行渲染，不再打一次详情接口：列表项已经带齐了源内容快照
@@ -711,15 +723,15 @@ const detail = ref<ContentRecommendItem | null>(null)
  * 另开一个接口只会多一次往返，还会出现「列表说失效、详情说正常」的两套口径。
  */
 function openDetail(record: ContentRecommendItem) {
-  detail.value = record
-  detailVisible.value = true
+  detail.value = record;
+  detailVisible.value = true;
 }
 
 // ---- 行内改排序 ----
-const savingSortId = ref<number | null>(null)
+const savingSortId = ref<number | null>(null);
 /** 当前处于编辑态的那一行；null 表示都在只读态 */
-const editingSortId = ref<number | null>(null)
-const sortInputRef = ref<{ focus?: () => void } | null>(null)
+const editingSortId = ref<number | null>(null);
+const sortInputRef = ref<{ focus?: () => void } | null>(null);
 
 /**
  * 点数字进入编辑态并自动聚焦。
@@ -727,19 +739,19 @@ const sortInputRef = ref<{ focus?: () => void } | null>(null)
  * antdv-next 的 InputNumber 没有 autofocus 属性，但 expose 了 focus()。
  */
 function startEditSort(record: ContentRecommendItem) {
-  if (!canEditSort.value) return
-  editingSortId.value = record.id
-  nextTick(() => sortInputRef.value?.focus?.())
+  if (!canEditSort.value) return;
+  editingSortId.value = record.id;
+  nextTick(() => sortInputRef.value?.focus?.());
 }
 
 /** Esc 取消：丢掉草稿再退出编辑态，随后的 blur 读到 undefined 自然不会落库 */
 function onSortKeydown(e: KeyboardEvent, record: ContentRecommendItem) {
   if (e.key === 'Escape') {
-    delete sortDraft[record.id]
-    editingSortId.value = null
+    delete sortDraft[record.id];
+    editingSortId.value = null;
   } else if (e.key === 'Enter') {
     // 回车即提交：交给 blur 那条路径，避免两处各写一遍落库逻辑
-    ;(e.target as HTMLInputElement)?.blur()
+    (e.target as HTMLInputElement)?.blur();
   }
 }
 
@@ -756,13 +768,13 @@ function onSortKeydown(e: KeyboardEvent, record: ContentRecommendItem) {
  * 就会静默出错），也不在 change 里直接存（InputNumber 每敲一个数字就触发一次 change，
  * 输 120 会打三次请求）。按行存草稿还避免了「编辑 A 未失焦就去点 B」时两行互相串值。
  */
-const sortDraft = reactive<Record<number, number | null>>({})
+const sortDraft = reactive<Record<number, number | null>>({});
 
 /** 排序列要不要给可编辑控件。与操作列的 v-permission 用同一个权限码 */
 const canEditSort = computed(() => {
-  const perms = authStore.user?.permissions ?? []
-  return perms.includes('*') || perms.includes('content_recommend:edit')
-})
+  const perms = authStore.user?.permissions ?? [];
+  return perms.includes('*') || perms.includes('content_recommend:edit');
+});
 
 /**
  * 直接改某一条的排序值。
@@ -775,42 +787,42 @@ const canEditSort = computed(() => {
  * 所以不必把整行回传，也就不会因为回传了旧快照而覆盖掉别人刚改的分类。
  */
 async function saveSortOrder(record: ContentRecommendItem) {
-  const raw = sortDraft[record.id]
+  const raw = sortDraft[record.id];
   // 没动过就不发请求：点进点出也会触发 blur
   if (raw === undefined) {
-    editingSortId.value = null
-    return
+    editingSortId.value = null;
+    return;
   }
 
-  const next = Number(raw)
+  const next = Number(raw);
   // 清空或填了非数字时按不变处理，而不是当成 0——0 会把这条顶到最前面。
   // 草稿一并丢掉，输入框回到库里的值
   if (!Number.isFinite(next) || next < 0 || next === record.sortOrder) {
-    delete sortDraft[record.id]
-    editingSortId.value = null
-    return
+    delete sortDraft[record.id];
+    editingSortId.value = null;
+    return;
   }
 
-  savingSortId.value = record.id
+  savingSortId.value = record.id;
   try {
-    await updateRecommend(record.id, { sortOrder: next })
-    message.success(t('contentRecommend.sortSaved'))
-    delete sortDraft[record.id]
-    loadList()
+    await updateRecommend(record.id, { sortOrder: next });
+    message.success(t('contentRecommend.sortSaved'));
+    delete sortDraft[record.id];
+    loadList();
   } catch {
     // 拦截器已提示；丢掉草稿并重拉，输入框恢复成库里的真实值
-    delete sortDraft[record.id]
-    loadList()
+    delete sortDraft[record.id];
+    loadList();
   } finally {
-    savingSortId.value = null
-    editingSortId.value = null
+    savingSortId.value = null;
+    editingSortId.value = null;
   }
 }
 
 // ---- 添加 / 编辑 ----
-const modalVisible = ref(false)
-const saving = ref(false)
-const editId = ref<number | null>(null)
+const modalVisible = ref(false);
+const saving = ref(false);
+const editId = ref<number | null>(null);
 
 const form = reactive({
   sourceType: 'CREATION_TASK' as RecommendSourceType,
@@ -819,49 +831,49 @@ const form = reactive({
   categoryL2Id: undefined as number | undefined,
   platform: 'APP' as Platform,
   status: 1,
-})
+});
 const enabled = computed({
   get: () => form.status === 1,
   set: (v: boolean) => (form.status = v ? 1 : 0),
-})
+});
 
-const formL2Options = computed(() => l2OptionsOf(form.categoryL1Id))
+const formL2Options = computed(() => l2OptionsOf(form.categoryL1Id));
 
 const sourceIdHint = computed(() =>
   form.sourceType === 'CREATION_TASK'
     ? t('contentRecommend.sourceIdHintTask')
     : t('contentRecommend.sourceIdHintAsset'),
-)
+);
 
 /**
  * 推荐平台必须被所挂分类覆盖（一级和二级都要），越界的选项直接摘掉，
  * 免得运营点了再吃后端报错。
  */
 const allowedPlatforms = computed<Platform[]>(() => {
-  const l1 = form.categoryL1Id ? tree.value.find((c) => c.id === form.categoryL1Id) : undefined
-  const l2 = form.categoryL2Id ? l1?.children.find((c) => c.id === form.categoryL2Id) : undefined
-  const scopes = [l1?.platform, l2?.platform].filter(Boolean) as Platform[]
-  const narrowest = scopes.find((p) => p !== 'BOTH')
-  return narrowest ? [narrowest] : ['APP', 'PC', 'BOTH']
-})
+  const l1 = form.categoryL1Id ? tree.value.find((c) => c.id === form.categoryL1Id) : undefined;
+  const l2 = form.categoryL2Id ? l1?.children.find((c) => c.id === form.categoryL2Id) : undefined;
+  const scopes = [l1?.platform, l2?.platform].filter(Boolean) as Platform[];
+  const narrowest = scopes.find((p) => p !== 'BOTH');
+  return narrowest ? [narrowest] : ['APP', 'PC', 'BOTH'];
+});
 const platformHint = computed(() =>
   allowedPlatforms.value.length === 1
     ? t('contentRecommend.platformLocked', { platform: platformLabel(allowedPlatforms.value[0]) })
     : t('contentRecommend.platformHint'),
-)
+);
 
 function syncPlatformToScope() {
   if (!allowedPlatforms.value.includes(form.platform)) {
-    form.platform = allowedPlatforms.value[0]
+    form.platform = allowedPlatforms.value[0];
   }
 }
 function onFormL1Change() {
-  form.categoryL2Id = undefined
-  syncPlatformToScope()
+  form.categoryL2Id = undefined;
+  syncPlatformToScope();
 }
 
 function openAdd() {
-  editId.value = null
+  editId.value = null;
   Object.assign(form, {
     sourceType: 'CREATION_TASK' as RecommendSourceType,
     sourceId: undefined,
@@ -869,13 +881,13 @@ function openAdd() {
     categoryL2Id: filters.categoryL2Id,
     platform: 'APP' as Platform,
     status: 1,
-  })
-  syncPlatformToScope()
-  modalVisible.value = true
+  });
+  syncPlatformToScope();
+  modalVisible.value = true;
 }
 
 function openEdit(record: ContentRecommendItem) {
-  editId.value = record.id
+  editId.value = record.id;
   Object.assign(form, {
     sourceType: record.sourceType,
     sourceId: record.sourceId,
@@ -883,49 +895,49 @@ function openEdit(record: ContentRecommendItem) {
     categoryL2Id: record.categoryL2Id || undefined,
     platform: record.platform,
     status: record.status,
-  })
-  modalVisible.value = true
+  });
+  modalVisible.value = true;
 }
 
 async function handleSubmit() {
   if (!editId.value && !form.sourceId) {
-    message.warning(t('contentRecommend.sourceIdRequired'))
-    return
+    message.warning(t('contentRecommend.sourceIdRequired'));
+    return;
   }
   if (!form.categoryL1Id) {
-    message.warning(t('contentRecommend.l1Required'))
-    return
+    message.warning(t('contentRecommend.l1Required'));
+    return;
   }
-  saving.value = true
+  saving.value = true;
   try {
     const payload = {
       categoryL1Id: form.categoryL1Id,
       categoryL2Id: form.categoryL2Id ?? 0,
       platform: form.platform,
       status: form.status,
-    }
+    };
     if (editId.value) {
       // 源不可改：换源等于换一条推荐，走新增+移除更清楚
-      await updateRecommend(editId.value, payload)
+      await updateRecommend(editId.value, payload);
     } else {
-      await addRecommend({ ...payload, sourceType: form.sourceType, sourceId: form.sourceId })
+      await addRecommend({ ...payload, sourceType: form.sourceType, sourceId: form.sourceId });
     }
-    message.success(t('common.saveSuccess'))
-    modalVisible.value = false
-    loadList()
-    loadPending() // 刚上推的那条要从「待上推」里消失，徽标计数也得跟着降
+    message.success(t('common.saveSuccess'));
+    modalVisible.value = false;
+    loadList();
+    loadPending(); // 刚上推的那条要从「待上推」里消失，徽标计数也得跟着降
   } catch {
     /* 源不可用 / 分类归属 / 平台越界的报错由拦截器提示 */
   } finally {
-    saving.value = false
+    saving.value = false;
   }
 }
 
 async function handleRemove(record: ContentRecommendItem) {
   try {
-    await removeRecommend(record.id)
-    message.success(t('contentRecommend.removeSuccess'))
-    loadList()
+    await removeRecommend(record.id);
+    message.success(t('contentRecommend.removeSuccess'));
+    loadList();
   } catch {
     /* 拦截器已提示 */
   }

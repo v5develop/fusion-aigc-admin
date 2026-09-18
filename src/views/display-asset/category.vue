@@ -53,12 +53,16 @@
           </template>
 
           <template v-if="column.dataIndex === 'platform'">
-            <a-tag :color="platformColor(record.platform)">{{ platformLabel(record.platform) }}</a-tag>
+            <a-tag :color="platformColor(record.platform)">{{
+              platformLabel(record.platform)
+            }}</a-tag>
           </template>
 
           <template v-if="column.dataIndex === 'status'">
             <a-tag :color="record.status === 1 ? 'green' : 'default'">
-              {{ record.status === 1 ? $t('displayCategory.enabled') : $t('displayCategory.disabled') }}
+              {{
+                record.status === 1 ? $t('displayCategory.enabled') : $t('displayCategory.disabled')
+              }}
             </a-tag>
           </template>
 
@@ -128,11 +132,7 @@
 
         <a-form-item :label="$t('displayCategory.platform')">
           <a-radio-group v-model:value="form.platform" button-style="solid">
-            <a-radio-button
-              v-for="p in allowedPlatforms"
-              :key="p"
-              :value="p"
-            >
+            <a-radio-button v-for="p in allowedPlatforms" :key="p" :value="p">
               {{ platformLabel(p) }}
             </a-radio-button>
           </a-radio-group>
@@ -172,9 +172,9 @@
 </template>
 
 <script setup lang="ts">
-import { message } from 'antdv-next'
-import { ref, reactive, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { message } from 'antdv-next';
+import { ref, reactive, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import {
   getCategoryTree,
@@ -183,20 +183,20 @@ import {
   deleteCategory,
   type DisplayCategoryNode,
   type Platform,
-} from '@/api/display-category'
+} from '@/api/display-category';
 
-const { t } = useI18n()
+const { t } = useI18n();
 
-const tree = ref<DisplayCategoryNode[]>([])
-const loading = ref(false)
+const tree = ref<DisplayCategoryNode[]>([]);
+const loading = ref(false);
 /** '' = 不按端筛；APP/PC 时后端会把 BOTH 一并带上 */
-const platformFilter = ref<'' | Platform>('')
+const platformFilter = ref<'' | Platform>('');
 
 function platformLabel(p: Platform) {
-  return p === 'APP' ? 'APP' : p === 'PC' ? 'PC' : 'APP+PC'
+  return p === 'APP' ? 'APP' : p === 'PC' ? 'PC' : 'APP+PC';
 }
 function platformColor(p: Platform) {
-  return p === 'APP' ? 'blue' : p === 'PC' ? 'green' : 'purple'
+  return p === 'APP' ? 'blue' : p === 'PC' ? 'green' : 'purple';
 }
 
 const columns = computed(() => [
@@ -222,34 +222,34 @@ const columns = computed(() => [
     width: 220,
     align: 'center' as const,
   },
-])
+]);
 
 /** 一级分类下拉（新增二级时选父） */
 const l1Options = computed(() =>
   tree.value.map((c) => ({ label: `${c.categoryName} (${c.categoryCode})`, value: c.id })),
-)
+);
 
 async function loadTree() {
-  loading.value = true
+  loading.value = true;
   try {
-    tree.value = (await getCategoryTree(false, platformFilter.value || undefined)) || []
+    tree.value = (await getCategoryTree(false, platformFilter.value || undefined)) || [];
   } catch {
     /* 拦截器已提示 */
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
-loadTree()
+loadTree();
 
 // ---- 新增 / 编辑 ----
-const modalVisible = ref(false)
-const saving = ref(false)
-const editId = ref<number | null>(null)
-const isEdit = computed(() => editId.value !== null)
+const modalVisible = ref(false);
+const saving = ref(false);
+const editId = ref<number | null>(null);
+const isEdit = computed(() => editId.value !== null);
 const modalTitle = computed(() => {
-  if (isEdit.value) return t('displayCategory.editTitle')
-  return form.level === 1 ? t('displayCategory.addL1') : t('displayCategory.addL2')
-})
+  if (isEdit.value) return t('displayCategory.editTitle');
+  return form.level === 1 ? t('displayCategory.addL1') : t('displayCategory.addL2');
+});
 
 const form = reactive({
   categoryCode: '',
@@ -259,44 +259,44 @@ const form = reactive({
   platform: 'BOTH' as Platform,
   sortOrder: 0,
   status: 1,
-})
+});
 const enabled = computed({
   get: () => form.status === 1,
   set: (v: boolean) => (form.status = v ? 1 : 0),
-})
+});
 
 /** 当前选中的父级（新增/编辑二级时用来约束平台可选项） */
 const selectedParent = computed(() =>
   form.parentId ? tree.value.find((c) => c.id === form.parentId) : undefined,
-)
+);
 
 /**
  * 二级的平台必须被父级覆盖 —— 父级限 APP 时子级只能 APP。
  * 前端直接把越界选项从单选里去掉，比让运营点了再吃后端报错友好。
  */
 const allowedPlatforms = computed<Platform[]>(() => {
-  const parentPlatform = form.level === 2 ? selectedParent.value?.platform : undefined
-  if (!parentPlatform || parentPlatform === 'BOTH') return ['BOTH', 'APP', 'PC']
-  return [parentPlatform]
-})
+  const parentPlatform = form.level === 2 ? selectedParent.value?.platform : undefined;
+  if (!parentPlatform || parentPlatform === 'BOTH') return ['BOTH', 'APP', 'PC'];
+  return [parentPlatform];
+});
 const platformHint = computed(() => {
   if (form.level === 2 && allowedPlatforms.value.length === 1) {
     return t('displayCategory.platformLockedByParent', {
       platform: platformLabel(allowedPlatforms.value[0]),
-    })
+    });
   }
-  return t('displayCategory.platformHint')
-})
+  return t('displayCategory.platformHint');
+});
 
 /** 换父级后原平台可能越界，收敛到父级允许的第一项 */
 function onParentChange() {
   if (!allowedPlatforms.value.includes(form.platform)) {
-    form.platform = allowedPlatforms.value[0]
+    form.platform = allowedPlatforms.value[0];
   }
 }
 
 function openCreate(level: number, parentId: number | null) {
-  editId.value = null
+  editId.value = null;
   Object.assign(form, {
     categoryCode: '',
     categoryName: '',
@@ -305,13 +305,13 @@ function openCreate(level: number, parentId: number | null) {
     platform: 'BOTH' as Platform,
     sortOrder: 0,
     status: 1,
-  })
-  onParentChange()
-  modalVisible.value = true
+  });
+  onParentChange();
+  modalVisible.value = true;
 }
 
 function openEdit(record: DisplayCategoryNode) {
-  editId.value = record.id
+  editId.value = record.id;
   Object.assign(form, {
     categoryCode: record.categoryCode,
     categoryName: record.categoryName,
@@ -320,24 +320,24 @@ function openEdit(record: DisplayCategoryNode) {
     platform: record.platform,
     sortOrder: record.sortOrder ?? 0,
     status: record.status,
-  })
-  modalVisible.value = true
+  });
+  modalVisible.value = true;
 }
 
 async function handleSubmit() {
   if (!form.categoryName?.trim()) {
-    message.warning(t('displayCategory.nameRequired'))
-    return
+    message.warning(t('displayCategory.nameRequired'));
+    return;
   }
   if (!form.categoryCode?.trim()) {
-    message.warning(t('displayCategory.codeRequired'))
-    return
+    message.warning(t('displayCategory.codeRequired'));
+    return;
   }
   if (form.level === 2 && !form.parentId) {
-    message.warning(t('displayCategory.parentRequired'))
-    return
+    message.warning(t('displayCategory.parentRequired'));
+    return;
   }
-  saving.value = true
+  saving.value = true;
   try {
     const payload = {
       categoryCode: form.categoryCode.trim(),
@@ -345,32 +345,32 @@ async function handleSubmit() {
       platform: form.platform,
       sortOrder: form.sortOrder,
       status: form.status,
-    }
+    };
     if (editId.value) {
       // 层级/父级后端不接受变更，编辑时不回传，避免给出「改了却没生效」的错觉
-      await updateCategory(editId.value, payload)
+      await updateCategory(editId.value, payload);
     } else {
       await createCategory({
         ...payload,
         level: form.level,
         parentId: form.level === 2 ? form.parentId : undefined,
-      })
+      });
     }
-    message.success(t('common.saveSuccess'))
-    modalVisible.value = false
-    loadTree()
+    message.success(t('common.saveSuccess'));
+    modalVisible.value = false;
+    loadTree();
   } catch {
     /* 拦截器已提示 */
   } finally {
-    saving.value = false
+    saving.value = false;
   }
 }
 
 async function handleDelete(record: DisplayCategoryNode) {
   try {
-    await deleteCategory(record.id)
-    message.success(t('common.deleteSuccess'))
-    loadTree()
+    await deleteCategory(record.id);
+    message.success(t('common.deleteSuccess'));
+    loadTree();
   } catch {
     /* 分类下有素材或推荐内容时后端拒绝，原因由拦截器提示 */
   }

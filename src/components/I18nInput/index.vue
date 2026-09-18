@@ -160,7 +160,8 @@ watch(
     const normalized = normalizeValue(newValue);
 
     // Detect empty → normalized transition: force emit even if innerValue already matches
-    const wasEmpty = !newValue || (typeof newValue === 'object' && Object.keys(newValue).length === 0);
+    const wasEmpty =
+      !newValue || (typeof newValue === 'object' && Object.keys(newValue).length === 0);
 
     if (isRecordEqual(normalized, innerValue.value)) {
       if (wasEmpty) {

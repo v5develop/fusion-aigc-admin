@@ -20,15 +20,9 @@
   <div class="layout-preview" :class="`layout-mode--${config.layout.mode}`">
     <div class="preview-container" :style="previewStyle">
       <!-- 模板标题 -->
-      <div
-        v-if="config.layout.showTitle && config.name"
-        class="template-title-section"
-      >
+      <div v-if="config.layout.showTitle && config.name" class="template-title-section">
         <h2 class="template-title">{{ config.name }}</h2>
-        <p
-          v-if="config.layout.showDescription && config.description"
-          class="template-description"
-        >
+        <p v-if="config.layout.showDescription && config.description" class="template-description">
           {{ config.description }}
         </p>
       </div>
@@ -65,10 +59,7 @@
       </div>
 
       <!-- 侧边栏 section (sidebar-right / sidebar-left 布局) -->
-      <div
-        v-if="sidebarSections.length > 0"
-        class="sidebar-container"
-      >
+      <div v-if="sidebarSections.length > 0" class="sidebar-container">
         <div
           v-for="section in sidebarSections"
           :key="section.id"
@@ -92,10 +83,7 @@
       </div>
 
       <!-- 全宽 section (如 toolbar) -->
-      <div
-        v-if="fullSections.length > 0"
-        class="full-width-container"
-      >
+      <div v-if="fullSections.length > 0" class="full-width-container">
         <div
           v-for="section in fullSections"
           :key="section.id"
@@ -122,42 +110,42 @@
 </template>
 
 <script setup lang="ts">
-import { computed, type CSSProperties } from 'vue'
-
-import { $t } from '@/locales'
 import type {
   TemplateConfig,
   TemplateSection,
   WidgetConfig,
   WidgetType,
-} from '@/types/template-builder'
+} from '@/types/template-builder';
 
-import SectionRenderer from '@/views/template/renderer/SectionRenderer.vue'
+import { computed, type CSSProperties } from 'vue';
+
+import { $t } from '@/locales';
+import SectionRenderer from '@/views/template/renderer/SectionRenderer.vue';
 
 const props = withDefaults(
   defineProps<{
-    config: TemplateConfig
-    activeWidgetKey?: string
-    activeSectionId?: string
+    config: TemplateConfig;
+    activeWidgetKey?: string;
+    activeSectionId?: string;
   }>(),
   {
     activeWidgetKey: undefined,
     activeSectionId: undefined,
   },
-)
+);
 
 const emit = defineEmits<{
-  (e: 'drop-widget', payload: { sectionId: string; type: WidgetType }): void
-  (e: 'select-widget', key: string): void
-  (e: 'select-section', sectionId: string): void
-  (e: 'reorder-widgets', sectionId: string, widgets: WidgetConfig[]): void
-  (e: 'remove-widget', key: string): void
-  (e: 'update:sections', sections: TemplateSection[]): void
-  (e: 'add-widget', sectionId: string): void
-}>()
+  (e: 'drop-widget', payload: { sectionId: string; type: WidgetType }): void;
+  (e: 'select-widget', key: string): void;
+  (e: 'select-section', sectionId: string): void;
+  (e: 'reorder-widgets', sectionId: string, widgets: WidgetConfig[]): void;
+  (e: 'remove-widget', key: string): void;
+  (e: 'update:sections', sections: TemplateSection[]): void;
+  (e: 'add-widget', sectionId: string): void;
+}>();
 
 // 默认内容最大宽度，未配置时给出一个合理的画布宽度。
-const DEFAULT_MAX_WIDTH = 1200
+const DEFAULT_MAX_WIDTH = 1200;
 
 // 全部合法的 widget type，用作 dataTransfer 解析时的运行时校验。
 const WIDGET_TYPES: readonly WidgetType[] = [
@@ -177,60 +165,58 @@ const WIDGET_TYPES: readonly WidgetType[] = [
   'radio-image',
   'preset-select',
   'prompt-input',
-]
+];
 
 function isWidgetType(value: string): value is WidgetType {
-  return (WIDGET_TYPES as readonly string[]).includes(value)
+  return (WIDGET_TYPES as readonly string[]).includes(value);
 }
 
 const previewStyle = computed<CSSProperties>(() => ({
   maxWidth: `${props.config.layout.maxWidth ?? DEFAULT_MAX_WIDTH}px`,
-}))
+}));
 
 function bySort(a: TemplateSection, b: TemplateSection): number {
-  return a.sort - b.sort
+  return a.sort - b.sort;
 }
 
 // 主区域：primary 与 inline 都落在主内容流里。
 const primarySections = computed<TemplateSection[]>(() =>
-  props.config.sections
-    .filter((s) => s.role === 'primary' || s.role === 'inline')
-    .sort(bySort),
-)
+  props.config.sections.filter((s) => s.role === 'primary' || s.role === 'inline').sort(bySort),
+);
 
 const sidebarSections = computed<TemplateSection[]>(() =>
   props.config.sections.filter((s) => s.role === 'sidebar').sort(bySort),
-)
+);
 
 const fullSections = computed<TemplateSection[]>(() =>
   props.config.sections.filter((s) => s.role === 'full').sort(bySort),
-)
+);
 
 function onSelectWidget(key: string) {
-  emit('select-widget', key)
+  emit('select-widget', key);
 }
 
 function onRemoveWidget(key: string) {
-  emit('remove-widget', key)
+  emit('remove-widget', key);
 }
 
 function onSelectSection(sectionId: string) {
-  emit('select-section', sectionId)
+  emit('select-section', sectionId);
 }
 
 function onReorderWidgets(sectionId: string, widgets: WidgetConfig[]) {
-  emit('reorder-widgets', sectionId, widgets)
+  emit('reorder-widgets', sectionId, widgets);
 }
 
 // SectionRenderer 把原始 DragEvent 冒泡上来；这里解析 dataTransfer 里的 widget
 // type（约定写在 'text/plain'，与 ZonePanel / FormDesigner 一致），校验合法后
 // 再向上 emit 结构化的 drop-widget。非法 / 内部排序拖拽（无 type）直接忽略。
 function onDropWidget(sectionId: string, event: DragEvent) {
-  const raw = event.dataTransfer?.getData('text/plain')?.trim()
+  const raw = event.dataTransfer?.getData('text/plain')?.trim();
   if (!raw || !isWidgetType(raw)) {
-    return
+    return;
   }
-  emit('drop-widget', { sectionId, type: raw })
+  emit('drop-widget', { sectionId, type: raw });
 }
 
 // 删除 section：计算出去掉该 section 后的新数组，整体回写。
@@ -238,7 +224,7 @@ function onRemoveSection(sectionId: string) {
   emit(
     'update:sections',
     props.config.sections.filter((s) => s.id !== sectionId),
-  )
+  );
 }
 </script>
 

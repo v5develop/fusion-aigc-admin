@@ -41,6 +41,7 @@
 </template>
 
 <script setup lang="ts">
+import { message } from 'antdv-next';
 /**
  * 每日签到规则。
  *
@@ -50,19 +51,19 @@
  *
  * 这里的每一次保存都直接改变送出去多少点数，属于资金侧配置，全部进审计日志。
  */
-import { ref, reactive, computed, onMounted } from 'vue'
-import { message } from 'antdv-next'
-import { useI18n } from 'vue-i18n'
-import { getCheckInSettings, saveCheckInSettings } from '@/api/check-in'
+import { ref, reactive, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n()
+import { getCheckInSettings, saveCheckInSettings } from '@/api/check-in';
 
-const loading = ref(false)
-const savingEnabled = ref(false)
-const savingRules = ref(false)
+const { t } = useI18n();
 
-const settings = reactive({ enabled: false, pointsValidDays: 0 })
-const rewardsText = ref('')
+const loading = ref(false);
+const savingEnabled = ref(false);
+const savingRules = ref(false);
+
+const settings = reactive({ enabled: false, pointsValidDays: 0 });
+const rewardsText = ref('');
 
 /** 逗号分隔的输入解析成数组；非法项在这里就被滤掉，不等到后端再报错。 */
 const previewRewards = computed(() =>
@@ -70,57 +71,57 @@ const previewRewards = computed(() =>
     .split(',')
     .map((item) => Number(item.trim()))
     .filter((item) => Number.isFinite(item) && item >= 0),
-)
+);
 
 async function load() {
-  loading.value = true
+  loading.value = true;
   try {
-    const data = await getCheckInSettings()
-    settings.enabled = data.enabled ?? false
-    settings.pointsValidDays = data.pointsValidDays ?? 0
-    rewardsText.value = (data.rewards ?? []).join(',')
+    const data = await getCheckInSettings();
+    settings.enabled = data.enabled ?? false;
+    settings.pointsValidDays = data.pointsValidDays ?? 0;
+    rewardsText.value = (data.rewards ?? []).join(',');
   } catch {
     /* 错误已由拦截器提示 */
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 async function handleToggle(checked: boolean) {
-  savingEnabled.value = true
+  savingEnabled.value = true;
   try {
-    await saveCheckInSettings({ enabled: checked })
-    message.success(checked ? t('checkIn.enabledOn') : t('checkIn.enabledOff'))
+    await saveCheckInSettings({ enabled: checked });
+    message.success(checked ? t('checkIn.enabledOn') : t('checkIn.enabledOff'));
   } catch {
-    settings.enabled = !checked
+    settings.enabled = !checked;
   } finally {
-    savingEnabled.value = false
+    savingEnabled.value = false;
   }
 }
 
 async function handleSaveRules() {
   if (previewRewards.value.length === 0) {
-    message.error(t('checkIn.rewardsRequired'))
-    return
+    message.error(t('checkIn.rewardsRequired'));
+    return;
   }
-  savingRules.value = true
+  savingRules.value = true;
   try {
     await saveCheckInSettings({
       rewards: previewRewards.value,
       pointsValidDays: settings.pointsValidDays,
-    })
-    message.success(t('common.saveSuccess'))
+    });
+    message.success(t('common.saveSuccess'));
     // 重新拉一次：后端返回的是「数据库优先 + yaml 兜底」之后的实际生效值，
     // 直接用本地表单值当作已生效，会在后端做了归一化时显示成另一回事
-    await load()
+    await load();
   } catch {
     /* 梯度非法时后端会拒绝并给出原因 */
   } finally {
-    savingRules.value = false
+    savingRules.value = false;
   }
 }
 
-onMounted(load)
+onMounted(load);
 </script>
 
 <style scoped>

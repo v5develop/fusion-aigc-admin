@@ -105,22 +105,14 @@
                 @update:value="onOptionUpdate(index, 'badge', $event)"
               />
             </div>
-            <a-button
-              type="text"
-              class="image-select-props__remove"
-              @click="onRemoveOption(index)"
-            >
+            <a-button type="text" class="image-select-props__remove" @click="onRemoveOption(index)">
               <Icon icon="antdv-next:DeleteOutlined" />
             </a-button>
           </div>
         </template>
       </draggable>
 
-      <a-empty
-        v-else
-        :description="$t('template.imageSelectOptionsEmpty')"
-        :image="undefined"
-      />
+      <a-empty v-else :description="$t('template.imageSelectOptionsEmpty')" :image="undefined" />
 
       <a-button block class="image-select-props__add" @click="onAddOption">
         <Icon icon="antdv-next:PlusOutlined" />
@@ -131,103 +123,97 @@
 </template>
 
 <script setup lang="ts">
-import draggable from 'vuedraggable'
+import type { ImageSelectOption, ImageSelectWidgetConfig } from '@/types/template-builder';
 
-import Icon from '@/components/Icon/index.vue'
-import { $t } from '@/locales'
-import type {
-  ImageSelectOption,
-  ImageSelectWidgetConfig,
-} from '@/types/template-builder'
+import draggable from 'vuedraggable';
+
+import Icon from '@/components/Icon/index.vue';
+import { $t } from '@/locales';
 
 const props = defineProps<{
-  widget: ImageSelectWidgetConfig
-}>()
+  widget: ImageSelectWidgetConfig;
+}>();
 
 const emit = defineEmits<{
-  (e: 'update', patch: Record<string, unknown>): void
-}>()
+  (e: 'update', patch: Record<string, unknown>): void;
+}>();
 
-type ImageSelectMode = NonNullable<ImageSelectWidgetConfig['mode']>
-type ImageSelectImageSize = NonNullable<ImageSelectWidgetConfig['imageSize']>
+type ImageSelectMode = NonNullable<ImageSelectWidgetConfig['mode']>;
+type ImageSelectImageSize = NonNullable<ImageSelectWidgetConfig['imageSize']>;
 
 const modeOptions: { label: string; value: ImageSelectMode }[] = [
   { label: $t('template.imageSelectModeSingle'), value: 'single' },
   { label: $t('template.imageSelectModeMultiple'), value: 'multiple' },
-]
+];
 
 const imageSizeOptions: { label: string; value: ImageSelectImageSize }[] = [
   { label: $t('template.imageSelectSizeSmall'), value: 'small' },
   { label: $t('template.imageSelectSizeMedium'), value: 'medium' },
   { label: $t('template.imageSelectSizeLarge'), value: 'large' },
-]
+];
 
 /** 可选文本字段：清空回传 undefined，避免落地空串 */
-type OptionalOptionField = 'thumbnailUrl' | 'description' | 'badge'
+type OptionalOptionField = 'thumbnailUrl' | 'description' | 'badge';
 const OPTIONAL_FIELDS: ReadonlySet<OptionalOptionField> = new Set([
   'thumbnailUrl',
   'description',
   'badge',
-])
+]);
 
 function onUpdate<K extends keyof ImageSelectWidgetConfig>(
   field: K,
   value: ImageSelectWidgetConfig[K],
 ): void {
-  emit('update', { [field]: value })
+  emit('update', { [field]: value });
 }
 
 function onColumnsUpdate(value: number | string | null): void {
   if (value === null || value === '') {
-    onUpdate('columns', undefined)
-    return
+    onUpdate('columns', undefined);
+    return;
   }
-  const num = typeof value === 'number' ? value : Number(value)
-  if (Number.isNaN(num)) return
-  onUpdate('columns', num)
+  const num = typeof value === 'number' ? value : Number(value);
+  if (Number.isNaN(num)) return;
+  onUpdate('columns', num);
 }
 
 function isOptionalField(field: keyof ImageSelectOption): field is OptionalOptionField {
-  return OPTIONAL_FIELDS.has(field as OptionalOptionField)
+  return OPTIONAL_FIELDS.has(field as OptionalOptionField);
 }
 
-function onOptionUpdate(
-  index: number,
-  field: keyof ImageSelectOption,
-  value: string,
-): void {
+function onOptionUpdate(index: number, field: keyof ImageSelectOption, value: string): void {
   const next = props.widget.options.map((opt, i) => {
-    if (i !== index) return { ...opt }
-    const updated: ImageSelectOption = { ...opt }
+    if (i !== index) return { ...opt };
+    const updated: ImageSelectOption = { ...opt };
     if (isOptionalField(field)) {
-      if (value === '') delete updated[field]
-      else updated[field] = value
+      if (value === '') delete updated[field];
+      else updated[field] = value;
     } else {
-      updated[field] = value
+      updated[field] = value;
     }
-    return updated
-  })
-  onUpdate('options', next)
+    return updated;
+  });
+  onUpdate('options', next);
 }
 
 function onRemoveOption(index: number): void {
-  const next = props.widget.options.filter((_, i) => i !== index)
-  onUpdate('options', next)
+  const next = props.widget.options.filter((_, i) => i !== index);
+  onUpdate('options', next);
 }
 
 function onAddOption(): void {
   const next: ImageSelectOption[] = [
     ...props.widget.options.map((opt) => ({ ...opt })),
     { label: '', value: '', imageUrl: '' },
-  ]
-  onUpdate('options', next)
+  ];
+  onUpdate('options', next);
 }
 
 function onReorder(next: ImageSelectOption[]): void {
   onUpdate(
     'options',
     next.map((opt) => ({ ...opt })),
-  )
+  );
 }
 </script>
 

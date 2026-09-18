@@ -988,7 +988,7 @@ watch(
     border: 1px solid var(--color-border-secondary);
     border-radius: 8px;
     overflow: hidden;
-    margin:20px 20px;
+    margin: 20px 20px;
   }
 
   .editor-toolbar {

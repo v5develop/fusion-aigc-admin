@@ -18,10 +18,7 @@
         <span v-if="config.required" class="color-picker__required">*</span>
       </span>
       <a-tooltip v-if="config.helpText" :title="config.helpText">
-        <Icon
-          icon="antdv-next:QuestionCircleOutlined"
-          class="color-picker__help"
-        />
+        <Icon icon="antdv-next:QuestionCircleOutlined" class="color-picker__help" />
       </a-tooltip>
     </div>
 
@@ -66,28 +63,29 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import type { ColorPickerWidgetConfig, RenderMode } from '@/types/template-builder';
 
-import Icon from '@/components/Icon/index.vue'
-import { $t } from '@/locales'
-import type { ColorPickerWidgetConfig, RenderMode } from '@/types/template-builder'
+import { computed } from 'vue';
+
+import Icon from '@/components/Icon/index.vue';
+import { $t } from '@/locales';
 
 const props = withDefaults(
   defineProps<{
-    config: ColorPickerWidgetConfig
-    mode: RenderMode
-    formValues?: Record<string, unknown>
-    isSelected?: boolean
+    config: ColorPickerWidgetConfig;
+    mode: RenderMode;
+    formValues?: Record<string, unknown>;
+    isSelected?: boolean;
   }>(),
   {
     formValues: undefined,
     isSelected: false,
   },
-)
+);
 
 const emit = defineEmits<{
-  (e: 'update:form-values', key: string, value: unknown): void
-}>()
+  (e: 'update:form-values', key: string, value: unknown): void;
+}>();
 
 const rootClass = computed(() => [
   'color-picker',
@@ -95,15 +93,13 @@ const rootClass = computed(() => [
     'widget-wrapper': props.mode === 'builder',
     'widget-selected': props.mode === 'builder' && props.isSelected,
   },
-])
+]);
 
 /** builder 永远只读；viewer 下尊重 widget 级 disabled */
-const isDisabled = computed(
-  () => props.mode === 'builder' || props.config.disabled === true,
-)
+const isDisabled = computed(() => props.mode === 'builder' || props.config.disabled === true);
 
 /** 是否支持透明度通道；a-color-picker 用 disabled-alpha 反向控制 */
-const showAlpha = computed(() => props.config.showAlpha === true)
+const showAlpha = computed(() => props.config.showAlpha === true);
 
 /**
  * a-color-picker 仅支持 hex/rgb/hsb；
@@ -112,68 +108,66 @@ const showAlpha = computed(() => props.config.showAlpha === true)
 const pickerFormat = computed<'hex' | 'rgb' | 'hsb'>(() => {
   switch (props.config.format) {
     case 'rgb':
-      return 'rgb'
+      return 'rgb';
     case 'hsl':
-      return 'hsb'
+      return 'hsb';
     default:
-      return 'hex'
+      return 'hex';
   }
-})
+});
 
 /** 非 hex 格式时在控件旁标注当前输出格式 */
 const formatLabel = computed<string>(() =>
-  props.config.format && props.config.format !== 'hex'
-    ? props.config.format.toUpperCase()
-    : '',
-)
+  props.config.format && props.config.format !== 'hex' ? props.config.format.toUpperCase() : '',
+);
 
 /** 预设色块列表 */
 const presetColors = computed<string[]>(() =>
   Array.isArray(props.config.presetColors)
     ? props.config.presetColors.filter((c): c is string => typeof c === 'string')
     : [],
-)
+);
 
 /** 注入到 a-color-picker 弹层的预设分组 */
 const presets = computed<{ label: string; colors: string[] }[]>(() =>
   presetColors.value.length
     ? [{ label: $t('template.colorPickerPresets'), colors: presetColors.value }]
     : [],
-)
+);
 
 /** 当前值：viewer 优先读 formValues，回退 defaultValue；统一收窄为 string */
 const currentValue = computed<string>(() => {
   if (props.mode === 'viewer') {
-    const fromForm = props.formValues?.[props.config.key]
+    const fromForm = props.formValues?.[props.config.key];
     if (typeof fromForm === 'string') {
-      return fromForm
+      return fromForm;
     }
   }
   if (typeof props.config.defaultValue === 'string') {
-    return props.config.defaultValue
+    return props.config.defaultValue;
   }
-  return ''
-})
+  return '';
+});
 
 /** 预设色块是否处于选中态 (大小写不敏感的字符串比较) */
 function isActiveSwatch(color: string): boolean {
-  return currentValue.value.trim().toLowerCase() === color.trim().toLowerCase()
+  return currentValue.value.trim().toLowerCase() === color.trim().toLowerCase();
 }
 
 /** a-color-picker 回写：value-format 已保证为字符串；清空时回写 '' */
 function onUpdate(value: unknown): void {
   if (props.mode !== 'viewer') {
-    return
+    return;
   }
-  emit('update:form-values', props.config.key, typeof value === 'string' ? value : '')
+  emit('update:form-values', props.config.key, typeof value === 'string' ? value : '');
 }
 
 /** 点击预设色块直接选色 */
 function onSwatchClick(color: string): void {
   if (props.mode !== 'viewer') {
-    return
+    return;
   }
-  emit('update:form-values', props.config.key, color)
+  emit('update:form-values', props.config.key, color);
 }
 </script>
 

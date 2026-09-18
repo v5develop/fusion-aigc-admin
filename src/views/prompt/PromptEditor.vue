@@ -236,10 +236,9 @@
                       {{ $t('prompt.slotChipMultipleHint') }}
                     </a-tag>
                   </a-space>
-                  <span
-                    v-else-if="record.slotType === 'separator'"
-                    class="separator-config-hint"
-                  >{{ $t('prompt.slotSeparatorHint') }}</span>
+                  <span v-else-if="record.slotType === 'separator'" class="separator-config-hint">{{
+                    $t('prompt.slotSeparatorHint')
+                  }}</span>
                   <a-space v-else-if="record.slotType === 'image'" :size="4">
                     <a-input-number
                       v-model:value="record.maxCount"
@@ -320,7 +319,8 @@
                 <span
                   v-else-if="slotKind(segment.key) === 'separator'"
                   class="preview-text preview-separator"
-                >{{ slotSeparatorText(segment.key) }}</span>
+                  >{{ slotSeparatorText(segment.key) }}</span
+                >
                 <a-select
                   v-else-if="slotKind(segment.key) === 'select'"
                   v-model:value="previewValues[segment.key]"
@@ -373,36 +373,34 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, nextTick } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { message } from 'antdv-next'
-import Icon from '@/components/Icon/index.vue'
+import { message } from 'antdv-next';
+import { ref, reactive, computed, onMounted, nextTick } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
-import { $t } from '@/locales'
 import {
   getPromptDetail,
   createPrompt,
   updatePrompt,
   type PromptFormData,
   type PromptSlot,
-} from '@/api/prompt'
+} from '@/api/prompt';
+import Icon from '@/components/Icon/index.vue';
+import { $t } from '@/locales';
 
-type SlotType = PromptSlot['slotType']
-type PromptContentSegment =
-  | { type: 'text'; value: string }
-  | { type: 'slot'; key: string }
+type SlotType = PromptSlot['slotType'];
+type PromptContentSegment = { type: 'text'; value: string } | { type: 'slot'; key: string };
 
-const route = useRoute()
-const router = useRouter()
-const promptId = route.params.id as string | undefined
-const copyFromId = route.query.copyFrom as string | undefined
-const isEdit = !!promptId
-const saving = ref(false)
-const editorRef = ref<HTMLDivElement | null>(null)
+const route = useRoute();
+const router = useRouter();
+const promptId = route.params.id as string | undefined;
+const copyFromId = route.query.copyFrom as string | undefined;
+const isEdit = !!promptId;
+const saving = ref(false);
+const editorRef = ref<HTMLDivElement | null>(null);
 
-const SLOT_PATTERN = /\{\{\s*([\w]+)\s*\}\}/g
+const SLOT_PATTERN = /\{\{\s*([\w]+)\s*\}\}/g;
 // 合法占位标识字符集，须与 SLOT_PATTERN 的 [\w] 一致（字母/数字/下划线）
-const SLOT_KEY_PATTERN = /^[A-Za-z0-9_]+$/
+const SLOT_KEY_PATTERN = /^[A-Za-z0-9_]+$/;
 
 const categoryOptions = [
   { label: $t('prompt.categoryEcommerce'), value: 'ecommerce' },
@@ -410,7 +408,7 @@ const categoryOptions = [
   { label: $t('prompt.categoryVideo'), value: 'video' },
   { label: $t('prompt.categoryAgent'), value: 'agent' },
   { label: $t('prompt.categoryGeneral'), value: 'general' },
-]
+];
 
 const slotTypeOptions: { label: string; value: SlotType }[] = [
   { label: $t('prompt.slotTypeText'), value: 'text' },
@@ -419,7 +417,7 @@ const slotTypeOptions: { label: string; value: SlotType }[] = [
   { label: $t('prompt.slotTypeChip'), value: 'chip' },
   { label: $t('prompt.slotTypeNumber'), value: 'number' },
   { label: $t('prompt.slotTypeSeparator'), value: 'separator' },
-]
+];
 
 const slotColumns = [
   { title: $t('prompt.slotKey'), dataIndex: 'key', width: 130 },
@@ -428,20 +426,20 @@ const slotColumns = [
   { title: $t('prompt.slotConfig'), key: 'config' },
   { title: $t('prompt.varRequired'), dataIndex: 'required', width: 70, align: 'center' as const },
   { title: $t('common.action'), key: 'operation', width: 70, align: 'center' as const },
-]
+];
 
 const form = reactive<{
-  name: string
-  code: string
-  category: string | undefined
-  description: string
-  icon: string
-  coverImage: string
-  content: string
-  slots: PromptSlot[]
-  tags: string[]
-  enabled: number
-  sortOrder: number
+  name: string;
+  code: string;
+  category: string | undefined;
+  description: string;
+  icon: string;
+  coverImage: string;
+  content: string;
+  slots: PromptSlot[];
+  tags: string[];
+  enabled: number;
+  sortOrder: number;
 }>({
   name: '',
   code: '',
@@ -454,129 +452,138 @@ const form = reactive<{
   tags: [],
   enabled: 1,
   sortOrder: 0,
-})
+});
 
 const enabledChecked = computed({
   get: () => form.enabled === 1,
   set: (v: boolean) => {
-    form.enabled = v ? 1 : 0
+    form.enabled = v ? 1 : 0;
   },
-})
+});
 
-const previewValues = reactive<Record<string, string | number | string[]>>({})
+const previewValues = reactive<Record<string, string | number | string[]>>({});
 
-const contentSegments = computed(() => parsePromptContent(form.content))
+const contentSegments = computed(() => parsePromptContent(form.content));
 
 const detectedKeys = computed(() => {
-  const matches = form.content.match(SLOT_PATTERN) || []
-  const keys = matches.map(m => m.replace(/[{}]/g, '').trim())
-  return Array.from(new Set(keys))
-})
+  const matches = form.content.match(SLOT_PATTERN) || [];
+  const keys = matches.map((m) => m.replace(/[{}]/g, '').trim());
+  return Array.from(new Set(keys));
+});
 
 const hasUndefinedSlots = computed(() =>
-  detectedKeys.value.some(key => !form.slots.find(s => s.key === key)),
-)
+  detectedKeys.value.some((key) => !form.slots.find((s) => s.key === key)),
+);
 
 const renderedContent = computed(() => {
   return form.content.replace(SLOT_PATTERN, (_match, key: string) => {
-    const slot = findSlot(key)
+    const slot = findSlot(key);
     // 分隔标识：渲染为 “label：”，不参与取值
-    if (slot?.slotType === 'separator') return `${slot.label || key}：`
-    const value = previewValues[key]
+    if (slot?.slotType === 'separator') return `${slot.label || key}：`;
+    const value = previewValues[key];
     if (value != null && value !== '') {
       // 标签多选：数组以「、」连接
-      if (Array.isArray(value)) return value.length ? value.join('、') : `{{${key}}}`
-      return String(value)
+      if (Array.isArray(value)) return value.length ? value.join('、') : `{{${key}}}`;
+      return String(value);
     }
-    if (slot?.defaultValue != null && slot.defaultValue !== '') return String(slot.defaultValue)
-    if (slot?.slotType === 'image') return `[${slot.label || key}]`
-    return `{{${key}}}`
-  })
-})
+    if (slot?.defaultValue != null && slot.defaultValue !== '') return String(slot.defaultValue);
+    if (slot?.slotType === 'image') return `[${slot.label || key}]`;
+    return `{{${key}}}`;
+  });
+});
 
 function parsePromptContent(content: string): PromptContentSegment[] {
-  const segments: PromptContentSegment[] = []
-  const pattern = new RegExp(SLOT_PATTERN)
-  let lastIndex = 0
-  let match: RegExpExecArray | null
+  const segments: PromptContentSegment[] = [];
+  const pattern = new RegExp(SLOT_PATTERN);
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
 
   while ((match = pattern.exec(content)) !== null) {
     if (match.index > lastIndex) {
-      segments.push({ type: 'text', value: content.slice(lastIndex, match.index) })
+      segments.push({ type: 'text', value: content.slice(lastIndex, match.index) });
     }
-    segments.push({ type: 'slot', key: match[1] })
-    lastIndex = pattern.lastIndex
+    segments.push({ type: 'slot', key: match[1] });
+    lastIndex = pattern.lastIndex;
   }
 
   if (lastIndex < content.length) {
-    segments.push({ type: 'text', value: content.slice(lastIndex) })
+    segments.push({ type: 'text', value: content.slice(lastIndex) });
   }
 
-  return segments.filter(segment => segment.type === 'slot' || segment.value.length > 0)
+  return segments.filter((segment) => segment.type === 'slot' || segment.value.length > 0);
 }
 
 function findSlot(key: string): PromptSlot | undefined {
-  return form.slots.find(s => s.key === key)
+  return form.slots.find((s) => s.key === key);
 }
 
 function wrapVar(key: string): string {
-  return `{{${key}}}`
+  return `{{${key}}}`;
 }
 
 function slotColor(type: SlotType): string {
-  return { text: 'blue', select: 'green', image: 'purple', chip: 'orange', number: 'cyan', separator: 'gold' }[type] || 'default'
+  return (
+    {
+      text: 'blue',
+      select: 'green',
+      image: 'purple',
+      chip: 'orange',
+      number: 'cyan',
+      separator: 'gold',
+    }[type] || 'default'
+  );
 }
 
 function slotChipLabel(slot: PromptSlot): string {
-  return slot.label ? `${slot.label} ${wrapVar(slot.key)}` : wrapVar(slot.key)
+  return slot.label ? `${slot.label} ${wrapVar(slot.key)}` : wrapVar(slot.key);
 }
 
 function slotKind(key: string): SlotType | 'missing' {
-  return findSlot(key)?.slotType || 'missing'
+  return findSlot(key)?.slotType || 'missing';
 }
 
 function slotText(key: string): string {
-  const slot = findSlot(key)
-  if (!slot) return key
-  if (slot.defaultValue != null && slot.defaultValue !== '') return String(slot.defaultValue)
-  return slot.label || slot.placeholder || key
+  const slot = findSlot(key);
+  if (!slot) return key;
+  if (slot.defaultValue != null && slot.defaultValue !== '') return String(slot.defaultValue);
+  return slot.label || slot.placeholder || key;
 }
 
 function slotPlaceholder(key: string): string {
-  const slot = findSlot(key)
-  return slot?.placeholder || slot?.label || key
+  const slot = findSlot(key);
+  return slot?.placeholder || slot?.label || key;
 }
 
 function slotSeparatorText(key: string): string {
-  const slot = findSlot(key)
-  return `${slot?.label || key}：`
+  const slot = findSlot(key);
+  return `${slot?.label || key}：`;
 }
 
 function slotOptions(key: string) {
-  const slot = findSlot(key)
-  const options = slot?.options || []
-  if (options.length) return options.map(o => ({ label: o.label, value: o.value }))
+  const slot = findSlot(key);
+  const options = slot?.options || [];
+  if (options.length) return options.map((o) => ({ label: o.label, value: o.value }));
   if (slot?.defaultValue != null && slot.defaultValue !== '') {
-    const value = String(slot.defaultValue)
-    return [{ label: value, value }]
+    const value = String(slot.defaultValue);
+    return [{ label: value, value }];
   }
-  return []
+  return [];
 }
 
 function slotNumberMin(key: string): number | undefined {
-  return findSlot(key)?.min
+  return findSlot(key)?.min;
 }
 
 function slotNumberMax(key: string): number | undefined {
-  return findSlot(key)?.max
+  return findSlot(key)?.max;
 }
 
 function slotNumberStep(key: string): number {
-  return findSlot(key)?.step || 1
+  return findSlot(key)?.step || 1;
 }
 
 function optionLabels(slot: PromptSlot): string[] {
-  return (slot.options || []).map(o => o.label)
+  return (slot.options || []).map((o) => o.label);
 }
 
 /**
@@ -584,53 +591,53 @@ function optionLabels(slot: PromptSlot): string[] {
  * 则保留其原有自定义 value，避免重命名/增删时丢失已定制的取值。
  */
 function setOptions(slot: PromptSlot, labels: string[]): void {
-  const prev = slot.options || []
-  slot.options = labels.map(l => {
-    const existing = prev.find(o => o.label === l)
-    return existing ? { ...existing, label: l } : { label: l, value: l }
-  })
+  const prev = slot.options || [];
+  slot.options = labels.map((l) => {
+    const existing = prev.find((o) => o.label === l);
+    return existing ? { ...existing, label: l } : { label: l, value: l };
+  });
 }
 
 function optionValueEqualsLabel(slot: PromptSlot): boolean {
-  return (slot.options || []).every(o => o.value === o.label)
+  return (slot.options || []).every((o) => o.value === o.label);
 }
 
 function setOptionValue(slot: PromptSlot, index: number, value: string): void {
-  const option = (slot.options || [])[index]
-  if (!option) return
+  const option = (slot.options || [])[index];
+  if (!option) return;
   // 留空时回退为 label，保持“默认同值”语义
-  option.value = value === '' ? option.label : value
+  option.value = value === '' ? option.label : value;
 }
 
 function genKey(type: SlotType): string {
   // 一次性收集所有已占用的 key：现有 slots + 正文里已出现的 {{key}}，
   // 避免与「正文已引用但尚未建表」的占位标识撞车，同时避免 O(n²) 反复查找。
-  const used = new Set<string>(form.slots.map(s => s.key))
-  detectedKeys.value.forEach(k => used.add(k))
+  const used = new Set<string>(form.slots.map((s) => s.key));
+  detectedKeys.value.forEach((k) => used.add(k));
 
-  let i = used.size + 1
-  let key = `${type}${i}`
+  let i = used.size + 1;
+  let key = `${type}${i}`;
   while (used.has(key)) {
-    i += 1
-    key = `${type}${i}`
+    i += 1;
+    key = `${type}${i}`;
   }
-  return key
+  return key;
 }
 
 function ensurePreviewValues(): void {
-  detectedKeys.value.forEach(key => {
+  detectedKeys.value.forEach((key) => {
     if (!(key in previewValues)) {
-      const slot = findSlot(key)
+      const slot = findSlot(key);
       // 分隔标识不可交互，无需预览值
-      if (slot?.slotType === 'separator') return
+      if (slot?.slotType === 'separator') return;
       // 标签多选：初始为数组
       if (slot?.slotType === 'chip' && slot.multiple !== false) {
-        previewValues[key] = Array.isArray(slot.defaultValue) ? slot.defaultValue.map(String) : []
-        return
+        previewValues[key] = Array.isArray(slot.defaultValue) ? slot.defaultValue.map(String) : [];
+        return;
       }
-      previewValues[key] = slot?.defaultValue != null ? String(slot.defaultValue) : ''
+      previewValues[key] = slot?.defaultValue != null ? String(slot.defaultValue) : '';
     }
-  })
+  });
 }
 
 /**
@@ -638,124 +645,125 @@ function ensurePreviewValues(): void {
  * 值形态不匹配会让预览控件报错/失效（如 select 拿到数组、chip 拿到字符串）。
  */
 function onSlotTypeChange(slot: PromptSlot): void {
-  delete previewValues[slot.key]
-  ensurePreviewValues()
-  renderPromptEditor()
+  delete previewValues[slot.key];
+  ensurePreviewValues();
+  renderPromptEditor();
 }
 
 /** token span 应展示的文本（与 isEditorDamaged 的比对基准保持一致） */
 function expectedTokenText(key: string): string {
-  const slot = findSlot(key)
+  const slot = findSlot(key);
   return slot?.slotType === 'separator'
     ? `${slot.label || key}：`
-    : slot?.label || slot?.placeholder || key
+    : slot?.label || slot?.placeholder || key;
 }
 
 function createSlotNode(key: string): HTMLSpanElement {
-  const slot = findSlot(key)
-  const span = document.createElement('span')
-  span.className = `prompt-token prompt-token-${slot?.slotType || 'missing'}`
-  span.dataset.slotKey = key
-  span.contentEditable = 'false'
-  span.title = wrapVar(key)
-  span.textContent = expectedTokenText(key)
-  return span
+  const slot = findSlot(key);
+  const span = document.createElement('span');
+  span.className = `prompt-token prompt-token-${slot?.slotType || 'missing'}`;
+  span.dataset.slotKey = key;
+  span.contentEditable = 'false';
+  span.title = wrapVar(key);
+  span.textContent = expectedTokenText(key);
+  return span;
 }
 
 function renderPromptEditor(): void {
-  const editor = editorRef.value
-  if (!editor) return
+  const editor = editorRef.value;
+  if (!editor) return;
 
-  const fragment = document.createDocumentFragment()
-  contentSegments.value.forEach(segment => {
+  const fragment = document.createDocumentFragment();
+  contentSegments.value.forEach((segment) => {
     if (segment.type === 'text') {
-      fragment.appendChild(document.createTextNode(segment.value))
+      fragment.appendChild(document.createTextNode(segment.value));
     } else {
-      fragment.appendChild(createSlotNode(segment.key))
+      fragment.appendChild(createSlotNode(segment.key));
     }
-  })
+  });
 
-  editor.replaceChildren(fragment)
-  ensurePreviewValues()
+  editor.replaceChildren(fragment);
+  ensurePreviewValues();
 }
 
 function serializeEditorNode(node: Node): string {
   if (node.nodeType === Node.TEXT_NODE) {
-    return node.textContent || ''
+    return node.textContent || '';
   }
   if (node.nodeType !== Node.ELEMENT_NODE) {
-    return ''
+    return '';
   }
 
-  const el = node as HTMLElement
-  const slotKey = el.dataset.slotKey
+  const el = node as HTMLElement;
+  const slotKey = el.dataset.slotKey;
   if (slotKey) {
-    return wrapVar(slotKey)
+    return wrapVar(slotKey);
   }
   if (el.tagName === 'BR') {
-    return '\n'
+    return '\n';
   }
 
-  let content = Array.from(el.childNodes).map(serializeEditorNode).join('')
+  let content = Array.from(el.childNodes).map(serializeEditorNode).join('');
   if (el.tagName === 'DIV' || el.tagName === 'P') {
-    content += '\n'
+    content += '\n';
   }
-  return content
+  return content;
 }
 
 function serializeEditorContent(): string {
-  const editor = editorRef.value
-  if (!editor) return form.content
+  const editor = editorRef.value;
+  if (!editor) return form.content;
   // contenteditable 会把连续/末尾空格自动替换为 &nbsp;(U+00A0)，此处归一为普通空格，
   // 避免把不可见的 NBSP 混入发给 AI 的提示词正文。
-  return Array.from(editor.childNodes).map(serializeEditorNode).join('').replace(/ /g, ' ')
+  return Array.from(editor.childNodes).map(serializeEditorNode).join('').replace(/ /g, ' ');
 }
 
 function closestSlotToken(node: Node | null): HTMLElement | null {
-  const editor = editorRef.value
-  if (!editor || !node) return null
+  const editor = editorRef.value;
+  if (!editor || !node) return null;
 
-  const element = node.nodeType === Node.ELEMENT_NODE ? node as HTMLElement : node.parentElement
-  const token = element?.closest<HTMLElement>('.prompt-token')
-  return token && editor.contains(token) ? token : null
+  const element = node.nodeType === Node.ELEMENT_NODE ? (node as HTMLElement) : node.parentElement;
+  const token = element?.closest<HTMLElement>('.prompt-token');
+  return token && editor.contains(token) ? token : null;
 }
 
 function normalizeEditorRange(range: Range): Range {
-  const token = closestSlotToken(range.commonAncestorContainer)
-    || closestSlotToken(range.startContainer)
-    || closestSlotToken(range.endContainer)
+  const token =
+    closestSlotToken(range.commonAncestorContainer) ||
+    closestSlotToken(range.startContainer) ||
+    closestSlotToken(range.endContainer);
 
-  if (!token) return range
+  if (!token) return range;
 
-  const safeRange = document.createRange()
-  safeRange.setStartAfter(token)
-  safeRange.collapse(true)
-  return safeRange
+  const safeRange = document.createRange();
+  safeRange.setStartAfter(token);
+  safeRange.collapse(true);
+  return safeRange;
 }
 
 function getEditorRange(): Range | null {
-  const editor = editorRef.value
-  const selection = window.getSelection()
-  if (!editor || !selection || selection.rangeCount === 0) return null
+  const editor = editorRef.value;
+  const selection = window.getSelection();
+  if (!editor || !selection || selection.rangeCount === 0) return null;
 
-  const range = selection.getRangeAt(0)
-  if (!editor.contains(range.commonAncestorContainer)) return null
-  return normalizeEditorRange(range)
+  const range = selection.getRangeAt(0);
+  if (!editor.contains(range.commonAncestorContainer)) return null;
+  return normalizeEditorRange(range);
 }
 
 function setCaretAfter(node: Node): void {
-  const selection = window.getSelection()
-  if (!selection) return
+  const selection = window.getSelection();
+  if (!selection) return;
 
-  const range = document.createRange()
-  range.setStartAfter(node)
-  range.collapse(true)
-  selection.removeAllRanges()
-  selection.addRange(range)
+  const range = document.createRange();
+  range.setStartAfter(node);
+  range.collapse(true);
+  selection.removeAllRanges();
+  selection.addRange(range);
 }
 
 // 度量光标偏移量时插入的临时标记字符（U+E000 私有区，正常文本不会出现）
-const CARET_MARKER = '\uE000'
+const CARET_MARKER = '\uE000';
 
 /**
  * 以「序列化文本偏移量」为锚点保存/恢复光标。
@@ -766,29 +774,26 @@ const CARET_MARKER = '\uE000'
  * 二者逐字节一致，不会因换行计数口径不同而错位；序列化后立即移除标记，不污染 DOM。
  */
 function getCaretSerializedOffset(): number | null {
-  const editor = editorRef.value
-  const selection = window.getSelection()
-  if (!editor || !selection || selection.rangeCount === 0) return null
+  const editor = editorRef.value;
+  const selection = window.getSelection();
+  if (!editor || !selection || selection.rangeCount === 0) return null;
 
-  const range = selection.getRangeAt(0)
-  if (!editor.contains(range.endContainer)) return null
+  const range = selection.getRangeAt(0);
+  if (!editor.contains(range.endContainer)) return null;
 
-  const marker = document.createTextNode(CARET_MARKER)
-  const probe = range.cloneRange()
-  probe.collapse(false) // 收拢到光标末端
-  let serialized: string
+  const marker = document.createTextNode(CARET_MARKER);
+  const probe = range.cloneRange();
+  probe.collapse(false); // 收拢到光标末端
+  let serialized: string;
   try {
-    probe.insertNode(marker)
-    serialized = Array.from(editor.childNodes)
-      .map(serializeEditorNode)
-      .join('')
-    .replace(/ /g, ' ')
-    const index = serialized.indexOf(CARET_MARKER)
-    return index >= 0 ? index : null
+    probe.insertNode(marker);
+    serialized = Array.from(editor.childNodes).map(serializeEditorNode).join('').replace(/ /g, ' ');
+    const index = serialized.indexOf(CARET_MARKER);
+    return index >= 0 ? index : null;
   } catch {
-    return null
+    return null;
   } finally {
-    marker.parentNode?.removeChild(marker)
+    marker.parentNode?.removeChild(marker);
   }
 }
 
@@ -798,116 +803,116 @@ function getCaretSerializedOffset(): number | null {
  * 故只需遍历直接子节点、逐段扣减偏移量即可。
  */
 function restoreCaretFromOffset(target: number): void {
-  const editor = editorRef.value
-  const selection = window.getSelection()
-  if (!editor || !selection) return
+  const editor = editorRef.value;
+  const selection = window.getSelection();
+  if (!editor || !selection) return;
 
-  let remaining = target
+  let remaining = target;
 
   for (const node of Array.from(editor.childNodes)) {
     if (node.nodeType === Node.TEXT_NODE) {
-      const len = node.textContent?.length || 0
+      const len = node.textContent?.length || 0;
       if (remaining <= len) {
-        const range = document.createRange()
-        range.setStart(node, Math.max(0, remaining))
-        range.collapse(true)
-        selection.removeAllRanges()
-        selection.addRange(range)
-        return
+        const range = document.createRange();
+        range.setStart(node, Math.max(0, remaining));
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        return;
       }
-      remaining -= len
-      continue
+      remaining -= len;
+      continue;
     }
 
-    const el = node as HTMLElement
+    const el = node as HTMLElement;
     if (el.dataset?.slotKey) {
-      const len = wrapVar(el.dataset.slotKey).length
+      const len = wrapVar(el.dataset.slotKey).length;
       if (remaining <= len) {
         // 光标落在 token 内部或边界 → 统一定位到 token 之后
-        setCaretAfter(el)
-        return
+        setCaretAfter(el);
+        return;
       }
-      remaining -= len
+      remaining -= len;
     }
   }
 
   // 偏移量超出内容长度 → 落到末尾
-  getEditorEndRange()
+  getEditorEndRange();
 }
 
 function getEditorEndRange(): Range | null {
-  const editor = editorRef.value
-  const selection = window.getSelection()
-  if (!editor || !selection) return null
+  const editor = editorRef.value;
+  const selection = window.getSelection();
+  if (!editor || !selection) return null;
 
-  editor.focus()
-  const range = document.createRange()
-  range.selectNodeContents(editor)
-  range.collapse(false)
-  selection.removeAllRanges()
-  selection.addRange(range)
-  return range
+  editor.focus();
+  const range = document.createRange();
+  range.selectNodeContents(editor);
+  range.collapse(false);
+  selection.removeAllRanges();
+  selection.addRange(range);
+  return range;
 }
 
 function insertTextAtEditor(text: string): void {
-  const range = getEditorRange() || getEditorEndRange()
-  if (!range) return
+  const range = getEditorRange() || getEditorEndRange();
+  if (!range) return;
 
-  range.deleteContents()
-  const textNode = document.createTextNode(text)
-  range.insertNode(textNode)
-  setCaretAfter(textNode)
-  form.content = serializeEditorContent()
-  ensurePreviewValues()
+  range.deleteContents();
+  const textNode = document.createTextNode(text);
+  range.insertNode(textNode);
+  setCaretAfter(textNode);
+  form.content = serializeEditorContent();
+  ensurePreviewValues();
 }
 
 function insertSlotToken(key: string): void {
-  const range = getEditorRange() || getEditorEndRange()
-  if (!range) return
+  const range = getEditorRange() || getEditorEndRange();
+  if (!range) return;
 
-  range.deleteContents()
-  const slotNode = createSlotNode(key)
-  const spaceNode = document.createTextNode(' ')
-  range.insertNode(spaceNode)
-  range.insertNode(slotNode)
-  setCaretAfter(spaceNode)
-  form.content = serializeEditorContent()
-  ensurePreviewValues()
+  range.deleteContents();
+  const slotNode = createSlotNode(key);
+  const spaceNode = document.createTextNode(' ');
+  range.insertNode(spaceNode);
+  range.insertNode(slotNode);
+  setCaretAfter(spaceNode);
+  form.content = serializeEditorContent();
+  ensurePreviewValues();
 }
 
 function insertSlot(type: SlotType): void {
-  const key = genKey(type)
-  const slot: PromptSlot = { key, slotType: type, label: '', required: false }
-  if (type === 'select') slot.options = []
+  const key = genKey(type);
+  const slot: PromptSlot = { key, slotType: type, label: '', required: false };
+  if (type === 'select') slot.options = [];
   if (type === 'chip') {
-    slot.options = []
-    slot.multiple = true // 标签默认多选，区别于下拉单选
+    slot.options = [];
+    slot.multiple = true; // 标签默认多选，区别于下拉单选
   }
-  if (type === 'image') slot.maxCount = 1
+  if (type === 'image') slot.maxCount = 1;
   if (type === 'number') {
-    slot.defaultValue = 1
-    slot.min = 1
-    slot.step = 1
+    slot.defaultValue = 1;
+    slot.min = 1;
+    slot.step = 1;
   }
-  if (type === 'separator') slot.label = $t('prompt.separatorDefaultLabel')
-  form.slots.push(slot)
-  nextTick(() => insertSlotToken(key))
+  if (type === 'separator') slot.label = $t('prompt.separatorDefaultLabel');
+  form.slots.push(slot);
+  nextTick(() => insertSlotToken(key));
 }
 
 function insertSlotRef(key: string): void {
-  insertSlotToken(key)
+  insertSlotToken(key);
 }
 
 // IME（中文等）输入法组合期间不重建 DOM，否则会打断拼音候选
-const isComposing = ref(false)
+const isComposing = ref(false);
 
 function handleCompositionStart(): void {
-  isComposing.value = true
+  isComposing.value = true;
 }
 
 function handleCompositionEnd(): void {
-  isComposing.value = false
-  handleContentInput()
+  isComposing.value = false;
+  handleContentInput();
 }
 
 /**
@@ -916,65 +921,65 @@ function handleCompositionEnd(): void {
  * 正常在文本节点里打字不会触发，避免每次输入都重建 DOM 抢焦点。
  */
 function isEditorDamaged(): boolean {
-  const editor = editorRef.value
-  if (!editor) return false
-  const tokens = editor.querySelectorAll<HTMLElement>('.prompt-token')
+  const editor = editorRef.value;
+  if (!editor) return false;
+  const tokens = editor.querySelectorAll<HTMLElement>('.prompt-token');
   for (const el of Array.from(tokens)) {
-    const key = el.dataset.slotKey
-    if (!key) return true
-    if (el.textContent !== expectedTokenText(key)) return true
+    const key = el.dataset.slotKey;
+    if (!key) return true;
+    if (el.textContent !== expectedTokenText(key)) return true;
   }
-  return false
+  return false;
 }
 
 function handleContentInput(): void {
-  const editor = editorRef.value
+  const editor = editorRef.value;
   // 先以当前 DOM 为准序列化出权威文本
-  form.content = serializeEditorContent()
-  ensurePreviewValues()
+  form.content = serializeEditorContent();
+  ensurePreviewValues();
 
   // 组合输入进行中：仅同步文本，等 compositionend 再处理
-  if (!editor || isComposing.value) return
+  if (!editor || isComposing.value) return;
 
   // 仅当 token 被破坏时才重建 DOM 并恢复光标；正常打字不重建，避免抢焦点/跳光标。
-  if (!isEditorDamaged()) return
+  if (!isEditorDamaged()) return;
 
-  const caret = getCaretSerializedOffset()
-  renderPromptEditor()
+  const caret = getCaretSerializedOffset();
+  renderPromptEditor();
   if (caret != null) {
-    restoreCaretFromOffset(caret)
+    restoreCaretFromOffset(caret);
   }
 }
 
 function handleContentBlur(): void {
-  form.content = serializeEditorContent()
-  ensurePreviewValues()
+  form.content = serializeEditorContent();
+  ensurePreviewValues();
 }
 
 function handlePaste(event: ClipboardEvent): void {
-  event.preventDefault()
-  const text = event.clipboardData?.getData('text/plain') || ''
-  if (text) insertTextAtEditor(text)
+  event.preventDefault();
+  const text = event.clipboardData?.getData('text/plain') || '';
+  if (text) insertTextAtEditor(text);
 }
 
 function syncSlots(): void {
-  detectedKeys.value.forEach(key => {
-    if (!form.slots.find(s => s.key === key)) {
-      form.slots.push({ key, slotType: 'text', label: '', required: false })
+  detectedKeys.value.forEach((key) => {
+    if (!form.slots.find((s) => s.key === key)) {
+      form.slots.push({ key, slotType: 'text', label: '', required: false });
     }
-  })
-  nextTick(renderPromptEditor)
+  });
+  nextTick(renderPromptEditor);
 }
 
 function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 // 记录 slot key 编辑前的原值，供 blur 时同步正文中的 {{oldKey}}
-let slotKeyBeforeEdit = ''
+let slotKeyBeforeEdit = '';
 
 function onSlotKeyFocus(slot: PromptSlot): void {
-  slotKeyBeforeEdit = slot.key
+  slotKeyBeforeEdit = slot.key;
 }
 
 /**
@@ -982,96 +987,96 @@ function onSlotKeyFocus(slot: PromptSlot): void {
  * 否则正文仍指向旧 key → token 变“未定义占位”，编辑区与预览区分叉。
  */
 function onSlotKeyRename(slot: PromptSlot): void {
-  const oldKey = slotKeyBeforeEdit
-  const newKey = slot.key.trim()
-  slotKeyBeforeEdit = ''
+  const oldKey = slotKeyBeforeEdit;
+  const newKey = slot.key.trim();
+  slotKeyBeforeEdit = '';
 
   // 未变化：仅重渲染
   if (newKey === oldKey) {
-    if (slot.key !== newKey) slot.key = newKey
-    nextTick(renderPromptEditor)
-    return
+    if (slot.key !== newKey) slot.key = newKey;
+    nextTick(renderPromptEditor);
+    return;
   }
 
   // 校验字符集：占位标识必须匹配 SLOT_PATTERN 的 [A-Za-z0-9_]，
   // 否则正文里的 {{newKey}} 无法被解析/渲染 → 编辑区与预览区分叉。空值同样非法。
   if (!SLOT_KEY_PATTERN.test(newKey)) {
-    slot.key = oldKey
-    message.warning($t('prompt.slotKeyInvalid'))
-    nextTick(renderPromptEditor)
-    return
+    slot.key = oldKey;
+    message.warning($t('prompt.slotKeyInvalid'));
+    nextTick(renderPromptEditor);
+    return;
   }
 
   // 与其它 slot 冲突：回滚，避免产生重复 key
-  if (form.slots.some(s => s !== slot && s.key === newKey)) {
-    slot.key = oldKey
-    message.warning($t('prompt.slotKeyDuplicated'))
-    nextTick(renderPromptEditor)
-    return
+  if (form.slots.some((s) => s !== slot && s.key === newKey)) {
+    slot.key = oldKey;
+    message.warning($t('prompt.slotKeyDuplicated'));
+    nextTick(renderPromptEditor);
+    return;
   }
 
-  slot.key = newKey
+  slot.key = newKey;
   if (oldKey) {
-    const pattern = new RegExp(`\\{\\{\\s*${escapeRegExp(oldKey)}\\s*\\}\\}`, 'g')
-    form.content = form.content.replace(pattern, `{{${newKey}}}`)
+    const pattern = new RegExp(`\\{\\{\\s*${escapeRegExp(oldKey)}\\s*\\}\\}`, 'g');
+    form.content = form.content.replace(pattern, `{{${newKey}}}`);
     // 迁移预览值
     if (oldKey in previewValues) {
-      previewValues[newKey] = previewValues[oldKey]
-      delete previewValues[oldKey]
+      previewValues[newKey] = previewValues[oldKey];
+      delete previewValues[oldKey];
     }
   }
-  nextTick(renderPromptEditor)
+  nextTick(renderPromptEditor);
 }
 
 function removeSlot(index: number): void {
-  const slot = form.slots[index]
-  if (!slot) return
+  const slot = form.slots[index];
+  if (!slot) return;
 
-  form.slots.splice(index, 1)
-  delete previewValues[slot.key]
-  const pattern = new RegExp(`\\{\\{\\s*${escapeRegExp(slot.key)}\\s*\\}\\}`, 'g')
-  form.content = form.content.replace(pattern, '')
-  nextTick(renderPromptEditor)
+  form.slots.splice(index, 1);
+  delete previewValues[slot.key];
+  const pattern = new RegExp(`\\{\\{\\s*${escapeRegExp(slot.key)}\\s*\\}\\}`, 'g');
+  form.content = form.content.replace(pattern, '');
+  nextTick(renderPromptEditor);
 }
 
 async function loadPrompt(id: string, isCopy = false): Promise<void> {
   try {
-    const res = await getPromptDetail(id)
-    form.name = isCopy ? `${res.name} (${$t('prompt.copySuffix')})` : res.name
-    form.code = isCopy ? '' : res.code || ''
-    form.category = res.category || 'general'
-    form.description = res.description || ''
-    form.icon = res.icon || ''
-    form.coverImage = res.coverImage || ''
-    form.content = res.content || ''
-    form.tags = res.tags || []
-    form.enabled = res.enabled ?? 1
-    form.sortOrder = res.sortOrder ?? 0
+    const res = await getPromptDetail(id);
+    form.name = isCopy ? `${res.name} (${$t('prompt.copySuffix')})` : res.name;
+    form.code = isCopy ? '' : res.code || '';
+    form.category = res.category || 'general';
+    form.description = res.description || '';
+    form.icon = res.icon || '';
+    form.coverImage = res.coverImage || '';
+    form.content = res.content || '';
+    form.tags = res.tags || [];
+    form.enabled = res.enabled ?? 1;
+    form.sortOrder = res.sortOrder ?? 0;
     if (res.slots && res.slots.length) {
       // 存量数据可能含重复 key，按 key 去重保留首个，避免编辑器出现重复占位
-      const seen = new Set<string>()
+      const seen = new Set<string>();
       form.slots = res.slots
-        .filter(s => s.key && !seen.has(s.key) && seen.add(s.key))
-        .map(s => ({ ...s }))
+        .filter((s) => s.key && !seen.has(s.key) && seen.add(s.key))
+        .map((s) => ({ ...s }));
     } else if (res.variables && res.variables.length) {
-      const seen = new Set<string>()
+      const seen = new Set<string>();
       form.slots = res.variables
-        .filter(v => v.name && !seen.has(v.name) && seen.add(v.name))
-        .map(v => ({
+        .filter((v) => v.name && !seen.has(v.name) && seen.add(v.name))
+        .map((v) => ({
           key: v.name,
           slotType: 'text' as const,
           label: v.label || '',
           placeholder: v.description,
           defaultValue: v.defaultValue,
           required: v.required,
-        }))
+        }));
     } else {
-      form.slots = []
+      form.slots = [];
     }
-    await nextTick()
-    renderPromptEditor()
+    await nextTick();
+    renderPromptEditor();
   } catch {
-    message.error($t('prompt.loadFailed'))
+    message.error($t('prompt.loadFailed'));
   }
 }
 
@@ -1088,50 +1093,50 @@ function buildPayload(): PromptFormData {
     tags: form.tags,
     enabled: form.enabled,
     sortOrder: form.sortOrder,
-  }
+  };
 }
 
 async function handleSave(): Promise<void> {
-  handleContentInput()
+  handleContentInput();
   if (!form.name.trim()) {
-    message.warning($t('prompt.nameRequired'))
-    return
+    message.warning($t('prompt.nameRequired'));
+    return;
   }
   if (!form.content.trim()) {
-    message.warning($t('prompt.contentRequired'))
-    return
+    message.warning($t('prompt.contentRequired'));
+    return;
   }
-  saving.value = true
+  saving.value = true;
   try {
-    const payload = buildPayload()
+    const payload = buildPayload();
     if (isEdit && promptId) {
-      await updatePrompt(promptId, payload)
+      await updatePrompt(promptId, payload);
     } else {
-      await createPrompt(payload)
+      await createPrompt(payload);
     }
-    message.success($t('common.saveSuccess'))
-    router.push('/prompt/list')
+    message.success($t('common.saveSuccess'));
+    router.push('/prompt/list');
   } catch {
-    message.error($t('common.saveFailed'))
+    message.error($t('common.saveFailed'));
   } finally {
-    saving.value = false
+    saving.value = false;
   }
 }
 
 function handleBack(): void {
-  router.push('/prompt/list')
+  router.push('/prompt/list');
 }
 
 onMounted(async () => {
   if (promptId) {
-    await loadPrompt(promptId)
+    await loadPrompt(promptId);
   } else if (copyFromId) {
-    await loadPrompt(copyFromId, true)
+    await loadPrompt(copyFromId, true);
   } else {
-    await nextTick()
-    renderPromptEditor()
+    await nextTick();
+    renderPromptEditor();
   }
-})
+});
 </script>
 
 <style scoped>
@@ -1335,7 +1340,9 @@ onMounted(async () => {
   line-height: 2.2;
   white-space: pre-wrap;
   word-break: break-word;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .prompt-content-editor:focus {

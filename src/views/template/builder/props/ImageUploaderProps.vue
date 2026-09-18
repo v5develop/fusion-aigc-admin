@@ -104,11 +104,7 @@
 
     <a-form-item :label="$t('template.exampleImages')">
       <div v-if="exampleImages.length > 0" class="image-uploader-props__list">
-        <div
-          v-for="(url, index) in exampleImages"
-          :key="index"
-          class="image-uploader-props__row"
-        >
+        <div v-for="(url, index) in exampleImages" :key="index" class="image-uploader-props__row">
           <a-input
             :value="url"
             placeholder="image URL"
@@ -134,56 +130,57 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import type { ImageUploaderWidgetConfig } from '@/types/template-builder';
 
-import Icon from '@/components/Icon/index.vue'
-import { $t } from '@/locales'
-import type { ImageUploaderWidgetConfig } from '@/types/template-builder'
+import { computed } from 'vue';
+
+import Icon from '@/components/Icon/index.vue';
+import { $t } from '@/locales';
 
 const props = defineProps<{
-  widget: ImageUploaderWidgetConfig
-}>()
+  widget: ImageUploaderWidgetConfig;
+}>();
 
 const emit = defineEmits<{
-  (e: 'update', patch: Record<string, unknown>): void
-}>()
+  (e: 'update', patch: Record<string, unknown>): void;
+}>();
 
-type PreviewSize = NonNullable<ImageUploaderWidgetConfig['previewSize']>
+type PreviewSize = NonNullable<ImageUploaderWidgetConfig['previewSize']>;
 
 const previewSizeOptions: { label: string; value: PreviewSize }[] = [
   { label: 'Small', value: 'small' },
   { label: 'Medium', value: 'medium' },
   { label: 'Large', value: 'large' },
-]
+];
 
-const exampleImages = computed<string[]>(() => props.widget.exampleImages ?? [])
+const exampleImages = computed<string[]>(() => props.widget.exampleImages ?? []);
 
 function toNumber(value: unknown, fallback: number): number {
-  return typeof value === 'number' && !Number.isNaN(value) ? value : fallback
+  return typeof value === 'number' && !Number.isNaN(value) ? value : fallback;
 }
 
 function onUpdate<K extends keyof ImageUploaderWidgetConfig>(
   field: K,
   value: ImageUploaderWidgetConfig[K],
 ): void {
-  emit('update', { [field]: value })
+  emit('update', { [field]: value });
 }
 
 function commitExamples(next: string[]): void {
-  emit('update', { exampleImages: next })
+  emit('update', { exampleImages: next });
 }
 
 function onExampleUpdate(index: number, value: string): void {
-  const next = exampleImages.value.map((url, i) => (i === index ? value : url))
-  commitExamples(next)
+  const next = exampleImages.value.map((url, i) => (i === index ? value : url));
+  commitExamples(next);
 }
 
 function onRemoveExample(index: number): void {
-  commitExamples(exampleImages.value.filter((_, i) => i !== index))
+  commitExamples(exampleImages.value.filter((_, i) => i !== index));
 }
 
 function onAddExample(): void {
-  commitExamples([...exampleImages.value, ''])
+  commitExamples([...exampleImages.value, '']);
 }
 </script>
 

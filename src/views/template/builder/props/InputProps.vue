@@ -74,18 +74,19 @@
 </template>
 
 <script setup lang="ts">
-import { $t } from '@/locales'
-import type { InputWidgetConfig } from '@/types/template-builder'
+import type { InputWidgetConfig } from '@/types/template-builder';
+
+import { $t } from '@/locales';
 
 const props = defineProps<{
-  widget: InputWidgetConfig
-}>()
+  widget: InputWidgetConfig;
+}>();
 
 const emit = defineEmits<{
-  (e: 'update', patch: Record<string, unknown>): void
-}>()
+  (e: 'update', patch: Record<string, unknown>): void;
+}>();
 
-type InputType = NonNullable<InputWidgetConfig['inputType']>
+type InputType = NonNullable<InputWidgetConfig['inputType']>;
 
 /** 输入框类型下拉项。 */
 const inputTypeOptions: { label: string; value: InputType }[] = [
@@ -93,32 +94,26 @@ const inputTypeOptions: { label: string; value: InputType }[] = [
   { label: $t('template.inputTypePassword'), value: 'password' },
   { label: $t('template.inputTypeEmail'), value: 'email' },
   { label: $t('template.inputTypeUrl'), value: 'url' },
-]
+];
 
 /** inputType：清空回传 undefined。 */
 function onUpdateInputType(value: InputType | undefined): void {
-  emit('update', { inputType: value ?? undefined })
+  emit('update', { inputType: value ?? undefined });
 }
 
 /** 数值字段（maxLength/minLength）：清空回传 undefined。 */
-function onUpdateNumber(
-  field: 'maxLength' | 'minLength',
-  value: number | null,
-): void {
-  emit('update', { [field]: value === null ? undefined : value })
+function onUpdateNumber(field: 'maxLength' | 'minLength', value: number | null): void {
+  emit('update', { [field]: value === null ? undefined : value });
 }
 
 /** 文本字段（prefixIcon/suffix）：空串回传 undefined。 */
-function onUpdateText(
-  field: 'prefixIcon' | 'suffix',
-  value: string,
-): void {
-  emit('update', { [field]: value.length === 0 ? undefined : value })
+function onUpdateText(field: 'prefixIcon' | 'suffix', value: string): void {
+  emit('update', { [field]: value.length === 0 ? undefined : value });
 }
 
 /** autoSize：布尔字段。 */
 function onUpdateAutoSize(checked: boolean): void {
-  emit('update', { autoSize: checked })
+  emit('update', { autoSize: checked });
 }
 </script>
 

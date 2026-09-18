@@ -41,11 +41,7 @@
     </a-form-item>
 
     <a-form-item :label="$t('template.numberUnit')">
-      <a-input
-        :value="widget.unit"
-        allow-clear
-        @update:value="onUpdateText('unit', $event)"
-      />
+      <a-input :value="widget.unit" allow-clear @update:value="onUpdateText('unit', $event)" />
     </a-form-item>
 
     <a-form-item :label="$t('template.numberShowButtons')">
@@ -59,33 +55,31 @@
 </template>
 
 <script setup lang="ts">
-import { $t } from '@/locales'
-import type { NumberWidgetConfig } from '@/types/template-builder'
+import type { NumberWidgetConfig } from '@/types/template-builder';
+
+import { $t } from '@/locales';
 
 const props = defineProps<{
-  widget: NumberWidgetConfig
-}>()
+  widget: NumberWidgetConfig;
+}>();
 
 const emit = defineEmits<{
-  (e: 'update', patch: Record<string, unknown>): void
-}>()
+  (e: 'update', patch: Record<string, unknown>): void;
+}>();
 
 function onUpdate<K extends keyof NumberWidgetConfig>(
   field: K,
   value: NumberWidgetConfig[K],
 ): void {
-  emit('update', { [field]: value })
+  emit('update', { [field]: value });
 }
 
-function onUpdateNumber(
-  field: 'min' | 'max' | 'step' | 'precision',
-  value: number | null,
-): void {
-  emit('update', { [field]: value === null ? undefined : value })
+function onUpdateNumber(field: 'min' | 'max' | 'step' | 'precision', value: number | null): void {
+  emit('update', { [field]: value === null ? undefined : value });
 }
 
 function onUpdateText(field: 'unit', value: string): void {
-  emit('update', { [field]: value.length === 0 ? undefined : value })
+  emit('update', { [field]: value.length === 0 ? undefined : value });
 }
 </script>
 

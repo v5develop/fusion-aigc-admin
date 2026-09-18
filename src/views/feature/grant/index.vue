@@ -1,12 +1,6 @@
 <template>
   <div class="page-container">
-    <ProTable
-      ref="tableRef"
-      :columns="columns"
-      :request="loadData"
-      :search="{}"
-      row-key="id"
-    >
+    <ProTable ref="tableRef" :columns="columns" :request="loadData" :search="{}" row-key="id">
       <template #toolBar>
         <a-button type="primary" @click="showManualAddModal">
           {{ $t('featureGrant.manualAdd') }}
@@ -68,7 +62,10 @@
     >
       <a-form :model="manualAddForm" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
         <a-form-item :label="$t('featureGrant.unionUserId')" required>
-          <a-input v-model:value="manualAddForm.unionUserId" :placeholder="$t('featureGrant.unionUserIdPlaceholder')" />
+          <a-input
+            v-model:value="manualAddForm.unionUserId"
+            :placeholder="$t('featureGrant.unionUserIdPlaceholder')"
+          />
         </a-form-item>
         <a-form-item :label="$t('featureGrant.featureCode')" required>
           <a-select
@@ -86,41 +83,49 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { message, Modal } from 'antdv-next'
-import { useI18n } from 'vue-i18n'
-import dayjs from 'dayjs'
-import ProTable from '@/components/Pro/ProTable/index.vue'
-import { getFeatureGrantList, revokeFeature, manualAddFeature, manualRemoveFeature, getFeatureOptions } from '@/api/feature'
-import { getLocale } from '@/locales'
-import type { Feature } from '@/types/api'
+import type { Feature } from '@/types/api';
 
-const { t } = useI18n()
+import { message, Modal } from 'antdv-next';
+import dayjs from 'dayjs';
+import { ref, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+import {
+  getFeatureGrantList,
+  revokeFeature,
+  manualAddFeature,
+  manualRemoveFeature,
+  getFeatureOptions,
+} from '@/api/feature';
+import ProTable from '@/components/Pro/ProTable/index.vue';
+import { getLocale } from '@/locales';
+
+const { t } = useI18n();
 /**
  * 表格句柄。增删改之后必须重查——本页此前一个 ref 都没有，改完数据列表还是旧的，
  * 看着像没生效，运营会重复点第二次。
  * 用 refresh() 而不是 reload()：refresh 保持当前页码，在第 N 页处理完不会被甩回第一页。
  */
-const tableRef = ref()
+const tableRef = ref();
 
-const currentLocale = computed(() => getLocale())
+const currentLocale = computed(() => getLocale());
 
 const featureGrantSourceMap: Record<string, string> = {
   union: t('featureGrant.sourceMap.union'),
   manual: t('featureGrant.sourceMap.manual'),
-}
+};
 
 const featureGrantStatusMap: Record<number, string> = {
   1: t('featureGrant.statusMap.active'),
   2: t('featureGrant.statusMap.expired'),
   3: t('featureGrant.statusMap.revoked'),
-}
+};
 
 const statusColorMap: Record<number, string> = {
   1: 'green',
   2: 'default',
   3: 'red',
-}
+};
 
 const columns = [
   {
@@ -183,7 +188,7 @@ const columns = [
     align: 'center' as const,
     fixed: 'right' as const,
   },
-]
+];
 
 async function loadData(params: Record<string, unknown>) {
   const res = await getFeatureGrantList({
@@ -192,12 +197,12 @@ async function loadData(params: Record<string, unknown>) {
     source: params.source as string | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
-  })
+  });
   return {
     data: res.list || [],
     total: res.total || 0,
     success: true,
-  }
+  };
 }
 
 function handleRevoke(record: { id: number }) {
@@ -205,11 +210,11 @@ function handleRevoke(record: { id: number }) {
     title: t('common.warning'),
     content: t('featureGrant.confirmRevoke'),
     onOk: async () => {
-      await revokeFeature(record.id)
-      message.success(t('featureGrant.revokeSuccess'))
-      tableRef.value?.refresh()
+      await revokeFeature(record.id);
+      message.success(t('featureGrant.revokeSuccess'));
+      tableRef.value?.refresh();
     },
-  })
+  });
 }
 
 function handleManualRemove(record: { id: number }) {
@@ -217,58 +222,58 @@ function handleManualRemove(record: { id: number }) {
     title: t('common.warning'),
     content: t('featureGrant.confirmManualRemove'),
     onOk: async () => {
-      await manualRemoveFeature(record.id)
-      message.success(t('featureGrant.manualRemoveSuccess'))
-      tableRef.value?.refresh()
+      await manualRemoveFeature(record.id);
+      message.success(t('featureGrant.manualRemoveSuccess'));
+      tableRef.value?.refresh();
     },
-  })
+  });
 }
 
 // 手动添加相关
-const manualAddVisible = ref(false)
+const manualAddVisible = ref(false);
 const manualAddForm = ref({
   unionUserId: '',
   featureCode: undefined as string | undefined,
   expireTime: undefined as dayjs.Dayjs | undefined,
-})
-const featureOptions = ref<Feature[]>([])
+});
+const featureOptions = ref<Feature[]>([]);
 const featureSelectOptions = computed(() =>
   featureOptions.value.map((f) => ({
     label: f.featureName?.[currentLocale.value] || f.featureName?.['zh-CN'] || f.featureCode,
     value: f.featureCode,
-  }))
-)
+  })),
+);
 
 function showManualAddModal() {
   manualAddForm.value = {
     unionUserId: '',
     featureCode: undefined,
     expireTime: undefined,
-  }
-  manualAddVisible.value = true
+  };
+  manualAddVisible.value = true;
 }
 
 async function handleManualAddOk() {
   if (!manualAddForm.value.unionUserId) {
-    message.error(t('featureGrant.unionUserIdRequired'))
-    return
+    message.error(t('featureGrant.unionUserIdRequired'));
+    return;
   }
   if (!manualAddForm.value.featureCode) {
-    message.error(t('featureGrant.featureCodeRequired'))
-    return
+    message.error(t('featureGrant.featureCodeRequired'));
+    return;
   }
   await manualAddFeature({
     unionUserId: manualAddForm.value.unionUserId,
     featureCode: manualAddForm.value.featureCode,
     expireTime: manualAddForm.value.expireTime?.format('YYYY-MM-DD HH:mm:ss'),
-  })
-  message.success(t('featureGrant.manualAddSuccess'))
-  tableRef.value?.refresh()
-  manualAddVisible.value = false
+  });
+  message.success(t('featureGrant.manualAddSuccess'));
+  tableRef.value?.refresh();
+  manualAddVisible.value = false;
 }
 
 onMounted(async () => {
-  const res = await getFeatureOptions()
-  featureOptions.value = res || []
-})
+  const res = await getFeatureOptions();
+  featureOptions.value = res || [];
+});
 </script>

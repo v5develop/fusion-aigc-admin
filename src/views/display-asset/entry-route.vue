@@ -7,12 +7,7 @@
       </a-button>
     </div>
 
-    <a-alert
-      type="info"
-      show-icon
-      style="margin-bottom: 16px"
-      :message="$t('entryRoute.hint')"
-    />
+    <a-alert type="info" show-icon style="margin-bottom: 16px" :message="$t('entryRoute.hint')" />
 
     <a-alert
       v-if="missingRoutes.length"
@@ -148,10 +143,11 @@
 </template>
 
 <script setup lang="ts">
-import { message } from 'antdv-next'
-import { ref, reactive, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { message } from 'antdv-next';
+import { ref, reactive, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+import { getDisplayEntryCodes } from '@/api/display-asset';
 import {
   getEntryRoutes,
   createEntryRoute,
@@ -159,40 +155,39 @@ import {
   deleteEntryRoute,
   type CreationEntryRoute,
   type RoutePlatform,
-} from '@/api/entry-route'
-import { getDisplayEntryCodes } from '@/api/display-asset'
+} from '@/api/entry-route';
 
-const { t } = useI18n()
+const { t } = useI18n();
 
-const rows = ref<CreationEntryRoute[]>([])
-const loading = ref(false)
-const platformFilter = ref<'' | RoutePlatform>('')
-const entryFilter = ref<string | undefined>(undefined)
+const rows = ref<CreationEntryRoute[]>([]);
+const loading = ref(false);
+const platformFilter = ref<'' | RoutePlatform>('');
+const entryFilter = ref<string | undefined>(undefined);
 
 const platformFilterOptions = computed(() => [
   { label: t('entryRoute.platformAll'), value: '' },
   { label: 'APP', value: 'APP' },
   { label: 'PC', value: 'PC' },
-])
+]);
 
 // ---- 创作入口下拉 ----
-const entryOptions = ref<{ label: string; value: string }[]>([])
-const entryNameMap = reactive<Record<string, string>>({})
+const entryOptions = ref<{ label: string; value: string }[]>([]);
+const entryNameMap = reactive<Record<string, string>>({});
 async function loadEntryCodes() {
   try {
-    const res = (await getDisplayEntryCodes()) || []
+    const res = (await getDisplayEntryCodes()) || [];
     entryOptions.value = res.map((e) => {
-      entryNameMap[e.entryCode] = e.entryName
-      return { label: `${e.entryName} (${e.entryCode})`, value: e.entryCode }
-    })
+      entryNameMap[e.entryCode] = e.entryName;
+      return { label: `${e.entryName} (${e.entryCode})`, value: e.entryCode };
+    });
   } catch {
     /* 拦截器已提示 */
   }
 }
-loadEntryCodes()
+loadEntryCodes();
 
 function entryName(code: string) {
-  return entryNameMap[code] || code
+  return entryNameMap[code] || code;
 }
 
 /**
@@ -200,12 +195,12 @@ function entryName(code: string) {
  * 漏配不会让做同款不可用（前端回退通用创作页），正因如此没人会主动发现，得在这里点出来。
  */
 const missingRoutes = computed(() => {
-  if (!entryOptions.value.length) return []
-  const configured = new Set(rows.value.map((r) => r.entryCode))
+  if (!entryOptions.value.length) return [];
+  const configured = new Set(rows.value.map((r) => r.entryCode));
   return entryOptions.value
     .filter((o) => !configured.has(o.value))
-    .map((o) => entryNameMap[o.value] || o.value)
-})
+    .map((o) => entryNameMap[o.value] || o.value);
+});
 
 const columns = computed(() => [
   { title: t('entryRoute.entryCode'), dataIndex: 'entryCode', width: 220 },
@@ -220,28 +215,28 @@ const columns = computed(() => [
     width: 140,
     align: 'center' as const,
   },
-])
+]);
 
 async function loadList() {
-  loading.value = true
+  loading.value = true;
   try {
     rows.value =
       (await getEntryRoutes({
         entryCode: entryFilter.value,
         platform: platformFilter.value || undefined,
-      })) || []
+      })) || [];
   } catch {
     /* 拦截器已提示 */
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
-loadList()
+loadList();
 
 // ---- 新增 / 编辑 ----
-const modalVisible = ref(false)
-const saving = ref(false)
-const editId = ref<number | null>(null)
+const modalVisible = ref(false);
+const saving = ref(false);
+const editId = ref<number | null>(null);
 
 const form = reactive({
   entryCode: undefined as string | undefined,
@@ -249,46 +244,46 @@ const form = reactive({
   route: '',
   remark: '',
   status: 1,
-})
+});
 const enabled = computed({
   get: () => form.status === 1,
   set: (v: boolean) => (form.status = v ? 1 : 0),
-})
+});
 
 function openCreate() {
-  editId.value = null
+  editId.value = null;
   Object.assign(form, {
     entryCode: undefined,
     platform: 'APP' as RoutePlatform,
     route: '',
     remark: '',
     status: 1,
-  })
-  modalVisible.value = true
+  });
+  modalVisible.value = true;
 }
 
 function openEdit(record: CreationEntryRoute) {
-  editId.value = record.id
+  editId.value = record.id;
   Object.assign(form, {
     entryCode: record.entryCode,
     platform: record.platform,
     route: record.route,
     remark: record.remark || '',
     status: record.status,
-  })
-  modalVisible.value = true
+  });
+  modalVisible.value = true;
 }
 
 async function handleSubmit() {
   if (!form.entryCode) {
-    message.warning(t('entryRoute.entryRequired'))
-    return
+    message.warning(t('entryRoute.entryRequired'));
+    return;
   }
   if (!form.route?.trim()) {
-    message.warning(t('entryRoute.routeRequired'))
-    return
+    message.warning(t('entryRoute.routeRequired'));
+    return;
   }
-  saving.value = true
+  saving.value = true;
   try {
     const payload = {
       entryCode: form.entryCode,
@@ -296,24 +291,24 @@ async function handleSubmit() {
       route: form.route.trim(),
       remark: form.remark,
       status: form.status,
-    }
-    if (editId.value) await updateEntryRoute(editId.value, payload)
-    else await createEntryRoute(payload)
-    message.success(t('common.saveSuccess'))
-    modalVisible.value = false
-    loadList()
+    };
+    if (editId.value) await updateEntryRoute(editId.value, payload);
+    else await createEntryRoute(payload);
+    message.success(t('common.saveSuccess'));
+    modalVisible.value = false;
+    loadList();
   } catch {
     /* 同入口同端重复配置由后端拒绝，原因由拦截器提示 */
   } finally {
-    saving.value = false
+    saving.value = false;
   }
 }
 
 async function handleDelete(record: CreationEntryRoute) {
   try {
-    await deleteEntryRoute(record.id)
-    message.success(t('common.deleteSuccess'))
-    loadList()
+    await deleteEntryRoute(record.id);
+    message.success(t('common.deleteSuccess'));
+    loadList();
   } catch {
     /* 拦截器已提示 */
   }

@@ -93,32 +93,34 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, nextTick } from 'vue'
-import { PlusOutlined } from '@antdv-next/icons'
-import { message, Modal } from 'antdv-next'
-import { useI18n } from 'vue-i18n'
-import ProTable from '@/components/Pro/ProTable/index.vue'
-import I18nInput from '@/components/I18nInput/index.vue'
-import { getFeatureList, createFeature, updateFeature, deleteFeature } from '@/api/feature'
-import type { Feature } from '@/types/api'
-import { getLocale } from '@/locales'
+import type { Feature } from '@/types/api';
 
-const { t } = useI18n()
-const currentLocale = computed(() => getLocale())
+import { PlusOutlined } from '@antdv-next/icons';
+import { message, Modal } from 'antdv-next';
+import { ref, reactive, computed, nextTick } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+import { getFeatureList, createFeature, updateFeature, deleteFeature } from '@/api/feature';
+import I18nInput from '@/components/I18nInput/index.vue';
+import ProTable from '@/components/Pro/ProTable/index.vue';
+import { getLocale } from '@/locales';
+
+const { t } = useI18n();
+const currentLocale = computed(() => getLocale());
 
 const actionTypeOptions = [
   { label: t('pricing.actionTypeImage'), value: 'IMAGE_GEN' },
   { label: t('pricing.actionTypeVideo'), value: 'VIDEO_GEN' },
   { label: t('pricing.actionTypeText'), value: 'TEXT_CHAT' },
   { label: t('pricing.actionTypeTool'), value: 'AI_TOOL' },
-]
+];
 
 const actionTypeMap: Record<string, string> = {
   IMAGE_GEN: t('pricing.actionTypeImage'),
   VIDEO_GEN: t('pricing.actionTypeVideo'),
   TEXT_CHAT: t('pricing.actionTypeText'),
   AI_TOOL: t('pricing.actionTypeTool'),
-}
+};
 
 const columns = [
   {
@@ -179,22 +181,32 @@ const columns = [
     align: 'center' as const,
     fixed: 'right' as const,
   },
-]
+];
 
-const modalVisible = ref(false)
-const submitLoading = ref(false)
-const isEdit = ref(false)
-const editId = ref<number | null>(null)
-const tableRef = ref()
+const modalVisible = ref(false);
+const submitLoading = ref(false);
+const isEdit = ref(false);
+const editId = ref<number | null>(null);
+const tableRef = ref();
 
-const featureName = ref<Record<string, string>>({ 'zh-CN': '', 'en-US': '', 'ja-JP': '', 'ko-KR': '' })
-const description = ref<Record<string, string>>({ 'zh-CN': '', 'en-US': '', 'ja-JP': '', 'ko-KR': '' })
+const featureName = ref<Record<string, string>>({
+  'zh-CN': '',
+  'en-US': '',
+  'ja-JP': '',
+  'ko-KR': '',
+});
+const description = ref<Record<string, string>>({
+  'zh-CN': '',
+  'en-US': '',
+  'ja-JP': '',
+  'ko-KR': '',
+});
 
 const formData = reactive({
   featureCode: '',
   actionType: 'IMAGE_GEN',
   statusChecked: 1,
-})
+});
 
 async function loadData(params: Record<string, unknown>) {
   const res = await getFeatureList({
@@ -204,49 +216,49 @@ async function loadData(params: Record<string, unknown>) {
     status: params.status as number | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
-  })
+  });
   return {
     data: res.list || [],
     total: res.total || 0,
     success: true,
-  }
+  };
 }
 
 function handleCreate() {
-  isEdit.value = false
-  editId.value = null
-  formData.featureCode = ''
-  featureName.value = { 'zh-CN': '', 'en-US': '', 'ja-JP': '', 'ko-KR': '' }
-  description.value = { 'zh-CN': '', 'en-US': '', 'ja-JP': '', 'ko-KR': '' }
-  formData.actionType = 'IMAGE_GEN'
-  formData.statusChecked = 1
-  modalVisible.value = true
+  isEdit.value = false;
+  editId.value = null;
+  formData.featureCode = '';
+  featureName.value = { 'zh-CN': '', 'en-US': '', 'ja-JP': '', 'ko-KR': '' };
+  description.value = { 'zh-CN': '', 'en-US': '', 'ja-JP': '', 'ko-KR': '' };
+  formData.actionType = 'IMAGE_GEN';
+  formData.statusChecked = 1;
+  modalVisible.value = true;
 }
 
 function handleEdit(record: Feature) {
-  isEdit.value = true
-  editId.value = record.id
-  formData.featureCode = record.featureCode
-  featureName.value = { ...(record.featureName || {}) }
-  description.value = { ...(record.description || {}) }
-  formData.actionType = record.actionType || 'IMAGE_GEN'
-  formData.statusChecked = record.status
-  modalVisible.value = true
+  isEdit.value = true;
+  editId.value = record.id;
+  formData.featureCode = record.featureCode;
+  featureName.value = { ...(record.featureName || {}) };
+  description.value = { ...(record.description || {}) };
+  formData.actionType = record.actionType || 'IMAGE_GEN';
+  formData.statusChecked = record.status;
+  modalVisible.value = true;
 }
 
 async function handleSubmit() {
-  await nextTick() // 确保 I18nInput 的值已同步
+  await nextTick(); // 确保 I18nInput 的值已同步
 
   if (!formData.featureCode) {
-    message.error(t('feature.featureCodeRequired'))
-    return
+    message.error(t('feature.featureCodeRequired'));
+    return;
   }
-  if (!featureName.value || !Object.values(featureName.value).some(v => v)) {
-    message.error(t('feature.featureNameRequired'))
-    return
+  if (!featureName.value || !Object.values(featureName.value).some((v) => v)) {
+    message.error(t('feature.featureNameRequired'));
+    return;
   }
 
-  submitLoading.value = true
+  submitLoading.value = true;
   try {
     const data = {
       featureCode: formData.featureCode,
@@ -254,21 +266,21 @@ async function handleSubmit() {
       description: description.value,
       actionType: formData.actionType,
       status: formData.statusChecked,
-    }
+    };
 
     if (isEdit.value && editId.value) {
-      await updateFeature(editId.value, data)
-      message.success(t('feature.updateSuccess'))
+      await updateFeature(editId.value, data);
+      message.success(t('feature.updateSuccess'));
     } else {
-      await createFeature(data)
-      message.success(t('feature.createSuccess'))
+      await createFeature(data);
+      message.success(t('feature.createSuccess'));
     }
-    modalVisible.value = false
-    tableRef.value?.reload()
+    modalVisible.value = false;
+    tableRef.value?.reload();
   } catch (error) {
-    console.error('Failed to save feature:', error)
+    console.error('Failed to save feature:', error);
   } finally {
-    submitLoading.value = false
+    submitLoading.value = false;
   }
 }
 
@@ -277,10 +289,10 @@ function handleDelete(record: Feature) {
     title: t('common.warning'),
     content: t('feature.confirmDeleteFeature'),
     onOk: async () => {
-      await deleteFeature(record.id)
-      message.success(t('feature.deleteSuccess'))
-      tableRef.value?.reload()
+      await deleteFeature(record.id);
+      message.success(t('feature.deleteSuccess'));
+      tableRef.value?.reload();
     },
-  })
+  });
 }
 </script>

@@ -477,7 +477,8 @@ export default {
     loadFailed: '加载用户信息失败',
     grantCapability: '授权创作能力',
     resetCredential: '重置用户名/密码',
-    resetCredentialWarn: '重置后该用户在所有设备上的登录立即失效（需用新凭据重新登录）。用户名/密码留空表示不修改。',
+    resetCredentialWarn:
+      '重置后该用户在所有设备上的登录立即失效（需用新凭据重新登录）。用户名/密码留空表示不修改。',
     resetCredentialEmpty: '新用户名和新密码至少填写一项',
     resetCredentialSuccess: '重置成功，该用户已在所有设备上被强制下线',
     newUsername: '新用户名',
@@ -1817,7 +1818,8 @@ export default {
       import: '导入',
       exportSuccess: '导出成功',
       importTip: '请粘贴 JSON 格式的路由配置数据',
-      importPlaceholder: '例如：\n[\n  {\n    "path": "/api/users",\n    "upstream": "http://localhost:8081",\n    "method": "GET",\n    "stripPrefix": true,\n    "priority": 0\n  }\n]',
+      importPlaceholder:
+        '例如：\n[\n  {\n    "path": "/api/users",\n    "upstream": "http://localhost:8081",\n    "method": "GET",\n    "stripPrefix": true,\n    "priority": 0\n  }\n]',
       importRequired: '请输入导入数据',
       importFormatError: '格式错误，请输入有效的 JSON 数组',
       importSuccess: '导入完成：成功 {imported} 条，失败 {failed} 条',
@@ -1933,7 +1935,8 @@ export default {
       import: '导入',
       exportSuccess: '导出成功',
       importTip: '请粘贴 JSON 格式的 Sentinel 规则配置数据（包含 flowRules 和 circuitRules）',
-      importPlaceholder: '例如：\n{\n  "flowRules": [\n    {\n      "resource": "/api/users",\n      "threshold": 100,\n      "strategy": 0,\n      "controlBehavior": 0\n    }\n  ],\n  "circuitRules": []\n}',
+      importPlaceholder:
+        '例如：\n{\n  "flowRules": [\n    {\n      "resource": "/api/users",\n      "threshold": 100,\n      "strategy": 0,\n      "controlBehavior": 0\n    }\n  ],\n  "circuitRules": []\n}',
       importRequired: '请输入导入数据',
       importFormatError: '格式错误，请输入有效的 JSON 对象，包含 flowRules 和 circuitRules 数组',
       importSuccess: '导入完成：成功 {imported} 条，失败 {failed} 条',
@@ -2337,7 +2340,8 @@ export default {
       import: '导入',
       exportSuccess: '导出成功',
       importTip: '请粘贴 JSON 格式的协议路由配置数据',
-      importPlaceholder: '例如：\n[\n  {\n    "name": "用户服务",\n    "path": "/api/users",\n    "upstream": "http://localhost:8081",\n    "protocol": "http",\n    "enabled": true\n  }\n]',
+      importPlaceholder:
+        '例如：\n[\n  {\n    "name": "用户服务",\n    "path": "/api/users",\n    "upstream": "http://localhost:8081",\n    "protocol": "http",\n    "enabled": true\n  }\n]',
       importRequired: '请输入导入数据',
       importFormatError: '格式错误，请输入有效的 JSON 数组',
       importSuccess: '导入完成：成功 {imported} 条，失败 {failed} 条',
@@ -2528,7 +2532,8 @@ export default {
     supportReasoning: '支持深度思考',
     supportReasoningHint: '开启后该模型启用 reasoning/思考模式',
     enableSearch: '联网搜索',
-    enableSearchHint: '控制模型是否联网检索。开启后响应更慢，默认关闭以加快提示词优化等场景。目前仅百炼(DashScope)模型已接入该开关，其它供应商暂不受此项控制。',
+    enableSearchHint:
+      '控制模型是否联网检索。开启后响应更慢，默认关闭以加快提示词优化等场景。目前仅百炼(DashScope)模型已接入该开关，其它供应商暂不受此项控制。',
     modelName: '模型名称',
     modelType: '模型类型',
     provider: '提供商',
@@ -2601,7 +2606,8 @@ export default {
     actionTypeRequired: '请选择操作类型',
     pricePointsRequired: '请输入消耗点数（可填 0，不能为负）',
     pricePointsPlaceholder: '请输入消耗点数，0 表示免费',
-    pricePointsZeroHint: '仅豆包加工厂系列（走用户自己绑定的账号）可填 0；其它模型填 0 会被后端拒绝。留空不算 0，同样校验失败。',
+    pricePointsZeroHint:
+      '仅豆包加工厂系列（走用户自己绑定的账号）可填 0；其它模型填 0 会被后端拒绝。留空不算 0，同样校验失败。',
     modelRequired: '请选择模型',
     updateSuccess: '定价更新成功',
     createSuccess: '定价创建成功',
@@ -2787,12 +2793,14 @@ export default {
     costType: '计费方式',
     actionType: '操作类型',
     actionTypePlaceholder: '空=按 base_points 固定单价',
-    actionTypeHint: '分段计费该步选哪条模型定价:按 (模型, 操作类型) 命中 model_pricing 计价。按张/按秒/按次由命中定价行的计价单位决定,不由此项决定。留空则用「基础点数」作固定单价。',
+    actionTypeHint:
+      '分段计费该步选哪条模型定价:按 (模型, 操作类型) 命中 model_pricing 计价。按张/按秒/按次由命中定价行的计价单位决定,不由此项决定。留空则用「基础点数」作固定单价。',
     basePoints: '基础点数',
     basePointsPlaceholder: '固定单价/兜底',
     modelId: '模型ID',
     priceMultiplier: '计价乘数',
-    priceMultiplierHint: '最终点数 = 单价 × 张数 × 本值；默认 1 无影响，0.9 九折 / 0.5 半价 / 1.5 加价。仅计价、不驱动执行、不影响成本。',
+    priceMultiplierHint:
+      '最终点数 = 单价 × 张数 × 本值；默认 1 无影响，0.9 九折 / 0.5 半价 / 1.5 加价。仅计价、不驱动执行、不影响成本。',
     refreshCache: '刷新缓存',
     cacheRefreshed: '缓存已刷新',
     createSuccess: '创建成功',
@@ -2879,7 +2887,8 @@ export default {
     grantSourceRegister: '注册赠送',
     grantSourceCampaign: '活动赠送',
     grantSourceAdmin: '后台赠送',
-    grantSourceDesc: '标记为赠送后，这批点数不计入「付费」判定；免费/付费分层据此决定是否加水印。不可选择充值类来源。',
+    grantSourceDesc:
+      '标记为赠送后，这批点数不计入「付费」判定；免费/付费分层据此决定是否加水印。不可选择充值类来源。',
     userIdRequired: '请选择用户',
     amountRequired: '请输入调整点数',
     amountPositive: '点数必须大于0',
@@ -3017,10 +3026,12 @@ export default {
     refundDesc: '点数退还接口，用于联盟平台退还用户已消费的点数',
     unionLoginDesc: '联盟登录接口，用于联盟用户通过凭证登录本系统',
     bindUnionDesc: '绑定联盟接口，用于本系统用户绑定联盟账号',
-    getUnionUserInfoDesc: '查询联盟用户接口，通过联盟用户ID查询本系统用户信息；用户不存在时返回 data: null',
+    getUnionUserInfoDesc:
+      '查询联盟用户接口，通过联盟用户ID查询本系统用户信息；用户不存在时返回 data: null',
     checkUserExistsDesc: '检查联盟用户是否存在，通过联盟用户ID判断用户是否已注册本系统',
     checkUserExistsResultDesc: 'true-用户已存在 false-用户不存在',
-    registerUnionUserDesc: '注册联盟用户接口，将联盟用户同步到本系统；若 unionUserId 已存在则同步更新资料',
+    registerUnionUserDesc:
+      '注册联盟用户接口，将联盟用户同步到本系统；若 unionUserId 已存在则同步更新资料',
     featuresDesc: '获取本系统可用的创作能力列表，供联盟平台参考',
     featureNameDesc: '创作能力名称（多语言）',
     featureDescDesc: '创作能力描述（多语言）',
@@ -3048,7 +3059,8 @@ export default {
     expireTimeDesc: '创作能力过期时间',
     sourceGrantIdDesc: '原下发单号，撤回时需指定对应的下发记录',
     rechargeExpireTimeDesc: '点数过期时间（该批次充值点数的到期时间，到期未用作废；不传则不过期）',
-    rechargeBizTypeDesc: '来源业务类型：subscription-订阅赠送 / recharge-普通充值（大小写不敏感）；不传默认按普通充值记账，用于区分订阅赠送与普通充值',
+    rechargeBizTypeDesc:
+      '来源业务类型：subscription-订阅赠送 / recharge-普通充值（大小写不敏感）；不传默认按普通充值记账，用于区分订阅赠送与普通充值',
     sourceBizTypeDesc: '原业务类型，与充值 bizType 对齐：subscription-订阅赠送 / recharge-普通充值',
     sourceBizIdDesc: '原业务单号',
     refundAmountDesc: '退还点数数量',
@@ -3066,7 +3078,8 @@ export default {
     signatureEnabled: '签名验签',
     signatureEnabledTip: '开启后所有请求都需校验签名；签名与 IP 白名单不可同时关闭',
     whitelistEnabled: 'IP 白名单',
-    whitelistEnabledTip: '开启后所有请求都会校验来源 IP 是否在白名单内；签名与 IP 白名单不可同时关闭',
+    whitelistEnabledTip:
+      '开启后所有请求都会校验来源 IP 是否在白名单内；签名与 IP 白名单不可同时关闭',
     authMethodRequiredTip: '签名验签与 IP 白名单不能同时关闭，否则联盟接口将无任何鉴权',
     authMethodSwitchedTip: '已自动开启另一种鉴权方式，联盟接口需至少保留一种鉴权',
     whitelistIps: '白名单 IP 列表',
@@ -3075,16 +3088,21 @@ export default {
     trustedProxies: '受信任代理',
     advancedTag: '高级',
     trustedProxiesPlaceholder: '每行一个代理 IP 或 CIDR，如 10.0.0.10 或 10.0.0.0/24',
-    trustedProxiesTip: '仅当接口前置反向代理/网关时才需填写其内网 IP；直连部署请留空。仅当直连来源为受信任代理时才解析 X-Forwarded-For 取真实客户端 IP，避免白名单被伪造头绕过。',
+    trustedProxiesTip:
+      '仅当接口前置反向代理/网关时才需填写其内网 IP；直连部署请留空。仅当直连来源为受信任代理时才解析 X-Forwarded-For 取真实客户端 IP，避免白名单被伪造头绕过。',
     offlineRequireTimestamp: '免签时强制时间戳校验',
-    offlineRequireTimestampTip: '白名单免签时无 HMAC/Nonce 防重放，开启后要求请求携带 X-Union-Timestamp 且在 5 分钟容差窗口内，将"无限期重放"收敛为"窗口内重放"，再叠加业务幂等。建议保持开启。',
+    offlineRequireTimestampTip:
+      '白名单免签时无 HMAC/Nonce 防重放，开启后要求请求携带 X-Union-Timestamp 且在 5 分钟容差窗口内，将"无限期重放"收敛为"窗口内重放"，再叠加业务幂等。建议保持开启。',
     signatureGuideTitle: '签名请求算法说明',
-    signatureGuideIntro: '联盟调用本系统接口需在请求头携带 HMAC-SHA256 签名。签名验签与 IP 白名单同时开启时，签名与来源 IP 都需通过；仅当签名验签关闭且来源 IP 命中白名单时才可免签。',
+    signatureGuideIntro:
+      '联盟调用本系统接口需在请求头携带 HMAC-SHA256 签名。签名验签与 IP 白名单同时开启时，签名与来源 IP 都需通过；仅当签名验签关闭且来源 IP 命中白名单时才可免签。',
     authModesTitle: '两种鉴权模式',
     authModeSignedTitle: '签名模式',
-    authModeSignedDesc: '默认模式。每个请求都用 appSecret 计算 HMAC-SHA256 签名，服务端验签 + 时间戳窗口 + Nonce 防重放，提供完整性与防伪保护。公网对接必须使用。',
+    authModeSignedDesc:
+      '默认模式。每个请求都用 appSecret 计算 HMAC-SHA256 签名，服务端验签 + 时间戳窗口 + Nonce 防重放，提供完整性与防伪保护。公网对接必须使用。',
     authModeUnsignedTitle: '免签模式（IP 白名单）',
-    authModeUnsignedDesc: '仅当来源 IP 命中白名单且签名验签关闭时生效，无需计算签名。但仍需携带 X-Union-Timestamp 与 X-Union-Nonce（5 分钟窗口内防重放）。仅适用于内网可信网络。',
+    authModeUnsignedDesc:
+      '仅当来源 IP 命中白名单且签名验签关闭时生效，无需计算签名。但仍需携带 X-Union-Timestamp 与 X-Union-Nonce（5 分钟窗口内防重放）。仅适用于内网可信网络。',
     authModeHeaders: '必带请求头：',
     signatureHeaders: '签名请求头',
     signatureSteps: '签名串拼接与计算',
@@ -3092,15 +3110,20 @@ export default {
     signatureParamField: '参数/占位符',
     sigParamMethodDesc: 'HTTP 请求方法大写，如 POST、GET。',
     sigParamUriDesc: '请求路径（不含查询串与域名），如 /api/v1/union/feature-grants。',
-    sigParamQueryDesc: '规范化查询串：将所有查询参数按 key 升序排序后用 & 拼接为 key=value；无查询参数时为空字符串。',
-    sigParamBodyDesc: '请求体（原始字节）的 SHA-256 摘要，十六进制小写；无请求体时对空字符串求摘要。',
+    sigParamQueryDesc:
+      '规范化查询串：将所有查询参数按 key 升序排序后用 & 拼接为 key=value；无查询参数时为空字符串。',
+    sigParamBodyDesc:
+      '请求体（原始字节）的 SHA-256 摘要，十六进制小写；无请求体时对空字符串求摘要。',
     sigParamTimestampDesc: '与请求头 X-Union-Timestamp 相同的 Unix 秒级时间戳。',
     sigParamNonceDesc: '与请求头 X-Union-Nonce 相同的一次性随机串。',
     sigParamAppKeyDesc: '与请求头 X-Union-App-Key 相同的联盟应用标识。',
     sigParamAppSecretDesc: '联盟应用密钥（HMAC 密钥），仅双方持有，切勿泄露或放入请求中。',
-    sigParamSignatureDesc: '对 stringToSign 用 appSecret 计算的 HMAC-SHA256 结果，十六进制小写，放入请求头 X-Union-Signature。',
-    signatureGuideNote: '时间戳容差窗口为 5 分钟；Nonce 在窗口内不可重复；请求体参与签名，篡改将导致验签失败。',
-    rechargeConsumptionDesc: '批量查询充值消费汇总接口，通过多个充值单号批量查询对应点数的下发量、已消耗量、剩余量及过期状态',
+    sigParamSignatureDesc:
+      '对 stringToSign 用 appSecret 计算的 HMAC-SHA256 结果，十六进制小写，放入请求头 X-Union-Signature。',
+    signatureGuideNote:
+      '时间戳容差窗口为 5 分钟；Nonce 在窗口内不可重复；请求体参与签名，篡改将导致验签失败。',
+    rechargeConsumptionDesc:
+      '批量查询充值消费汇总接口，通过多个充值单号批量查询对应点数的下发量、已消耗量、剩余量及过期状态',
     userPointsLogDesc: '分页查询用户点数消耗明细接口，反映用户总点数变化的完整流水记录',
     rechargeIdsDesc: '充值单号列表，批量查询时使用',
     rechargePointsAmountDesc: '充值点数总量',
@@ -3109,7 +3132,8 @@ export default {
     expiredDesc: '是否已过期',
     pageDesc: '页码，从 1 开始',
     pageSizeDesc: '每页条数',
-    changeTypeFilterDesc: '变动类型过滤，不传则查询所有联盟相关类型（RECHARGE/CONSUME/REFUND/GRANT）',
+    changeTypeFilterDesc:
+      '变动类型过滤，不传则查询所有联盟相关类型（RECHARGE/CONSUME/REFUND/GRANT）',
     totalDesc: '总记录数',
     listDesc: '数据列表',
     changeTypeDesc: '变动类型：RECHARGE-充值 CONSUME-消耗 REFUND-退款 GRANT-发放',
@@ -3164,7 +3188,8 @@ export default {
     confirmEnable: '确认重新启用该应用？',
     confirmRotate: '轮换将生成新密钥（明文仅显示一次），确认继续？',
     rotateGraceful: '平滑轮换',
-    rotateGracefulHint: '保留旧密钥宽限期，供需零中断过渡的客户端；不勾选则原地替换、旧密钥立即失效',
+    rotateGracefulHint:
+      '保留旧密钥宽限期，供需零中断过渡的客户端；不勾选则原地替换、旧密钥立即失效',
     secretTitle: '应用密钥（仅此次显示）',
     secretWarning: '密钥明文仅展示这一次，请立即妥善保存。关闭后无法再次获取。',
     statusMap: {
@@ -3421,7 +3446,8 @@ export default {
   // Settings Storage
   settingsStorage: {
     title: '存储配置',
-    realConfigTip: '此页面使用真实文件存储配置模型。本地存储只配置磁盘路径；对象存储通过后端 S3 兼容策略接入。七牛云当前后端未实现，暂不展示。',
+    realConfigTip:
+      '此页面使用真实文件存储配置模型。本地存储只配置磁盘路径；对象存储通过后端 S3 兼容策略接入。七牛云当前后端未实现，暂不展示。',
     name: '配置名称',
     nameRequired: '请输入配置名称',
     namePlaceholder: '例如：默认本地存储、阿里云杭州 OSS',
@@ -3529,7 +3555,8 @@ export default {
     enabledOn: '已开启等级排队加权',
     enabledOff: '已关闭，所有人同优先级（队列退回先进先出）',
     weights: '加权系数',
-    weightsDesc: 'JSON 对象：rechargeAmountWeight（累计充值额）、paidMonthWeight（付费月数）、topPackageAmountWeight（最高单笔充值额）。留空只改开关、不动系数。',
+    weightsDesc:
+      'JSON 对象：rechargeAmountWeight（累计充值额）、paidMonthWeight（付费月数）、topPackageAmountWeight（最高单笔充值额）。留空只改开关、不动系数。',
     create: '新增等级',
     edit: '编辑等级',
     levelCode: '等级编码',
@@ -3550,12 +3577,16 @@ export default {
     packageCodeDesc: '对外稳定标识。删除后编码会自动加后缀归档，所以同一个编码可以反复重建。',
     name: '套餐名称',
     priceMajor: '售价（元）',
-    priceDesc: '按元填写，提交时自动换算成分。必须大于 0 —— 0 元订单会被支付网关拒，下得了单却永远付不掉；要送点数请走签到 / 邀请 / 后台赠送。',
+    priceDesc:
+      '按元填写，提交时自动换算成分。必须大于 0 —— 0 元订单会被支付网关拒，下得了单却永远付不掉；要送点数请走签到 / 邀请 / 后台赠送。',
     basePoints: '基础点数',
-    basePointsDesc: '必须等于「售价 × 汇率」= {expected}；额外加送请填到赠送点数。改售价会自动同步这一项。',
-    basePointsDescNoRate: '必须等于「售价 × 汇率」。目前还没有任何档位，取不到汇率，提交时由服务端校验并给出准确数字。',
+    basePointsDesc:
+      '必须等于「售价 × 汇率」= {expected}；额外加送请填到赠送点数。改售价会自动同步这一项。',
+    basePointsDescNoRate:
+      '必须等于「售价 × 汇率」。目前还没有任何档位，取不到汇率，提交时由服务端校验并给出准确数字。',
     rateMismatch: '汇率失配',
-    rateMismatchTip: '汇率改过而这个档位没跟着改，它仍在按旧汇率卖点数。当前汇率下基础点数应为 {expected}，请核对后重新保存。',
+    rateMismatchTip:
+      '汇率改过而这个档位没跟着改，它仍在按旧汇率卖点数。当前汇率下基础点数应为 {expected}，请核对后重新保存。',
     bonusPoints: '赠送点数',
     bonusDesc: '与基础点数分开存，商品卡才能分别展示「10000 点数 + 赠 2560」。',
     points: '点数（基础 + 赠送）',
@@ -3574,7 +3605,8 @@ export default {
     enabledOn: '已开启每日签到',
     enabledOff: '已关闭每日签到',
     rewards: '连签奖励梯度',
-    rewardsDesc: '逗号分隔，下标即连签天数。超出长度后循环，例如填 10,10,10,10,10,10,60 表示第 7 天额外奖励。',
+    rewardsDesc:
+      '逗号分隔，下标即连签天数。超出长度后循环，例如填 10,10,10,10,10,10,60 表示第 7 天额外奖励。',
     rewardsRequired: '请至少填写一档奖励点数',
     day: '第 {day} 天',
     pointsValidDays: '赠送点数有效期（天）',
@@ -3643,7 +3675,8 @@ export default {
     creation: '创作',
     videoWatermark: '视频展示水印',
     videoWatermarkDesc: '开启后展示带水印，下载仍给无水印原件',
-    videoWatermarkHint: '开启后由后台扫描任务为视频生成加水印副本，展示走水印版、下载仍给原件。代价是每条视频多一次整段编码并另存一份（存储翻倍），与图片水印的实时处理不是一个量级，故默认关闭。另需配置水印 logo 路径，未配则开着也只生成封面。',
+    videoWatermarkHint:
+      '开启后由后台扫描任务为视频生成加水印副本，展示走水印版、下载仍给原件。代价是每条视频多一次整段编码并另存一份（存储翻倍），与图片水印的实时处理不是一个量级，故默认关闭。另需配置水印 logo 路径，未配则开着也只生成封面。',
     videoWatermarkOn: '已开启视频展示水印，新生成的视频将带水印',
     videoWatermarkOff: '已关闭视频展示水印，已生成的水印视频仍会展示',
     blindWatermark: '图片盲水印',
@@ -3662,19 +3695,24 @@ export default {
     userTierDesc: '判据是「是否曾经收到过付费来源的点数」，不看余额。关掉后所有人按付费档处理',
     userTierOn: '已开启免费/付费分层',
     userTierOff: '已关闭分层，所有人按付费档处理（不再有免费档水印）',
-    agentModelHint: '用于提示词优化等后端 Agent 场景的模型。按本次是否携带图片自动路由：无图走文本档、带图走视觉档。各档未配置或不可用时回退 yaml 兜底配置。（此处档位为模型用途，与用户权限角色无关）',
+    agentModelHint:
+      '用于提示词优化等后端 Agent 场景的模型。按本次是否携带图片自动路由：无图走文本档、带图走视觉档。各档未配置或不可用时回退 yaml 兜底配置。（此处档位为模型用途，与用户权限角色无关）',
     agentModelPlaceholder: '请选择模型',
     agentModelSelectHint: '仅可选择已启用的文本对话模型；清空表示使用 yaml 兜底配置',
     agentModelSupportVision: '支持视觉',
     agentProfileText: '文本档（无图提示词优化）',
-    agentProfileTextHint: '处理无参考图的提示词改写，建议绑定轻量快速模型（如 qwen-flash）以降低延迟。',
+    agentProfileTextHint:
+      '处理无参考图的提示词改写，建议绑定轻量快速模型（如 qwen-flash）以降低延迟。',
     agentProfileVision: '视觉档（带图提示词优化）',
     agentProfileVisionHint: '处理带参考图的多模态提示词优化，需绑定支持视觉的模型。',
-    agentProfileVisionSelectHint: '仅可选择已启用且支持视觉的文本对话模型；清空表示使用 yaml 兜底配置',
+    agentProfileVisionSelectHint:
+      '仅可选择已启用且支持视觉的文本对话模型；清空表示使用 yaml 兜底配置',
     aiWritingModel: 'AI 帮写模型',
-    aiWritingModelHint: '前端「AI 帮写」按钮专用的提示词优化模型，独立一档、与生图/生视频管线内部自动优化解耦。未配置时回退默认档位路由（版本绑定→TEXT/VISION 档）。',
+    aiWritingModelHint:
+      '前端「AI 帮写」按钮专用的提示词优化模型，独立一档、与生图/生视频管线内部自动优化解耦。未配置时回退默认档位路由（版本绑定→TEXT/VISION 档）。',
     aiWritingModelLabel: 'AI 帮写专用模型',
-    aiWritingModelSelectHint: '仅可选择已启用的文本对话模型；清空表示不单独配置、回退默认档位路由。带图帮写时若所选模型不支持视觉，会自动回退视觉档。',
+    aiWritingModelSelectHint:
+      '仅可选择已启用的文本对话模型；清空表示不单独配置、回退默认档位路由。带图帮写时若所选模型不支持视觉，会自动回退视觉档。',
     saveSuccess: '系统参数保存成功',
   },
 
@@ -3713,9 +3751,11 @@ export default {
     limit: '单批条数',
     limitHint: '单批上限 {max} 条；填超了后端会静默截断，界面上的数字就和实际扫的对不上了。',
     offset: '起始偏移',
-    offsetHint: '接口每次都从头扫，队头堆积一批永远补不上的死数据就会一直在那儿原地打转——用 offset 把它们跳过去。',
+    offsetHint:
+      '接口每次都从头扫，队头堆积一批永远补不上的死数据就会一直在那儿原地打转——用 offset 把它们跳过去。',
     dryRun: '试跑',
-    dryRunHint: '试跑只统计不写库，用来先看影响面；后端在试跑下不抢分布式锁，可以和别人的回填并行跑。',
+    dryRunHint:
+      '试跑只统计不写库，用来先看影响面；后端在试跑下不抢分布式锁，可以和别人的回填并行跑。',
     dryRunTag: '试跑',
     run: '执行一批',
     runDone: '本批补上 {count} 行',
@@ -3770,7 +3810,8 @@ export default {
     colTaskId: '任务号',
     colReason: '为什么被选中',
     colResultUrl: '源地址（抽帧用）',
-    coverHistorySide: '{side} 扫 {scanned} / 成功 {generated} / 失败 {failed} / 连带修复 {crossFixed}',
+    coverHistorySide:
+      '{side} 扫 {scanned} / 成功 {generated} / 失败 {failed} / 连带修复 {crossFixed}',
   },
 
   creationTask: {
@@ -3897,7 +3938,8 @@ export default {
     blockPermanent: '永久屏蔽（不可逆）',
     blockReason: '屏蔽原因',
     blockReasonPlaceholder: '可选，填写屏蔽原因',
-    blockConfirmContent: '屏蔽后用户端将看不到该任务的内容和素材（素材库下架）。勾选永久屏蔽则不可取消。',
+    blockConfirmContent:
+      '屏蔽后用户端将看不到该任务的内容和素材（素材库下架）。勾选永久屏蔽则不可取消。',
     unblockConfirm: '确认取消屏蔽？将恢复用户端展示并把素材重新上架。',
     blockSuccess: '已屏蔽',
     unblockSuccess: '已取消屏蔽',
@@ -3957,7 +3999,8 @@ export default {
     coverImage: '封面图',
     coverImagePlaceholder: '封面缩略图 URL，用于首屏卡片',
     content: '提示词内容',
-    contentPlaceholder: '使用 ｛｛变量名｝｝ 插入占位组件，例如：上传｛｛productImage｝｝，生成｛｛productName｝｝主图',
+    contentPlaceholder:
+      '使用 ｛｛变量名｝｝ 插入占位组件，例如：上传｛｛productImage｝｝，生成｛｛productName｝｝主图',
     contentRequired: '请输入提示词内容',
     insertVariableHint: '点击插入变量：',
     detectedVariables: '检测到的变量',
@@ -4095,7 +4138,8 @@ export default {
     sortOrder: '排序',
     extra: '扩展信息',
     extraPlaceholder: '可选，JSON 或备注',
-    sharedMaterialHint: '素材本体（URL/标题/尺寸/扩展）按 URL 全局去重，同一素材被多个模块/槽位共享；修改这些字段会同步影响所有引用它的位置。模块/槽位/排序/状态仅作用于当前位置。',
+    sharedMaterialHint:
+      '素材本体（URL/标题/尺寸/扩展）按 URL 全局去重，同一素材被多个模块/槽位共享；修改这些字段会同步影响所有引用它的位置。模块/槽位/排序/状态仅作用于当前位置。',
     tagDrawerTitle: '素材打标',
     multiSelect: '多选',
     clear: '清空',
@@ -4159,11 +4203,14 @@ export default {
     sameStyleOn: '已配置',
     sameStyleOff: '未配置',
     sameStyleDerived: '来自来源内容',
-    derivedTip: '配方从关联的创作内容自动反解，不需要手配。要在原作基础上改提示词或参数，点「配同款」手配即可覆盖。',
-    publishBlockedNoRecipe: '未配做同款配方，不能发布——推荐位上出现点进去做不了同款的内容，对用户就是个死入口。请先点「配同款」，或填上来源创作内容的数据ID。',
+    derivedTip:
+      '配方从关联的创作内容自动反解，不需要手配。要在原作基础上改提示词或参数，点「配同款」手配即可覆盖。',
+    publishBlockedNoRecipe:
+      '未配做同款配方，不能发布——推荐位上出现点进去做不了同款的内容，对用户就是个死入口。请先点「配同款」，或填上来源创作内容的数据ID。',
     sourceTask: '来源创作内容',
     sourceTaskPlaceholder: '创作内容列表里的「数据ID」，可不填',
-    sourceTaskHint: '填了就不用手配做同款配方——配方从该条创作内容的提交参数自动反解。手灌的外部图没有来源，必须手配。',
+    sourceTaskHint:
+      '填了就不用手配做同款配方——配方从该条创作内容的提交参数自动反解。手灌的外部图没有来源，必须手配。',
     configSameStyle: '配同款',
     sameStyleDrawerTitle: '做同款配方',
     sameStyleHint:
@@ -4241,7 +4288,8 @@ export default {
     detailTitle: '内容详情',
     noOutput: '该任务暂无产物',
     slideHint: '共 {count} 张产物，左右切换查看',
-    watermarkHint: '此处展示的是交付用水印图（多产物按位对齐，缺位回退该位原图），与用户端所见一致。',
+    watermarkHint:
+      '此处展示的是交付用水印图（多产物按位对齐，缺位回退该位原图），与用户端所见一致。',
     thumbnail: '缩略图',
     dataId: '数据ID',
     taskId: '任务ID',
@@ -4261,7 +4309,8 @@ export default {
     recommended: '是否被推荐',
     recommend: '推荐',
     recommendTitle: '推荐到分类位',
-    recommendHint: '推荐只建立关系，不会改动原内容。同一条内容可以推荐到多个分类位，但同一个分类位内不能重复推荐。',
+    recommendHint:
+      '推荐只建立关系，不会改动原内容。同一条内容可以推荐到多个分类位，但同一个分类位内不能重复推荐。',
     recommendSuccess: '已推荐',
     blockedUserDeleted: '用户已删除该内容，不能推荐',
     blockedByAdmin: '内容已被屏蔽，不能推荐',
@@ -4278,7 +4327,8 @@ export default {
 
   contentRecommend: {
     sortEditHint: '点击可直接修改排序值',
-    dragMixedPositions: '当前列表横跨多个分类位置，无法拖拽排序——排序值是按「一级+二级」这个位置存的。请再选一个二级分类，或直接在「排序」列填数字。',
+    dragMixedPositions:
+      '当前列表横跨多个分类位置，无法拖拽排序——排序值是按「一级+二级」这个位置存的。请再选一个二级分类，或直接在「排序」列填数字。',
     sortSaved: '排序已保存',
     detailTitle: '推荐详情',
     noMedia: '该内容没有可展示的产物',
@@ -4321,7 +4371,8 @@ export default {
     filterSource: '内容来源（全部）',
     tabPinned: '已上推荐位',
     tabPending: '待上推',
-    pendingHint: '这些灵感素材已发布，但还没挂到任何推荐位——发布不等于露出，配上分类和平台后用户端才能看到。',
+    pendingHint:
+      '这些灵感素材已发布，但还没挂到任何推荐位——发布不等于露出，配上分类和平台后用户端才能看到。',
     pendingEmpty: '没有待上推的素材',
     pinNow: '上推荐位',
     noDefaultSlot: '未配默认位',
@@ -4377,7 +4428,8 @@ export default {
     parentRequired: '请选择所属一级分类',
     code: '分类编码',
     codePlaceholder: '如 imageAsset / productShot',
-    codeHint: '小驼峰，全局唯一（一级二级共用一个命名空间）。用户端按它传参筛素材，建好后不可改——要换编码请新建分类再把入口迁过去。',
+    codeHint:
+      '小驼峰，全局唯一（一级二级共用一个命名空间）。用户端按它传参筛素材，建好后不可改——要换编码请新建分类再把入口迁过去。',
     codeRequired: '请填写分类编码',
     name: '分类名称',
     namePlaceholder: '如 图片 / 商品图',
@@ -4414,9 +4466,11 @@ export default {
     enabled: '启用',
     disabled: '停用',
     namesTruncated: '{names} 等 {count} 个入口',
-    confirmDelete: '删除后该二级从用户端消失，其下的 {names} 会解除与本分类的归属——只归在本分类的那些会变成未归类，它们的素材将在所有 tab 里都不再出现。确定删除？',
+    confirmDelete:
+      '删除后该二级从用户端消失，其下的 {names} 会解除与本分类的归属——只归在本分类的那些会变成未归类，它们的素材将在所有 tab 里都不再出现。确定删除？',
     confirmDeleteEmpty: '该二级分类下没有成员入口，删除后仅从用户端消失。确定删除？',
-    deleteL1Blocked: '该一级下还有二级分类，请先删除它们。直接删一级会让这些二级挂在不存在的父级上，从列表和用户端一起消失，素材却还在库里。',
+    deleteL1Blocked:
+      '该一级下还有二级分类，请先删除它们。直接删一级会让这些二级挂在不存在的父级上，从列表和用户端一起消失，素材却还在库里。',
     confirmDeleteL1Empty: '该一级分类下没有二级分类，删除后仅从用户端 tab 列表消失。确定删除？',
   },
 
@@ -4797,8 +4851,10 @@ export default {
 
     // PromptInputWidget
     promptTemplate: '提示词模板',
-    promptTemplatePlaceholder: '使用 ｛｛变量名｝｝ 插入占位组件，例如：上传｛｛productImage｝｝，生成｛｛productName｝｝主图',
-    promptTemplateHint: '示例: 上传｛｛productImage｝｝，生成电商主图，商品名称是｛｛productName｝｝',
+    promptTemplatePlaceholder:
+      '使用 ｛｛变量名｝｝ 插入占位组件，例如：上传｛｛productImage｝｝，生成｛｛productName｝｝主图',
+    promptTemplateHint:
+      '示例: 上传｛｛productImage｝｝，生成电商主图，商品名称是｛｛productName｝｝',
     referencePrompt: '从提示词库引用',
     mapVariablesToSlots: '将提示词变量映射为占位组件',
     promptMinHeight: '最小高度',

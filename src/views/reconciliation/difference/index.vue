@@ -1,13 +1,7 @@
 <template>
   <div class="page-container">
     <a-card :title="$t('reconciliation.difference')">
-      <ProTable
-        ref="tableRef"
-        :columns="columns"
-        :request="loadData"
-        :search="{}"
-        row-key="id"
-      >
+      <ProTable ref="tableRef" :columns="columns" :request="loadData" :search="{}" row-key="id">
         <template #emptyText>
           <a-empty :description="$t('reconciliation.noDifferenceData')" />
         </template>
@@ -93,18 +87,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { message } from 'antdv-next'
-import ProTable from '@/components/Pro/ProTable/index.vue'
-import { getDifferenceList, handleDifference } from '@/api/reconciliation'
+import { message } from 'antdv-next';
+import { ref, reactive, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n()
+import { getDifferenceList, handleDifference } from '@/api/reconciliation';
+import ProTable from '@/components/Pro/ProTable/index.vue';
 
-const tableRef = ref()
+const { t } = useI18n();
 
-const dialogVisible = ref(false)
-const submitting = ref(false)
+const tableRef = ref();
+
+const dialogVisible = ref(false);
+const submitting = ref(false);
 const currentRecord = reactive({
   id: 0,
   differenceType: '',
@@ -113,7 +108,7 @@ const currentRecord = reactive({
   bizType: '',
   localPoints: 0,
   remotePoints: 0,
-})
+});
 
 /**
  * 处理方式下拉项。
@@ -131,12 +126,12 @@ const actionOptions = computed(() => [
   { label: t('reconciliation.compensate'), value: 'compensate' },
   { label: t('reconciliation.deduct'), value: 'deduct' },
   { label: t('reconciliation.ignore'), value: 'ignore' },
-])
+]);
 
 const formState = reactive({
   action: '',
   remark: '',
-})
+});
 
 const typeMap: Record<string, string> = {
   grant_missing: '发放遗漏',
@@ -145,7 +140,7 @@ const typeMap: Record<string, string> = {
   consume_extra: '多扣',
   refund_missing: '退款遗漏',
   refund_extra: '多退',
-}
+};
 
 const typeColorMap: Record<string, string> = {
   grant_missing: 'orange',
@@ -154,21 +149,21 @@ const typeColorMap: Record<string, string> = {
   consume_extra: 'red',
   refund_missing: 'orange',
   refund_extra: 'red',
-}
+};
 
 const statusMap: Record<string, string> = {
   OPEN: t('reconciliation.statusMap.pending'),
   COMPENSATED: t('reconciliation.statusMap.compensated'),
   DEDUCTED: t('reconciliation.statusMap.deducted'),
   IGNORED: t('reconciliation.statusMap.ignored'),
-}
+};
 
 const statusColorMap: Record<string, string> = {
   OPEN: 'orange',
   COMPENSATED: 'green',
   DEDUCTED: 'green',
   IGNORED: 'default',
-}
+};
 
 const columns = [
   {
@@ -243,7 +238,7 @@ const columns = [
     width: 120,
     align: 'center' as const,
   },
-]
+];
 
 async function loadData(params: Record<string, unknown>) {
   const res = await getDifferenceList({
@@ -251,53 +246,61 @@ async function loadData(params: Record<string, unknown>) {
     differenceType: params.differenceType as string | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 20,
-  })
+  });
   return {
     data: res.list || [],
     total: res.total || 0,
     success: true,
-  }
+  };
 }
 
-function handleOpenDialog(record: { id: number; differenceType: string; amount: number; reservationNo?: string; bizType?: string; localPoints?: number; remotePoints?: number }) {
-  currentRecord.id = record.id
-  currentRecord.differenceType = record.differenceType
-  currentRecord.amount = record.amount
-  currentRecord.reservationNo = record.reservationNo || ''
-  currentRecord.bizType = record.bizType || ''
-  currentRecord.localPoints = record.localPoints ?? 0
-  currentRecord.remotePoints = record.remotePoints ?? 0
-  formState.action = ''
-  formState.remark = ''
-  dialogVisible.value = true
+function handleOpenDialog(record: {
+  id: number;
+  differenceType: string;
+  amount: number;
+  reservationNo?: string;
+  bizType?: string;
+  localPoints?: number;
+  remotePoints?: number;
+}) {
+  currentRecord.id = record.id;
+  currentRecord.differenceType = record.differenceType;
+  currentRecord.amount = record.amount;
+  currentRecord.reservationNo = record.reservationNo || '';
+  currentRecord.bizType = record.bizType || '';
+  currentRecord.localPoints = record.localPoints ?? 0;
+  currentRecord.remotePoints = record.remotePoints ?? 0;
+  formState.action = '';
+  formState.remark = '';
+  dialogVisible.value = true;
 }
 
 async function handleConfirm() {
   if (!formState.action) {
-    message.warning(t('reconciliation.actionRequired'))
-    return
+    message.warning(t('reconciliation.actionRequired'));
+    return;
   }
   if (!formState.remark) {
-    message.warning(t('reconciliation.handleRemarkRequired'))
-    return
+    message.warning(t('reconciliation.handleRemarkRequired'));
+    return;
   }
-  submitting.value = true
+  submitting.value = true;
   try {
     await handleDifference({
       id: currentRecord.id,
       action: formState.action,
       remark: formState.remark,
-    })
-    message.success(t('reconciliation.handleSuccess'))
-    dialogVisible.value = false
+    });
+    message.success(t('reconciliation.handleSuccess'));
+    dialogVisible.value = false;
     // 处理完必须重查：差异行的状态会从 OPEN 变成已处理，不刷新的话那一行还挂在
     // 列表上、状态也没变，看着像没生效，运营会重复点第二次
-    tableRef.value?.refresh()
+    tableRef.value?.refresh();
   } catch {
     // 拦截器已提示。这里必须接住：不接的话异常会逃逸成 unhandled rejection，
     // 只在控制台留一行日志。也不能顺手关弹窗——失败时留着，用户改完可以直接重试
   } finally {
-    submitting.value = false
+    submitting.value = false;
   }
 }
 </script>

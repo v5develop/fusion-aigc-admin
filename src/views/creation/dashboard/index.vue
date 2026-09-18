@@ -152,6 +152,16 @@
 </template>
 
 <script setup lang="ts">
+import type {
+  DistributionItem,
+  DurationGroup,
+  FailureItem,
+  HeatmapItem,
+  RankingItem,
+  RealtimeData,
+  TrendDataPoint,
+} from '@/api/creation-dashboard';
+
 import {
   CheckCircleOutlined,
   ClockCircleOutlined,
@@ -160,8 +170,8 @@ import {
   ReloadOutlined,
   RiseOutlined,
   ThunderboltOutlined,
-} from '@antdv-next/icons'
-import { BarChart, HeatmapChart, LineChart, PieChart } from 'echarts/charts'
+} from '@antdv-next/icons';
+import { BarChart, HeatmapChart, LineChart, PieChart } from 'echarts/charts';
 import {
   GraphicComponent,
   GridComponent,
@@ -170,13 +180,13 @@ import {
   TitleComponent,
   TooltipComponent,
   VisualMapComponent,
-} from 'echarts/components'
-import { use } from 'echarts/core'
-import { LegacyGridContainLabel } from 'echarts/features'
-import { CanvasRenderer } from 'echarts/renderers'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
-import VChart from 'vue-echarts'
-import { useI18n } from 'vue-i18n'
+} from 'echarts/components';
+import { use } from 'echarts/core';
+import { LegacyGridContainLabel } from 'echarts/features';
+import { CanvasRenderer } from 'echarts/renderers';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
+import VChart from 'vue-echarts';
+import { useI18n } from 'vue-i18n';
 
 import {
   getCreationOverview,
@@ -189,17 +199,8 @@ import {
   getStatusDistribution,
   getTypeDistribution,
   getUserRanking,
-} from '@/api/creation-dashboard'
-import type {
-  DistributionItem,
-  DurationGroup,
-  FailureItem,
-  HeatmapItem,
-  RankingItem,
-  RealtimeData,
-  TrendDataPoint,
-} from '@/api/creation-dashboard'
-import { decodeUnicode } from '@/utils/helpers'
+} from '@/api/creation-dashboard';
+import { decodeUnicode } from '@/utils/helpers';
 
 // 注册 ECharts 组件
 use([
@@ -216,12 +217,12 @@ use([
   SingleAxisComponent,
   VisualMapComponent,
   LegacyGridContainLabel,
-])
+]);
 
-const { t } = useI18n()
+const { t } = useI18n();
 
 // === 状态数据 ===
-const dateRange = ref<[string, string] | null>(null)
+const dateRange = ref<[string, string] | null>(null);
 const realtime = ref<RealtimeData>({
   pendingCount: 0,
   processingCount: 0,
@@ -229,17 +230,17 @@ const realtime = ref<RealtimeData>({
   todayFailed: 0,
   successRate: 0,
   avgWaitTime: 0,
-})
-const trendData = ref<TrendDataPoint[]>([])
-const statusData = ref<DistributionItem[]>([])
-const typeData = ref<DistributionItem[]>([])
-const modelRanking = ref<RankingItem[]>([])
-const userRanking = ref<RankingItem[]>([])
-const heatmapData = ref<HeatmapItem[]>([])
-const durationData = ref<DurationGroup[]>([])
-const failureData = ref<FailureItem[]>([])
+});
+const trendData = ref<TrendDataPoint[]>([]);
+const statusData = ref<DistributionItem[]>([]);
+const typeData = ref<DistributionItem[]>([]);
+const modelRanking = ref<RankingItem[]>([]);
+const userRanking = ref<RankingItem[]>([]);
+const heatmapData = ref<HeatmapItem[]>([]);
+const durationData = ref<DurationGroup[]>([]);
+const failureData = ref<FailureItem[]>([]);
 
-let refreshTimer: ReturnType<typeof setInterval> | null = null
+let refreshTimer: ReturnType<typeof setInterval> | null = null;
 
 // === 颜色配置 ===
 const CHART_COLORS = {
@@ -250,7 +251,7 @@ const CHART_COLORS = {
   purple: '#722ed1',
   cyan: '#13c2c2',
   orange: '#fa8c16',
-}
+};
 
 const STATUS_COLORS: Record<string, string> = {
   排队中: CHART_COLORS.warning,
@@ -259,7 +260,7 @@ const STATUS_COLORS: Record<string, string> = {
   部分成功: '#faad14',
   失败: CHART_COLORS.error,
   已取消: '#8c8c8c',
-}
+};
 
 // 调色板：所有类型统一使用循环调色板
 const PALETTE = [
@@ -269,8 +270,11 @@ const PALETTE = [
   CHART_COLORS.success,
   CHART_COLORS.warning,
   CHART_COLORS.cyan,
-  '#eb2f96', '#faad14', '#a0d911', '#f5222d',
-]
+  '#eb2f96',
+  '#faad14',
+  '#a0d911',
+  '#f5222d',
+];
 
 // === 失败原因表格列 ===
 const failureColumns = computed(() => [
@@ -302,11 +306,11 @@ const failureColumns = computed(() => [
     ellipsis: true,
     width: '25%',
   },
-])
+]);
 
 // === 趋势折线图 ===
 const trendOption = computed(() => {
-  const dates = trendData.value.map((d) => d.date)
+  const dates = trendData.value.map((d) => d.date);
   return {
     tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
     legend: {
@@ -346,31 +350,43 @@ const trendOption = computed(() => {
         itemStyle: { color: CHART_COLORS.error },
       },
     ],
-  }
-})
+  };
+});
 
 // === 状态分布饼图 ===
 const statusPieOption = computed(() => {
-  const total = statusData.value.reduce((sum, item) => sum + item.value, 0)
+  const total = statusData.value.reduce((sum, item) => sum + item.value, 0);
   return {
     tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
     legend: { bottom: 0, type: 'scroll' },
-    graphic: total > 0
-      ? [
-          {
-            type: 'text',
-            left: 'center',
-            top: '38%',
-            style: { text: `${total}`, fontSize: 24, fontWeight: 'bold', fill: '#333', textAlign: 'center' },
-          },
-          {
-            type: 'text',
-            left: 'center',
-            top: '50%',
-            style: { text: t('creationDashboard.totalTasks'), fontSize: 12, fill: '#999', textAlign: 'center' },
-          },
-        ]
-      : [],
+    graphic:
+      total > 0
+        ? [
+            {
+              type: 'text',
+              left: 'center',
+              top: '38%',
+              style: {
+                text: `${total}`,
+                fontSize: 24,
+                fontWeight: 'bold',
+                fill: '#333',
+                textAlign: 'center',
+              },
+            },
+            {
+              type: 'text',
+              left: 'center',
+              top: '50%',
+              style: {
+                text: t('creationDashboard.totalTasks'),
+                fontSize: 12,
+                fill: '#999',
+                textAlign: 'center',
+              },
+            },
+          ]
+        : [],
     series: [
       {
         type: 'pie',
@@ -381,12 +397,14 @@ const statusPieOption = computed(() => {
           value: item.value,
           itemStyle: { color: STATUS_COLORS[item.name] || CHART_COLORS.primary },
         })),
-        emphasis: { itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.5)' } },
+        emphasis: {
+          itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.5)' },
+        },
         label: { show: false },
       },
     ],
-  }
-})
+  };
+});
 
 // === 类型分布饼图 ===
 const typePieOption = computed(() => ({
@@ -406,13 +424,22 @@ const typePieOption = computed(() => ({
       label: { formatter: '{b}\n{d}%' },
     },
   ],
-}))
+}));
 
 // === 时段热力图 ===
 const heatmapOption = computed(() => {
-  const days = [t('creationDashboard.sun'), t('creationDashboard.mon'), t('creationDashboard.tue'), t('creationDashboard.wed'), t('creationDashboard.thu'), t('creationDashboard.fri'), t('creationDashboard.sat')]
-  const hours = Array.from({ length: 24 }, (_, i) => `${i}:00`)
-  const maxCount = heatmapData.value.length > 0 ? Math.max(...heatmapData.value.map((d) => d.count)) : 10
+  const days = [
+    t('creationDashboard.sun'),
+    t('creationDashboard.mon'),
+    t('creationDashboard.tue'),
+    t('creationDashboard.wed'),
+    t('creationDashboard.thu'),
+    t('creationDashboard.fri'),
+    t('creationDashboard.sat'),
+  ];
+  const hours = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+  const maxCount =
+    heatmapData.value.length > 0 ? Math.max(...heatmapData.value.map((d) => d.count)) : 10;
 
   return {
     tooltip: {
@@ -447,15 +474,18 @@ const heatmapOption = computed(() => {
         emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.5)' } },
       },
     ],
-  }
-})
+  };
+});
 
 // === 模型排行柱状图 ===
 const modelRankingOption = computed(() => {
-  const data = modelRanking.value.slice(0, 10).reverse()
+  const data = modelRanking.value.slice(0, 10).reverse();
   return {
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-    legend: { data: [t('creationDashboard.taskCount'), t('creationDashboard.successRate')], bottom: 0 },
+    legend: {
+      data: [t('creationDashboard.taskCount'), t('creationDashboard.successRate')],
+      bottom: 0,
+    },
     grid: { left: '3%', right: '8%', bottom: '15%', top: '5%', containLabel: true },
     xAxis: { type: 'value' },
     yAxis: {
@@ -479,12 +509,12 @@ const modelRankingOption = computed(() => {
         barMaxWidth: 20,
       },
     ],
-  }
-})
+  };
+});
 
 // === 用户排行柱状图 ===
 const userRankingOption = computed(() => {
-  const data = userRanking.value.slice(0, 10).reverse()
+  const data = userRanking.value.slice(0, 10).reverse();
   return {
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
     grid: { left: '3%', right: '8%', bottom: '5%', top: '5%', containLabel: true },
@@ -503,12 +533,12 @@ const userRankingOption = computed(() => {
         barMaxWidth: 20,
       },
     ],
-  }
-})
+  };
+});
 
 // === 耗时统计分组柱状图 ===
 const durationOption = computed(() => {
-  const types = durationData.value.map((d) => d.typeName || d.type)
+  const types = durationData.value.map((d) => d.typeName || d.type);
   return {
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
     legend: { data: ['P50', 'P90', 'P99'], bottom: 0 },
@@ -541,111 +571,111 @@ const durationOption = computed(() => {
         barMaxWidth: 30,
       },
     ],
-  }
-})
+  };
+});
 
 // === 工具函数 ===
 function formatDuration(seconds: number): string {
-  if (seconds < 1) return `${(seconds * 1000).toFixed(0)}ms`
-  if (seconds < 60) return `${seconds.toFixed(1)}s`
-  const min = Math.floor(seconds / 60)
-  const sec = Math.round(seconds % 60)
-  return `${min}m${sec}s`
+  if (seconds < 1) return `${(seconds * 1000).toFixed(0)}ms`;
+  if (seconds < 60) return `${seconds.toFixed(1)}s`;
+  const min = Math.floor(seconds / 60);
+  const sec = Math.round(seconds % 60);
+  return `${min}m${sec}s`;
 }
 
 // === 数据加载 ===
 async function loadOverview() {
   try {
-    const data = await getCreationOverview()
-    realtime.value.totalToday = data.totalToday
-    realtime.value.todayCompleted = data.completedCount
-    realtime.value.todayFailed = data.failedCount
-    realtime.value.pendingCount = data.pendingCount
-    realtime.value.processingCount = data.processingCount
-    realtime.value.successRate = data.successRate
+    const data = await getCreationOverview();
+    realtime.value.totalToday = data.totalToday;
+    realtime.value.todayCompleted = data.completedCount;
+    realtime.value.todayFailed = data.failedCount;
+    realtime.value.pendingCount = data.pendingCount;
+    realtime.value.processingCount = data.processingCount;
+    realtime.value.successRate = data.successRate;
   } catch (e) {
-    console.error('Failed to load overview:', e)
+    console.error('Failed to load overview:', e);
   }
 }
 
 async function loadRealtime() {
   try {
-    realtime.value = await getRealtimeStatus()
+    realtime.value = await getRealtimeStatus();
   } catch (e) {
-    console.error('Failed to load realtime:', e)
+    console.error('Failed to load realtime:', e);
   }
 }
 
 async function loadTrend() {
   try {
-    const params: { startDate?: string; endDate?: string } = {}
+    const params: { startDate?: string; endDate?: string } = {};
     if (dateRange.value) {
-      params.startDate = dateRange.value[0]
-      params.endDate = dateRange.value[1]
+      params.startDate = dateRange.value[0];
+      params.endDate = dateRange.value[1];
     }
-    trendData.value = await getCreationTrend(params)
+    trendData.value = await getCreationTrend(params);
   } catch (e) {
-    console.error('Failed to load trend:', e)
+    console.error('Failed to load trend:', e);
   }
 }
 
 async function loadStatusDistribution() {
   try {
-    statusData.value = await getStatusDistribution()
+    statusData.value = await getStatusDistribution();
   } catch (e) {
-    console.error('Failed to load status distribution:', e)
+    console.error('Failed to load status distribution:', e);
   }
 }
 
 async function loadTypeDistribution() {
   try {
-    typeData.value = await getTypeDistribution()
+    typeData.value = await getTypeDistribution();
   } catch (e) {
-    console.error('Failed to load type distribution:', e)
+    console.error('Failed to load type distribution:', e);
   }
 }
 
 async function loadModelRanking() {
   try {
-    modelRanking.value = await getModelRanking(10)
+    modelRanking.value = await getModelRanking(10);
   } catch (e) {
-    console.error('Failed to load model ranking:', e)
+    console.error('Failed to load model ranking:', e);
   }
 }
 
 async function loadUserRanking() {
   try {
-    userRanking.value = await getUserRanking(10)
+    userRanking.value = await getUserRanking(10);
   } catch (e) {
-    console.error('Failed to load user ranking:', e)
+    console.error('Failed to load user ranking:', e);
   }
 }
 
 async function loadHeatmap() {
   try {
-    heatmapData.value = await getHourlyHeatmap()
+    heatmapData.value = await getHourlyHeatmap();
   } catch (e) {
-    console.error('Failed to load heatmap:', e)
+    console.error('Failed to load heatmap:', e);
   }
 }
 
 async function loadDurationStats() {
   try {
-    durationData.value = await getDurationStats()
+    durationData.value = await getDurationStats();
   } catch (e) {
-    console.error('Failed to load duration stats:', e)
+    console.error('Failed to load duration stats:', e);
   }
 }
 
 async function loadFailureAnalysis() {
   try {
-    const data = await getFailureAnalysis()
+    const data = await getFailureAnalysis();
     failureData.value = (data ?? []).map((item) => ({
       ...item,
       errorMsg: decodeUnicode(item.errorMsg),
-    }))
+    }));
   } catch (e) {
-    console.error('Failed to load failure analysis:', e)
+    console.error('Failed to load failure analysis:', e);
   }
 }
 
@@ -660,27 +690,27 @@ async function refreshAll() {
     loadHeatmap(),
     loadDurationStats(),
     loadFailureAnalysis(),
-  ])
+  ]);
 }
 
 function onDateRangeChange() {
-  loadTrend()
+  loadTrend();
 }
 
 // === 生命周期 ===
 onMounted(async () => {
-  await refreshAll()
+  await refreshAll();
   refreshTimer = setInterval(() => {
-    loadRealtime()
-  }, 30000)
-})
+    loadRealtime();
+  }, 30000);
+});
 
 onUnmounted(() => {
   if (refreshTimer) {
-    clearInterval(refreshTimer)
-    refreshTimer = null
+    clearInterval(refreshTimer);
+    refreshTimer = null;
   }
-})
+});
 </script>
 
 <style scoped>

@@ -1,14 +1,10 @@
 <template>
   <div class="page-container">
-    <ProTable
-      ref="tableRef"
-      :columns="columns"
-      :request="loadData"
-      :search="{}"
-      row-key="id"
-    >
+    <ProTable ref="tableRef" :columns="columns" :request="loadData" :search="{}" row-key="id">
       <template #emptyText>
-        <a-empty description="暂无提示词，可点击「全量同步」从 data/prompt 与 agent .md 导入，或「新建提示词」" />
+        <a-empty
+          description="暂无提示词，可点击「全量同步」从 data/prompt 与 agent .md 导入，或「新建提示词」"
+        />
       </template>
       <template #toolbar>
         <a-button type="primary" @click="goCreate">新建提示词</a-button>
@@ -64,7 +60,10 @@
                 </a-button>
               </a-popconfirm>
             </a-tooltip>
-            <a-popconfirm title="删除将连同其全部版本一并软删，确认？" @confirm="handleDelete(record)">
+            <a-popconfirm
+              title="删除将连同其全部版本一并软删，确认？"
+              @confirm="handleDelete(record)"
+            >
               <a-button type="link" size="small" danger>删除</a-button>
             </a-popconfirm>
           </a-space>
@@ -75,24 +74,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { message } from 'antdv-next'
-import ProTable from '@/components/Pro/ProTable/index.vue'
-import { pagePrompts, deletePrompt, importExisting, type Prompt } from '@/api/prompt-lab'
+import { message } from 'antdv-next';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 
-const router = useRouter()
-const tableRef = ref<InstanceType<typeof ProTable>>()
-const importing = ref(false)
+import { pagePrompts, deletePrompt, importExisting, type Prompt } from '@/api/prompt-lab';
+import ProTable from '@/components/Pro/ProTable/index.vue';
+
+const router = useRouter();
+const tableRef = ref<InstanceType<typeof ProTable>>();
+const importing = ref(false);
 
 const typeOptions = [
   { label: '优化模板 (optimize)', value: 'optimize' },
   { label: 'Agent 提示词 (agent)', value: 'agent' },
-]
+];
 const statusOptions = [
   { label: '启用', value: 1 },
   { label: '停用', value: 0 },
-]
+];
 
 const columns = [
   { title: '编码', dataIndex: 'code', width: 180, ellipsis: true },
@@ -145,7 +145,7 @@ const columns = [
     align: 'center' as const,
     fixed: 'right' as const,
   },
-]
+];
 
 async function loadData(params: Record<string, unknown>) {
   const res = await pagePrompts({
@@ -155,36 +155,36 @@ async function loadData(params: Record<string, unknown>) {
     targetModelCode: params.targetModelCode as string | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
-  })
-  return { data: res.list || [], total: res.total || 0, success: true }
+  });
+  return { data: res.list || [], total: res.total || 0, success: true };
 }
 
 function goCreate() {
-  router.push('/prompt-lab/create')
+  router.push('/prompt-lab/create');
 }
 
 function goDetail(record: Prompt) {
-  router.push(`/prompt-lab/detail/${record.id}`)
+  router.push(`/prompt-lab/detail/${record.id}`);
 }
 
 async function handleDelete(record: Prompt) {
   try {
-    await deletePrompt(record.id)
-    message.success('已删除')
-    tableRef.value?.refresh()
+    await deletePrompt(record.id);
+    message.success('已删除');
+    tableRef.value?.refresh();
   } catch {
     /* 错误已由拦截器提示 */
   }
 }
 
 /** 正在单条同步的 code，用于只让那一行的按钮转圈，而不是整表都在 loading */
-const syncingCode = ref<string | null>(null)
+const syncingCode = ref<string | null>(null);
 
 /** 同步按钮的来源提示：同步过一次后 sourcePath 就会被写上，所以空只代表「还不知道」，不代表「没有」 */
 function sourceTip(record: Prompt) {
   return record.sourcePath
     ? `来源：${record.sourcePath}`
-    : '尚未记录来源（手工创建，或本功能上线前导入的）。同步一次后会补上来源；若确无源文件会提示'
+    : '尚未记录来源（手工创建，或本功能上线前导入的）。同步一次后会补上来源；若确无源文件会提示';
 }
 
 /**
@@ -193,11 +193,11 @@ function sourceTip(record: Prompt) {
  * 报「新增 0，草稿 1，跳过 0」不如直接说「已生成草稿」。
  */
 async function handleImport(code?: string) {
-  if (code) syncingCode.value = code
-  else importing.value = true
+  if (code) syncingCode.value = code;
+  else importing.value = true;
   try {
-    const res = await importExisting(code ? [code] : undefined)
-    const missing = res.details.filter((d) => d.startsWith('missing:'))
+    const res = await importExisting(code ? [code] : undefined);
+    const missing = res.details.filter((d) => d.startsWith('missing:'));
 
     if (missing.length) {
       message.error(
@@ -205,35 +205,35 @@ async function handleImport(code?: string) {
           ? `「${code}」没有对应的源文件，可能是在管理端手工创建的，无法从文件同步`
           : `以下 code 未找到源文件：${missing.map((d) => d.slice('missing:'.length)).join('、')}`,
         6,
-      )
+      );
     } else if (code) {
       // updated 不是「已生效」而是「生成了草稿等你发布」，必须说清楚，
       // 否则运营以为文件改动已经上线了
       if (res.updated > 0) {
-        message.warning(`「${code}」已生成草稿，需在详情页 review 后发布才会生效`, 6)
+        message.warning(`「${code}」已生成草稿，需在详情页 review 后发布才会生效`, 6);
       } else if (res.optimizeImported + res.agentImported > 0) {
-        message.success(`「${code}」已导入并发布为 v1`)
+        message.success(`「${code}」已导入并发布为 v1`);
       } else {
-        message.info(`「${code}」源文件未变更，无需同步`)
+        message.info(`「${code}」源文件未变更，无需同步`);
       }
     } else {
       const parts = [
         `新增 ${res.optimizeImported + res.agentImported}`,
         `已变更生成草稿 ${res.updated}`,
         `未变跳过 ${res.skipped}`,
-      ]
+      ];
       if (res.updated > 0) {
-        message.warning(`${parts.join('，')}。草稿需在详情页 review 后发布才会生效`, 6)
+        message.warning(`${parts.join('，')}。草稿需在详情页 review 后发布才会生效`, 6);
       } else {
-        message.success(parts.join('，'))
+        message.success(parts.join('，'));
       }
     }
-    tableRef.value?.refresh()
+    tableRef.value?.refresh();
   } catch {
     /* 错误已由拦截器提示 */
   } finally {
-    syncingCode.value = null
-    importing.value = false
+    syncingCode.value = null;
+    importing.value = false;
   }
 }
 </script>

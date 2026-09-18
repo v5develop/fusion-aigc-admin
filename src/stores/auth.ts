@@ -1,5 +1,5 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { defineStore } from 'pinia';
+import { ref, computed } from 'vue';
 
 import {
   getStoredToken,
@@ -12,20 +12,20 @@ import {
   refreshToken as apiRefreshToken,
   getAdminInfo,
   type UserInfo,
-} from '@/api/auth'
-import { setRefreshToken, getRefreshToken, clearTokens } from '@/utils/storage'
-import { usePermissionStore } from '@/stores/permission'
+} from '@/api/auth';
+import { usePermissionStore } from '@/stores/permission';
+import { setRefreshToken, getRefreshToken, clearTokens } from '@/utils/storage';
 
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref<string | null>(getStoredToken())
-  const user = ref<UserInfo | null>(getStoredUser())
-  const isLoggedIn = computed(() => !!token.value)
+  const token = ref<string | null>(getStoredToken());
+  const user = ref<UserInfo | null>(getStoredUser());
+  const isLoggedIn = computed(() => !!token.value);
 
   const login = async (username: string, password: string): Promise<void> => {
-    const resp = await loginWithPassword(username, password)
+    const resp = await loginWithPassword(username, password);
     // Backend returns: { accessToken, refreshToken, expiresIn, adminId, username, roleCode }
     if (resp?.accessToken) {
-      token.value = resp.accessToken
+      token.value = resp.accessToken;
       const userInfo: UserInfo = {
         id: resp.adminId,
         username: resp.username,
@@ -33,26 +33,26 @@ export const useAuthStore = defineStore('auth', () => {
         avatar: '',
         roles: resp.roleCode ? [resp.roleCode] : [],
         permissions: [],
-      }
-      user.value = userInfo
-      storeToken(resp.accessToken)
-      storeUser(userInfo)
+      };
+      user.value = userInfo;
+      storeToken(resp.accessToken);
+      storeUser(userInfo);
       if (resp.refreshToken) {
-        setRefreshToken(resp.refreshToken)
+        setRefreshToken(resp.refreshToken);
       }
       // 登录响应不含权限列表，拉取 /auth/info 填充 roles/permissions，
       // 否则 v-permission 永远拿到空数组，按钮全被隐藏。
-      await loadUserInfo()
+      await loadUserInfo();
     } else {
-      throw new Error('Login failed')
+      throw new Error('Login failed');
     }
-  }
+  };
 
   // 从后端拉取当前管理员完整信息（含 roles/permissions）并写入 store。
   const loadUserInfo = async (): Promise<void> => {
-    if (!token.value) return
+    if (!token.value) return;
     try {
-      const info = await getAdminInfo()
+      const info = await getAdminInfo();
       if (info) {
         const userInfo: UserInfo = {
           id: info.id,
@@ -61,64 +61,64 @@ export const useAuthStore = defineStore('auth', () => {
           avatar: info.avatar || '',
           roles: info.roles ?? [],
           permissions: info.permissions ?? [],
-        }
-        user.value = userInfo
-        storeUser(userInfo)
+        };
+        user.value = userInfo;
+        storeUser(userInfo);
       }
     } catch (error) {
-      console.error('Failed to load admin info:', error)
+      console.error('Failed to load admin info:', error);
     }
-  }
+  };
 
   const setTokens = (accessToken: string, newRefreshToken: string) => {
-    token.value = accessToken
-    storeToken(accessToken)
-    setRefreshToken(newRefreshToken)
-  }
+    token.value = accessToken;
+    storeToken(accessToken);
+    setRefreshToken(newRefreshToken);
+  };
 
   const refreshAccessToken = async (): Promise<string> => {
-    const storedRefreshToken = getRefreshToken()
+    const storedRefreshToken = getRefreshToken();
     if (!storedRefreshToken) {
-      throw new Error('No refresh token available')
+      throw new Error('No refresh token available');
     }
-    const resp = await apiRefreshToken(storedRefreshToken)
+    const resp = await apiRefreshToken(storedRefreshToken);
     if (resp?.accessToken) {
-      setTokens(resp.accessToken, resp.refreshToken || storedRefreshToken)
-      return resp.accessToken
+      setTokens(resp.accessToken, resp.refreshToken || storedRefreshToken);
+      return resp.accessToken;
     }
-    throw new Error('Token refresh failed')
-  }
+    throw new Error('Token refresh failed');
+  };
 
   const logout = async () => {
     try {
       if (token.value) {
-        await apiLogout()
+        await apiLogout();
       }
     } finally {
-      clearTokens()
-      clearUser()
-      token.value = null
-      user.value = null
-      const permissionStore = usePermissionStore()
-      permissionStore.resetPermission()
+      clearTokens();
+      clearUser();
+      token.value = null;
+      user.value = null;
+      const permissionStore = usePermissionStore();
+      permissionStore.resetPermission();
     }
-  }
+  };
 
   const initAuth = () => {
-    const storedToken = getStoredToken()
-    const storedUser = getStoredUser()
+    const storedToken = getStoredToken();
+    const storedUser = getStoredUser();
     if (storedToken) {
-      token.value = storedToken
+      token.value = storedToken;
     }
     if (storedUser) {
-      user.value = storedUser
+      user.value = storedUser;
     }
     // 用本地存储的旧 user 先占位，再异步刷新真实 roles/permissions，
     // 兼容旧会话（早期登录未拉取权限，store 里 permissions 为空）。
     if (storedToken) {
-      void loadUserInfo()
+      void loadUserInfo();
     }
-  }
+  };
 
   return {
     token,
@@ -130,5 +130,5 @@ export const useAuthStore = defineStore('auth', () => {
     setTokens,
     refreshAccessToken,
     loadUserInfo,
-  }
-})
+  };
+});

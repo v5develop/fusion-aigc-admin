@@ -77,11 +77,7 @@
                 @update:value="onOptionUpdate(index, 'previewUrl', $event)"
               />
             </div>
-            <a-button
-              type="text"
-              class="radio-image-props__remove"
-              @click="onRemoveOption(index)"
-            >
+            <a-button type="text" class="radio-image-props__remove" @click="onRemoveOption(index)">
               <Icon icon="antdv-next:DeleteOutlined" />
             </a-button>
           </div>
@@ -99,56 +95,56 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import type { RadioImageOption, RadioImageWidgetConfig } from '@/types/template-builder';
 
-import draggable from 'vuedraggable'
+import { computed } from 'vue';
+import draggable from 'vuedraggable';
 
-import Icon from '@/components/Icon/index.vue'
-import { $t } from '@/locales'
-import type { RadioImageOption, RadioImageWidgetConfig } from '@/types/template-builder'
+import Icon from '@/components/Icon/index.vue';
+import { $t } from '@/locales';
 
 const props = defineProps<{
-  widget: RadioImageWidgetConfig
-}>()
+  widget: RadioImageWidgetConfig;
+}>();
 
 const emit = defineEmits<{
-  (e: 'update', patch: Record<string, unknown>): void
-}>()
+  (e: 'update', patch: Record<string, unknown>): void;
+}>();
 
-type ImageSize = NonNullable<RadioImageWidgetConfig['imageSize']>
+type ImageSize = NonNullable<RadioImageWidgetConfig['imageSize']>;
 
 const imageSizeOptions: { label: string; value: ImageSize }[] = [
   { label: 'Small', value: 'small' },
   { label: 'Medium', value: 'medium' },
   { label: 'Large', value: 'large' },
-]
+];
 
-const options = computed<RadioImageOption[]>(() => props.widget.options ?? [])
+const options = computed<RadioImageOption[]>(() => props.widget.options ?? []);
 
-type OptionalField = 'previewUrl' | 'thumbnailUrl' | 'description'
+type OptionalField = 'previewUrl' | 'thumbnailUrl' | 'description';
 const OPTIONAL_FIELDS: ReadonlySet<OptionalField> = new Set([
   'previewUrl',
   'thumbnailUrl',
   'description',
-])
+]);
 
 function toNumber(value: unknown, fallback: number): number {
-  return typeof value === 'number' && !Number.isNaN(value) ? value : fallback
+  return typeof value === 'number' && !Number.isNaN(value) ? value : fallback;
 }
 
 function onUpdate<K extends keyof RadioImageWidgetConfig>(
   field: K,
   value: RadioImageWidgetConfig[K],
 ): void {
-  emit('update', { [field]: value })
+  emit('update', { [field]: value });
 }
 
 function commitOptions(next: RadioImageOption[]): void {
-  emit('update', { options: next })
+  emit('update', { options: next });
 }
 
 function isOptional(field: keyof RadioImageOption): field is OptionalField {
-  return OPTIONAL_FIELDS.has(field as OptionalField)
+  return OPTIONAL_FIELDS.has(field as OptionalField);
 }
 
 function onOptionUpdate(
@@ -157,32 +153,29 @@ function onOptionUpdate(
   value: string,
 ): void {
   const next = options.value.map((opt, i) => {
-    if (i !== index) return { ...opt }
-    const updated: RadioImageOption = { ...opt }
+    if (i !== index) return { ...opt };
+    const updated: RadioImageOption = { ...opt };
     if (isOptional(field)) {
-      if (value === '') delete updated[field]
-      else updated[field] = value
+      if (value === '') delete updated[field];
+      else updated[field] = value;
     } else {
-      updated[field] = value
+      updated[field] = value;
     }
-    return updated
-  })
-  commitOptions(next)
+    return updated;
+  });
+  commitOptions(next);
 }
 
 function onRemoveOption(index: number): void {
-  commitOptions(options.value.filter((_, i) => i !== index))
+  commitOptions(options.value.filter((_, i) => i !== index));
 }
 
 function onAddOption(): void {
-  commitOptions([
-    ...options.value.map((o) => ({ ...o })),
-    { label: '', value: '', imageUrl: '' },
-  ])
+  commitOptions([...options.value.map((o) => ({ ...o })), { label: '', value: '', imageUrl: '' }]);
 }
 
 function onReorder(next: RadioImageOption[]): void {
-  commitOptions(next.map((o) => ({ ...o })))
+  commitOptions(next.map((o) => ({ ...o })));
 }
 </script>
 

@@ -1,12 +1,6 @@
 <template>
   <div class="page-container">
-    <ProTable
-      ref="tableRef"
-      :columns="columns"
-      :request="loadData"
-      :search="{}"
-      row-key="id"
-    >
+    <ProTable ref="tableRef" :columns="columns" :request="loadData" :search="{}" row-key="id">
       <template #emptyText>
         <a-empty :description="$t('template.noTemplateData')" />
       </template>
@@ -35,9 +29,7 @@
           {{ record.usageCount || 0 }}
         </template>
 
-        <template v-if="column.dataIndex === 'version'">
-          v{{ record.version || 1 }}
-        </template>
+        <template v-if="column.dataIndex === 'version'"> v{{ record.version || 1 }} </template>
 
         <template v-if="column.key === 'operation'">
           <a-space :size="4">
@@ -47,10 +39,7 @@
             <a-button type="link" size="small" @click="handleCopy(record)">
               {{ $t('template.copyTemplate') }}
             </a-button>
-            <a-popconfirm
-              :title="$t('template.confirmDelete')"
-              @confirm="handleDelete(record)"
-            >
+            <a-popconfirm :title="$t('template.confirmDelete')" @confirm="handleDelete(record)">
               <a-button type="link" size="small" danger>
                 {{ $t('common.delete') }}
               </a-button>
@@ -63,26 +52,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { message } from 'antdv-next'
-import { useI18n } from 'vue-i18n'
-import ProTable from '@/components/Pro/ProTable/index.vue'
-import {
-  getTemplateList,
-  deleteTemplate,
-  type TemplateRecord,
-} from '@/api/template'
+import { message } from 'antdv-next';
+import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
+
+import { getTemplateList, deleteTemplate, type TemplateRecord } from '@/api/template';
+import ProTable from '@/components/Pro/ProTable/index.vue';
 
 /**
  * 表格句柄。增删改之后必须重查——本页此前一个 ref 都没有，改完数据列表还是旧的，
  * 看着像没生效，运营会重复点第二次。
  * 用 refresh() 而不是 reload()：refresh 保持当前页码，在第 N 页处理完不会被甩回第一页。
  */
-const tableRef = ref()
+const tableRef = ref();
 
-const router = useRouter()
-const { t } = useI18n()
+const router = useRouter();
+const { t } = useI18n();
 
 const columns = [
   {
@@ -165,7 +151,7 @@ const columns = [
     align: 'center' as const,
     fixed: 'right' as const,
   },
-]
+];
 
 async function loadData(params: Record<string, unknown>) {
   const res = await getTemplateList({
@@ -174,33 +160,33 @@ async function loadData(params: Record<string, unknown>) {
     enabled: params.enabled as number | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
-  })
+  });
   return {
     data: res.list || [],
     total: res.total || 0,
     success: true,
-  }
+  };
 }
 
 function handleCreate() {
-  router.push('/template/create')
+  router.push('/template/create');
 }
 
 function handleEdit(record: TemplateRecord) {
-  router.push(`/template/edit/${record.id}`)
+  router.push(`/template/edit/${record.id}`);
 }
 
 function handleCopy(record: TemplateRecord) {
-  router.push(`/template/create?copyFrom=${record.id}`)
+  router.push(`/template/create?copyFrom=${record.id}`);
 }
 
 async function handleDelete(record: TemplateRecord) {
   try {
-    await deleteTemplate(record.id)
-    message.success(t('common.deleteSuccess'))
-    tableRef.value?.refresh()
+    await deleteTemplate(record.id);
+    message.success(t('common.deleteSuccess'));
+    tableRef.value?.refresh();
   } catch {
-    message.error(t('common.deleteFailed'))
+    message.error(t('common.deleteFailed'));
   }
 }
 </script>

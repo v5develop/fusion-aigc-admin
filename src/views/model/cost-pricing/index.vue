@@ -144,49 +144,51 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
-import { PlusOutlined } from '@antdv-next/icons'
-import { message, Modal } from 'antdv-next'
-import { useI18n } from 'vue-i18n'
-import ProTable from '@/components/Pro/ProTable/index.vue'
+import type { ModelCostPricing, AIModel } from '@/types/api';
+
+import { PlusOutlined } from '@antdv-next/icons';
+import { message, Modal } from 'antdv-next';
+import { ref, reactive, onMounted, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
 import {
   getCostPricingList,
   createCostPricing,
   updateCostPricing,
   deleteCostPricing,
-} from '@/api/cost-pricing'
-import { getModelOptions } from '@/api/model'
-import type { ModelCostPricing, AIModel } from '@/types/api'
+} from '@/api/cost-pricing';
+import { getModelOptions } from '@/api/model';
+import ProTable from '@/components/Pro/ProTable/index.vue';
 
-const { t } = useI18n()
+const { t } = useI18n();
 
 const meterTypeMap: Record<string, string> = {
   image: t('costPricing.meterImage'),
   video: t('costPricing.meterVideo'),
   second: t('costPricing.meterSecond'),
   token: t('costPricing.meterToken'),
-}
+};
 
 const meterTypeOptions = [
   { label: t('costPricing.meterImage'), value: 'image' },
   { label: t('costPricing.meterVideo'), value: 'video' },
   { label: t('costPricing.meterSecond'), value: 'second' },
   { label: t('costPricing.meterToken'), value: 'token' },
-]
+];
 
 const costUnitMap: Record<string, string> = {
   PER_IMAGE: t('costPricing.unitPerImage'),
   PER_REQUEST: t('costPricing.unitPerRequest'),
   PER_SECOND: t('costPricing.unitPerSecond'),
   PER_VIDEO: t('costPricing.unitPerVideo'),
-}
+};
 
 const costUnitOptions = [
   { label: t('costPricing.unitPerImage'), value: 'PER_IMAGE' },
   { label: t('costPricing.unitPerRequest'), value: 'PER_REQUEST' },
   { label: t('costPricing.unitPerSecond'), value: 'PER_SECOND' },
   { label: t('costPricing.unitPerVideo'), value: 'PER_VIDEO' },
-]
+];
 
 const columns = computed(() => [
   {
@@ -254,15 +256,17 @@ const columns = computed(() => [
     align: 'center' as const,
     fixed: 'right' as const,
   },
-])
+]);
 
-const tableRef = ref()
-const modelList = ref<AIModel[]>([])
-const modelSelectOptions = computed(() => modelList.value.map(m => ({ label: m.name, value: m.id })))
-const modalVisible = ref(false)
-const submitLoading = ref(false)
-const isEdit = ref(false)
-const editId = ref<number | null>(null)
+const tableRef = ref();
+const modelList = ref<AIModel[]>([]);
+const modelSelectOptions = computed(() =>
+  modelList.value.map((m) => ({ label: m.name, value: m.id })),
+);
+const modalVisible = ref(false);
+const submitLoading = ref(false);
+const isEdit = ref(false);
+const editId = ref<number | null>(null);
 
 const formData = reactive({
   modelId: undefined as number | undefined,
@@ -275,13 +279,13 @@ const formData = reactive({
   effectiveTime: undefined as string | undefined,
   expireTime: undefined as string | undefined,
   statusChecked: 1,
-})
+});
 
 async function loadModels() {
   try {
-    modelList.value = await getModelOptions()
+    modelList.value = await getModelOptions();
   } catch (error) {
-    console.error('Failed to load models:', error)
+    console.error('Failed to load models:', error);
   }
 }
 
@@ -292,65 +296,65 @@ async function loadData(params: Record<string, unknown>) {
     status: params.status as number | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
-  })
+  });
   return {
     data: res.list || [],
     total: res.total || 0,
     success: true,
-  }
+  };
 }
 
 function handleCreate() {
-  isEdit.value = false
-  editId.value = null
-  formData.modelId = undefined
-  formData.meterType = 'image'
-  formData.costAmount = undefined
-  formData.costUnit = 'PER_IMAGE'
-  formData.actionType = ''
-  formData.provider = ''
-  formData.providerModel = ''
-  formData.effectiveTime = undefined
-  formData.expireTime = undefined
-  formData.statusChecked = 1
-  modalVisible.value = true
+  isEdit.value = false;
+  editId.value = null;
+  formData.modelId = undefined;
+  formData.meterType = 'image';
+  formData.costAmount = undefined;
+  formData.costUnit = 'PER_IMAGE';
+  formData.actionType = '';
+  formData.provider = '';
+  formData.providerModel = '';
+  formData.effectiveTime = undefined;
+  formData.expireTime = undefined;
+  formData.statusChecked = 1;
+  modalVisible.value = true;
 }
 
 function handleEdit(record: ModelCostPricing) {
-  isEdit.value = true
-  editId.value = record.id
-  formData.modelId = record.modelId
-  formData.meterType = record.meterType || 'image'
-  formData.costAmount = record.costAmount ?? undefined
-  formData.costUnit = record.costUnit || 'PER_IMAGE'
-  formData.actionType = record.actionType || ''
-  formData.provider = record.provider || ''
-  formData.providerModel = record.providerModel || ''
-  formData.effectiveTime = record.effectiveTime || undefined
-  formData.expireTime = record.expireTime || undefined
-  formData.statusChecked = record.status
-  modalVisible.value = true
+  isEdit.value = true;
+  editId.value = record.id;
+  formData.modelId = record.modelId;
+  formData.meterType = record.meterType || 'image';
+  formData.costAmount = record.costAmount ?? undefined;
+  formData.costUnit = record.costUnit || 'PER_IMAGE';
+  formData.actionType = record.actionType || '';
+  formData.provider = record.provider || '';
+  formData.providerModel = record.providerModel || '';
+  formData.effectiveTime = record.effectiveTime || undefined;
+  formData.expireTime = record.expireTime || undefined;
+  formData.statusChecked = record.status;
+  modalVisible.value = true;
 }
 
 async function handleSubmit() {
   if (!formData.modelId) {
-    message.error(t('costPricing.modelRequired'))
-    return
+    message.error(t('costPricing.modelRequired'));
+    return;
   }
   if (!formData.meterType) {
-    message.error(t('costPricing.meterTypeRequired'))
-    return
+    message.error(t('costPricing.meterTypeRequired'));
+    return;
   }
   if (formData.costAmount == null || formData.costAmount <= 0) {
-    message.error(t('costPricing.costAmountRequired'))
-    return
+    message.error(t('costPricing.costAmountRequired'));
+    return;
   }
 
-  submitLoading.value = true
+  submitLoading.value = true;
   try {
-    const actionType = (formData.actionType || '').trim()
-    const provider = (formData.provider || '').trim()
-    const providerModel = (formData.providerModel || '').trim()
+    const actionType = (formData.actionType || '').trim();
+    const provider = (formData.provider || '').trim();
+    const providerModel = (formData.providerModel || '').trim();
 
     if (isEdit.value && editId.value) {
       // 编辑：可清空的字段送 '' 表示清回 NULL（后端契约：null=不改，''=清空）。
@@ -365,9 +369,9 @@ async function handleSubmit() {
         effectiveTime: formData.effectiveTime || undefined,
         expireTime: formData.expireTime ?? '', // '' 表示清回永久有效
         status: formData.statusChecked,
-      }
-      await updateCostPricing(editId.value, data)
-      message.success(t('costPricing.updateSuccess'))
+      };
+      await updateCostPricing(editId.value, data);
+      message.success(t('costPricing.updateSuccess'));
     } else {
       // 新增：空的可选字段直接省略。
       const data = {
@@ -381,16 +385,16 @@ async function handleSubmit() {
         effectiveTime: formData.effectiveTime || undefined,
         expireTime: formData.expireTime || undefined,
         status: formData.statusChecked,
-      }
-      await createCostPricing(data)
-      message.success(t('costPricing.createSuccess'))
+      };
+      await createCostPricing(data);
+      message.success(t('costPricing.createSuccess'));
     }
-    modalVisible.value = false
-    tableRef.value?.reload()
+    modalVisible.value = false;
+    tableRef.value?.reload();
   } catch (error) {
-    console.error('Failed to save cost pricing:', error)
+    console.error('Failed to save cost pricing:', error);
   } finally {
-    submitLoading.value = false
+    submitLoading.value = false;
   }
 }
 
@@ -399,23 +403,22 @@ function handleDelete(record: ModelCostPricing) {
     title: t('common.warning'),
     content: t('costPricing.confirmDeletePricing'),
     onOk: async () => {
-      await deleteCostPricing(record.id)
-      message.success(t('costPricing.deleteSuccess'))
-      tableRef.value?.reload()
+      await deleteCostPricing(record.id);
+      message.success(t('costPricing.deleteSuccess'));
+      tableRef.value?.reload();
     },
-  })
+  });
 }
 
 function filterModelOption(input: string, option: any) {
-  const model = modelList.value.find(m => m.id === option.value)
-  if (!model) return false
-  return model.name.toLowerCase().includes(input.toLowerCase())
+  const model = modelList.value.find((m) => m.id === option.value);
+  if (!model) return false;
+  return model.name.toLowerCase().includes(input.toLowerCase());
 }
 
 onMounted(() => {
-  loadModels()
-})
+  loadModels();
+});
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

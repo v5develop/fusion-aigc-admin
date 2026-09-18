@@ -57,12 +57,7 @@
         </a-tab-pane>
 
         <a-tab-pane key="security" :tab="$t('settingsSystem.security')">
-          <a-form
-            layout="vertical"
-            :model="securityForm"
-            ref="securityFormRef"
-            class="max-w-2xl"
-          >
+          <a-form layout="vertical" :model="securityForm" ref="securityFormRef" class="max-w-2xl">
             <a-form-item :label="$t('settingsSystem.tokenExpireHours')" name="tokenExpireHours">
               <a-input-number
                 v-model:value="securityForm.tokenExpireHours"
@@ -102,7 +97,11 @@
               <a-switch v-model:checked="securityForm.enableIpWhitelist" />
             </a-form-item>
 
-            <a-form-item v-if="securityForm.enableIpWhitelist" :label="$t('settingsSystem.ipWhitelist')" name="ipWhitelist">
+            <a-form-item
+              v-if="securityForm.enableIpWhitelist"
+              :label="$t('settingsSystem.ipWhitelist')"
+              name="ipWhitelist"
+            >
               <a-textarea
                 v-model:value="securityForm.ipWhitelist"
                 :rows="4"
@@ -151,7 +150,11 @@
             </a-form-item>
 
             <a-form-item>
-              <a-button type="primary" @click="handleSaveNotification" :loading="savingNotification">
+              <a-button
+                type="primary"
+                @click="handleSaveNotification"
+                :loading="savingNotification"
+              >
                 {{ $t('common.save') }}
               </a-button>
             </a-form-item>
@@ -174,7 +177,9 @@
               class="agent-profile-block"
             >
               <a-form-item :label="profileLabel(item.profile)">
-                <div class="form-hint" style="margin-bottom: 8px">{{ profileHint(item.profile) }}</div>
+                <div class="form-hint" style="margin-bottom: 8px">
+                  {{ profileHint(item.profile) }}
+                </div>
                 <a-select
                   v-model:value="item.modelId"
                   :options="modelOptionsFor(item.profile)"
@@ -186,7 +191,11 @@
                   style="max-width: 360px"
                 />
                 <div class="form-hint">
-                  {{ item.profile === 'VISION' ? $t('settingsSystem.agentProfileVisionSelectHint') : $t('settingsSystem.agentModelSelectHint') }}
+                  {{
+                    item.profile === 'VISION'
+                      ? $t('settingsSystem.agentProfileVisionSelectHint')
+                      : $t('settingsSystem.agentModelSelectHint')
+                  }}
                 </div>
               </a-form-item>
 
@@ -319,11 +328,7 @@
               </a-form-item>
 
               <a-form-item>
-                <a-button
-                  type="primary"
-                  @click="handleSaveAiWriting"
-                  :loading="savingAiWriting"
-                >
+                <a-button type="primary" @click="handleSaveAiWriting" :loading="savingAiWriting">
                   {{ $t('common.save') }}
                 </a-button>
               </a-form-item>
@@ -336,27 +341,46 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
-import { message } from 'antdv-next'
-import { useI18n } from 'vue-i18n'
-import { getSystemConfig, saveSystemConfig, getAgentModelProfiles, bindAgentModelProfile, getAiWritingModel, saveAiWritingModel, getVideoWatermarkEnabled, setVideoWatermarkEnabled, getBlindWatermarkEnabled, setBlindWatermarkEnabled, getDisplayWatermarkEnabled, setDisplayWatermarkEnabled, getPaidViewWatermarkEnabled, setPaidViewWatermarkEnabled, getUserTierEnabled, setUserTierEnabled } from '@/api/config'
-import { getModelOptions } from '@/api/model'
-import type { AIModel, AgentModelProfile } from '@/types/api'
+import type { AIModel, AgentModelProfile } from '@/types/api';
 
-const { t } = useI18n()
+import { message } from 'antdv-next';
+import { ref, reactive, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-const activeTab = ref('basic')
+import {
+  getSystemConfig,
+  saveSystemConfig,
+  getAgentModelProfiles,
+  bindAgentModelProfile,
+  getAiWritingModel,
+  saveAiWritingModel,
+  getVideoWatermarkEnabled,
+  setVideoWatermarkEnabled,
+  getBlindWatermarkEnabled,
+  setBlindWatermarkEnabled,
+  getDisplayWatermarkEnabled,
+  setDisplayWatermarkEnabled,
+  getPaidViewWatermarkEnabled,
+  setPaidViewWatermarkEnabled,
+  getUserTierEnabled,
+  setUserTierEnabled,
+} from '@/api/config';
+import { getModelOptions } from '@/api/model';
 
-const basicFormRef = ref()
+const { t } = useI18n();
 
-const savingBasic = ref(false)
-const savingSecurity = ref(false)
-const savingNotification = ref(false)
+const activeTab = ref('basic');
+
+const basicFormRef = ref();
+
+const savingBasic = ref(false);
+const savingSecurity = ref(false);
+const savingNotification = ref(false);
 
 const languageOptions = [
   { label: '简体中文', value: 'zh-CN' },
   { label: 'English', value: 'en-US' },
-]
+];
 
 const basicForm = reactive({
   siteName: 'Fusion AIGC',
@@ -364,11 +388,11 @@ const basicForm = reactive({
   defaultLanguage: 'zh-CN',
   defaultPoints: 100,
   pointsExpireDays: 365,
-})
+});
 
 const basicRules = {
   siteName: [{ required: true, message: t('settingsSystem.siteNameRequired'), trigger: 'blur' }],
-}
+};
 
 const securityForm = reactive({
   tokenExpireHours: 24,
@@ -377,41 +401,41 @@ const securityForm = reactive({
   enableCaptcha: false,
   enableIpWhitelist: false,
   ipWhitelist: '',
-})
+});
 
 const notificationForm = reactive({
   lowPointsThreshold: 50,
   enableExpireNotify: true,
   expireNotifyDays: 7,
-})
+});
 
 // ===== Agent 模型档位路由配置（提示词优化按是否带图自动路由 TEXT/VISION 档；与用户权限角色无关）=====
-const loadingModels = ref(false)
-const models = ref<AIModel[]>([])
-const savingProfile = ref<string | null>(null)
+const loadingModels = ref(false);
+const models = ref<AIModel[]>([]);
+const savingProfile = ref<string | null>(null);
 
 /**
  * 视频展示水印开关。读到的是「DB 优先、未配置回退 yaml」后的实际生效值，
  * 所以首次进来显示 false 时 DB 里未必有该行——一旦切换就会写入 DB 并从此以 DB 为准。
  */
-const videoWatermarkEnabled = ref(false)
-const savingVideoWatermark = ref(false)
+const videoWatermarkEnabled = ref(false);
+const savingVideoWatermark = ref(false);
 
 /** 图片盲水印开关。同样是 DB 优先后的实际生效值。 */
-const blindWatermarkEnabled = ref(false)
-const savingBlindWatermark = ref(false)
-const displayWatermarkEnabled = ref(false)
-const savingDisplayWatermark = ref(false)
-const paidViewWatermarkEnabled = ref(false)
-const savingPaidViewWatermark = ref(false)
-const userTierEnabled = ref(false)
-const savingUserTier = ref(false)
+const blindWatermarkEnabled = ref(false);
+const savingBlindWatermark = ref(false);
+const displayWatermarkEnabled = ref(false);
+const savingDisplayWatermark = ref(false);
+const paidViewWatermarkEnabled = ref(false);
+const savingPaidViewWatermark = ref(false);
+const userTierEnabled = ref(false);
+const savingUserTier = ref(false);
 // 后端返回 TEXT/VISION 两档；modelId 可被 v-model 就地编辑，保存时按档提交
-const agentProfiles = ref<AgentModelProfile[]>([])
+const agentProfiles = ref<AgentModelProfile[]>([]);
 
 // 前端「AI 帮写」专用优化模型（独立一档，与管线内部自动优化解耦）；null=未配置回退默认档位路由
-const aiWritingModelId = ref<number | null>(null)
-const savingAiWriting = ref(false)
+const aiWritingModelId = ref<number | null>(null);
+const savingAiWriting = ref(false);
 
 // 全部启用模型的下拉项（label 含 code）
 const allModelOptions = computed(() =>
@@ -419,88 +443,88 @@ const allModelOptions = computed(() =>
     label: m.code ? `${m.name} (${m.code})` : m.name,
     value: m.id,
     supportVision: !!m.supportVision,
-  }))
-)
+  })),
+);
 
 // VISION 档仅可选支持视觉的模型；TEXT 档不限
 function modelOptionsFor(profile: string) {
   if (profile === 'VISION') {
-    return allModelOptions.value.filter((o) => o.supportVision)
+    return allModelOptions.value.filter((o) => o.supportVision);
   }
-  return allModelOptions.value
+  return allModelOptions.value;
 }
 
 function metaFor(modelId: number | null) {
-  const model = models.value.find((m) => m.id === modelId)
-  if (!model) return null
-  return { code: model.code, supportVision: model.supportVision }
+  const model = models.value.find((m) => m.id === modelId);
+  if (!model) return null;
+  return { code: model.code, supportVision: model.supportVision };
 }
 
 function profileLabel(profile: string) {
   return profile === 'VISION'
     ? t('settingsSystem.agentProfileVision')
-    : t('settingsSystem.agentProfileText')
+    : t('settingsSystem.agentProfileText');
 }
 
 function profileHint(profile: string) {
   return profile === 'VISION'
     ? t('settingsSystem.agentProfileVisionHint')
-    : t('settingsSystem.agentProfileTextHint')
+    : t('settingsSystem.agentProfileTextHint');
 }
 
 async function loadAgentModelConfig() {
-  loadingModels.value = true
+  loadingModels.value = true;
   try {
     const [options, profiles, aiWriting] = await Promise.all([
       getModelOptions(),
       getAgentModelProfiles(),
       getAiWritingModel(),
-    ])
-    models.value = options ?? []
+    ]);
+    models.value = options ?? [];
     // 保证 TEXT 在前、VISION 在后的稳定顺序
-    const order = ['TEXT', 'VISION']
+    const order = ['TEXT', 'VISION'];
     agentProfiles.value = (profiles ?? [])
       .slice()
-      .sort((a, b) => order.indexOf(a.profile) - order.indexOf(b.profile))
-    aiWritingModelId.value = aiWriting?.modelId ?? null
+      .sort((a, b) => order.indexOf(a.profile) - order.indexOf(b.profile));
+    aiWritingModelId.value = aiWriting?.modelId ?? null;
   } catch {
     // Error handled by interceptor
   } finally {
-    loadingModels.value = false
+    loadingModels.value = false;
   }
 }
 
 async function handleSaveProfile(item: AgentModelProfile) {
-  savingProfile.value = item.profile
+  savingProfile.value = item.profile;
   try {
-    await bindAgentModelProfile(item.profile, item.modelId ?? null)
-    message.success(t('settingsSystem.saveSuccess'))
+    await bindAgentModelProfile(item.profile, item.modelId ?? null);
+    message.success(t('settingsSystem.saveSuccess'));
   } catch {
     // Error handled by interceptor
   } finally {
-    savingProfile.value = null
+    savingProfile.value = null;
   }
 }
 
 async function handleSaveAiWriting() {
-  savingAiWriting.value = true
+  savingAiWriting.value = true;
   try {
-    await saveAiWritingModel(aiWritingModelId.value ?? null)
-    message.success(t('settingsSystem.saveSuccess'))
+    await saveAiWritingModel(aiWritingModelId.value ?? null);
+    message.success(t('settingsSystem.saveSuccess'));
   } catch {
     // Error handled by interceptor
   } finally {
-    savingAiWriting.value = false
+    savingAiWriting.value = false;
   }
 }
 
 async function loadConfig() {
   try {
-    const res = await getSystemConfig() as Record<string, Record<string, unknown>>
+    const res = (await getSystemConfig()) as Record<string, Record<string, unknown>>;
     if (res) {
-      if (res.basic) Object.assign(basicForm, res.basic)
-      if (res.security) Object.assign(securityForm, res.security)
-      if (res.notification) Object.assign(notificationForm, res.notification)
+      if (res.basic) Object.assign(basicForm, res.basic);
+      if (res.security) Object.assign(securityForm, res.security);
+      if (res.notification) Object.assign(notificationForm, res.notification);
     }
   } catch {
     // Use default values
@@ -509,60 +533,62 @@ async function loadConfig() {
 
 async function handleSaveBasic() {
   try {
-    await basicFormRef.value?.validateFields()
-    savingBasic.value = true
-    await saveSystemConfig({ section: 'basic', ...basicForm })
-    message.success(t('settingsSystem.saveSuccess'))
+    await basicFormRef.value?.validateFields();
+    savingBasic.value = true;
+    await saveSystemConfig({ section: 'basic', ...basicForm });
+    message.success(t('settingsSystem.saveSuccess'));
   } catch {
     // Validation error or API error handled by interceptor
   } finally {
-    savingBasic.value = false
+    savingBasic.value = false;
   }
 }
 
 async function handleSaveSecurity() {
-  savingSecurity.value = true
+  savingSecurity.value = true;
   try {
-    await saveSystemConfig({ section: 'security', ...securityForm })
-    message.success(t('settingsSystem.saveSuccess'))
+    await saveSystemConfig({ section: 'security', ...securityForm });
+    message.success(t('settingsSystem.saveSuccess'));
   } catch {
     // Error handled by interceptor
   } finally {
-    savingSecurity.value = false
+    savingSecurity.value = false;
   }
 }
 
 async function handleSaveNotification() {
-  savingNotification.value = true
+  savingNotification.value = true;
   try {
-    await saveSystemConfig({ section: 'notification', ...notificationForm })
-    message.success(t('settingsSystem.saveSuccess'))
+    await saveSystemConfig({ section: 'notification', ...notificationForm });
+    message.success(t('settingsSystem.saveSuccess'));
   } catch {
     // Error handled by interceptor
   } finally {
-    savingNotification.value = false
+    savingNotification.value = false;
   }
 }
 
 /** 读水印开关。失败不弹错：它只是设置页的一个开关，拉不到时保持关闭态即可，不该打断整页。 */
 async function loadVideoWatermark() {
   try {
-    videoWatermarkEnabled.value = await getVideoWatermarkEnabled()
+    videoWatermarkEnabled.value = await getVideoWatermarkEnabled();
   } catch {
     /* 错误已由拦截器提示 */
   }
 }
 
 async function handleToggleVideoWatermark(checked: boolean) {
-  savingVideoWatermark.value = true
+  savingVideoWatermark.value = true;
   try {
-    await setVideoWatermarkEnabled(checked)
-    message.success(checked ? t('settingsSystem.videoWatermarkOn') : t('settingsSystem.videoWatermarkOff'))
+    await setVideoWatermarkEnabled(checked);
+    message.success(
+      checked ? t('settingsSystem.videoWatermarkOn') : t('settingsSystem.videoWatermarkOff'),
+    );
   } catch {
     // 保存失败必须把开关拨回去，否则界面显示已开、实际没开，下次进来又变回来
-    videoWatermarkEnabled.value = !checked
+    videoWatermarkEnabled.value = !checked;
   } finally {
-    savingVideoWatermark.value = false
+    savingVideoWatermark.value = false;
   }
 }
 
@@ -574,101 +600,106 @@ async function handleToggleVideoWatermark(checked: boolean) {
  */
 async function loadDisplayWatermark() {
   try {
-    displayWatermarkEnabled.value = await getDisplayWatermarkEnabled()
+    displayWatermarkEnabled.value = await getDisplayWatermarkEnabled();
   } catch {
     /* 错误已由拦截器提示 */
   }
 }
 
 async function handleToggleDisplayWatermark(checked: boolean) {
-  savingDisplayWatermark.value = true
+  savingDisplayWatermark.value = true;
   try {
-    await setDisplayWatermarkEnabled(checked)
-    message.success(checked ? t('settingsSystem.displayWatermarkOn') : t('settingsSystem.displayWatermarkOff'))
+    await setDisplayWatermarkEnabled(checked);
+    message.success(
+      checked ? t('settingsSystem.displayWatermarkOn') : t('settingsSystem.displayWatermarkOff'),
+    );
   } catch {
-    displayWatermarkEnabled.value = !checked
+    displayWatermarkEnabled.value = !checked;
   } finally {
-    savingDisplayWatermark.value = false
+    savingDisplayWatermark.value = false;
   }
 }
 
 async function loadPaidViewWatermark() {
   try {
-    paidViewWatermarkEnabled.value = await getPaidViewWatermarkEnabled()
+    paidViewWatermarkEnabled.value = await getPaidViewWatermarkEnabled();
   } catch {
     /* 错误已由拦截器提示 */
   }
 }
 
 async function handleTogglePaidViewWatermark(checked: boolean) {
-  savingPaidViewWatermark.value = true
+  savingPaidViewWatermark.value = true;
   try {
-    await setPaidViewWatermarkEnabled(checked)
-    message.success(checked ? t('settingsSystem.paidViewWatermarkOn') : t('settingsSystem.paidViewWatermarkOff'))
+    await setPaidViewWatermarkEnabled(checked);
+    message.success(
+      checked ? t('settingsSystem.paidViewWatermarkOn') : t('settingsSystem.paidViewWatermarkOff'),
+    );
   } catch {
-    paidViewWatermarkEnabled.value = !checked
+    paidViewWatermarkEnabled.value = !checked;
   } finally {
-    savingPaidViewWatermark.value = false
+    savingPaidViewWatermark.value = false;
   }
 }
 
 async function loadUserTier() {
   try {
-    userTierEnabled.value = await getUserTierEnabled()
+    userTierEnabled.value = await getUserTierEnabled();
   } catch {
     /* 错误已由拦截器提示 */
   }
 }
 
 async function handleToggleUserTier(checked: boolean) {
-  savingUserTier.value = true
+  savingUserTier.value = true;
   try {
-    await setUserTierEnabled(checked)
-    message.success(checked ? t('settingsSystem.userTierOn') : t('settingsSystem.userTierOff'))
+    await setUserTierEnabled(checked);
+    message.success(checked ? t('settingsSystem.userTierOn') : t('settingsSystem.userTierOff'));
   } catch {
-    userTierEnabled.value = !checked
+    userTierEnabled.value = !checked;
   } finally {
-    savingUserTier.value = false
+    savingUserTier.value = false;
   }
 }
 
 async function loadBlindWatermark() {
   try {
-    blindWatermarkEnabled.value = await getBlindWatermarkEnabled()
+    blindWatermarkEnabled.value = await getBlindWatermarkEnabled();
   } catch {
     /* 错误已由拦截器提示 */
   }
 }
 
 async function handleToggleBlindWatermark(checked: boolean) {
-  savingBlindWatermark.value = true
+  savingBlindWatermark.value = true;
   try {
-    await setBlindWatermarkEnabled(checked)
-    message.success(checked ? t('settingsSystem.blindWatermarkOn') : t('settingsSystem.blindWatermarkOff'))
+    await setBlindWatermarkEnabled(checked);
+    message.success(
+      checked ? t('settingsSystem.blindWatermarkOn') : t('settingsSystem.blindWatermarkOff'),
+    );
   } catch {
     // 同视频水印：保存失败必须拨回去，否则界面显示已开、实际没开
-    blindWatermarkEnabled.value = !checked
+    blindWatermarkEnabled.value = !checked;
   } finally {
-    savingBlindWatermark.value = false
+    savingBlindWatermark.value = false;
   }
 }
 
 onMounted(() => {
-  loadConfig()
-  loadAgentModelConfig()
-  loadVideoWatermark()
-  loadBlindWatermark()
-  loadDisplayWatermark()
-  loadPaidViewWatermark()
-  loadUserTier()
-})
+  loadConfig();
+  loadAgentModelConfig();
+  loadVideoWatermark();
+  loadBlindWatermark();
+  loadDisplayWatermark();
+  loadPaidViewWatermark();
+  loadUserTier();
+});
 </script>
 
 <style scoped>
 .max-w-2xl {
   max-width: 720px;
 }
-
 
 .agent-model-alert {
   margin-bottom: 16px;

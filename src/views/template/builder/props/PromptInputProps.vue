@@ -9,7 +9,12 @@
     <section class="prompt-input-props__section">
       <div class="prompt-input-props__section-head">
         <span class="prompt-input-props__section-title">{{ $t('template.promptTemplate') }}</span>
-        <a-button type="link" size="small" class="prompt-input-props__ref" @click="pickerOpen = true">
+        <a-button
+          type="link"
+          size="small"
+          class="prompt-input-props__ref"
+          @click="pickerOpen = true"
+        >
           <Icon icon="antdv-next:LinkOutlined" />
           {{ $t('template.referencePrompt') }}
         </a-button>
@@ -96,11 +101,14 @@
                 @update:value="onSlotUpdate(index, 'placeholder', $event)"
               />
 
-              <div v-if="slots[index].slotType === 'select' || slots[index].slotType === 'chip'" class="prompt-input-props__sub">
+              <div
+                v-if="slots[index].slotType === 'select' || slots[index].slotType === 'chip'"
+                class="prompt-input-props__sub"
+              >
                 <a-form-item :label="$t('template.slotOptions')" style="margin-bottom: 0">
                   <div class="prompt-input-props__options">
                     <div
-                      v-for="(opt, oi) in (slots[index].options || [])"
+                      v-for="(opt, oi) in slots[index].options || []"
                       :key="oi"
                       class="prompt-input-props__option-row"
                     >
@@ -125,12 +133,7 @@
                         <Icon icon="antdv-next:CloseOutlined" />
                       </a-button>
                     </div>
-                    <a-button
-                      type="dashed"
-                      size="small"
-                      block
-                      @click="onAddOption(index)"
-                    >
+                    <a-button type="dashed" size="small" block @click="onAddOption(index)">
                       <Icon icon="antdv-next:PlusOutlined" />
                       {{ $t('template.addOption') }}
                     </a-button>
@@ -166,7 +169,10 @@
                 </a-form-item>
               </div>
 
-              <div v-if="slots[index].slotType === 'number'" class="prompt-input-props__sub prompt-input-props__number-grid">
+              <div
+                v-if="slots[index].slotType === 'number'"
+                class="prompt-input-props__sub prompt-input-props__number-grid"
+              >
                 <a-form-item :label="$t('prompt.slotDefaultValue')" style="margin-bottom: 0">
                   <a-input-number
                     :value="toOptionalNumber(slots[index].defaultValue)"
@@ -202,11 +208,7 @@
                 </a-form-item>
               </div>
             </div>
-            <a-button
-              type="text"
-              class="prompt-input-props__remove"
-              @click="onRemoveSlot(index)"
-            >
+            <a-button type="text" class="prompt-input-props__remove" @click="onRemoveSlot(index)">
               <Icon icon="antdv-next:DeleteOutlined" />
             </a-button>
           </div>
@@ -226,27 +228,24 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import type { PromptRecord } from '@/api/prompt';
+import type { PromptInputWidgetConfig, PromptSlot } from '@/types/template-builder';
 
-import draggable from 'vuedraggable'
+import { computed, ref } from 'vue';
+import draggable from 'vuedraggable';
 
-import Icon from '@/components/Icon/index.vue'
-import { $t } from '@/locales'
-import type { PromptRecord } from '@/api/prompt'
-import type {
-  PromptInputWidgetConfig,
-  PromptSlot,
-} from '@/types/template-builder'
+import Icon from '@/components/Icon/index.vue';
+import { $t } from '@/locales';
 
-import PromptPickerModal from '../PromptPickerModal.vue'
+import PromptPickerModal from '../PromptPickerModal.vue';
 
 const props = defineProps<{
-  widget: PromptInputWidgetConfig
-}>()
+  widget: PromptInputWidgetConfig;
+}>();
 
 const emit = defineEmits<{
-  (e: 'update', patch: Record<string, unknown>): void
-}>()
+  (e: 'update', patch: Record<string, unknown>): void;
+}>();
 
 const slotTypeOptions: { label: string; value: PromptSlot['slotType'] }[] = [
   { label: $t('prompt.slotTypeText'), value: 'text' },
@@ -254,76 +253,72 @@ const slotTypeOptions: { label: string; value: PromptSlot['slotType'] }[] = [
   { label: $t('prompt.slotTypeImage'), value: 'image' },
   { label: $t('prompt.slotTypeChip'), value: 'chip' },
   { label: $t('prompt.slotTypeNumber'), value: 'number' },
-]
+];
 
-const slots = computed<PromptSlot[]>(() => props.widget.slots ?? [])
+const slots = computed<PromptSlot[]>(() => props.widget.slots ?? []);
 
-const pickerOpen = ref(false)
+const pickerOpen = ref(false);
 
 function onReferencePrompt(payload: { prompt: PromptRecord; mapVariables: boolean }): void {
-  const { prompt, mapVariables } = payload
-  const patch: Record<string, unknown> = { template: prompt.content }
+  const { prompt, mapVariables } = payload;
+  const patch: Record<string, unknown> = { template: prompt.content };
   if (mapVariables) {
     if (prompt.slots?.length) {
       // 高级提示词：直接搬运 slots（与模板系统同构，全保真）
-      patch.slots = prompt.slots.map(s => ({ ...s }))
+      patch.slots = prompt.slots.map((s) => ({ ...s }));
     } else if (prompt.variables?.length) {
       // 兼容存量纯文本提示词：variables 映射为 text slot
-      const mapped: PromptSlot[] = prompt.variables.map(v => ({
+      const mapped: PromptSlot[] = prompt.variables.map((v) => ({
         key: v.name,
         slotType: 'text',
         label: v.label || v.name,
         placeholder: v.defaultValue || '',
-      }))
-      patch.slots = mapped
+      }));
+      patch.slots = mapped;
     }
   }
-  emit('update', patch)
+  emit('update', patch);
 }
 
 function toNumber(value: unknown, fallback: number): number {
-  return typeof value === 'number' && !Number.isNaN(value) ? value : fallback
+  return typeof value === 'number' && !Number.isNaN(value) ? value : fallback;
 }
 
 function toOptionalNumber(value: unknown): number | undefined {
-  return typeof value === 'number' && !Number.isNaN(value) ? value : undefined
+  return typeof value === 'number' && !Number.isNaN(value) ? value : undefined;
 }
 
 function onUpdate<K extends keyof PromptInputWidgetConfig>(
   field: K,
   value: PromptInputWidgetConfig[K],
 ): void {
-  emit('update', { [field]: value })
+  emit('update', { [field]: value });
 }
 
 function commitSlots(next: PromptSlot[]): void {
-  emit('update', { slots: next })
+  emit('update', { slots: next });
 }
 
-function onSlotUpdate(
-  index: number,
-  field: keyof PromptSlot,
-  value: unknown,
-): void {
+function onSlotUpdate(index: number, field: keyof PromptSlot, value: unknown): void {
   const next = slots.value.map((s, i) => {
-    if (i !== index) return { ...s }
-    return { ...s, [field]: value }
-  })
-  commitSlots(next)
+    if (i !== index) return { ...s };
+    return { ...s, [field]: value };
+  });
+  commitSlots(next);
 }
 
 function onRemoveSlot(index: number): void {
-  commitSlots(slots.value.filter((_, i) => i !== index))
+  commitSlots(slots.value.filter((_, i) => i !== index));
 }
 
 function genSlotKey(type: PromptSlot['slotType']): string {
-  let index = slots.value.length + 1
-  let key = `${type}${index}`
-  while (slots.value.some(slot => slot.key === key)) {
-    index += 1
-    key = `${type}${index}`
+  let index = slots.value.length + 1;
+  let key = `${type}${index}`;
+  while (slots.value.some((slot) => slot.key === key)) {
+    index += 1;
+    key = `${type}${index}`;
   }
-  return key
+  return key;
 }
 
 function createSlot(type: PromptSlot['slotType'], key: string): PromptSlot {
@@ -332,53 +327,49 @@ function createSlot(type: PromptSlot['slotType'], key: string): PromptSlot {
     slotType: type,
     label: '',
     placeholder: '',
-  }
+  };
 
   if (type === 'select' || type === 'chip') {
-    slot.options = []
+    slot.options = [];
   }
   if (type === 'image') {
-    slot.maxCount = 1
+    slot.maxCount = 1;
   }
   if (type === 'number') {
-    slot.defaultValue = 1
-    slot.min = 1
-    slot.step = 1
+    slot.defaultValue = 1;
+    slot.min = 1;
+    slot.step = 1;
   }
 
-  return slot
+  return slot;
 }
 
 function onAddSlot(type: PromptSlot['slotType']): void {
-  const key = genSlotKey(type)
-  const newSlot = createSlot(type, key)
-  commitSlots([...slots.value, newSlot])
-  onUpdate('template', `${props.widget.template || ''}{{${key}}}`)
+  const key = genSlotKey(type);
+  const newSlot = createSlot(type, key);
+  commitSlots([...slots.value, newSlot]);
+  onUpdate('template', `${props.widget.template || ''}{{${key}}}`);
 }
 
 function onReorder(next: PromptSlot[]): void {
-  commitSlots(next.map((s) => ({ ...s })))
+  commitSlots(next.map((s) => ({ ...s })));
 }
 
 // ─── Options management for select/chip slots ──────────────
 
 function onAddOption(slotIndex: number): void {
-  const slot = slots.value[slotIndex]
-  const opts = slot.options ? [...slot.options] : []
-  opts.push({ label: '', value: '' })
-  const next = slots.value.map((s, i) =>
-    i === slotIndex ? { ...s, options: opts } : { ...s },
-  )
-  commitSlots(next)
+  const slot = slots.value[slotIndex];
+  const opts = slot.options ? [...slot.options] : [];
+  opts.push({ label: '', value: '' });
+  const next = slots.value.map((s, i) => (i === slotIndex ? { ...s, options: opts } : { ...s }));
+  commitSlots(next);
 }
 
 function onRemoveOption(slotIndex: number, optIndex: number): void {
-  const slot = slots.value[slotIndex]
-  const opts = (slot.options || []).filter((_, i) => i !== optIndex)
-  const next = slots.value.map((s, i) =>
-    i === slotIndex ? { ...s, options: opts } : { ...s },
-  )
-  commitSlots(next)
+  const slot = slots.value[slotIndex];
+  const opts = (slot.options || []).filter((_, i) => i !== optIndex);
+  const next = slots.value.map((s, i) => (i === slotIndex ? { ...s, options: opts } : { ...s }));
+  commitSlots(next);
 }
 
 function onOptionUpdate(
@@ -387,14 +378,12 @@ function onOptionUpdate(
   field: 'label' | 'value',
   value: string,
 ): void {
-  const slot = slots.value[slotIndex]
+  const slot = slots.value[slotIndex];
   const opts = (slot.options || []).map((o, i) =>
     i === optIndex ? { ...o, [field]: value } : { ...o },
-  )
-  const next = slots.value.map((s, i) =>
-    i === slotIndex ? { ...s, options: opts } : { ...s },
-  )
-  commitSlots(next)
+  );
+  const next = slots.value.map((s, i) => (i === slotIndex ? { ...s, options: opts } : { ...s }));
+  commitSlots(next);
 }
 </script>
 

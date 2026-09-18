@@ -26,13 +26,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref } from 'vue';
 
 interface Props {
-  width?: number | string
-  height?: number | string
-  text?: string
-  successText?: string
+  width?: number | string;
+  height?: number | string;
+  text?: string;
+  successText?: string;
 }
 
 withDefaults(defineProps<Props>(), {
@@ -40,115 +40,115 @@ withDefaults(defineProps<Props>(), {
   height: 40,
   text: 'Slide to verify',
   successText: 'Success',
-})
+});
 
 const emit = defineEmits<{
-  success: []
-  fail: []
-}>()
+  success: [];
+  fail: [];
+}>();
 
-const isMoving = ref(false)
-const isSuccess = ref(false)
-const sliderLeft = ref(0)
-const startX = ref(0)
-let containerWidth = 0
+const isMoving = ref(false);
+const isSuccess = ref(false);
+const sliderLeft = ref(0);
+const startX = ref(0);
+let containerWidth = 0;
 
 const handleMouseDown = (e: MouseEvent) => {
-  if (isSuccess.value) return
-  isMoving.value = true
-  startX.value = e.clientX
+  if (isSuccess.value) return;
+  isMoving.value = true;
+  startX.value = e.clientX;
 
-  const container = (e.target as HTMLElement).closest('.slider-bg')
-  const handle = (e.target as HTMLElement).closest('.slider-handle')
+  const container = (e.target as HTMLElement).closest('.slider-bg');
+  const handle = (e.target as HTMLElement).closest('.slider-handle');
   if (container && handle) {
-    containerWidth = container.clientWidth - handle.clientWidth
+    containerWidth = container.clientWidth - handle.clientWidth;
   }
 
-  document.addEventListener('mousemove', handleMouseMove)
-  document.addEventListener('mouseup', handleMouseUp)
-}
+  document.addEventListener('mousemove', handleMouseMove);
+  document.addEventListener('mouseup', handleMouseUp);
+};
 
 const handleMouseMove = (e: MouseEvent) => {
-  if (!isMoving.value) return
-  const offset = e.clientX - startX.value
+  if (!isMoving.value) return;
+  const offset = e.clientX - startX.value;
 
   if (offset < 0) {
-    sliderLeft.value = 0
+    sliderLeft.value = 0;
   } else if (offset > containerWidth) {
-    sliderLeft.value = containerWidth
+    sliderLeft.value = containerWidth;
   } else {
-    sliderLeft.value = offset
+    sliderLeft.value = offset;
   }
-}
+};
 
 const handleMouseUp = () => {
-  isMoving.value = false
-  document.removeEventListener('mousemove', handleMouseMove)
-  document.removeEventListener('mouseup', handleMouseUp)
-  finishDrag()
-}
+  isMoving.value = false;
+  document.removeEventListener('mousemove', handleMouseMove);
+  document.removeEventListener('mouseup', handleMouseUp);
+  finishDrag();
+};
 
 const handleTouchStart = (e: TouchEvent) => {
-  if (isSuccess.value) return
-  isMoving.value = true
-  startX.value = e.touches[0].clientX
+  if (isSuccess.value) return;
+  isMoving.value = true;
+  startX.value = e.touches[0].clientX;
 
-  const container = (e.target as HTMLElement).closest('.slider-bg')
-  const handle = (e.target as HTMLElement).closest('.slider-handle')
+  const container = (e.target as HTMLElement).closest('.slider-bg');
+  const handle = (e.target as HTMLElement).closest('.slider-handle');
   if (container && handle) {
-    containerWidth = container.clientWidth - handle.clientWidth
+    containerWidth = container.clientWidth - handle.clientWidth;
   }
 
-  document.addEventListener('touchmove', handleTouchMove, { passive: false })
-  document.addEventListener('touchend', handleTouchEnd)
-}
+  document.addEventListener('touchmove', handleTouchMove, { passive: false });
+  document.addEventListener('touchend', handleTouchEnd);
+};
 
 const handleTouchMove = (e: TouchEvent) => {
-  if (!isMoving.value) return
-  e.preventDefault()
-  const offset = e.touches[0].clientX - startX.value
+  if (!isMoving.value) return;
+  e.preventDefault();
+  const offset = e.touches[0].clientX - startX.value;
 
   if (offset < 0) {
-    sliderLeft.value = 0
+    sliderLeft.value = 0;
   } else if (offset > containerWidth) {
-    sliderLeft.value = containerWidth
+    sliderLeft.value = containerWidth;
   } else {
-    sliderLeft.value = offset
+    sliderLeft.value = offset;
   }
-}
+};
 
 const handleTouchEnd = () => {
-  isMoving.value = false
-  document.removeEventListener('touchmove', handleTouchMove)
-  document.removeEventListener('touchend', handleTouchEnd)
-  finishDrag()
-}
+  isMoving.value = false;
+  document.removeEventListener('touchmove', handleTouchMove);
+  document.removeEventListener('touchend', handleTouchEnd);
+  finishDrag();
+};
 
 const finishDrag = () => {
   if (sliderLeft.value >= containerWidth) {
-    isSuccess.value = true
-    sliderLeft.value = containerWidth
-    emit('success')
+    isSuccess.value = true;
+    sliderLeft.value = containerWidth;
+    emit('success');
   } else {
     const animate = () => {
       if (sliderLeft.value > 0) {
-        sliderLeft.value = Math.max(0, sliderLeft.value - 10)
-        requestAnimationFrame(animate)
+        sliderLeft.value = Math.max(0, sliderLeft.value - 10);
+        requestAnimationFrame(animate);
       } else {
-        emit('fail')
+        emit('fail');
       }
-    }
-    animate()
+    };
+    animate();
   }
-}
+};
 
 const reset = () => {
-  isSuccess.value = false
-  isMoving.value = false
-  sliderLeft.value = 0
-}
+  isSuccess.value = false;
+  isMoving.value = false;
+  sliderLeft.value = 0;
+};
 
-defineExpose({ reset })
+defineExpose({ reset });
 </script>
 
 <style scoped>

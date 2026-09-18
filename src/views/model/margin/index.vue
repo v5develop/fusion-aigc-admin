@@ -3,11 +3,7 @@
     <!-- 头部：日期范围 -->
     <div class="dashboard-header">
       <h2 class="dashboard-title">{{ t('margin.title') }}</h2>
-      <a-range-picker
-        v-model:value="dateRange"
-        value-format="YYYY-MM-DD"
-        @change="refreshAll"
-      />
+      <a-range-picker v-model:value="dateRange" value-format="YYYY-MM-DD" @change="refreshAll" />
     </div>
 
     <!-- 毛利率换算配置 -->
@@ -38,13 +34,25 @@
     <!-- 指标卡片 -->
     <a-row :gutter="[16, 16]" class="dashboard-row">
       <a-col :xs="12" :lg="6">
-        <ProStatCard :label="t('margin.revenueCny')" :value="`¥ ${fmt(summary.revenueCny)}`" tone="blue" />
+        <ProStatCard
+          :label="t('margin.revenueCny')"
+          :value="`¥ ${fmt(summary.revenueCny)}`"
+          tone="blue"
+        />
       </a-col>
       <a-col :xs="12" :lg="6">
-        <ProStatCard :label="t('margin.costCny')" :value="`¥ ${fmt(summary.costCny)}`" tone="orange" />
+        <ProStatCard
+          :label="t('margin.costCny')"
+          :value="`¥ ${fmt(summary.costCny)}`"
+          tone="orange"
+        />
       </a-col>
       <a-col :xs="12" :lg="6">
-        <ProStatCard :label="t('margin.marginCny')" :value="`¥ ${fmt(summary.marginCny)}`" tone="green" />
+        <ProStatCard
+          :label="t('margin.marginCny')"
+          :value="`¥ ${fmt(summary.marginCny)}`"
+          tone="green"
+        />
       </a-col>
       <a-col :xs="12" :lg="6">
         <ProStatCard :label="t('margin.marginRate')" :value="marginRateText" tone="purple" />
@@ -68,44 +76,45 @@
 </template>
 
 <script setup lang="ts">
-import { BarChart, LineChart } from 'echarts/charts'
-import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
-import { use } from 'echarts/core'
-import { CanvasRenderer } from 'echarts/renderers'
-import { computed, onMounted, ref } from 'vue'
-import VChart from 'vue-echarts'
-import { useI18n } from 'vue-i18n'
-import { message } from 'antdv-next'
+import type { MarginSummary, MarginByModel, MarginTrendPoint } from '@/types/api';
 
-import ProStatCard from '@/components/Pro/ProStatCard/index.vue'
+import { message } from 'antdv-next';
+import { BarChart, LineChart } from 'echarts/charts';
+import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components';
+import { use } from 'echarts/core';
+import { CanvasRenderer } from 'echarts/renderers';
+import { computed, onMounted, ref } from 'vue';
+import VChart from 'vue-echarts';
+import { useI18n } from 'vue-i18n';
+
 import {
   getMarginSummary,
   getMarginByModel,
   getMarginTrend,
   getMarginConfig,
   updateMarginConfig,
-} from '@/api/margin'
-import type { MarginSummary, MarginByModel, MarginTrendPoint } from '@/types/api'
-import { usePermission } from '@/composables/usePermission'
+} from '@/api/margin';
+import ProStatCard from '@/components/Pro/ProStatCard/index.vue';
+import { usePermission } from '@/composables/usePermission';
 
-use([LineChart, BarChart, GridComponent, TooltipComponent, LegendComponent, CanvasRenderer])
+use([LineChart, BarChart, GridComponent, TooltipComponent, LegendComponent, CanvasRenderer]);
 
-const { t } = useI18n()
-const { can } = usePermission()
-void can // 权限助手可用；margin 配置对所有可见页面的用户展示
+const { t } = useI18n();
+const { can } = usePermission();
+void can; // 权限助手可用；margin 配置对所有可见页面的用户展示
 
 // === 日期范围（默认近 7 天）===
 function daysAgo(n: number): string {
-  const d = new Date()
-  d.setDate(d.getDate() - n)
-  return d.toISOString().slice(0, 10)
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.toISOString().slice(0, 10);
 }
-const dateRange = ref<[string, string]>([daysAgo(6), daysAgo(0)])
+const dateRange = ref<[string, string]>([daysAgo(6), daysAgo(0)]);
 
 const dateParams = computed(() => ({
   startDate: dateRange.value?.[0],
   endDate: dateRange.value?.[1],
-}))
+}));
 
 // === 数据状态 ===
 const summary = ref<MarginSummary>({
@@ -115,26 +124,26 @@ const summary = ref<MarginSummary>({
   costCny: 0,
   marginCny: 0,
   marginRate: null,
-})
-const byModelData = ref<MarginByModel[]>([])
-const trendData = ref<MarginTrendPoint[]>([])
+});
+const byModelData = ref<MarginByModel[]>([]);
+const trendData = ref<MarginTrendPoint[]>([]);
 
 // === 毛利率换算配置 ===
-const rateInput = ref<number | undefined>(undefined)
-const savingRate = ref(false)
+const rateInput = ref<number | undefined>(undefined);
+const savingRate = ref(false);
 
 // === 工具函数 ===
 function fmt(v: number | string | null | undefined): string {
-  const n = Number(v ?? 0)
-  return Number.isFinite(n) ? n.toFixed(2) : '0.00'
+  const n = Number(v ?? 0);
+  return Number.isFinite(n) ? n.toFixed(2) : '0.00';
 }
 
 const marginRateText = computed(() => {
-  const r = summary.value.marginRate
-  if (r == null || r === '') return '-'
-  const n = Number(r)
-  return Number.isFinite(n) ? `${(n * 100).toFixed(2)}%` : '-'
-})
+  const r = summary.value.marginRate;
+  if (r == null || r === '') return '-';
+  const n = Number(r);
+  return Number.isFinite(n) ? `${(n * 100).toFixed(2)}%` : '-';
+});
 
 // === 图表 ===
 const trendOption = computed(() => ({
@@ -172,10 +181,10 @@ const trendOption = computed(() => ({
       areaStyle: { opacity: 0.1 },
     },
   ],
-}))
+}));
 
 const byModelOption = computed(() => {
-  const data = byModelData.value.slice(0, 10).reverse()
+  const data = byModelData.value.slice(0, 10).reverse();
   return {
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
     grid: { left: '3%', right: '8%', bottom: '5%', top: '5%', containLabel: true },
@@ -194,66 +203,66 @@ const byModelOption = computed(() => {
         barMaxWidth: 20,
       },
     ],
-  }
-})
+  };
+});
 
 // === 数据加载 ===
 async function loadSummary() {
   try {
-    summary.value = await getMarginSummary(dateParams.value)
+    summary.value = await getMarginSummary(dateParams.value);
   } catch (e) {
-    console.error('Failed to load margin summary:', e)
+    console.error('Failed to load margin summary:', e);
   }
 }
 
 async function loadByModel() {
   try {
-    byModelData.value = await getMarginByModel(dateParams.value)
+    byModelData.value = await getMarginByModel(dateParams.value);
   } catch (e) {
-    console.error('Failed to load margin by model:', e)
+    console.error('Failed to load margin by model:', e);
   }
 }
 
 async function loadTrend() {
   try {
-    trendData.value = await getMarginTrend(dateParams.value)
+    trendData.value = await getMarginTrend(dateParams.value);
   } catch (e) {
-    console.error('Failed to load margin trend:', e)
+    console.error('Failed to load margin trend:', e);
   }
 }
 
 async function loadRateConfig() {
   try {
-    const cfg = await getMarginConfig()
-    const raw = cfg?.pointsToCostCnyRate
-    rateInput.value = raw != null && raw !== '' ? Number(raw) : undefined
+    const cfg = await getMarginConfig();
+    const raw = cfg?.pointsToCostCnyRate;
+    rateInput.value = raw != null && raw !== '' ? Number(raw) : undefined;
   } catch (e) {
-    console.error('Failed to load margin config:', e)
+    console.error('Failed to load margin config:', e);
   }
 }
 
 async function refreshAll() {
-  await Promise.all([loadSummary(), loadByModel(), loadTrend()])
+  await Promise.all([loadSummary(), loadByModel(), loadTrend()]);
 }
 
 async function handleSaveRate() {
-  savingRate.value = true
+  savingRate.value = true;
   try {
     await updateMarginConfig({
       pointsToCostCnyRate: rateInput.value != null ? String(rateInput.value) : '',
-    })
-    message.success(t('margin.saveSuccess'))
-    await loadSummary()
+    });
+    message.success(t('margin.saveSuccess'));
+    await loadSummary();
   } catch (e) {
-    console.error('Failed to save margin config:', e)
+    console.error('Failed to save margin config:', e);
   } finally {
-    savingRate.value = false
+    savingRate.value = false;
   }
 }
 
 onMounted(async () => {
-  await Promise.all([refreshAll(), loadRateConfig()])
-})
+  await Promise.all([refreshAll(), loadRateConfig()]);
+});
 </script>
 
 <style scoped>
@@ -288,5 +297,4 @@ onMounted(async () => {
   height: 300px;
   width: 100%;
 }
-
 </style>

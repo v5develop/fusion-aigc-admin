@@ -62,11 +62,25 @@
 
         <!-- 只在「增加」时出现：扣减不是发放，标一个赠送来源没有意义，
              反而会让流水里出现「扣了一笔注册赠送」这种读不通的记录 -->
-        <a-form-item v-if="formData.adjustType === 'add'" :label="$t('points.grantSource')" name="grantSource">
-          <a-select v-model:value="formData.grantSource" allow-clear :placeholder="$t('points.grantSourcePlaceholder')">
-            <a-select-option value="REGISTER_GIFT">{{ $t('points.grantSourceRegister') }}</a-select-option>
-            <a-select-option value="CAMPAIGN_GIFT">{{ $t('points.grantSourceCampaign') }}</a-select-option>
-            <a-select-option value="ADMIN_GIFT">{{ $t('points.grantSourceAdmin') }}</a-select-option>
+        <a-form-item
+          v-if="formData.adjustType === 'add'"
+          :label="$t('points.grantSource')"
+          name="grantSource"
+        >
+          <a-select
+            v-model:value="formData.grantSource"
+            allow-clear
+            :placeholder="$t('points.grantSourcePlaceholder')"
+          >
+            <a-select-option value="REGISTER_GIFT">{{
+              $t('points.grantSourceRegister')
+            }}</a-select-option>
+            <a-select-option value="CAMPAIGN_GIFT">{{
+              $t('points.grantSourceCampaign')
+            }}</a-select-option>
+            <a-select-option value="ADMIN_GIFT">{{
+              $t('points.grantSourceAdmin')
+            }}</a-select-option>
           </a-select>
           <div class="text-xs text-gray-500 mt-1">{{ $t('points.grantSourceDesc') }}</div>
         </a-form-item>
@@ -79,7 +93,11 @@
           />
         </a-form-item>
 
-        <a-form-item v-if="isHighRiskOperation" :label="$t('points.approvalTicketId')" name="approvalTicketId">
+        <a-form-item
+          v-if="isHighRiskOperation"
+          :label="$t('points.approvalTicketId')"
+          name="approvalTicketId"
+        >
           <a-input
             v-model:value="formData.approvalTicketId"
             :placeholder="$t('points.approvalTicketPlaceholder')"
@@ -87,7 +105,12 @@
         </a-form-item>
 
         <a-form-item>
-          <a-button type="primary" @click="handleSubmit" :loading="submitting" :disabled="!selectedUser">
+          <a-button
+            type="primary"
+            @click="handleSubmit"
+            :loading="submitting"
+            :disabled="!selectedUser"
+          >
             {{ $t('common.submit') }}
           </a-button>
         </a-form-item>
@@ -118,14 +141,21 @@
             {{ selectedUser?.username }} (ID: {{ selectedUser?.id }})
           </a-descriptions-item>
           <a-descriptions-item :label="$t('points.operationAmount')">
-            <span :class="formData.adjustType === 'deduct' ? 'text-red-500' : 'text-green-500'" class="font-medium">
-              {{ formData.adjustType === 'add' ? '+' : formData.adjustType === 'deduct' ? '-' : '' }}{{ formData.adjustAmount }}
+            <span
+              :class="formData.adjustType === 'deduct' ? 'text-red-500' : 'text-green-500'"
+              class="font-medium"
+            >
+              {{ formData.adjustType === 'add' ? '+' : formData.adjustType === 'deduct' ? '-' : ''
+              }}{{ formData.adjustAmount }}
             </span>
           </a-descriptions-item>
           <a-descriptions-item :label="$t('points.operationReason')">
             {{ formData.adjustReason }}
           </a-descriptions-item>
-          <a-descriptions-item v-if="formData.approvalTicketId" :label="$t('points.approvalTicketId')">
+          <a-descriptions-item
+            v-if="formData.approvalTicketId"
+            :label="$t('points.approvalTicketId')"
+          >
             {{ formData.approvalTicketId }}
           </a-descriptions-item>
         </a-descriptions>
@@ -135,28 +165,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { message } from 'antdv-next'
-import { adjustPoints } from '@/api/points'
-import { getUserDetail } from '@/api/user'
-import { uuid } from '@/utils/helpers'
+import { message } from 'antdv-next';
+import { ref, reactive, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n()
+import { adjustPoints } from '@/api/points';
+import { getUserDetail } from '@/api/user';
+import { uuid } from '@/utils/helpers';
+
+const { t } = useI18n();
 
 // 高风险操作阈值（可配置）
-const HIGH_RISK_THRESHOLD = 10000
+const HIGH_RISK_THRESHOLD = 10000;
 
-const formRef = ref()
-const submitting = ref(false)
-const confirmModalVisible = ref(false)
+const formRef = ref();
+const submitting = ref(false);
+const confirmModalVisible = ref(false);
 const selectedUser = ref<{
-  id: number
-  username: string
-  nickname: string
-  pointsBalance: number
-  unionBound: number
-} | null>(null)
+  id: number;
+  username: string;
+  nickname: string;
+  pointsBalance: number;
+  unionBound: number;
+} | null>(null);
 
 const formData = reactive({
   userId: '',
@@ -165,38 +196,42 @@ const formData = reactive({
   adjustAmount: undefined as number | undefined,
   adjustReason: '',
   approvalTicketId: '',
-})
+});
 
 const isHighRiskOperation = computed(() => {
-  return (formData.adjustAmount || 0) >= HIGH_RISK_THRESHOLD
-})
+  return (formData.adjustAmount || 0) >= HIGH_RISK_THRESHOLD;
+});
 
 const showHighRiskWarning = computed(() => {
-  return isHighRiskOperation.value
-})
+  return isHighRiskOperation.value;
+});
 
 const adjustTypeLabel = computed(() => {
   const map: Record<string, string> = {
     add: t('points.adjustTypeAdd'),
     deduct: t('points.adjustTypeDeduct'),
     set: t('points.adjustTypeSet'),
-  }
-  return map[formData.adjustType] || formData.adjustType
-})
+  };
+  return map[formData.adjustType] || formData.adjustType;
+});
 
 const rules = {
   userId: [{ required: true, message: t('points.userId') + t('common.required'), trigger: 'blur' }],
-  adjustType: [{ required: true, message: t('points.adjustType') + t('common.required'), trigger: 'change' }],
-  adjustAmount: [{ required: true, message: t('points.adjustAmount') + t('common.required'), trigger: 'blur' }],
+  adjustType: [
+    { required: true, message: t('points.adjustType') + t('common.required'), trigger: 'change' },
+  ],
+  adjustAmount: [
+    { required: true, message: t('points.adjustAmount') + t('common.required'), trigger: 'blur' },
+  ],
   adjustReason: [
     { required: true, message: t('points.adjustReason') + t('common.required'), trigger: 'blur' },
     { min: 2, message: t('points.adjustReason') + '至少2个字符', trigger: 'blur' },
     {
       validator: (_rule: unknown, value: string) => {
         if (/^\d+$/.test(value)) {
-          return Promise.reject(new Error(t('points.adjustReason') + '不能为纯数字'))
+          return Promise.reject(new Error(t('points.adjustReason') + '不能为纯数字'));
         }
-        return Promise.resolve()
+        return Promise.resolve();
       },
       trigger: 'blur',
     },
@@ -208,46 +243,49 @@ const rules = {
       trigger: 'blur',
       validator: (_rule: unknown, value: string) => {
         if (isHighRiskOperation.value && !value) {
-          return Promise.reject(new Error(t('points.approvalTicketId') + t('common.required')))
+          return Promise.reject(new Error(t('points.approvalTicketId') + t('common.required')));
         }
-        return Promise.resolve()
+        return Promise.resolve();
       },
     },
   ],
-}
+};
 
 async function handleSearchUser() {
   if (!formData.userId) {
-    message.warning(t('points.userIdRequired'))
-    return
+    message.warning(t('points.userIdRequired'));
+    return;
   }
   try {
-    const res = await getUserDetail(Number(formData.userId))
+    const res = await getUserDetail(Number(formData.userId));
     selectedUser.value = {
       id: res.id,
       username: res.username,
       nickname: res.nickname,
       pointsBalance: res.balance,
       unionBound: res.unionBound,
-    }
+    };
   } catch {
-    message.error(t('points.userNotFound'))
-    selectedUser.value = null
+    message.error(t('points.userNotFound'));
+    selectedUser.value = null;
   }
 }
 
 function handleSubmit() {
-  formRef.value?.validateFields().then(() => {
-    // 显示二次确认弹窗
-    confirmModalVisible.value = true
-  }).catch(() => {
-    // Validation error
-  })
+  formRef.value
+    ?.validateFields()
+    .then(() => {
+      // 显示二次确认弹窗
+      confirmModalVisible.value = true;
+    })
+    .catch(() => {
+      // Validation error
+    });
 }
 
 async function handleConfirmSubmit() {
   try {
-    submitting.value = true
+    submitting.value = true;
     await adjustPoints({
       userId: selectedUser.value!.id,
       adjustType: formData.adjustType,
@@ -256,17 +294,17 @@ async function handleConfirmSubmit() {
       // 只有「增加」才带来源：扣减不是发放。留空时后端沿用 ADMIN_ADJUST。
       grantSource: formData.adjustType === 'add' ? formData.grantSource || undefined : undefined,
       idempotencyKey: uuid(),
-    })
-    message.success(t('points.adjustSuccess'))
-    confirmModalVisible.value = false
-    formData.adjustAmount = undefined
-    formData.adjustReason = ''
-    formData.approvalTicketId = ''
-    handleSearchUser()
+    });
+    message.success(t('points.adjustSuccess'));
+    confirmModalVisible.value = false;
+    formData.adjustAmount = undefined;
+    formData.adjustReason = '';
+    formData.approvalTicketId = '';
+    handleSearchUser();
   } catch {
     // API error handled by interceptor
   } finally {
-    submitting.value = false
+    submitting.value = false;
   }
 }
 </script>

@@ -83,36 +83,34 @@
 </template>
 
 <script setup lang="ts">
-import draggable from 'vuedraggable'
+import type { TemplateSection, WidgetType } from '@/types/template-builder';
 
-import Icon from '@/components/Icon/index.vue'
-import { $t } from '@/locales'
-import type {
-  TemplateSection,
-  WidgetType,
-} from '@/types/template-builder'
+import draggable from 'vuedraggable';
+
+import Icon from '@/components/Icon/index.vue';
+import { $t } from '@/locales';
 
 defineProps<{
-  sections: TemplateSection[]
-  activeSectionId?: string
-}>()
+  sections: TemplateSection[];
+  activeSectionId?: string;
+}>();
 
 const emit = defineEmits<{
-  (e: 'reorder-sections', sections: TemplateSection[]): void
-  (e: 'select-section', id: string): void
-  (e: 'add-section'): void
-}>()
+  (e: 'reorder-sections', sections: TemplateSection[]): void;
+  (e: 'select-section', id: string): void;
+  (e: 'add-section'): void;
+}>();
 
 interface WidgetPaletteItem {
-  type: WidgetType
-  label: string
-  icon: string
+  type: WidgetType;
+  label: string;
+  icon: string;
 }
 
 interface WidgetGroup {
-  name: string
-  label: string
-  widgets: WidgetPaletteItem[]
+  name: string;
+  label: string;
+  widgets: WidgetPaletteItem[];
 }
 
 const widgetGroups: WidgetGroup[] = [
@@ -121,7 +119,11 @@ const widgetGroups: WidgetGroup[] = [
     label: $t('template.widgetGroupBasic'),
     widgets: [
       { type: 'input', label: $t('template.widgetInput'), icon: 'antdv-next:EditOutlined' },
-      { type: 'textarea', label: $t('template.widgetTextarea'), icon: 'antdv-next:AlignLeftOutlined' },
+      {
+        type: 'textarea',
+        label: $t('template.widgetTextarea'),
+        icon: 'antdv-next:AlignLeftOutlined',
+      },
       { type: 'select', label: $t('template.widgetSelect'), icon: 'antdv-next:CaretDownOutlined' },
       { type: 'number', label: $t('template.widgetNumber'), icon: 'antdv-next:NumberOutlined' },
       { type: 'switch', label: $t('template.widgetSwitch'), icon: 'antdv-next:SwapOutlined' },
@@ -132,18 +134,42 @@ const widgetGroups: WidgetGroup[] = [
     name: 'media',
     label: $t('template.widgetGroupMedia'),
     widgets: [
-      { type: 'image-uploader', label: $t('template.widgetImageUploader'), icon: 'antdv-next:PictureOutlined' },
-      { type: 'image-select', label: $t('template.widgetImageSelect'), icon: 'antdv-next:AppstoreOutlined' },
-      { type: 'file-uploader', label: $t('template.widgetFileUploader'), icon: 'antdv-next:CloudUploadOutlined' },
+      {
+        type: 'image-uploader',
+        label: $t('template.widgetImageUploader'),
+        icon: 'antdv-next:PictureOutlined',
+      },
+      {
+        type: 'image-select',
+        label: $t('template.widgetImageSelect'),
+        icon: 'antdv-next:AppstoreOutlined',
+      },
+      {
+        type: 'file-uploader',
+        label: $t('template.widgetFileUploader'),
+        icon: 'antdv-next:CloudUploadOutlined',
+      },
     ],
   },
   {
     name: 'interactive',
     label: $t('template.widgetGroupInteractive'),
     widgets: [
-      { type: 'chip-input', label: $t('template.widgetChipInput'), icon: 'antdv-next:TagsOutlined' },
-      { type: 'prompt-input', label: $t('template.widgetPromptInput'), icon: 'antdv-next:EditOutlined' },
-      { type: 'action-buttons', label: $t('template.widgetActionButtons'), icon: 'antdv-next:ThunderboltOutlined' },
+      {
+        type: 'chip-input',
+        label: $t('template.widgetChipInput'),
+        icon: 'antdv-next:TagsOutlined',
+      },
+      {
+        type: 'prompt-input',
+        label: $t('template.widgetPromptInput'),
+        icon: 'antdv-next:EditOutlined',
+      },
+      {
+        type: 'action-buttons',
+        label: $t('template.widgetActionButtons'),
+        icon: 'antdv-next:ThunderboltOutlined',
+      },
       { type: 'toolbar', label: $t('template.widgetToolbar'), icon: 'antdv-next:ToolOutlined' },
     ],
   },
@@ -151,33 +177,45 @@ const widgetGroups: WidgetGroup[] = [
     name: 'advanced',
     label: $t('template.widgetGroupAdvanced'),
     widgets: [
-      { type: 'color-picker', label: $t('template.widgetColorPicker'), icon: 'antdv-next:BgColorsOutlined' },
-      { type: 'radio-image', label: $t('template.widgetRadioImage'), icon: 'antdv-next:CheckSquareOutlined' },
-      { type: 'preset-select', label: $t('template.widgetPresetSelect'), icon: 'antdv-next:ProfileOutlined' },
+      {
+        type: 'color-picker',
+        label: $t('template.widgetColorPicker'),
+        icon: 'antdv-next:BgColorsOutlined',
+      },
+      {
+        type: 'radio-image',
+        label: $t('template.widgetRadioImage'),
+        icon: 'antdv-next:CheckSquareOutlined',
+      },
+      {
+        type: 'preset-select',
+        label: $t('template.widgetPresetSelect'),
+        icon: 'antdv-next:ProfileOutlined',
+      },
     ],
   },
-]
+];
 
 const SECTION_ICON_BY_ROLE: Record<TemplateSection['role'], string> = {
   primary: 'antdv-next:LayoutOutlined',
   sidebar: 'antdv-next:BorderRightOutlined',
   full: 'antdv-next:BorderHorizontalOutlined',
   inline: 'antdv-next:BlockOutlined',
-}
+};
 
 function sectionIcon(section: TemplateSection): string {
-  return SECTION_ICON_BY_ROLE[section.role] ?? 'antdv-next:LayoutOutlined'
+  return SECTION_ICON_BY_ROLE[section.role] ?? 'antdv-next:LayoutOutlined';
 }
 
 function onReorderSections(next: TemplateSection[]): void {
-  emit('reorder-sections', next)
+  emit('reorder-sections', next);
 }
 
 function onDragWidget(event: DragEvent, type: WidgetType): void {
   // 与 LayoutPreview 的 drop 解析约定一致：widget type 写入 'text/plain'
-  event.dataTransfer?.setData('text/plain', type)
+  event.dataTransfer?.setData('text/plain', type);
   if (event.dataTransfer) {
-    event.dataTransfer.effectAllowed = 'copy'
+    event.dataTransfer.effectAllowed = 'copy';
   }
 }
 </script>

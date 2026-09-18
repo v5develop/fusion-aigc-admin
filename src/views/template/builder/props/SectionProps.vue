@@ -66,10 +66,7 @@
         />
       </a-form-item>
 
-      <a-form-item
-        v-if="section.collapsible"
-        :label="$t('template.sectionCollapsedByDefault')"
-      >
+      <a-form-item v-if="section.collapsible" :label="$t('template.sectionCollapsedByDefault')">
         <a-switch
           :checked="section.collapsedByDefault === true"
           size="small"
@@ -81,48 +78,46 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import type { TemplateSection } from '@/types/template-builder';
 
-import { $t } from '@/locales'
-import type { TemplateSection } from '@/types/template-builder'
+import { computed } from 'vue';
+
+import { $t } from '@/locales';
 
 const props = defineProps<{
-  section: TemplateSection
-}>()
+  section: TemplateSection;
+}>();
 
 const emit = defineEmits<{
-  (e: 'update', patch: Partial<TemplateSection>): void
-}>()
+  (e: 'update', patch: Partial<TemplateSection>): void;
+}>();
 
-type SectionRole = TemplateSection['role']
+type SectionRole = TemplateSection['role'];
 
 const roleOptions: { label: string; value: SectionRole }[] = [
   { label: $t('template.sectionRolePrimary'), value: 'primary' },
   { label: $t('template.sectionRoleSidebar'), value: 'sidebar' },
   { label: $t('template.sectionRoleFull'), value: 'full' },
   { label: $t('template.sectionRoleInline'), value: 'inline' },
-]
+];
 
 /** padding 仅以数值形态编辑；Spacing 对象时输入框留空 */
 const paddingValue = computed<number | undefined>(() =>
   typeof props.section.padding === 'number' ? props.section.padding : undefined,
-)
+);
 
-function onUpdate<K extends keyof TemplateSection>(
-  field: K,
-  value: TemplateSection[K],
-): void {
-  emit('update', { [field]: value } as Partial<TemplateSection>)
+function onUpdate<K extends keyof TemplateSection>(field: K, value: TemplateSection[K]): void {
+  emit('update', { [field]: value } as Partial<TemplateSection>);
 }
 
 function onPaddingUpdate(value: number | string | null): void {
   if (value === null || value === '') {
-    onUpdate('padding', undefined)
-    return
+    onUpdate('padding', undefined);
+    return;
   }
-  const num = typeof value === 'number' ? value : Number(value)
-  if (Number.isNaN(num)) return
-  onUpdate('padding', num)
+  const num = typeof value === 'number' ? value : Number(value);
+  if (Number.isNaN(num)) return;
+  onUpdate('padding', num);
 }
 </script>
 

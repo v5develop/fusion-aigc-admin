@@ -28,11 +28,7 @@
       class="preset-empty"
     />
 
-    <div
-      v-else
-      class="preset-list"
-      :class="`preset-list--${displayMode}`"
-    >
+    <div v-else class="preset-list" :class="`preset-list--${displayMode}`">
       <div
         v-for="preset in presets"
         :key="preset.id"
@@ -67,7 +63,9 @@
           <div class="preset-title-row">
             <Icon
               v-if="displayMode === 'list'"
-              :icon="preset.id === selectedId ? 'antdv-next:check-circle' : 'antdv-next:AppstoreOutlined'"
+              :icon="
+                preset.id === selectedId ? 'antdv-next:check-circle' : 'antdv-next:AppstoreOutlined'
+              "
               :size="16"
               class="preset-list-icon"
             />
@@ -81,57 +79,54 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import type { PresetOption, PresetSelectWidgetConfig, RenderMode } from '@/types/template-builder';
 
-import Icon from '@/components/Icon/index.vue'
-import { $t } from '@/locales'
-import type {
-  PresetOption,
-  PresetSelectWidgetConfig,
-  RenderMode,
-} from '@/types/template-builder'
+import { computed } from 'vue';
+
+import Icon from '@/components/Icon/index.vue';
+import { $t } from '@/locales';
 
 const props = withDefaults(
   defineProps<{
-    config: PresetSelectWidgetConfig
-    mode: RenderMode
-    formValues?: Record<string, unknown>
-    isSelected?: boolean
+    config: PresetSelectWidgetConfig;
+    mode: RenderMode;
+    formValues?: Record<string, unknown>;
+    isSelected?: boolean;
   }>(),
   {
     formValues: undefined,
     isSelected: false,
   },
-)
+);
 
 const emit = defineEmits<{
-  (e: 'update:form-values', key: string, value: unknown): void
-}>()
+  (e: 'update:form-values', key: string, value: unknown): void;
+}>();
 
-const presets = computed<PresetOption[]>(() => props.config.presets ?? [])
+const presets = computed<PresetOption[]>(() => props.config.presets ?? []);
 
-const displayMode = computed(() => props.config.displayMode ?? 'cards')
+const displayMode = computed(() => props.config.displayMode ?? 'cards');
 
 /** 当前选中的 preset id：viewer 读 formValues，回退 defaultValue */
 const selectedId = computed<string>(() => {
-  const raw = props.formValues?.[props.config.key]
+  const raw = props.formValues?.[props.config.key];
   if (typeof raw === 'string') {
-    return raw
+    return raw;
   }
-  return typeof props.config.defaultValue === 'string' ? props.config.defaultValue : ''
-})
+  return typeof props.config.defaultValue === 'string' ? props.config.defaultValue : '';
+});
 
 function onSelect(id: string) {
   // builder 模式只读，不回写
   if (props.mode !== 'viewer') {
-    return
+    return;
   }
   // 切换同一项视为取消选中
-  const next = id === selectedId.value ? '' : id
+  const next = id === selectedId.value ? '' : id;
   // 本批次：仅 emit 自身选中的 preset id。
   // TODO(联动): 后续根据 config.linkedWidgets 与命中 preset.values，
   //   逐一 emit('update:form-values', linkedWidget.widgetKey, value) 联动其他 widget。
-  emit('update:form-values', props.config.key, next)
+  emit('update:form-values', props.config.key, next);
 }
 </script>
 

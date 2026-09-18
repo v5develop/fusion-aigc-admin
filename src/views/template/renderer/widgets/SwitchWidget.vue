@@ -19,10 +19,7 @@
         <span v-if="config.required" class="switch-widget__required">*</span>
       </span>
       <a-tooltip v-if="config.helpText" :title="config.helpText">
-        <Icon
-          icon="antdv-next:QuestionCircleOutlined"
-          class="switch-widget__help"
-        />
+        <Icon icon="antdv-next:QuestionCircleOutlined" class="switch-widget__help" />
       </a-tooltip>
     </div>
 
@@ -42,27 +39,28 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import type { RenderMode, SwitchWidgetConfig } from '@/types/template-builder';
 
-import Icon from '@/components/Icon/index.vue'
-import type { RenderMode, SwitchWidgetConfig } from '@/types/template-builder'
+import { computed } from 'vue';
+
+import Icon from '@/components/Icon/index.vue';
 
 const props = withDefaults(
   defineProps<{
-    config: SwitchWidgetConfig
-    mode: RenderMode
-    formValues?: Record<string, unknown>
-    isSelected?: boolean
+    config: SwitchWidgetConfig;
+    mode: RenderMode;
+    formValues?: Record<string, unknown>;
+    isSelected?: boolean;
   }>(),
   {
     formValues: undefined,
     isSelected: false,
   },
-)
+);
 
 const emit = defineEmits<{
-  (e: 'update:form-values', key: string, value: unknown): void
-}>()
+  (e: 'update:form-values', key: string, value: unknown): void;
+}>();
 
 const rootClass = computed(() => [
   'switch-widget',
@@ -70,50 +68,44 @@ const rootClass = computed(() => [
     'widget-wrapper': props.mode === 'builder',
     'widget-selected': props.mode === 'builder' && props.isSelected,
   },
-])
+]);
 
 /** builder 永远只读；viewer 下尊重 widget 级 disabled */
-const isDisabled = computed(
-  () => props.mode === 'builder' || props.config.disabled === true,
-)
+const isDisabled = computed(() => props.mode === 'builder' || props.config.disabled === true);
 
 /** 选中 / 未选中对应的业务值，默认 boolean true / false */
-const checkedValue = computed<string | number | boolean>(
-  () => props.config.checkedValue ?? true,
-)
+const checkedValue = computed<string | number | boolean>(() => props.config.checkedValue ?? true);
 const uncheckedValue = computed<string | number | boolean>(
   () => props.config.uncheckedValue ?? false,
-)
+);
 
 /** 原始值：viewer 优先取表单值，否则回退默认值 */
 const rawValue = computed<unknown>(() => {
   if (props.mode === 'viewer') {
-    const fromForm = props.formValues?.[props.config.key]
-    if (fromForm !== undefined) return fromForm
+    const fromForm = props.formValues?.[props.config.key];
+    if (fromForm !== undefined) return fromForm;
   }
-  return props.config.defaultValue
-})
+  return props.config.defaultValue;
+});
 
 /** 业务值反向映射为 a-switch 的 boolean 受控状态 */
 const currentChecked = computed<boolean>(() => {
-  const raw = rawValue.value
-  if (raw === checkedValue.value) return true
-  if (raw === uncheckedValue.value) return false
+  const raw = rawValue.value;
+  if (raw === checkedValue.value) return true;
+  if (raw === uncheckedValue.value) return false;
   // 兜底：未匹配到任一映射值时按真值性判断
-  return Boolean(raw)
-})
+  return Boolean(raw);
+});
 
 /** 当前状态文本，优先使用选中/未选中文案 */
 const stateText = computed<string>(() =>
-  currentChecked.value
-    ? props.config.checkedText ?? ''
-    : props.config.uncheckedText ?? '',
-)
+  currentChecked.value ? (props.config.checkedText ?? '') : (props.config.uncheckedText ?? ''),
+);
 
 function onChange(checked: unknown): void {
-  if (props.mode !== 'viewer') return
-  const next = checked === true ? checkedValue.value : uncheckedValue.value
-  emit('update:form-values', props.config.key, next)
+  if (props.mode !== 'viewer') return;
+  const next = checked === true ? checkedValue.value : uncheckedValue.value;
+  emit('update:form-values', props.config.key, next);
 }
 </script>
 

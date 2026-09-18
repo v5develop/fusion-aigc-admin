@@ -1,13 +1,7 @@
 <template>
   <div class="page-container">
     <a-card :title="$t('admin.user.management')">
-      <ProTable
-        ref="tableRef"
-        :columns="columns"
-        :request="loadData"
-        :search="{}"
-        row-key="id"
-      >
+      <ProTable ref="tableRef" :columns="columns" :request="loadData" :search="{}" row-key="id">
         <template #emptyText>
           <a-empty :description="$t('admin.user.noUserData')" />
         </template>
@@ -113,10 +107,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { message, Modal } from 'antdv-next'
-import ProTable from '@/components/Pro/ProTable/index.vue'
+import type { AdminRole } from '@/types/api';
+
+import { message, Modal } from 'antdv-next';
+import { ref, reactive, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+import { getAdminRoleList } from '@/api/admin-role';
 import {
   getAdminUserList,
   createAdminUser,
@@ -124,23 +121,22 @@ import {
   deleteAdminUser,
   resetAdminPassword,
   toggleAdminStatus,
-} from '@/api/admin-user'
-import { getAdminRoleList } from '@/api/admin-role'
-import type { AdminRole } from '@/types/api'
+} from '@/api/admin-user';
+import ProTable from '@/components/Pro/ProTable/index.vue';
 
-const { t } = useI18n()
+const { t } = useI18n();
 
-const tableRef = ref()
+const tableRef = ref();
 
 const statusMap: Record<number, string> = {
   1: t('common.enabled'),
   0: t('common.disabled'),
-}
+};
 
 const statusColorMap: Record<number, string> = {
   1: 'green',
   0: 'red',
-}
+};
 
 const columns = [
   {
@@ -195,7 +191,7 @@ const columns = [
     fixed: 'right' as const,
     align: 'center' as const,
   },
-]
+];
 
 async function loadData(params: Record<string, unknown>) {
   const res = await getAdminUserList({
@@ -203,34 +199,34 @@ async function loadData(params: Record<string, unknown>) {
     status: params.status as number | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
-  })
+  });
   return {
     data: res.list || [],
     total: res.total || 0,
     success: true,
-  }
+  };
 }
 
 // Role options for select
-const roleOptions = ref<Array<{ label: string; value: number }>>([])
+const roleOptions = ref<Array<{ label: string; value: number }>>([]);
 
 async function loadRoles() {
   try {
-    const res = await getAdminRoleList({ page: 1, pageSize: 100 })
+    const res = await getAdminRoleList({ page: 1, pageSize: 100 });
     roleOptions.value = (res.list || []).map((r: AdminRole) => ({
       label: r.roleName,
       value: r.id,
-    }))
+    }));
   } catch (error) {
-    console.error('Failed to load roles:', error)
+    console.error('Failed to load roles:', error);
   }
 }
 
 // CRUD Modal
-const modalVisible = ref(false)
-const submitLoading = ref(false)
-const isEdit = ref(false)
-const editId = ref<number | null>(null)
+const modalVisible = ref(false);
+const submitLoading = ref(false);
+const isEdit = ref(false);
+const editId = ref<number | null>(null);
 
 const formData = reactive({
   username: '',
@@ -240,53 +236,53 @@ const formData = reactive({
   password: '',
   roleIds: [] as number[],
   statusChecked: 1,
-})
+});
 
 function handleCreate() {
-  isEdit.value = false
-  editId.value = null
-  formData.username = ''
-  formData.realName = ''
-  formData.email = ''
-  formData.phone = ''
-  formData.password = ''
-  formData.roleIds = []
-  formData.statusChecked = 1
-  modalVisible.value = true
+  isEdit.value = false;
+  editId.value = null;
+  formData.username = '';
+  formData.realName = '';
+  formData.email = '';
+  formData.phone = '';
+  formData.password = '';
+  formData.roleIds = [];
+  formData.statusChecked = 1;
+  modalVisible.value = true;
 }
 
 function handleEdit(record: Record<string, unknown>) {
-  isEdit.value = true
-  editId.value = record.id as number
-  formData.username = record.username as string
-  formData.realName = (record.realName as string) || ''
-  formData.email = (record.email as string) || ''
-  formData.phone = (record.phone as string) || ''
-  formData.password = ''
-  formData.roleIds = ((record.roles as Array<{ id: number }>) || []).map(r => r.id)
-  formData.statusChecked = record.status as number
-  modalVisible.value = true
+  isEdit.value = true;
+  editId.value = record.id as number;
+  formData.username = record.username as string;
+  formData.realName = (record.realName as string) || '';
+  formData.email = (record.email as string) || '';
+  formData.phone = (record.phone as string) || '';
+  formData.password = '';
+  formData.roleIds = ((record.roles as Array<{ id: number }>) || []).map((r) => r.id);
+  formData.statusChecked = record.status as number;
+  modalVisible.value = true;
 }
 
 async function handleSubmit() {
   if (!formData.username) {
-    message.error(t('admin.user.usernameRequired'))
-    return
+    message.error(t('admin.user.usernameRequired'));
+    return;
   }
   if (!formData.realName) {
-    message.error(t('admin.user.realNameRequired'))
-    return
+    message.error(t('admin.user.realNameRequired'));
+    return;
   }
   if (!isEdit.value && !formData.password) {
-    message.error(t('admin.user.passwordRequired'))
-    return
+    message.error(t('admin.user.passwordRequired'));
+    return;
   }
   if (!formData.roleIds.length) {
-    message.error(t('admin.user.rolesRequired'))
-    return
+    message.error(t('admin.user.rolesRequired'));
+    return;
   }
 
-  submitLoading.value = true
+  submitLoading.value = true;
   try {
     const data: Record<string, unknown> = {
       username: formData.username,
@@ -295,24 +291,24 @@ async function handleSubmit() {
       phone: formData.phone,
       roleIds: formData.roleIds,
       status: formData.statusChecked,
-    }
+    };
     if (!isEdit.value) {
-      data.password = formData.password
+      data.password = formData.password;
     }
 
     if (isEdit.value && editId.value) {
-      await updateAdminUser(editId.value, data)
-      message.success(t('admin.user.updateSuccess'))
+      await updateAdminUser(editId.value, data);
+      message.success(t('admin.user.updateSuccess'));
     } else {
-      await createAdminUser(data)
-      message.success(t('admin.user.createSuccess'))
+      await createAdminUser(data);
+      message.success(t('admin.user.createSuccess'));
     }
-    modalVisible.value = false
-    tableRef.value?.refresh()
+    modalVisible.value = false;
+    tableRef.value?.refresh();
   } catch (error) {
-    console.error('Failed to save user:', error)
+    console.error('Failed to save user:', error);
   } finally {
-    submitLoading.value = false
+    submitLoading.value = false;
   }
 }
 
@@ -324,17 +320,17 @@ function handleResetPassword(record: Record<string, unknown>) {
     cancelText: t('common.cancel'),
     onOk: async () => {
       try {
-        await resetAdminPassword(record.id as number, { newPassword: '123456' })
-        message.success(t('common.success'))
+        await resetAdminPassword(record.id as number, { newPassword: '123456' });
+        message.success(t('common.success'));
       } catch (error) {
-        console.error('Reset password failed:', error)
+        console.error('Reset password failed:', error);
       }
     },
-  })
+  });
 }
 
 function handleToggleStatus(record: Record<string, unknown>) {
-  const newStatus = record.status === 1 ? 0 : 1
+  const newStatus = record.status === 1 ? 0 : 1;
   Modal.confirm({
     title: newStatus === 1 ? t('common.enable') : t('common.disable'),
     content: t('admin.user.toggleStatusConfirm', {
@@ -345,14 +341,14 @@ function handleToggleStatus(record: Record<string, unknown>) {
     cancelText: t('common.cancel'),
     onOk: async () => {
       try {
-        await toggleAdminStatus(record.id as number, newStatus)
-        message.success(t('common.success'))
-        tableRef.value?.refresh()
+        await toggleAdminStatus(record.id as number, newStatus);
+        message.success(t('common.success'));
+        tableRef.value?.refresh();
       } catch (error) {
-        console.error('Toggle status failed:', error)
+        console.error('Toggle status failed:', error);
       }
     },
-  })
+  });
 }
 
 function handleDelete(record: Record<string, unknown>) {
@@ -364,17 +360,17 @@ function handleDelete(record: Record<string, unknown>) {
     okType: 'danger',
     onOk: async () => {
       try {
-        await deleteAdminUser(record.id as number)
-        message.success(t('common.success'))
-        tableRef.value?.reload()
+        await deleteAdminUser(record.id as number);
+        message.success(t('common.success'));
+        tableRef.value?.reload();
       } catch (error) {
-        console.error('Delete failed:', error)
+        console.error('Delete failed:', error);
       }
     },
-  })
+  });
 }
 
 onMounted(() => {
-  loadRoles()
-})
+  loadRoles();
+});
 </script>

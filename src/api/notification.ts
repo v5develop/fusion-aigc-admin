@@ -1,10 +1,11 @@
-import { request } from '@/utils/request'
-import type { PageResult } from '@/types/api'
+import type { PageResult } from '@/types/api';
 import type {
   AdminNotification,
   NotificationPublishParams,
   NotificationQueryParams,
-} from '@/types/api'
+} from '@/types/api';
+
+import { request } from '@/utils/request';
 
 /**
  * 站内通知。
@@ -16,7 +17,7 @@ import type {
  * `notification:view` / `notification:publish` / `notification:delete`（撤回只给 super_admin）。
  */
 export function publishNotification(data: NotificationPublishParams) {
-  return request.post<number>('/api/v1/admin/notifications', data)
+  return request.post<number>('/api/v1/admin/notifications', data);
 }
 
 /**
@@ -24,7 +25,7 @@ export function publishNotification(data: NotificationPublishParams) {
  * 运营要据此判断「是不是已经发过了」。
  */
 export function getNotifications(params: NotificationQueryParams) {
-  return request.get<PageResult<AdminNotification>>('/api/v1/admin/notifications', { params })
+  return request.get<PageResult<AdminNotification>>('/api/v1/admin/notifications', { params });
 }
 
 /**
@@ -32,5 +33,5 @@ export function getNotifications(params: NotificationQueryParams) {
  * 保留是为了能回答「撤回前有多少人看过」，也避免误撤回后重新发布导致所有人再收到一次未读。
  */
 export function revokeNotification(id: number) {
-  return request.delete<boolean>(`/api/v1/admin/notifications/${id}`)
+  return request.delete<boolean>(`/api/v1/admin/notifications/${id}`);
 }

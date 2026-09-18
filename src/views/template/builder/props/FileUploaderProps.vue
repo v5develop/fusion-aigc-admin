@@ -45,26 +45,24 @@
 </template>
 
 <script setup lang="ts">
-import { $t } from '@/locales'
-import type { FileUploaderWidgetConfig } from '@/types/template-builder'
+import type { FileUploaderWidgetConfig } from '@/types/template-builder';
+
+import { $t } from '@/locales';
 
 const props = defineProps<{
-  widget: FileUploaderWidgetConfig
-}>()
+  widget: FileUploaderWidgetConfig;
+}>();
 
 const emit = defineEmits<{
-  (e: 'update', patch: Record<string, unknown>): void
-}>()
+  (e: 'update', patch: Record<string, unknown>): void;
+}>();
 
-function onUpdateNumber(
-  field: 'maxCount' | 'maxSizeMB',
-  value: number | null,
-): void {
-  emit('update', { [field]: value === null ? undefined : value })
+function onUpdateNumber(field: 'maxCount' | 'maxSizeMB', value: number | null): void {
+  emit('update', { [field]: value === null ? undefined : value });
 }
 
 function onUpdateText(field: 'accept' | 'dragHint', value: string): void {
-  emit('update', { [field]: value.length === 0 ? undefined : value })
+  emit('update', { [field]: value.length === 0 ? undefined : value });
 }
 </script>
 

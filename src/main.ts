@@ -6,14 +6,15 @@ import { createApp } from 'vue';
 
 dayjs.locale('zh-cn');
 
+// form-create：JSON 表单渲染器 + 可视化表单设计器（用于 Mode 流的 mode 表单）
+import formCreate from '@form-create/ant-design-vue';
+import FcDesigner from '@form-create/antd-designer';
+
 import App from './App.vue';
 import { setupDirectives } from './directives';
 import i18n from './locales';
 import router from './router';
 import { useAuthStore } from './stores/auth';
-// form-create：JSON 表单渲染器 + 可视化表单设计器（用于 Mode 流的 mode 表单）
-import formCreate from '@form-create/ant-design-vue';
-import FcDesigner from '@form-create/antd-designer';
 // Import global styles
 // Tailwind CSS with @layer configuration (must come after reset.css)
 import 'antdv-next/dist/reset.css';

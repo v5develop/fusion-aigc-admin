@@ -1,27 +1,27 @@
 // Authentication Types
 
 export interface LoginParams {
-  username: string
-  password: string
+  username: string;
+  password: string;
 }
 
 export interface LoginResult {
-  accessToken: string
-  refreshToken: string
-  expiresIn: number
-  adminId: number
-  username: string
-  roleCode: string
-  user?: AdminInfo
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  adminId: number;
+  username: string;
+  roleCode: string;
+  user?: AdminInfo;
 }
 
 export interface AdminInfo {
-  id: number
-  username: string
-  nickname: string
-  avatar: string
-  roles: string[]
-  permissions: string[]
+  id: number;
+  username: string;
+  nickname: string;
+  avatar: string;
+  roles: string[];
+  permissions: string[];
 }
 
-export type UserInfo = AdminInfo
+export type UserInfo = AdminInfo;

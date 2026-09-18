@@ -1,58 +1,56 @@
-import { request } from '@/utils/request'
-import type { AxiosRequestConfig } from 'axios'
-import {
-  getToken, setToken, removeToken,
-  getUser, setUser, removeUser
-} from '@/utils/storage'
-import type { LoginParams, LoginResult, AdminInfo, UserInfo } from '@/types/auth'
+import type { LoginParams, LoginResult, AdminInfo, UserInfo } from '@/types/auth';
+import type { AxiosRequestConfig } from 'axios';
+
+import { request } from '@/utils/request';
+import { getToken, setToken, removeToken, getUser, setUser, removeUser } from '@/utils/storage';
 
 export function loginWithPassword(username: string, password: string) {
   return request.post<LoginResult>('/api/v1/admin/auth/login', { username, password }, {
     silentError: true,
-  } as AxiosRequestConfig & { silentError: boolean })
+  } as AxiosRequestConfig & { silentError: boolean });
 }
 
 export function refreshToken(refreshToken: string) {
-  return request.post<LoginResult>('/api/v1/admin/auth/refresh', { refreshToken })
+  return request.post<LoginResult>('/api/v1/admin/auth/refresh', { refreshToken });
 }
 
 export function logout() {
-  return request.post('/api/v1/admin/auth/logout')
+  return request.post('/api/v1/admin/auth/logout');
 }
 
 export function getAdminInfo() {
-  return request.get<AdminInfo>('/api/v1/admin/auth/info')
+  return request.get<AdminInfo>('/api/v1/admin/auth/info');
 }
 
 export function changePassword(params: { oldPassword: string; newPassword: string }) {
   return request.put('/api/v1/admin/auth/password', params, {
     silentError: true,
-  } as AxiosRequestConfig & { silentError: boolean })
+  } as AxiosRequestConfig & { silentError: boolean });
 }
 
 // Storage helpers for auth store compatibility
 export function getStoredToken(): string | null {
-  return getToken()
+  return getToken();
 }
 
 export function storeToken(token: string): void {
-  setToken(token)
+  setToken(token);
 }
 
 export function clearToken(): void {
-  removeToken()
+  removeToken();
 }
 
 export function getStoredUser(): UserInfo | null {
-  return getUser()
+  return getUser();
 }
 
 export function storeUser(user: UserInfo): void {
-  setUser(user)
+  setUser(user);
 }
 
 export function clearUser(): void {
-  removeUser()
+  removeUser();
 }
 
-export type { LoginParams, LoginResult, AdminInfo, UserInfo }
+export type { LoginParams, LoginResult, AdminInfo, UserInfo };

@@ -1,11 +1,6 @@
 <template>
   <div class="page-container">
-    <ProTable
-      :columns="columns"
-      :request="loadData"
-      :search="{}"
-      row-key="id"
-    >
+    <ProTable :columns="columns" :request="loadData" :search="{}" row-key="id">
       <template #emptyText>
         <a-empty :description="$t('billing.noPointsLogData')" />
       </template>
@@ -23,7 +18,9 @@
         </template>
 
         <template v-if="column.dataIndex === 'amount'">
-          <span :class="record.amount > 0 ? 'text-green-500' : record.amount < 0 ? 'text-red-500' : ''">
+          <span
+            :class="record.amount > 0 ? 'text-green-500' : record.amount < 0 ? 'text-red-500' : ''"
+          >
             {{ record.amount > 0 ? '+' : '' }}{{ record.amount }}
           </span>
         </template>
@@ -33,11 +30,12 @@
 </template>
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import ProTable from '@/components/Pro/ProTable/index.vue'
-import { getPointsLogList } from '@/api/points'
+import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n()
+import { getPointsLogList } from '@/api/points';
+import ProTable from '@/components/Pro/ProTable/index.vue';
+
+const { t } = useI18n();
 
 const typeMap: Record<string, string> = {
   GRANT: t('points.typeMap.grant'),
@@ -49,7 +47,7 @@ const typeMap: Record<string, string> = {
   UNFREEZE: t('points.typeMap.unfreeze'),
   REVOKE: t('points.typeMap.revoke'),
   RECHARGE: t('points.typeMap.recharge'),
-}
+};
 
 const bizTypeMap: Record<string, string> = {
   union: t('points.sourceMap.union'),
@@ -67,7 +65,7 @@ const bizTypeMap: Record<string, string> = {
   admin_adjust: t('points.bizTypeMap.adminAdjust'),
   BATCH_EXPIRE: t('points.bizTypeMap.batchExpire'),
   admin_revoke: t('points.bizTypeMap.adminRevoke'),
-}
+};
 
 const typeColorMap: Record<string, string> = {
   GRANT: 'green',
@@ -79,13 +77,13 @@ const typeColorMap: Record<string, string> = {
   UNFREEZE: 'cyan',
   REVOKE: 'red',
   RECHARGE: 'green',
-}
+};
 
 const bizTypeColorMap: Record<string, string> = {
   union: 'blue',
   manual: 'volcano',
   system: 'default',
-}
+};
 
 const columns = [
   {
@@ -161,7 +159,7 @@ const columns = [
     dataIndex: 'createTime',
     width: 180,
   },
-]
+];
 
 async function loadData(params: Record<string, unknown>) {
   const res = await getPointsLogList({
@@ -170,11 +168,11 @@ async function loadData(params: Record<string, unknown>) {
     bizType: params.bizType as string | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
-  })
+  });
   return {
     data: res.list || [],
     total: res.total || 0,
     success: true,
-  }
+  };
 }
 </script>

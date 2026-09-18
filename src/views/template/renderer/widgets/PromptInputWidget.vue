@@ -12,10 +12,7 @@
     - viewer : 完全可交互，槽位变化时 emit('update:form-values', widgetKey, { slotKey: value, ... })。
 -->
 <template>
-  <div
-    class="widget-wrapper"
-    :class="{ 'widget-selected': mode === 'builder' && isSelected }"
-  >
+  <div class="widget-wrapper" :class="{ 'widget-selected': mode === 'builder' && isSelected }">
     <div v-if="config.label" class="widget-header">
       <label class="widget-label">{{ config.label }}</label>
       <a-tooltip v-if="config.helpText" :title="config.helpText">
@@ -23,10 +20,7 @@
       </a-tooltip>
     </div>
 
-    <div
-      class="prompt-input-container"
-      :style="{ minHeight: `${config.minHeight || 80}px` }"
-    >
+    <div class="prompt-input-container" :style="{ minHeight: `${config.minHeight || 80}px` }">
       <template v-for="(segment, idx) in parsedSegments" :key="idx">
         <!-- 纯文本片段 -->
         <span v-if="segment.type === 'text'" class="prompt-text">
@@ -132,7 +126,7 @@
     <input
       v-for="slot in imageSlots"
       :key="slot.key"
-      :ref="el => setImageInputRef(slot.key, el as HTMLInputElement)"
+      :ref="(el) => setImageInputRef(slot.key, el as HTMLInputElement)"
       type="file"
       accept="image/*"
       hidden
@@ -142,180 +136,182 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, reactive } from 'vue'
-import { message } from 'antdv-next'
-import Icon from '@/components/Icon/index.vue'
 import type {
   ChipOption,
   PromptInputWidgetConfig,
   PromptSlot,
   RenderMode,
   SelectOption,
-} from '@/types/template-builder'
+} from '@/types/template-builder';
+
+import { message } from 'antdv-next';
+import { computed, onBeforeUnmount, reactive } from 'vue';
+
+import Icon from '@/components/Icon/index.vue';
 
 const props = withDefaults(
   defineProps<{
-    config: PromptInputWidgetConfig
-    mode: RenderMode
-    formValues?: Record<string, unknown>
-    isSelected?: boolean
+    config: PromptInputWidgetConfig;
+    mode: RenderMode;
+    formValues?: Record<string, unknown>;
+    isSelected?: boolean;
   }>(),
   { formValues: undefined, isSelected: false },
-)
+);
 
 const emit = defineEmits<{
-  (e: 'update:form-values', key: string, value: unknown): void
-}>()
+  (e: 'update:form-values', key: string, value: unknown): void;
+}>();
 
 // ─── 模板解析：将 template 拆分为文本片段和槽位 ──────────────
 
 interface TextSegment {
-  type: 'text'
-  content: string
+  type: 'text';
+  content: string;
 }
 
 interface SlotSegment {
-  type: 'slot'
-  slot: PromptSlot
+  type: 'slot';
+  slot: PromptSlot;
 }
 
-type Segment = TextSegment | SlotSegment
+type Segment = TextSegment | SlotSegment;
 
-const SLOT_PATTERN = /\{\{(\w+)\}\}/g
+const SLOT_PATTERN = /\{\{(\w+)\}\}/g;
 
 function parseTemplate(template: string, slots: PromptSlot[]): Segment[] {
-  const segments: Segment[] = []
-  const slotMap = new Map(slots.map((s) => [s.key, s]))
-  let lastIndex = 0
-  let match: RegExpExecArray | null
+  const segments: Segment[] = [];
+  const slotMap = new Map(slots.map((s) => [s.key, s]));
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
 
-  const regex = new RegExp(SLOT_PATTERN.source, 'g')
+  const regex = new RegExp(SLOT_PATTERN.source, 'g');
   while ((match = regex.exec(template)) !== null) {
     // 添加槽位前的纯文本
     if (match.index > lastIndex) {
-      segments.push({ type: 'text', content: template.slice(lastIndex, match.index) })
+      segments.push({ type: 'text', content: template.slice(lastIndex, match.index) });
     }
     // 添加槽位
-    const slotKey = match[1]
-    const slot = slotMap.get(slotKey)
+    const slotKey = match[1];
+    const slot = slotMap.get(slotKey);
     if (slot) {
-      segments.push({ type: 'slot', slot })
+      segments.push({ type: 'slot', slot });
     } else {
       // 未定义的槽位，作为纯文本保留
-      segments.push({ type: 'text', content: match[0] })
+      segments.push({ type: 'text', content: match[0] });
     }
-    lastIndex = regex.lastIndex
+    lastIndex = regex.lastIndex;
   }
   // 添加末尾纯文本
   if (lastIndex < template.length) {
-    segments.push({ type: 'text', content: template.slice(lastIndex) })
+    segments.push({ type: 'text', content: template.slice(lastIndex) });
   }
-  return segments
+  return segments;
 }
 
 const parsedSegments = computed<Segment[]>(() =>
   parseTemplate(props.config.template || '', props.config.slots || []),
-)
+);
 
 const imageSlots = computed<PromptSlot[]>(() =>
   (props.config.slots || []).filter((s) => s.slotType === 'image'),
-)
+);
 
 // ─── 槽位值管理 ────────────────────────────────────────────
 
 /** 读取单个槽位的值 */
 function slotValue(key: string): unknown {
-  const formVal = props.formValues?.[props.config.key]
+  const formVal = props.formValues?.[props.config.key];
   if (formVal && typeof formVal === 'object' && !Array.isArray(formVal)) {
-    const obj = formVal as Record<string, unknown>
-    return obj[key]
+    const obj = formVal as Record<string, unknown>;
+    return obj[key];
   }
   // 回退到 slot 默认值
-  const slot = props.config.slots?.find((s) => s.key === key)
-  return slot?.defaultValue
+  const slot = props.config.slots?.find((s) => s.key === key);
+  return slot?.defaultValue;
 }
 
 function slotNumberValue(slot: PromptSlot): number | undefined {
-  const value = slotValue(slot.key)
-  return typeof value === 'number' && !Number.isNaN(value) ? value : undefined
+  const value = slotValue(slot.key);
+  return typeof value === 'number' && !Number.isNaN(value) ? value : undefined;
 }
 
 /** 设置单个槽位的值 */
 function setSlotValue(key: string, value: unknown): void {
-  if (props.mode !== 'viewer') return
-  const current = (props.formValues?.[props.config.key] as Record<string, unknown>) || {}
-  const next = { ...current, [key]: value }
-  emit('update:form-values', props.config.key, next)
+  if (props.mode !== 'viewer') return;
+  const current = (props.formValues?.[props.config.key] as Record<string, unknown>) || {};
+  const next = { ...current, [key]: value };
+  emit('update:form-values', props.config.key, next);
 }
 
 function onSlotChange(key: string, value: unknown): void {
-  setSlotValue(key, value)
+  setSlotValue(key, value);
 }
 
 // ─── 图片上传 ──────────────────────────────────────────────
 
-const imageInputRefs = reactive<Record<string, HTMLInputElement | null>>({})
-const imageObjectUrls = reactive<Record<string, string>>({})
+const imageInputRefs = reactive<Record<string, HTMLInputElement | null>>({});
+const imageObjectUrls = reactive<Record<string, string>>({});
 
 function setImageInputRef(key: string, el: HTMLInputElement | null): void {
-  imageInputRefs[key] = el
+  imageInputRefs[key] = el;
 }
 
 function slotHasImage(key: string): boolean {
-  return !!imageObjectUrls[key] || !!slotValue(key)
+  return !!imageObjectUrls[key] || !!slotValue(key);
 }
 
 function slotImagePreview(key: string): string {
-  return imageObjectUrls[key] || ''
+  return imageObjectUrls[key] || '';
 }
 
 function triggerImageUpload(key: string): void {
-  if (props.mode !== 'viewer') return
-  imageInputRefs[key]?.click()
+  if (props.mode !== 'viewer') return;
+  imageInputRefs[key]?.click();
 }
 
 function onImageFileChange(key: string, event: Event): void {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
   if (!file.type.startsWith('image/')) {
-    message.warning('请选择图片文件')
-    return
+    message.warning('请选择图片文件');
+    return;
   }
   // 释放旧 URL
   if (imageObjectUrls[key]) {
-    URL.revokeObjectURL(imageObjectUrls[key])
+    URL.revokeObjectURL(imageObjectUrls[key]);
   }
-  const url = URL.createObjectURL(file)
-  imageObjectUrls[key] = url
-  setSlotValue(key, { url, name: file.name, size: file.size })
-  target.value = ''
+  const url = URL.createObjectURL(file);
+  imageObjectUrls[key] = url;
+  setSlotValue(key, { url, name: file.name, size: file.size });
+  target.value = '';
 }
 
 function removeImage(key: string): void {
-  if (props.mode !== 'viewer') return
+  if (props.mode !== 'viewer') return;
   if (imageObjectUrls[key]) {
-    URL.revokeObjectURL(imageObjectUrls[key])
-    delete imageObjectUrls[key]
+    URL.revokeObjectURL(imageObjectUrls[key]);
+    delete imageObjectUrls[key];
   }
-  setSlotValue(key, null)
+  setSlotValue(key, null);
 }
 
 onBeforeUnmount(() => {
   for (const url of Object.values(imageObjectUrls)) {
-    URL.revokeObjectURL(url)
+    URL.revokeObjectURL(url);
   }
-})
+});
 
 // ─── Chip 选项转换 ─────────────────────────────────────────
 
 function slotChipOptions(slot: PromptSlot): SelectOption[] {
   // 优先 presetChips（模板构建器路径），回退 options（提示词编辑器路径）
-  const chips = slot.presetChips || []
+  const chips = slot.presetChips || [];
   if (chips.length) {
-    return chips.map((c: ChipOption) => ({ label: c.label, value: c.key }))
+    return chips.map((c: ChipOption) => ({ label: c.label, value: c.key }));
   }
-  return (slot.options || []).map((o) => ({ label: o.label, value: o.value }))
+  return (slot.options || []).map((o) => ({ label: o.label, value: o.value }));
 }
 </script>
 

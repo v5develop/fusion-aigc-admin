@@ -125,7 +125,11 @@
             :placeholder="$t('pricing.durationPlaceholder')"
           />
           <div class="form-hint">
-            {{ formData.priceUnit === 'PER_SECOND' ? $t('pricing.durationHintPerSecond') : $t('pricing.durationHint') }}
+            {{
+              formData.priceUnit === 'PER_SECOND'
+                ? $t('pricing.durationHintPerSecond')
+                : $t('pricing.durationHint')
+            }}
           </div>
         </a-form-item>
         <a-form-item :label="$t('pricing.effectiveTime')">
@@ -159,44 +163,46 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
-import { PlusOutlined, ReloadOutlined } from '@antdv-next/icons'
-import { message, Modal } from 'antdv-next'
-import { useI18n } from 'vue-i18n'
-import ProTable from '@/components/Pro/ProTable/index.vue'
-import { getPricingList, createPricing, updatePricing, deletePricing } from '@/api/pricing'
-import { refreshOfferCache } from '@/api/billing-offer'
-import { getModelOptions } from '@/api/model'
-import { getActionTypesAll } from '@/api/action-type'
-import type { ModelPricing, ActionType, AIModel } from '@/types/api'
+import type { ModelPricing, ActionType, AIModel } from '@/types/api';
 
-const { t } = useI18n()
+import { PlusOutlined, ReloadOutlined } from '@antdv-next/icons';
+import { message, Modal } from 'antdv-next';
+import { ref, reactive, onMounted, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-const actionTypeList = ref<ActionType[]>([])
+import { getActionTypesAll } from '@/api/action-type';
+import { refreshOfferCache } from '@/api/billing-offer';
+import { getModelOptions } from '@/api/model';
+import { getPricingList, createPricing, updatePricing, deletePricing } from '@/api/pricing';
+import ProTable from '@/components/Pro/ProTable/index.vue';
+
+const { t } = useI18n();
+
+const actionTypeList = ref<ActionType[]>([]);
 const actionTypeOptions = computed(() =>
-  actionTypeList.value.map(item => ({ label: item.actionName, value: item.actionCode }))
-)
+  actionTypeList.value.map((item) => ({ label: item.actionName, value: item.actionCode })),
+);
 const actionTypeMap = computed<Record<string, string>>(() => {
-  const map: Record<string, string> = {}
+  const map: Record<string, string> = {};
   for (const item of actionTypeList.value) {
-    map[item.actionCode] = item.actionName
+    map[item.actionCode] = item.actionName;
   }
-  return map
-})
+  return map;
+});
 
 const priceUnitMap: Record<string, string> = {
   PER_REQUEST: t('pricing.unitPerRequest'),
   PER_IMAGE: t('pricing.unitPerImage'),
   PER_SECOND: t('pricing.unitPerSecond'),
   PER_1K_TOKENS: t('pricing.unitPer1kTokens'),
-}
+};
 
 const priceUnitOptions = [
   { label: t('pricing.unitPerRequest'), value: 'PER_REQUEST' },
   { label: t('pricing.unitPerImage'), value: 'PER_IMAGE' },
   { label: t('pricing.unitPerSecond'), value: 'PER_SECOND' },
   { label: t('pricing.unitPer1kTokens'), value: 'PER_1K_TOKENS' },
-]
+];
 
 const columns = computed(() => [
   {
@@ -270,25 +276,29 @@ const columns = computed(() => [
     align: 'center' as const,
     fixed: 'right' as const,
   },
-])
+]);
 
-const tableRef = ref()
-const modelList = ref<AIModel[]>([])
-const modelSelectOptions = computed(() => modelList.value.map(m => ({ label: m.name, value: m.id })))
-const modalVisible = ref(false)
-const submitLoading = ref(false)
-const isEdit = ref(false)
-const editId = ref<number | null>(null)
-const refreshing = ref(false)
+const tableRef = ref();
+const modelList = ref<AIModel[]>([]);
+const modelSelectOptions = computed(() =>
+  modelList.value.map((m) => ({ label: m.name, value: m.id })),
+);
+const modalVisible = ref(false);
+const submitLoading = ref(false);
+const isEdit = ref(false);
+const editId = ref<number | null>(null);
+const refreshing = ref(false);
 
 // 刷新计费缓存（OfferService）：改完定价/组件后同步内核缓存，避免报价用旧配置
 async function handleRefreshCache() {
-  refreshing.value = true
+  refreshing.value = true;
   try {
-    await refreshOfferCache()
-    message.success(t('pricing.cacheRefreshed'))
-  } catch { /* 拦截器已处理 */ } finally {
-    refreshing.value = false
+    await refreshOfferCache();
+    message.success(t('pricing.cacheRefreshed'));
+  } catch {
+    /* 拦截器已处理 */
+  } finally {
+    refreshing.value = false;
   }
 }
 
@@ -304,21 +314,21 @@ const formData = reactive({
   effectiveTime: undefined as string | undefined,
   expireTime: undefined as string | undefined,
   statusChecked: 1,
-})
+});
 
 async function loadModels() {
   try {
-    modelList.value = await getModelOptions()
+    modelList.value = await getModelOptions();
   } catch (error) {
-    console.error('Failed to load models:', error)
+    console.error('Failed to load models:', error);
   }
 }
 
 async function loadActionTypes() {
   try {
-    actionTypeList.value = await getActionTypesAll()
+    actionTypeList.value = await getActionTypesAll();
   } catch (error) {
-    console.error('Failed to load action types:', error)
+    console.error('Failed to load action types:', error);
   }
 }
 
@@ -329,68 +339,68 @@ async function loadData(params: Record<string, unknown>) {
     status: params.status as number | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
-  })
+  });
   return {
     data: res.list || [],
     total: res.total || 0,
     success: true,
-  }
+  };
 }
 
 function handleCreate() {
-  isEdit.value = false
-  editId.value = null
-  formData.modelId = undefined
-  formData.modelName = ''
-  formData.actionType = actionTypeList.value[0]?.actionCode || ''
-  formData.pricePoints = undefined
-  formData.priceUnit = 'PER_REQUEST'
-  formData.resolution = ''
-  formData.durationSeconds = undefined
-  formData.effectiveTime = undefined
-  formData.expireTime = undefined
-  formData.statusChecked = 1
-  modalVisible.value = true
+  isEdit.value = false;
+  editId.value = null;
+  formData.modelId = undefined;
+  formData.modelName = '';
+  formData.actionType = actionTypeList.value[0]?.actionCode || '';
+  formData.pricePoints = undefined;
+  formData.priceUnit = 'PER_REQUEST';
+  formData.resolution = '';
+  formData.durationSeconds = undefined;
+  formData.effectiveTime = undefined;
+  formData.expireTime = undefined;
+  formData.statusChecked = 1;
+  modalVisible.value = true;
 }
 
 function handleEdit(record: ModelPricing) {
-  isEdit.value = true
-  editId.value = record.id
-  formData.modelId = record.modelId
-  formData.modelName = record.modelName || ''
-  formData.actionType = record.actionType || ''
+  isEdit.value = true;
+  editId.value = record.id;
+  formData.modelId = record.modelId;
+  formData.modelName = record.modelName || '';
+  formData.actionType = record.actionType || '';
   // ?? 而非 ||：0 元行必须回显成 0，用 || 会被当成空值再填成 0——看着一样，但下面校验的语义不同
-  formData.pricePoints = record.pricePoints ?? undefined
-  formData.priceUnit = record.priceUnit || 'PER_REQUEST'
-  formData.resolution = record.resolution || ''
-  formData.durationSeconds = record.durationSeconds ?? undefined
-  formData.effectiveTime = record.effectiveTime || undefined
-  formData.expireTime = record.expireTime || undefined
-  formData.statusChecked = record.status
-  modalVisible.value = true
+  formData.pricePoints = record.pricePoints ?? undefined;
+  formData.priceUnit = record.priceUnit || 'PER_REQUEST';
+  formData.resolution = record.resolution || '';
+  formData.durationSeconds = record.durationSeconds ?? undefined;
+  formData.effectiveTime = record.effectiveTime || undefined;
+  formData.expireTime = record.expireTime || undefined;
+  formData.statusChecked = record.status;
+  modalVisible.value = true;
 }
 
 async function handleSubmit() {
   if (!formData.modelId) {
-    message.error(t('pricing.modelRequired'))
-    return
+    message.error(t('pricing.modelRequired'));
+    return;
   }
   if (!formData.actionType) {
-    message.error(t('pricing.actionTypeRequired'))
-    return
+    message.error(t('pricing.actionTypeRequired'));
+    return;
   }
   // 0 是合法定价（如豆包加工厂走用户自己绑定的账号，平台侧不收费），故不能用 falsy 判空——
   // 那会把「填了 0」和「没填」混为一谈。留空(null)与负数才拒。
   if (formData.pricePoints == null || formData.pricePoints < 0) {
-    message.error(t('pricing.pricePointsRequired'))
-    return
+    message.error(t('pricing.pricePointsRequired'));
+    return;
   }
-  const pricePoints = formData.pricePoints
+  const pricePoints = formData.pricePoints;
 
-  submitLoading.value = true
+  submitLoading.value = true;
   try {
-    const resolution = (formData.resolution || '').trim()
-    const hasDuration = formData.durationSeconds != null && formData.durationSeconds >= 0
+    const resolution = (formData.resolution || '').trim();
+    const hasDuration = formData.durationSeconds != null && formData.durationSeconds >= 0;
 
     if (isEdit.value && editId.value) {
       // 编辑：显式发送分档键/过期时间，支持清回通用档/永久有效。
@@ -405,9 +415,9 @@ async function handleSubmit() {
         effectiveTime: formData.effectiveTime || undefined,
         expireTime: formData.expireTime ?? '', // '' 表示清回永久有效
         status: formData.statusChecked,
-      }
-      await updatePricing(editId.value, data)
-      message.success(t('pricing.updateSuccess'))
+      };
+      await updatePricing(editId.value, data);
+      message.success(t('pricing.updateSuccess'));
     } else {
       // 新增：空分档键直接省略，由后端归一为通用档（NULL）。
       const data = {
@@ -420,16 +430,16 @@ async function handleSubmit() {
         effectiveTime: formData.effectiveTime || undefined,
         expireTime: formData.expireTime || undefined,
         status: formData.statusChecked,
-      }
-      await createPricing(data)
-      message.success(t('pricing.createSuccess'))
+      };
+      await createPricing(data);
+      message.success(t('pricing.createSuccess'));
     }
-    modalVisible.value = false
-    tableRef.value?.reload()
+    modalVisible.value = false;
+    tableRef.value?.reload();
   } catch (error) {
-    console.error('Failed to save pricing:', error)
+    console.error('Failed to save pricing:', error);
   } finally {
-    submitLoading.value = false
+    submitLoading.value = false;
   }
 }
 
@@ -438,24 +448,23 @@ function handleDelete(record: any) {
     title: t('common.warning'),
     content: t('pricing.confirmDeletePricing'),
     onOk: async () => {
-      await deletePricing(record.id)
-      message.success(t('pricing.deleteSuccess'))
-      tableRef.value?.reload()
+      await deletePricing(record.id);
+      message.success(t('pricing.deleteSuccess'));
+      tableRef.value?.reload();
     },
-  })
+  });
 }
 
 function filterModelOption(input: string, option: any) {
-  const model = modelList.value.find(m => m.id === option.value)
-  if (!model) return false
-  return model.name.toLowerCase().includes(input.toLowerCase())
+  const model = modelList.value.find((m) => m.id === option.value);
+  if (!model) return false;
+  return model.name.toLowerCase().includes(input.toLowerCase());
 }
 
 onMounted(() => {
-  loadModels()
-  loadActionTypes()
-})
+  loadModels();
+  loadActionTypes();
+});
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

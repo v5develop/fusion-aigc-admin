@@ -17,18 +17,11 @@
         <span v-if="config.required" class="radio-image__required">*</span>
       </span>
       <a-tooltip v-if="config.helpText" :title="config.helpText">
-        <Icon
-          icon="antdv-next:QuestionCircleOutlined"
-          class="radio-image__help"
-        />
+        <Icon icon="antdv-next:QuestionCircleOutlined" class="radio-image__help" />
       </a-tooltip>
     </div>
 
-    <div
-      v-if="config.options.length"
-      class="radio-image__grid"
-      :class="gridColsClass"
-    >
+    <div v-if="config.options.length" class="radio-image__grid" :class="gridColsClass">
       <div
         v-for="opt in config.options"
         :key="opt.value"
@@ -62,44 +55,41 @@
       </div>
     </div>
 
-    <a-empty
-      v-else
-      class="radio-image__empty"
-      :description="$t('template.radioImageEmpty')"
-    />
+    <a-empty v-else class="radio-image__empty" :description="$t('template.radioImageEmpty')" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import type { RadioImageWidgetConfig, RenderMode } from '@/types/template-builder';
 
-import Icon from '@/components/Icon/index.vue'
-import { $t } from '@/locales'
-import type { RadioImageWidgetConfig, RenderMode } from '@/types/template-builder'
+import { computed } from 'vue';
+
+import Icon from '@/components/Icon/index.vue';
+import { $t } from '@/locales';
 
 const props = withDefaults(
   defineProps<{
-    config: RadioImageWidgetConfig
-    mode: RenderMode
-    formValues?: Record<string, unknown>
-    isSelected?: boolean
+    config: RadioImageWidgetConfig;
+    mode: RenderMode;
+    formValues?: Record<string, unknown>;
+    isSelected?: boolean;
   }>(),
   {
     formValues: undefined,
     isSelected: false,
   },
-)
+);
 
 const emit = defineEmits<{
-  (e: 'update:form-values', key: string, value: unknown): void
-}>()
+  (e: 'update:form-values', key: string, value: unknown): void;
+}>();
 
 /** 不同 imageSize 对应的选项宽度映射 */
 const imageSizeMap: Record<'small' | 'medium' | 'large', string> = {
   small: '80px',
   medium: '120px',
   large: '160px',
-}
+};
 
 const rootClass = computed(() => [
   'radio-image',
@@ -107,31 +97,27 @@ const rootClass = computed(() => [
     'widget-wrapper': props.mode === 'builder',
     'widget-selected': props.mode === 'builder' && props.isSelected,
   },
-])
+]);
 
 /** 列数 → 栅格类名 (cols-N)，供 CSS 控制每行列数 */
-const gridColsClass = computed(() => `cols-${props.config.columns ?? 3}`)
+const gridColsClass = computed(() => `cols-${props.config.columns ?? 3}`);
 
 /** 单个选项宽度 */
-const optionWidth = computed(
-  () => imageSizeMap[props.config.imageSize ?? 'medium'],
-)
+const optionWidth = computed(() => imageSizeMap[props.config.imageSize ?? 'medium']);
 
 /** 当前选中值：viewer 优先取表单值，否则回退默认值 */
 const selectedValue = computed<string | undefined>(() => {
   if (props.mode === 'viewer') {
-    const fromForm = props.formValues?.[props.config.key]
-    if (typeof fromForm === 'string') return fromForm
+    const fromForm = props.formValues?.[props.config.key];
+    if (typeof fromForm === 'string') return fromForm;
   }
-  return typeof props.config.defaultValue === 'string'
-    ? props.config.defaultValue
-    : undefined
-})
+  return typeof props.config.defaultValue === 'string' ? props.config.defaultValue : undefined;
+});
 
 function selectOption(value: string): void {
-  if (props.mode !== 'viewer') return
-  if (props.config.disabled === true) return
-  emit('update:form-values', props.config.key, value)
+  if (props.mode !== 'viewer') return;
+  if (props.config.disabled === true) return;
+  emit('update:form-values', props.config.key, value);
 }
 </script>
 

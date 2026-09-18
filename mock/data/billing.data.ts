@@ -31,7 +31,7 @@ export const mockFeatures = [
     modelCount: 1,
     createTime: '2025-01-16T10:00:00',
   },
-]
+];
 
 export const mockModels = [
   {
@@ -72,7 +72,7 @@ export const mockModels = [
     createTime: '2025-01-11T10:00:00',
     updateTime: '2025-01-11T10:00:00',
   },
-]
+];
 
 export const mockPricing = [
   {
@@ -108,7 +108,7 @@ export const mockPricing = [
     status: 1,
     createTime: '2025-01-01T00:00:00',
   },
-]
+];
 
 export const mockCostLogs = [
   {
@@ -137,7 +137,7 @@ export const mockCostLogs = [
     costDetail: '{"input_tokens": 500}',
     createTime: '2025-01-15T11:00:00',
   },
-]
+];
 
 export const mockPointsLogs = [
   {
@@ -195,7 +195,7 @@ export const mockPointsLogs = [
     reason: '任务失败退款',
     createTime: '2025-01-15T15:00:00',
   },
-]
+];
 
 export const mockFeatureGrants = [
   {
@@ -216,7 +216,7 @@ export const mockFeatureGrants = [
     expireTime: '2025-07-15T09:30:00',
     status: 1,
   },
-]
+];
 
 export const mockChangeLogs = [
   {
@@ -239,7 +239,7 @@ export const mockChangeLogs = [
     remark: '联盟发放',
     createTime: '2025-01-15T09:30:00',
   },
-]
+];
 
 export const mockDifferences = [
   {
@@ -268,7 +268,7 @@ export const mockDifferences = [
     detail: '{"message": "本地消费与联盟记录不一致"}',
     createTime: '2025-01-15T12:30:00',
   },
-]
+];
 
 export const mockConsumptions = [
   {
@@ -316,13 +316,13 @@ export const mockConsumptions = [
     inputTokens: 2000,
     outputTokens: 800,
     pointsCost: 100,
-    thirdPartyCost: 0.10,
+    thirdPartyCost: 0.1,
     reservationNo: 'RSV20250115003',
     billingStatus: 'HELD',
     status: 3,
     createTime: '2025-01-15T12:00:00',
   },
-]
+];
 
 export const mockBillingExceptions = [
   {
@@ -364,7 +364,7 @@ export const mockBillingExceptions = [
     status: 'RESOLVED',
     createTime: '2025-01-15T14:00:00',
   },
-]
+];
 
 export const mockRechargeConsumptions = [
   {
@@ -391,7 +391,7 @@ export const mockRechargeConsumptions = [
     expireTime: null,
     expired: false,
   },
-]
+];
 
 export const mockUserPointsLogs = [
   {
@@ -448,4 +448,4 @@ export const mockUserPointsLogs = [
     description: '联盟创作能力下发',
     createTime: '2025-01-16 15:00:00',
   },
-]
+];

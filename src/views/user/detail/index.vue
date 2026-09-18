@@ -33,7 +33,12 @@
             </template>
 
             <div class="user-header">
-              <a-avatar v-if="userInfo?.avatar && !avatarFailed" :size="72" :src="userInfo?.avatar" @error="avatarFailed = true">
+              <a-avatar
+                v-if="userInfo?.avatar && !avatarFailed"
+                :size="72"
+                :src="userInfo?.avatar"
+                @error="avatarFailed = true"
+              >
                 {{ userInfo?.nickname?.charAt(0) }}
               </a-avatar>
               <a-avatar v-else :size="72">
@@ -106,11 +111,7 @@
               </a-button>
             </template>
             <template v-if="capabilities && capabilities.length > 0">
-              <div
-                v-for="item in capabilities"
-                :key="item.id"
-                class="capability-item"
-              >
+              <div v-for="item in capabilities" :key="item.id" class="capability-item">
                 <div class="capability-header">
                   <span class="capability-name">{{ getCapabilityName(item.featureCode) }}</span>
                   <a-tag :color="capabilityStatusColor(item.status)">
@@ -165,7 +166,9 @@
                 </template>
                 <template v-else-if="column.key === 'app'">
                   <span>{{ record.appKey || '-' }}</span>
-                  <div class="pool-ext-id">{{ record.externalUserId || record.unionUserId || '-' }}</div>
+                  <div class="pool-ext-id">
+                    {{ record.externalUserId || record.unionUserId || '-' }}
+                  </div>
                 </template>
                 <template v-else-if="column.key === 'balance'">
                   {{ record.balance ?? 0 }}
@@ -284,91 +287,93 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { message } from 'antdv-next'
-import { DollarOutlined, ArrowLeftOutlined } from '@antdv-next/icons'
-import dayjs from 'dayjs'
-import { getUserDetail, getUserCapabilities, getUserPool, resetUserCredentials } from '@/api/user'
-import { adjustPoints } from '@/api/points'
-import { usePermission } from '@/composables/usePermission'
-import { manualAddFeature, getFeatureOptions } from '@/api/feature'
-import { getLocale } from '@/locales'
-import { uuid } from '@/utils/helpers'
-import type { User, UserFeature, Feature, UserPool } from '@/types/api'
+import type { User, UserFeature, Feature, UserPool } from '@/types/api';
 
-const { t } = useI18n()
-const { hasRole } = usePermission()
-const router = useRouter()
-const route = useRoute()
-const currentLocale = computed(() => getLocale())
+import { DollarOutlined, ArrowLeftOutlined } from '@antdv-next/icons';
+import { message } from 'antdv-next';
+import dayjs from 'dayjs';
+import { ref, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRouter, useRoute } from 'vue-router';
 
-const loading = ref(false)
-const capabilitiesLoading = ref(false)
-const userInfo = ref<User | null>(null)
-const capabilities = ref<UserFeature[]>([])
-const pool = ref<UserPool | null>(null)
-const poolLoading = ref(false)
+import { manualAddFeature, getFeatureOptions } from '@/api/feature';
+import { adjustPoints } from '@/api/points';
+import { getUserDetail, getUserCapabilities, getUserPool, resetUserCredentials } from '@/api/user';
+import { usePermission } from '@/composables/usePermission';
+import { getLocale } from '@/locales';
+import { uuid } from '@/utils/helpers';
+
+const { t } = useI18n();
+const { hasRole } = usePermission();
+const router = useRouter();
+const route = useRoute();
+const currentLocale = computed(() => getLocale());
+
+const loading = ref(false);
+const capabilitiesLoading = ref(false);
+const userInfo = ref<User | null>(null);
+const capabilities = ref<UserFeature[]>([]);
+const pool = ref<UserPool | null>(null);
+const poolLoading = ref(false);
 
 const poolColumns = computed(() => [
   { title: t('user.poolMember'), key: 'member', dataIndex: 'nickname' },
   { title: t('user.poolApp'), key: 'app', dataIndex: 'appKey' },
   { title: t('user.pointsBalance'), key: 'balance', dataIndex: 'balance' },
   { title: t('user.poolBindSource'), key: 'bindSource', dataIndex: 'bindSource' },
-])
-const avatarFailed = ref(false)
+]);
+const avatarFailed = ref(false);
 
 // 调整点数相关
-const adjustModalVisible = ref(false)
-const adjustLoading = ref(false)
+const adjustModalVisible = ref(false);
+const adjustLoading = ref(false);
 const adjustForm = ref({
   userId: 0,
   amount: 0 as number,
   reason: '',
   adjustType: 'ADD' as string,
-})
+});
 
 // 授权创作能力相关
-const grantModalVisible = ref(false)
-const grantLoading = ref(false)
+const grantModalVisible = ref(false);
+const grantLoading = ref(false);
 const grantForm = ref({
   featureCode: undefined as string | undefined,
   expireTime: undefined as dayjs.Dayjs | undefined,
-})
-const featureOptions = ref<Feature[]>([])
+});
+const featureOptions = ref<Feature[]>([]);
 
 // 重置凭据相关（仅 super_admin；后端 @PreAuthorize 强制）
-const resetModalVisible = ref(false)
-const resetLoading = ref(false)
-const resetForm = ref({ newUsername: '', newPassword: '' })
+const resetModalVisible = ref(false);
+const resetLoading = ref(false);
+const resetForm = ref({ newUsername: '', newPassword: '' });
 function showResetModal() {
-  resetForm.value = { newUsername: '', newPassword: '' }
-  resetModalVisible.value = true
+  resetForm.value = { newUsername: '', newPassword: '' };
+  resetModalVisible.value = true;
 }
 async function handleConfirmReset() {
-  const newUsername = resetForm.value.newUsername?.trim()
-  const newPassword = resetForm.value.newPassword
+  const newUsername = resetForm.value.newUsername?.trim();
+  const newPassword = resetForm.value.newPassword;
   if (!newUsername && !newPassword) {
-    message.warning(t('user.resetCredentialEmpty'))
-    return
+    message.warning(t('user.resetCredentialEmpty'));
+    return;
   }
   if (newPassword && newPassword.length < 6) {
-    message.warning(t('user.passwordTooShort'))
-    return
+    message.warning(t('user.passwordTooShort'));
+    return;
   }
-  const id = Number(route.params.id)
-  resetLoading.value = true
+  const id = Number(route.params.id);
+  resetLoading.value = true;
   try {
     await resetUserCredentials(id, {
       newUsername: newUsername || undefined,
       newPassword: newPassword || undefined,
-    })
-    message.success(t('user.resetCredentialSuccess'))
-    resetModalVisible.value = false
-    fetchUserDetail()
+    });
+    message.success(t('user.resetCredentialSuccess'));
+    resetModalVisible.value = false;
+    fetchUserDetail();
   } finally {
-    resetLoading.value = false
+    resetLoading.value = false;
   }
 }
 
@@ -376,64 +381,70 @@ async function handleConfirmReset() {
 const statusMap: Record<number, string> = {
   1: t('common.enabled'),
   0: t('common.disabled'),
-}
+};
 
 const statusColorMap: Record<number, string> = {
   1: 'green',
   0: 'red',
-}
+};
 
 // 获取用户详情
 async function fetchUserDetail() {
-  const id = Number(route.params.id)
+  const id = Number(route.params.id);
   if (!id) {
-    message.error('用户ID无效')
-    return
+    message.error('用户ID无效');
+    return;
   }
-  loading.value = true
+  loading.value = true;
   try {
-    userInfo.value = await getUserDetail(id)
-    avatarFailed.value = false
+    userInfo.value = await getUserDetail(id);
+    avatarFailed.value = false;
     // 同时获取能力列表
-    fetchCapabilities(id)
-    fetchPool(id)
+    fetchCapabilities(id);
+    fetchPool(id);
   } catch (e) {
-    console.error('[UserDetail] 获取用户详情失败:', e)
+    console.error('[UserDetail] 获取用户详情失败:', e);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 // 获取用户创作能力
 async function fetchCapabilities(userId: number) {
-  capabilitiesLoading.value = true
+  capabilitiesLoading.value = true;
   try {
-    capabilities.value = (await getUserCapabilities(userId)) as UserFeature[]
+    capabilities.value = (await getUserCapabilities(userId)) as UserFeature[];
   } catch (e) {
-    console.error('[UserDetail] 获取用户能力失败:', e)
-    capabilities.value = []
+    console.error('[UserDetail] 获取用户能力失败:', e);
+    capabilities.value = [];
   } finally {
-    capabilitiesLoading.value = false
+    capabilitiesLoading.value = false;
   }
 }
 
 // 获取用户多应用账号池（绑定关系）
 async function fetchPool(userId: number) {
-  poolLoading.value = true
+  poolLoading.value = true;
   try {
-    pool.value = await getUserPool(userId)
+    pool.value = await getUserPool(userId);
   } catch (e) {
-    console.error('[UserDetail] 获取用户账号池失败:', e)
-    pool.value = null
+    console.error('[UserDetail] 获取用户账号池失败:', e);
+    pool.value = null;
   } finally {
-    poolLoading.value = false
+    poolLoading.value = false;
   }
 }
 
 // 从 featureName 多语言记录中获取当前语言名称
 function getFeatureName(featureName: Record<string, string>): string {
-  const { locale } = useI18n()
-  return featureName[locale.value] || featureName['zh-CN'] || featureName['en-US'] || Object.values(featureName)[0] || '-'
+  const { locale } = useI18n();
+  return (
+    featureName[locale.value] ||
+    featureName['zh-CN'] ||
+    featureName['en-US'] ||
+    Object.values(featureName)[0] ||
+    '-'
+  );
 }
 
 // 下拉选项：转成 antdv-next a-select 的 {label,value} 数组形式
@@ -443,12 +454,12 @@ const featureSelectOptions = computed(() =>
     label: f.featureName?.[currentLocale.value] || f.featureName?.['zh-CN'] || f.featureCode,
     value: f.featureCode,
   })),
-)
+);
 
 // 能力列表项只返回 featureCode，这里从能力选项（含多语言名称）解析展示名
 function getCapabilityName(featureCode: string): string {
-  const matched = featureOptions.value.find((f) => f.featureCode === featureCode)
-  return matched?.featureName ? getFeatureName(matched.featureName) : featureCode
+  const matched = featureOptions.value.find((f) => f.featureCode === featureCode);
+  return matched?.featureName ? getFeatureName(matched.featureName) : featureCode;
 }
 
 // 能力状态（后端返回字符串：ACTIVE / EXPIRED / REVOKED）
@@ -457,48 +468,48 @@ function capabilityStatusColor(status: string): string {
     ACTIVE: 'blue',
     EXPIRED: 'orange',
     REVOKED: 'red',
-  }
-  return map[status] || 'default'
+  };
+  return map[status] || 'default';
 }
 
 function capabilityStatusText(status: string): string {
-  const key = `user.capabilityStatus.${status}`
-  const text = t(key)
-  return text === key ? status : text
+  const key = `user.capabilityStatus.${status}`;
+  const text = t(key);
+  return text === key ? status : text;
 }
 
 // 返回列表
 function handleBack() {
-  router.push({ name: 'UserList' })
+  router.push({ name: 'UserList' });
 }
 
 // 调整点数
 function handleAdjustPoints() {
-  if (!userInfo.value) return
+  if (!userInfo.value) return;
   adjustForm.value = {
     userId: userInfo.value.id,
     amount: 0,
     reason: '',
     adjustType: 'ADD',
-  }
-  adjustModalVisible.value = true
+  };
+  adjustModalVisible.value = true;
 }
 
 async function handleConfirmAdjust() {
-  const reason = adjustForm.value.reason.trim()
+  const reason = adjustForm.value.reason.trim();
   if (!reason) {
-    message.warning(t('user.adjustReasonRequired'))
-    return
+    message.warning(t('user.adjustReasonRequired'));
+    return;
   }
   if (/^\d+$/.test(reason) || reason.length < 2) {
-    message.warning('调整原因不能为纯数字且至少2个字符')
-    return
+    message.warning('调整原因不能为纯数字且至少2个字符');
+    return;
   }
   if (adjustForm.value.amount <= 0) {
-    message.warning(t('user.adjustAmountInvalid'))
-    return
+    message.warning(t('user.adjustAmountInvalid'));
+    return;
   }
-  adjustLoading.value = true
+  adjustLoading.value = true;
   try {
     await adjustPoints({
       userId: adjustForm.value.userId,
@@ -506,25 +517,25 @@ async function handleConfirmAdjust() {
       amount: adjustForm.value.amount,
       reason: adjustForm.value.reason,
       idempotencyKey: uuid(),
-    })
-    message.success(t('common.success'))
-    adjustModalVisible.value = false
+    });
+    message.success(t('common.success'));
+    adjustModalVisible.value = false;
     // 刷新用户信息
-    fetchUserDetail()
+    fetchUserDetail();
   } catch {
     // 错误已在 request 拦截器中处理
   } finally {
-    adjustLoading.value = false
+    adjustLoading.value = false;
   }
 }
 
 // 显示授权创作能力弹窗
 async function loadFeatureOptions() {
   try {
-    const res = await getFeatureOptions()
-    featureOptions.value = res || []
+    const res = await getFeatureOptions();
+    featureOptions.value = res || [];
   } catch (e) {
-    console.error('[UserDetail] 获取能力选项失败:', e)
+    console.error('[UserDetail] 获取能力选项失败:', e);
   }
 }
 
@@ -532,44 +543,44 @@ function showGrantModal() {
   grantForm.value = {
     featureCode: undefined,
     expireTime: undefined,
-  }
-  grantModalVisible.value = true
+  };
+  grantModalVisible.value = true;
   // 打开弹窗时强制拉取能力选项，避免依赖挂载时机（onMounted 时若 token/接口未就绪会拿不到数据）
-  loadFeatureOptions()
+  loadFeatureOptions();
 }
 
 // 确认授权创作能力
 async function handleConfirmGrant() {
   if (!grantForm.value.featureCode) {
-    message.error(t('featureGrant.featureCodeRequired'))
-    return
+    message.error(t('featureGrant.featureCodeRequired'));
+    return;
   }
   if (!userInfo.value?.id) {
-    message.error(t('user.userNotFound'))
-    return
+    message.error(t('user.userNotFound'));
+    return;
   }
-  grantLoading.value = true
+  grantLoading.value = true;
   try {
     await manualAddFeature({
       userId: userInfo.value.id,
       featureCode: grantForm.value.featureCode,
       expireTime: grantForm.value.expireTime?.format('YYYY-MM-DD HH:mm:ss'),
-    })
-    message.success(t('featureGrant.manualAddSuccess'))
-    grantModalVisible.value = false
+    });
+    message.success(t('featureGrant.manualAddSuccess'));
+    grantModalVisible.value = false;
     // 刷新能力列表
-    fetchCapabilities(userInfo.value.id)
+    fetchCapabilities(userInfo.value.id);
   } catch {
     // 错误已在 request 拦截器中处理
   } finally {
-    grantLoading.value = false
+    grantLoading.value = false;
   }
 }
 
 onMounted(() => {
-  fetchUserDetail()
-  loadFeatureOptions()
-})
+  fetchUserDetail();
+  loadFeatureOptions();
+});
 </script>
 
 <style scoped lang="scss">

@@ -1,12 +1,6 @@
 <template>
   <div class="page-container">
-    <ProTable
-      ref="tableRef"
-      :columns="columns"
-      :request="loadData"
-      :search="{}"
-      row-key="id"
-    >
+    <ProTable ref="tableRef" :columns="columns" :request="loadData" :search="{}" row-key="id">
       <template #emptyText>
         <a-empty :description="$t('admin.permission.noPermissionData')" />
       </template>
@@ -54,15 +48,8 @@
           />
         </a-form-item>
         <a-divider orientation="left">{{ $t('admin.permission.permissionName') }}</a-divider>
-        <a-form-item
-          v-for="lang in langConfigs"
-          :key="lang.locale"
-          :label="lang.label"
-        >
-          <a-input
-            v-model:value="permForm.names[lang.locale]"
-            :placeholder="lang.placeholder"
-          />
+        <a-form-item v-for="lang in langConfigs" :key="lang.locale" :label="lang.label">
+          <a-input v-model:value="permForm.names[lang.locale]" :placeholder="lang.placeholder" />
         </a-form-item>
         <a-divider orientation="left">{{ $t('admin.permission.resourceCode') }}</a-divider>
         <a-form-item :label="$t('admin.permission.resourceCode')">
@@ -77,16 +64,10 @@
           />
         </a-form-item>
         <a-form-item :label="$t('admin.permission.action')">
-          <a-input
-            v-model:value="permForm.action"
-            :placeholder="$t('admin.permission.action')"
-          />
+          <a-input v-model:value="permForm.action" :placeholder="$t('admin.permission.action')" />
         </a-form-item>
         <a-form-item :label="$t('admin.permission.description')">
-          <a-textarea
-            v-model:value="permForm.description"
-            :rows="3"
-          />
+          <a-textarea v-model:value="permForm.description" :rows="3" />
         </a-form-item>
       </a-form>
     </a-modal>
@@ -94,23 +75,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { message, Modal } from 'antdv-next'
-import { useI18n } from 'vue-i18n'
-import ProTable from '@/components/Pro/ProTable/index.vue'
+import { message, Modal } from 'antdv-next';
+import { ref, reactive, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+
 import {
   getAdminPermissionList,
   createAdminPermission,
   updateAdminPermission,
   deleteAdminPermission,
-} from '@/api/admin-permission'
-import { getAdminResourceOptions } from '@/api/admin-resource'
-const { t, locale } = useI18n()
+} from '@/api/admin-permission';
+import { getAdminResourceOptions } from '@/api/admin-resource';
+import ProTable from '@/components/Pro/ProTable/index.vue';
+const { t, locale } = useI18n();
 
 interface LangConfig {
-  locale: string
-  label: string
-  placeholder: string
+  locale: string;
+  label: string;
+  placeholder: string;
 }
 
 const langConfigs: LangConfig[] = [
@@ -118,14 +100,14 @@ const langConfigs: LangConfig[] = [
   { locale: 'en-US', label: 'English', placeholder: 'Please enter English name' },
   { locale: 'ja-JP', label: '日本語', placeholder: '日本語を入力してください' },
   { locale: 'ko-KR', label: '한국어', placeholder: '한국어를 입력하세요' },
-]
+];
 
 /**
  * 表格句柄。增删改之后必须重查——本页此前一个 ref 都没有，改完数据列表还是旧的，
  * 看着像没生效，运营会重复点第二次。
  * 用 refresh() 而不是 reload()：refresh 保持当前页码，在第 N 页处理完不会被甩回第一页。
  */
-const tableRef = ref()
+const tableRef = ref();
 
 const columns = [
   {
@@ -177,7 +159,7 @@ const columns = [
     align: 'center' as const,
     fixed: 'right' as const,
   },
-]
+];
 
 async function loadData(params: Record<string, unknown>) {
   const res = await getAdminPermissionList({
@@ -186,28 +168,28 @@ async function loadData(params: Record<string, unknown>) {
     action: params.action as string | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
-  })
+  });
   return {
     data: res.list || [],
     total: res.total || 0,
     success: true,
-  }
+  };
 }
 
 function getPermName(record: Record<string, unknown>): string {
-  const raw = record.permissionName as string
+  const raw = record.permissionName as string;
   try {
-    const parsed = JSON.parse(raw)
-    return parsed[locale.value] || parsed['zh-CN'] || parsed['en-US'] || raw
+    const parsed = JSON.parse(raw);
+    return parsed[locale.value] || parsed['zh-CN'] || parsed['en-US'] || raw;
   } catch {
-    return raw || ''
+    return raw || '';
   }
 }
 
-const permModalVisible = ref(false)
-const permSubmitLoading = ref(false)
-const isEdit = ref(false)
-const editId = ref<number | null>(null)
+const permModalVisible = ref(false);
+const permSubmitLoading = ref(false);
+const isEdit = ref(false);
+const editId = ref<number | null>(null);
 
 const permForm = reactive({
   permissionCode: '',
@@ -215,93 +197,96 @@ const permForm = reactive({
   resource: '',
   action: '',
   description: '',
-})
+});
 
-const resourceOptions = ref<Array<{ label: string; value: string }>>([])
-const resourceCodeToNameMap = ref<Record<string, string>>({})
+const resourceOptions = ref<Array<{ label: string; value: string }>>([]);
+const resourceCodeToNameMap = ref<Record<string, string>>({});
 
 function filterResourceOption(input: string, option: { label: string; value: string }) {
-  return option.label.toLowerCase().includes(input.toLowerCase())
+  return option.label.toLowerCase().includes(input.toLowerCase());
 }
 
 function handleResourceChange(value: string) {
-  const selected = resourceOptions.value.find(opt => opt.value === value)
+  const selected = resourceOptions.value.find((opt) => opt.value === value);
   if (selected) {
-    permForm.resource = selected.value
+    permForm.resource = selected.value;
   }
 }
 
 function getResourceDisplayNameByCode(code: string): string {
-  return resourceCodeToNameMap.value[code] || code
+  return resourceCodeToNameMap.value[code] || code;
 }
 
 async function loadResourceOptions() {
   try {
-    const resources = await getAdminResourceOptions()
-    resourceOptions.value = resources.map(r => ({
+    const resources = await getAdminResourceOptions();
+    resourceOptions.value = resources.map((r) => ({
       label: getResourceDisplayName(r.resourceName),
       value: r.resourceCode,
-    }))
-    resourceCodeToNameMap.value = resources.reduce((acc, r) => {
-      acc[r.resourceCode] = getResourceDisplayName(r.resourceName)
-      return acc
-    }, {} as Record<string, string>)
+    }));
+    resourceCodeToNameMap.value = resources.reduce(
+      (acc, r) => {
+        acc[r.resourceCode] = getResourceDisplayName(r.resourceName);
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
   } catch (error) {
-    console.error('Failed to load resource options:', error)
+    console.error('Failed to load resource options:', error);
   }
 }
 
 function getResourceDisplayName(raw: string): string {
   try {
-    const parsed = JSON.parse(raw)
-    return parsed[locale.value] || parsed['zh-CN'] || parsed['en-US'] || raw
+    const parsed = JSON.parse(raw);
+    return parsed[locale.value] || parsed['zh-CN'] || parsed['en-US'] || raw;
   } catch {
-    return raw
+    return raw;
   }
 }
 
 function parsePermName(raw: string): Record<string, string> {
   try {
-    return JSON.parse(raw)
+    return JSON.parse(raw);
   } catch {
-    return {}
+    return {};
   }
 }
 
 function buildPermName(): string {
-  return JSON.stringify(permForm.names)
+  return JSON.stringify(permForm.names);
 }
 
 function resetForm() {
-  permForm.permissionCode = ''
-  permForm.names = {}
-  permForm.resource = ''
-  permForm.action = ''
-  permForm.description = ''
+  permForm.permissionCode = '';
+  permForm.names = {};
+  permForm.resource = '';
+  permForm.action = '';
+  permForm.description = '';
 }
 
 function handleCreate() {
-  isEdit.value = false
-  editId.value = null
-  resetForm()
-  loadResourceOptions()
-  permModalVisible.value = true
+  isEdit.value = false;
+  editId.value = null;
+  resetForm();
+  loadResourceOptions();
+  permModalVisible.value = true;
 }
 
 function handleEdit(record: Record<string, unknown>) {
-  isEdit.value = true
-  editId.value = record.id as number
-  permForm.permissionCode = record.permissionCode as string
-  permForm.names = parsePermName(record.permissionName as string)
-  permForm.resource = record.resource as string
-  permForm.action = record.action as string
-  permForm.description = (record.description as string) || ''
-  loadResourceOptions()
-  permModalVisible.value = true
+  isEdit.value = true;
+  editId.value = record.id as number;
+  permForm.permissionCode = record.permissionCode as string;
+  permForm.names = parsePermName(record.permissionName as string);
+  permForm.resource = record.resource as string;
+  permForm.action = record.action as string;
+  permForm.description = (record.description as string) || '';
+  loadResourceOptions();
+  permModalVisible.value = true;
 }
 
 async function handlePermSubmit() {
-  permSubmitLoading.value = true
+  permSubmitLoading.value = true;
   try {
     if (isEdit.value && editId.value) {
       await updateAdminPermission(editId.value, {
@@ -309,8 +294,8 @@ async function handlePermSubmit() {
         resource: permForm.resource,
         action: permForm.action,
         description: permForm.description,
-      })
-      message.success(t('admin.permission.updateSuccess'))
+      });
+      message.success(t('admin.permission.updateSuccess'));
     } else {
       await createAdminPermission({
         permissionCode: permForm.permissionCode,
@@ -318,21 +303,21 @@ async function handlePermSubmit() {
         resource: permForm.resource,
         action: permForm.action,
         description: permForm.description,
-      })
-      message.success(t('admin.permission.createSuccess'))
+      });
+      message.success(t('admin.permission.createSuccess'));
     }
-    permModalVisible.value = false
-    tableRef.value?.refresh()
+    permModalVisible.value = false;
+    tableRef.value?.refresh();
   } catch (error) {
-    console.error('Failed to save permission:', error)
+    console.error('Failed to save permission:', error);
   } finally {
-    permSubmitLoading.value = false
+    permSubmitLoading.value = false;
   }
 }
 
 onMounted(() => {
-  loadResourceOptions()
-})
+  loadResourceOptions();
+});
 
 function handleDelete(record: Record<string, unknown>) {
   Modal.confirm({
@@ -340,13 +325,13 @@ function handleDelete(record: Record<string, unknown>) {
     content: t('admin.permission.confirmDelete'),
     onOk: async () => {
       try {
-        await deleteAdminPermission(record.id as number)
-        message.success(t('admin.permission.deleteSuccess'))
-        tableRef.value?.refresh()
+        await deleteAdminPermission(record.id as number);
+        message.success(t('admin.permission.deleteSuccess'));
+        tableRef.value?.refresh();
       } catch (error) {
-        console.error('Failed to delete permission:', error)
+        console.error('Failed to delete permission:', error);
       }
     },
-  })
+  });
 }
 </script>

@@ -174,8 +174,8 @@
 </template>
 
 <script setup lang="ts">
-import { message } from 'antdv-next'
-import { computed, reactive, ref } from 'vue'
+import { message } from 'antdv-next';
+import { computed, reactive, ref } from 'vue';
 
 import {
   getCreaftAgentSkillSummary,
@@ -183,34 +183,34 @@ import {
   updateCreaftAgentSkill,
   type CreaftAgentSkillRow,
   type CreaftAgentSkillSummary,
-} from '@/api/creaft-compat'
+} from '@/api/creaft-compat';
 
-const rows = ref<CreaftAgentSkillRow[]>([])
-const summary = ref<CreaftAgentSkillSummary | null>(null)
-const loading = ref(false)
-const categoryFilter = ref<string>('')
-const enabledFilter = ref<'' | 1 | 0>('')
-const keyword = ref('')
+const rows = ref<CreaftAgentSkillRow[]>([]);
+const summary = ref<CreaftAgentSkillSummary | null>(null);
+const loading = ref(false);
+const categoryFilter = ref<string>('');
+const enabledFilter = ref<'' | 1 | 0>('');
+const keyword = ref('');
 
 const enabledFilterOptions = [
   { label: '全部状态', value: '' },
   { label: '启用', value: 1 },
   { label: '停用', value: 0 },
-]
+];
 
 /** 分类候选从当前行里收集：技能目录是几十行的配置，不值得为下拉再开一个接口 */
-const categories = ref<string[]>([])
+const categories = ref<string[]>([]);
 const categoryFilterOptions = computed(() => [
   { label: '全部分类', value: '' },
   // 「未分类」是这页最常用的筛选——要补的就是这批
   { label: '未分类', value: '__EMPTY__' },
   ...categories.value.map((c) => ({ label: c, value: c })),
-])
-const categoryOptions = computed(() => categories.value.map((c) => ({ label: c, value: c })))
-const visibleCount = computed(() => rows.value.filter((row) => row.visible).length)
+]);
+const categoryOptions = computed(() => categories.value.map((c) => ({ label: c, value: c })));
+const visibleCount = computed(() => rows.value.filter((row) => row.visible).length);
 
 function filterCategoryOption(input: string, option: { value: string }) {
-  return option.value.toLowerCase().includes(input.toLowerCase())
+  return option.value.toLowerCase().includes(input.toLowerCase());
 }
 
 const columns = [
@@ -220,55 +220,55 @@ const columns = [
   { title: '权重', dataIndex: 'weight', width: 80, align: 'center' as const },
   { title: '用户端', dataIndex: 'visible', width: 110, align: 'center' as const },
   { title: '操作', dataIndex: 'operation', key: 'operation', width: 100, align: 'center' as const },
-]
+];
 
-let keywordTimer: ReturnType<typeof setTimeout> | undefined
+let keywordTimer: ReturnType<typeof setTimeout> | undefined;
 function onKeywordChange() {
-  clearTimeout(keywordTimer)
-  keywordTimer = setTimeout(loadList, 300)
+  clearTimeout(keywordTimer);
+  keywordTimer = setTimeout(loadList, 300);
 }
 
 async function loadList() {
-  loading.value = true
+  loading.value = true;
   try {
     rows.value =
       (await getCreaftAgentSkills({
         category: categoryFilter.value || undefined,
         keyword: keyword.value.trim() || undefined,
         enabled: enabledFilter.value === '' ? undefined : enabledFilter.value,
-      })) || []
+      })) || [];
     // 只在「不带分类筛选」的那次刷新候选，否则筛了某个分类后候选会塌成一项
     if (!categoryFilter.value) {
       categories.value = [
         ...new Set(rows.value.map((row) => row.category).filter((c): c is string => !!c)),
-      ].sort()
+      ].sort();
     }
   } catch {
     /* 拦截器已提示 */
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 async function loadSummary() {
   try {
-    summary.value = await getCreaftAgentSkillSummary()
+    summary.value = await getCreaftAgentSkillSummary();
   } catch {
     /* 体检数字缺失不影响列表 */
   }
 }
 
 function reload() {
-  loadList()
-  loadSummary()
+  loadList();
+  loadSummary();
 }
 
-reload()
+reload();
 
 // ---- 编辑 ----
-const modalVisible = ref(false)
-const saving = ref(false)
-const editing = ref<CreaftAgentSkillRow | null>(null)
+const modalVisible = ref(false);
+const saving = ref(false);
+const editing = ref<CreaftAgentSkillRow | null>(null);
 
 const form = reactive({
   category: undefined as string | undefined,
@@ -279,15 +279,15 @@ const form = reactive({
   weight: 0,
   enabled: 1,
   agentSkillCode: '',
-})
+});
 
 const enabled = computed({
   get: () => form.enabled === 1,
   set: (value: boolean) => (form.enabled = value ? 1 : 0),
-})
+});
 
 function openEdit(record: CreaftAgentSkillRow) {
-  editing.value = record
+  editing.value = record;
   Object.assign(form, {
     category: record.category || undefined,
     title: record.title || '',
@@ -297,17 +297,17 @@ function openEdit(record: CreaftAgentSkillRow) {
     weight: record.weight ?? 0,
     enabled: record.enabled ?? 1,
     agentSkillCode: record.agentSkillCode || '',
-  })
-  modalVisible.value = true
+  });
+  modalVisible.value = true;
 }
 
 async function handleSubmit() {
-  if (!editing.value) return
+  if (!editing.value) return;
   if (!form.agentSkillCode.trim()) {
-    message.warning('技能编码不能为空')
-    return
+    message.warning('技能编码不能为空');
+    return;
   }
-  saving.value = true
+  saving.value = true;
   try {
     await updateCreaftAgentSkill(editing.value.id, {
       category: form.category || undefined,
@@ -318,14 +318,14 @@ async function handleSubmit() {
       weight: form.weight ?? 0,
       enabled: form.enabled,
       agentSkillCode: form.agentSkillCode.trim(),
-    })
-    message.success('已保存')
-    modalVisible.value = false
-    reload()
+    });
+    message.success('已保存');
+    modalVisible.value = false;
+    reload();
   } catch {
     /* 拦截器已提示 */
   } finally {
-    saving.value = false
+    saving.value = false;
   }
 }
 </script>

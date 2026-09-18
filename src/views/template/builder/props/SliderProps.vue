@@ -63,11 +63,7 @@
 
     <a-form-item :label="$t('template.sliderMarks')">
       <div v-if="rows.length > 0" class="slider-props__list">
-        <div
-          v-for="(row, index) in rows"
-          :key="index"
-          class="slider-props__row"
-        >
+        <div v-for="(row, index) in rows" :key="index" class="slider-props__row">
           <a-input-number
             class="slider-props__row-value"
             :value="row.value"
@@ -81,21 +77,13 @@
             allow-clear
             @update:value="onRowLabel(index, $event)"
           />
-          <a-button
-            type="text"
-            class="slider-props__remove"
-            @click="onRemoveMark(index)"
-          >
+          <a-button type="text" class="slider-props__remove" @click="onRemoveMark(index)">
             <Icon icon="antdv-next:DeleteOutlined" />
           </a-button>
         </div>
       </div>
 
-      <a-empty
-        v-else
-        :description="$t('template.sliderMarksEmpty')"
-        :image="undefined"
-      />
+      <a-empty v-else :description="$t('template.sliderMarksEmpty')" :image="undefined" />
 
       <a-button block class="slider-props__add" @click="onAddMark">
         <Icon icon="antdv-next:PlusOutlined" />
@@ -106,100 +94,94 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import type { SliderWidgetConfig } from '@/types/template-builder';
 
-import Icon from '@/components/Icon/index.vue'
-import { $t } from '@/locales'
-import type { SliderWidgetConfig } from '@/types/template-builder'
+import { ref, watch } from 'vue';
+
+import Icon from '@/components/Icon/index.vue';
+import { $t } from '@/locales';
 
 const props = defineProps<{
-  widget: SliderWidgetConfig
-}>()
+  widget: SliderWidgetConfig;
+}>();
 
 const emit = defineEmits<{
-  (e: 'update', patch: Record<string, unknown>): void
-}>()
+  (e: 'update', patch: Record<string, unknown>): void;
+}>();
 
 /** marks 的本地行模型：数值键允许暂为 null（编辑中），标签为字符串。 */
 interface MarkRow {
-  value: number | null
-  label: string
+  value: number | null;
+  label: string;
 }
 
 /** 将 marks Record 展开为按数值升序排列的行模型。 */
 function marksToRows(marks: SliderWidgetConfig['marks']): MarkRow[] {
-  if (!marks) return []
+  if (!marks) return [];
   return Object.entries(marks)
     .map(([key, label]) => ({ value: Number(key), label }))
-    .sort((a, b) => (a.value ?? 0) - (b.value ?? 0))
+    .sort((a, b) => (a.value ?? 0) - (b.value ?? 0));
 }
 
 /** 将行模型重建为 Record，跳过无效数值；重复键以靠后行为准。 */
 function rowsToMarks(list: MarkRow[]): Record<number, string> {
-  const result: Record<number, string> = {}
+  const result: Record<number, string> = {};
   for (const row of list) {
-    if (row.value === null || !Number.isFinite(row.value)) continue
-    result[row.value] = row.label
+    if (row.value === null || !Number.isFinite(row.value)) continue;
+    result[row.value] = row.label;
   }
-  return result
+  return result;
 }
 
-const rows = ref<MarkRow[]>(marksToRows(props.widget.marks))
+const rows = ref<MarkRow[]>(marksToRows(props.widget.marks));
 
 // 仅在切换到另一个 widget 时重新初始化行模型，避免编辑中途被外部更新冲掉。
 watch(
   () => props.widget.key,
   () => {
-    rows.value = marksToRows(props.widget.marks)
+    rows.value = marksToRows(props.widget.marks);
   },
-)
+);
 
 /** 重建 marks 并回传，空 Record 回传 undefined。 */
 function emitMarks(): void {
-  const marks = rowsToMarks(rows.value)
+  const marks = rowsToMarks(rows.value);
   emit('update', {
     marks: Object.keys(marks).length === 0 ? undefined : marks,
-  })
+  });
 }
 
 /** 数值字段（min/max/step）：清空回传 undefined。 */
-function onUpdateNumber(
-  field: 'min' | 'max' | 'step',
-  value: number | null,
-): void {
-  emit('update', { [field]: value === null ? undefined : value })
+function onUpdateNumber(field: 'min' | 'max' | 'step', value: number | null): void {
+  emit('update', { [field]: value === null ? undefined : value });
 }
 
 /** 布尔字段（range/showInput）。 */
 function onUpdateBool(field: 'range' | 'showInput', checked: boolean): void {
-  emit('update', { [field]: checked })
+  emit('update', { [field]: checked });
 }
 
 /** 刻度行数值变更。 */
 function onRowValue(index: number, value: number | null): void {
-  rows.value = rows.value.map((row, i) =>
-    i === index ? { ...row, value } : { ...row },
-  )
-  emitMarks()
+  rows.value = rows.value.map((row, i) => (i === index ? { ...row, value } : { ...row }));
+  emitMarks();
 }
 
 /** 刻度行标签变更。 */
 function onRowLabel(index: number, label: string): void {
-  rows.value = rows.value.map((row, i) =>
-    i === index ? { ...row, label } : { ...row },
-  )
-  emitMarks()
+  rows.value = rows.value.map((row, i) => (i === index ? { ...row, label } : { ...row }));
+  emitMarks();
 }
 
 /** 新增空白刻度行（数值未填，暂不写入 Record，故不回传）。 */
 function onAddMark(): void {
-  rows.value = [...rows.value, { value: null, label: '' }]
+  rows.value = [...rows.value, { value: null, label: '' }];
 }
 
 /** 删除刻度行。 */
 function onRemoveMark(index: number): void {
-  rows.value = rows.value.filter((_, i) => i !== index)
-  emitMarks()
+  rows.value = rows.value.filter((_, i) => i !== index);
+  emitMarks();
 }
 </script>
 

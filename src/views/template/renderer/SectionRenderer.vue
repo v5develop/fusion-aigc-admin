@@ -111,57 +111,53 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, type CSSProperties } from 'vue'
-import { useSortable } from '@vueuse/integrations/useSortable'
+import type { RenderMode, Spacing, TemplateSection, WidgetConfig } from '@/types/template-builder';
 
-import Icon from '@/components/Icon/index.vue'
-import { $t } from '@/locales'
-import type {
-  RenderMode,
-  Spacing,
-  TemplateSection,
-  WidgetConfig,
-} from '@/types/template-builder'
+import { useSortable } from '@vueuse/integrations/useSortable';
+import { computed, ref, watch, type CSSProperties } from 'vue';
 
-import WidgetRenderer from './WidgetRenderer.vue'
+import Icon from '@/components/Icon/index.vue';
+import { $t } from '@/locales';
+
+import WidgetRenderer from './WidgetRenderer.vue';
 
 const props = withDefaults(
   defineProps<{
-    section: TemplateSection
-    mode: RenderMode
-    activeWidgetKey?: string
-    formValues?: Record<string, unknown>
+    section: TemplateSection;
+    mode: RenderMode;
+    activeWidgetKey?: string;
+    formValues?: Record<string, unknown>;
   }>(),
   {
     activeWidgetKey: undefined,
     formValues: undefined,
   },
-)
+);
 
 const emit = defineEmits<{
-  (e: 'select-widget', key: string): void
-  (e: 'remove-widget', key: string): void
-  (e: 'reorder-widgets', widgets: WidgetConfig[]): void
-  (e: 'drop-widget', event: DragEvent, index?: number): void
-  (e: 'add-widget'): void
-  (e: 'edit-section'): void
-  (e: 'remove-section'): void
-  (e: 'update:form-values', key: string, value: unknown): void
-}>()
+  (e: 'select-widget', key: string): void;
+  (e: 'remove-widget', key: string): void;
+  (e: 'reorder-widgets', widgets: WidgetConfig[]): void;
+  (e: 'drop-widget', event: DragEvent, index?: number): void;
+  (e: 'add-widget'): void;
+  (e: 'edit-section'): void;
+  (e: 'remove-section'): void;
+  (e: 'update:form-values', key: string, value: unknown): void;
+}>();
 
 // Builder 模式下用于拖拽排序的本地副本，跟随外部 section.widgets 同步。
-const localWidgets = ref<WidgetConfig[]>([...props.section.widgets])
+const localWidgets = ref<WidgetConfig[]>([...props.section.widgets]);
 
 watch(
   () => props.section.widgets,
   (val) => {
-    localWidgets.value = [...val]
+    localWidgets.value = [...val];
   },
-)
+);
 
 // 拖拽排序容器（仅 builder 模式渲染）。useSortable 直接操作 localWidgets，
 // 内部完成数组搬移后，通过 onUpdate 向上 emit reorder-widgets。
-const sortableRef = ref<HTMLElement | null>(null)
+const sortableRef = ref<HTMLElement | null>(null);
 
 useSortable(sortableRef, localWidgets, {
   animation: 150,
@@ -174,34 +170,32 @@ useSortable(sortableRef, localWidgets, {
     put: false,
   },
   onUpdate: () => {
-    emit('reorder-widgets', [...localWidgets.value])
+    emit('reorder-widgets', [...localWidgets.value]);
   },
-})
+});
 
 function indexOfWidget(key: string): number {
-  return localWidgets.value.findIndex((w) => w.key === key)
+  return localWidgets.value.findIndex((w) => w.key === key);
 }
 
-const isCollapsed = ref<boolean>(props.section.collapsedByDefault === true)
+const isCollapsed = ref<boolean>(props.section.collapsedByDefault === true);
 
-const isDragOver = ref(false)
+const isDragOver = ref(false);
 
-const isActive = computed(() =>
-  props.section.widgets.some((w) => w.key === props.activeWidgetKey),
-)
+const isActive = computed(() => props.section.widgets.some((w) => w.key === props.activeWidgetKey));
 
 function resolvePadding(padding: number | Spacing | undefined): string {
   if (padding === undefined) {
-    return 'var(--spacing-md)'
+    return 'var(--spacing-md)';
   }
   if (typeof padding === 'number') {
-    return `${padding}px`
+    return `${padding}px`;
   }
-  const top = padding.top ?? 0
-  const right = padding.right ?? 0
-  const bottom = padding.bottom ?? 0
-  const left = padding.left ?? 0
-  return `${top}px ${right}px ${bottom}px ${left}px`
+  const top = padding.top ?? 0;
+  const right = padding.right ?? 0;
+  const bottom = padding.bottom ?? 0;
+  const left = padding.left ?? 0;
+  return `${top}px ${right}px ${bottom}px ${left}px`;
 }
 
 const sectionStyle = computed<CSSProperties>(() => ({
@@ -209,11 +203,11 @@ const sectionStyle = computed<CSSProperties>(() => ({
   padding: resolvePadding(props.section.padding),
   borderRadius: 'var(--radius-lg)',
   border: '1px solid var(--color-border-secondary)',
-}))
+}));
 
 function toggleCollapse() {
   if (props.section.collapsible) {
-    isCollapsed.value = !isCollapsed.value
+    isCollapsed.value = !isCollapsed.value;
   }
 }
 
@@ -221,55 +215,57 @@ function onHeaderClick() {
   // builder 模式：点击标题栏选中当前区域（切到区域属性）；
   // viewer 模式：保留折叠行为。
   if (props.mode === 'builder') {
-    emit('edit-section')
+    emit('edit-section');
   } else {
-    toggleCollapse()
+    toggleCollapse();
   }
 }
 
 function onSectionDragOver(event: DragEvent) {
   if (props.mode !== 'builder') {
-    return
+    return;
   }
-  event.preventDefault()
-  isDragOver.value = true
+  event.preventDefault();
+  isDragOver.value = true;
 }
 
 function onSectionDragLeave() {
-  isDragOver.value = false
+  isDragOver.value = false;
 }
 
 function onSectionDrop(event: DragEvent) {
   if (props.mode !== 'builder') {
-    return
+    return;
   }
-  event.preventDefault()
-  isDragOver.value = false
-  emit('drop-widget', event)
+  event.preventDefault();
+  isDragOver.value = false;
+  emit('drop-widget', event);
 }
 
 function onWidgetDragOver() {
-  isDragOver.value = true
+  isDragOver.value = true;
 }
 
 function onWidgetDragLeave() {
-  isDragOver.value = false
+  isDragOver.value = false;
 }
 
 function onWidgetDrop(event: DragEvent, index: number) {
-  isDragOver.value = false
-  emit('drop-widget', event, index)
+  isDragOver.value = false;
+  emit('drop-widget', event, index);
 }
 
 function onWidgetFormValuesUpdate(key: string, value: unknown) {
-  emit('update:form-values', key, value)
+  emit('update:form-values', key, value);
 }
 </script>
 
 <style scoped>
 .section-renderer {
   position: relative;
-  transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
+  transition:
+    border-color var(--duration-fast),
+    box-shadow var(--duration-fast);
 }
 
 .section-renderer.section-active {
@@ -365,13 +361,14 @@ function onWidgetFormValuesUpdate(key: string, value: unknown) {
   box-shadow: var(--shadow-card);
   cursor: pointer;
   opacity: 0;
-  transition: opacity var(--duration-fast), color var(--duration-fast);
+  transition:
+    opacity var(--duration-fast),
+    color var(--duration-fast);
 }
 
 .widget-drop-zone:hover .widget-remove-btn {
   opacity: 1;
 }
-
 
 .widget-remove-btn:hover {
   color: var(--color-error);

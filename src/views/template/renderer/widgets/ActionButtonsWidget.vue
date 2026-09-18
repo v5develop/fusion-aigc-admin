@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="widget-wrapper"
-    :class="{ 'widget-selected': mode === 'builder' && isSelected }"
-  >
+  <div class="widget-wrapper" :class="{ 'widget-selected': mode === 'builder' && isSelected }">
     <div v-if="config.label" class="widget-header">
       <label class="widget-label">{{ config.label }}</label>
     </div>
@@ -34,12 +31,7 @@
       >
         <Icon v-if="btn.icon" :icon="btn.icon" class="btn-icon" />
         <span class="btn-label">{{ btn.label }}</span>
-        <a-badge
-          v-if="btn.badge"
-          :count="btn.badge"
-          :overflow-count="99"
-          class="btn-badge"
-        />
+        <a-badge v-if="btn.badge" :count="btn.badge" :overflow-count="99" class="btn-badge" />
         <a-tooltip v-if="btn.description" :title="btn.description">
           <Icon icon="antdv-next:InfoCircleOutlined" class="btn-info" />
         </a-tooltip>
@@ -49,53 +41,51 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import Icon from '@/components/Icon/index.vue'
-import type {
-  ActionButton,
-  ActionButtonsWidgetConfig,
-  RenderMode,
-} from '@/types/template-builder'
+import type { ActionButton, ActionButtonsWidgetConfig, RenderMode } from '@/types/template-builder';
+
+import { computed } from 'vue';
+
+import Icon from '@/components/Icon/index.vue';
 
 const props = withDefaults(
   defineProps<{
-    config: ActionButtonsWidgetConfig
-    mode: RenderMode
-    formValues?: Record<string, unknown>
-    isSelected?: boolean
+    config: ActionButtonsWidgetConfig;
+    mode: RenderMode;
+    formValues?: Record<string, unknown>;
+    isSelected?: boolean;
   }>(),
   { formValues: undefined, isSelected: false },
-)
+);
 
 const emit = defineEmits<{
-  (e: 'update:form-values', key: string, value: unknown): void
-}>()
+  (e: 'update:form-values', key: string, value: unknown): void;
+}>();
 
 // columns 可选，比较前先兜底，避免对 undefined 做 > 0 比较
-const columns = computed(() => props.config.columns ?? 0)
+const columns = computed(() => props.config.columns ?? 0);
 
 function handleBtnClick(btn: ActionButton): void {
   // builder 模式为只读预览：不触发任何副作用，点击仅用于父级选中
   if (props.mode !== 'viewer') {
-    return
+    return;
   }
 
-  const action = props.config.onClickAction ?? 'fill-prompt'
+  const action = props.config.onClickAction ?? 'fill-prompt';
 
   switch (action) {
     case 'fill-prompt':
       // 把按钮预设的文本填充到表单值；key 统一用 widget 自身 key
-      emit('update:form-values', props.config.key, btn.fillTemplate ?? '')
-      break
+      emit('update:form-values', props.config.key, btn.fillTemplate ?? '');
+      break;
     case 'switch-preset':
       // TODO: 切换 targetPresetId 对应的预设方案（依赖 PresetSelect 联动，后续阶段实现）
-      break
+      break;
     case 'navigate':
       // TODO: 导航到 btn.navigateTo（后续阶段接入路由）
-      break
+      break;
     case 'custom':
       // TODO: 自定义点击行为（后续阶段实现）
-      break
+      break;
   }
 }
 </script>

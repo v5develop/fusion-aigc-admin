@@ -316,7 +316,5 @@ export function getContrastColor(hexColor: string): string {
 export function decodeUnicode(text?: string | null): string {
   if (!text) return '';
   if (!text.includes('\\u')) return text;
-  return text.replace(/\\u([0-9a-fA-F]{4})/g, (_, hex) =>
-    String.fromCharCode(parseInt(hex, 16)),
-  );
+  return text.replace(/\\u([0-9a-fA-F]{4})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
 }

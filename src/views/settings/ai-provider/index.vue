@@ -93,17 +93,28 @@
         <a-form-item :label="$t('settingsAIProvider.apiKey')" :required="!isEdit">
           <a-input-password
             v-model:value="formData.apiKey"
-            :placeholder="isEdit ? $t('settingsAIProvider.secretUnchangedPlaceholder') : $t('settingsAIProvider.apiKeyPlaceholder')"
+            :placeholder="
+              isEdit
+                ? $t('settingsAIProvider.secretUnchangedPlaceholder')
+                : $t('settingsAIProvider.apiKeyPlaceholder')
+            "
           />
         </a-form-item>
         <template v-if="showAppCredentialFields">
           <a-form-item :label="$t('settingsAIProvider.appId')">
-            <a-input v-model:value="formData.appId" :placeholder="$t('settingsAIProvider.appIdPlaceholder')" />
+            <a-input
+              v-model:value="formData.appId"
+              :placeholder="$t('settingsAIProvider.appIdPlaceholder')"
+            />
           </a-form-item>
           <a-form-item :label="$t('settingsAIProvider.appSecret')">
             <a-input-password
               v-model:value="formData.appSecret"
-              :placeholder="isEdit ? $t('settingsAIProvider.secretUnchangedPlaceholder') : $t('settingsAIProvider.appSecretPlaceholder')"
+              :placeholder="
+                isEdit
+                  ? $t('settingsAIProvider.secretUnchangedPlaceholder')
+                  : $t('settingsAIProvider.appSecretPlaceholder')
+              "
             />
           </a-form-item>
         </template>
@@ -126,7 +137,12 @@
             <a-input v-model:value="formData.proxyHost" />
           </a-form-item>
           <a-form-item :label="$t('settingsAIProvider.proxyPort')">
-            <a-input-number v-model:value="formData.proxyPort" style="width: 100%" :min="1" :max="65535" />
+            <a-input-number
+              v-model:value="formData.proxyPort"
+              style="width: 100%"
+              :min="1"
+              :max="65535"
+            />
           </a-form-item>
           <a-form-item :label="$t('settingsAIProvider.proxyUsername')">
             <a-input v-model:value="formData.proxyUsername" />
@@ -134,7 +150,11 @@
           <a-form-item :label="$t('settingsAIProvider.proxyPassword')">
             <a-input-password
               v-model:value="formData.proxyPassword"
-              :placeholder="isEdit ? $t('settingsAIProvider.secretUnchangedPlaceholder') : $t('settingsAIProvider.proxyPasswordPlaceholder')"
+              :placeholder="
+                isEdit
+                  ? $t('settingsAIProvider.secretUnchangedPlaceholder')
+                  : $t('settingsAIProvider.proxyPasswordPlaceholder')
+              "
             />
           </a-form-item>
         </template>
@@ -150,37 +170,39 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, reactive, onMounted } from 'vue'
-import { PlusOutlined } from '@antdv-next/icons'
-import { message } from 'antdv-next'
-import { useI18n } from 'vue-i18n'
+import type { AiProvider, AIModel } from '@/types/api';
+
+import { PlusOutlined } from '@antdv-next/icons';
+import { message } from 'antdv-next';
+import { computed, ref, reactive, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+
 import {
   getAiProviderPage,
   createAiProvider,
   updateAiProvider,
   deleteAiProvider,
   testAiProviderConnection,
-} from '@/api/config'
-import { getModelOptions } from '@/api/model'
-import type { AiProvider, AIModel } from '@/types/api'
+} from '@/api/config';
+import { getModelOptions } from '@/api/model';
 
-const { t } = useI18n()
+const { t } = useI18n();
 
-const loading = ref(false)
-const modalVisible = ref(false)
-const submitLoading = ref(false)
-const isEdit = ref(false)
-const editId = ref<number | null>(null)
+const loading = ref(false);
+const modalVisible = ref(false);
+const submitLoading = ref(false);
+const isEdit = ref(false);
+const editId = ref<number | null>(null);
 
-const providerList = ref<AiProvider[]>([])
-const modelList = ref<AIModel[]>([])
+const providerList = ref<AiProvider[]>([]);
+const modelList = ref<AIModel[]>([]);
 
 const pagination = reactive({
   current: 1,
   pageSize: 10,
   total: 0,
   showTotal: (total: number) => `共 ${total} 条`,
-})
+});
 
 const platformMap: Record<string, string> = {
   openai: 'OpenAI',
@@ -193,7 +215,7 @@ const platformMap: Record<string, string> = {
   volcengine: 'Volcengine',
   GoogleFlowReverseApi: 'Google Flow Reverse Api',
   custom: t('settingsAIProvider.custom'),
-}
+};
 
 const platformDefaultBaseUrls: Record<string, string> = {
   openai: 'https://api.openai.com',
@@ -204,7 +226,7 @@ const platformDefaultBaseUrls: Record<string, string> = {
   vertex_ai: 'us-central1',
   volcengine: 'https://ark.cn-beijing.volces.com',
   GoogleFlowReverseApi: 'http://localhost:8000',
-}
+};
 
 const platformOptions = [
   { label: 'OpenAI', value: 'openai' },
@@ -217,35 +239,35 @@ const platformOptions = [
   { label: 'Volcengine', value: 'volcengine' },
   { label: 'Google Flow Reverse Api', value: 'GoogleFlowReverseApi' },
   { label: t('settingsAIProvider.custom'), value: 'custom' },
-]
+];
 
 const apiTypeMap: Record<number, string> = {
   1: t('settingsAIProvider.apiTypeText'),
   2: t('settingsAIProvider.apiTypeImage'),
   3: t('settingsAIProvider.apiTypeVideo'),
-}
+};
 
 const apiTypeOptions = [
   { label: t('settingsAIProvider.apiTypeText'), value: 1 },
   { label: t('settingsAIProvider.apiTypeImage'), value: 2 },
   { label: t('settingsAIProvider.apiTypeVideo'), value: 3 },
-]
+];
 
 const proxyTypeOptions = [
   { label: t('settingsAIProvider.proxyTypeNone'), value: 'none' },
   { label: 'HTTP', value: 'http' },
   { label: 'SOCKS5', value: 'socks5' },
-]
+];
 
 const modelOptions = computed(() =>
-  modelList.value.map(model => ({
+  modelList.value.map((model) => ({
     label: `${model.name} (${model.code})`,
     value: model.id,
-  }))
-)
+  })),
+);
 
 function filterModelOption(input: string, option?: { label?: string }) {
-  return (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+  return (option?.label ?? '').toLowerCase().includes(input.toLowerCase());
 }
 
 const columns = [
@@ -281,7 +303,7 @@ const columns = [
     width: 200,
     align: 'center' as const,
   },
-]
+];
 
 const formData = reactive({
   name: '',
@@ -300,45 +322,45 @@ const formData = reactive({
   modelIds: [] as number[],
   enabled: true,
   remark: '',
-})
+});
 
 const showAppCredentialFields = computed(() =>
-  ['vertex_ai', 'GoogleFlowReverseApi', 'custom'].includes(formData.platform)
-)
+  ['vertex_ai', 'GoogleFlowReverseApi', 'custom'].includes(formData.platform),
+);
 
 async function loadProviders() {
-  loading.value = true
+  loading.value = true;
   try {
     const res = await getAiProviderPage({
       page: pagination.current,
       pageSize: pagination.pageSize,
-    })
-    providerList.value = res.list || []
-    pagination.total = res.total || 0
+    });
+    providerList.value = res.list || [];
+    pagination.total = res.total || 0;
   } catch {
-    providerList.value = []
+    providerList.value = [];
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 async function loadModels() {
   try {
-    modelList.value = await getModelOptions()
+    modelList.value = await getModelOptions();
   } catch {
-    modelList.value = []
+    modelList.value = [];
   }
 }
 
 function handleTableChange(pag: { current?: number; pageSize?: number }) {
-  if (pag.current) pagination.current = pag.current
-  if (pag.pageSize) pagination.pageSize = pag.pageSize
-  loadProviders()
+  if (pag.current) pagination.current = pag.current;
+  if (pag.pageSize) pagination.pageSize = pag.pageSize;
+  loadProviders();
 }
 
 function handleAdd() {
-  isEdit.value = false
-  editId.value = null
+  isEdit.value = false;
+  editId.value = null;
   Object.assign(formData, {
     name: '',
     platform: 'openai',
@@ -356,13 +378,13 @@ function handleAdd() {
     modelIds: [],
     enabled: true,
     remark: '',
-  })
-  modalVisible.value = true
+  });
+  modalVisible.value = true;
 }
 
 function handleEdit(record: AiProvider) {
-  isEdit.value = true
-  editId.value = record.id ?? null
+  isEdit.value = true;
+  editId.value = record.id ?? null;
   Object.assign(formData, {
     name: record.name,
     platform: record.platform,
@@ -380,21 +402,21 @@ function handleEdit(record: AiProvider) {
     modelIds: record.modelIds ?? (record.modelId ? [record.modelId] : []),
     enabled: record.status !== 0,
     remark: record.remark ?? '',
-  })
-  modalVisible.value = true
+  });
+  modalVisible.value = true;
 }
 
 async function handleSubmit() {
   if (!formData.name) {
-    message.error(t('settingsAIProvider.nameRequired'))
-    return
+    message.error(t('settingsAIProvider.nameRequired'));
+    return;
   }
   if (!formData.apiKey && !isEdit.value) {
-    message.error(t('settingsAIProvider.apiKeyRequired'))
-    return
+    message.error(t('settingsAIProvider.apiKeyRequired'));
+    return;
   }
 
-  submitLoading.value = true
+  submitLoading.value = true;
   try {
     const data: Partial<AiProvider> = {
       name: formData.name,
@@ -410,38 +432,38 @@ async function handleSubmit() {
       modelIds: formData.modelIds,
       status: formData.enabled ? 1 : 0,
       remark: formData.remark || undefined,
-    }
+    };
     if (formData.apiKey) {
-      data.apiKey = formData.apiKey
+      data.apiKey = formData.apiKey;
     }
     if (showAppCredentialFields.value && formData.appSecret) {
-      data.appSecret = formData.appSecret
+      data.appSecret = formData.appSecret;
     }
     if (formData.proxyPassword) {
-      data.proxyPassword = formData.proxyPassword
+      data.proxyPassword = formData.proxyPassword;
     }
 
     if (isEdit.value && editId.value) {
-      await updateAiProvider(editId.value, data)
-      message.success(t('settingsAIProvider.updateSuccess'))
+      await updateAiProvider(editId.value, data);
+      message.success(t('settingsAIProvider.updateSuccess'));
     } else {
-      await createAiProvider(data)
-      message.success(t('settingsAIProvider.createSuccess'))
+      await createAiProvider(data);
+      message.success(t('settingsAIProvider.createSuccess'));
     }
-    modalVisible.value = false
-    loadProviders()
+    modalVisible.value = false;
+    loadProviders();
   } catch {
     // Error handled by interceptor
   } finally {
-    submitLoading.value = false
+    submitLoading.value = false;
   }
 }
 
 async function handleDelete(record: AiProvider) {
   try {
-    await deleteAiProvider(record.id!)
-    message.success(t('settingsAIProvider.deleteSuccess'))
-    loadProviders()
+    await deleteAiProvider(record.id!);
+    message.success(t('settingsAIProvider.deleteSuccess'));
+    loadProviders();
   } catch {
     // Error handled by interceptor
   }
@@ -449,10 +471,10 @@ async function handleDelete(record: AiProvider) {
 
 async function handleStatusChange(record: AiProvider, checked: boolean) {
   try {
-    await updateAiProvider(record.id!, { status: checked ? 1 : 0 })
-    record.status = checked ? 1 : 0
+    await updateAiProvider(record.id!, { status: checked ? 1 : 0 });
+    record.status = checked ? 1 : 0;
   } catch {
-    record.status = record.status === 1 ? 0 : 1
+    record.status = record.status === 1 ? 0 : 1;
   }
 }
 
@@ -461,15 +483,15 @@ async function handleTest(record: AiProvider) {
     await testAiProviderConnection({
       platform: record.platform,
       apiUrl: record.apiUrl || platformDefaultBaseUrls[record.platform],
-    })
-    message.success(t('settingsAIProvider.testConnectionSuccess'))
+    });
+    message.success(t('settingsAIProvider.testConnectionSuccess'));
   } catch {
-    message.error(t('settingsAIProvider.testConnectionFailed'))
+    message.error(t('settingsAIProvider.testConnectionFailed'));
   }
 }
 
 onMounted(() => {
-  loadModels()
-  loadProviders()
-})
+  loadModels();
+  loadProviders();
+});
 </script>

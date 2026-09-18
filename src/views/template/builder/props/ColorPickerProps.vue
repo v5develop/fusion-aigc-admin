@@ -26,11 +26,7 @@
 
     <a-form-item :label="$t('template.colorPresetColors')">
       <div v-if="presetColors.length > 0" class="color-picker-props__list">
-        <div
-          v-for="(color, index) in presetColors"
-          :key="index"
-          class="color-picker-props__row"
-        >
+        <div v-for="(color, index) in presetColors" :key="index" class="color-picker-props__row">
           <span class="color-picker-props__swatch" :style="{ background: color }" />
           <a-input
             :value="color"
@@ -38,11 +34,7 @@
             allow-clear
             @update:value="onColorUpdate(index, $event)"
           />
-          <a-button
-            type="text"
-            class="color-picker-props__remove"
-            @click="onRemoveColor(index)"
-          >
+          <a-button type="text" class="color-picker-props__remove" @click="onRemoveColor(index)">
             <Icon icon="antdv-next:DeleteOutlined" />
           </a-button>
         </div>
@@ -58,52 +50,53 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import type { ColorPickerWidgetConfig } from '@/types/template-builder';
 
-import Icon from '@/components/Icon/index.vue'
-import { $t } from '@/locales'
-import type { ColorPickerWidgetConfig } from '@/types/template-builder'
+import { computed } from 'vue';
+
+import Icon from '@/components/Icon/index.vue';
+import { $t } from '@/locales';
 
 const props = defineProps<{
-  widget: ColorPickerWidgetConfig
-}>()
+  widget: ColorPickerWidgetConfig;
+}>();
 
 const emit = defineEmits<{
-  (e: 'update', patch: Record<string, unknown>): void
-}>()
+  (e: 'update', patch: Record<string, unknown>): void;
+}>();
 
-type ColorFormat = NonNullable<ColorPickerWidgetConfig['format']>
+type ColorFormat = NonNullable<ColorPickerWidgetConfig['format']>;
 
 const formatOptions: { label: string; value: ColorFormat }[] = [
   { label: 'HEX', value: 'hex' },
   { label: 'RGB', value: 'rgb' },
   { label: 'HSL', value: 'hsl' },
-]
+];
 
-const presetColors = computed<string[]>(() => props.widget.presetColors ?? [])
+const presetColors = computed<string[]>(() => props.widget.presetColors ?? []);
 
 function onUpdate<K extends keyof ColorPickerWidgetConfig>(
   field: K,
   value: ColorPickerWidgetConfig[K],
 ): void {
-  emit('update', { [field]: value })
+  emit('update', { [field]: value });
 }
 
 function commitColors(next: string[]): void {
-  emit('update', { presetColors: next.length === 0 ? undefined : next })
+  emit('update', { presetColors: next.length === 0 ? undefined : next });
 }
 
 function onColorUpdate(index: number, value: string): void {
-  const next = presetColors.value.map((c, i) => (i === index ? value : c))
-  commitColors(next)
+  const next = presetColors.value.map((c, i) => (i === index ? value : c));
+  commitColors(next);
 }
 
 function onRemoveColor(index: number): void {
-  commitColors(presetColors.value.filter((_, i) => i !== index))
+  commitColors(presetColors.value.filter((_, i) => i !== index));
 }
 
 function onAddColor(): void {
-  commitColors([...presetColors.value, '#1677ff'])
+  commitColors([...presetColors.value, '#1677ff']);
 }
 </script>
 

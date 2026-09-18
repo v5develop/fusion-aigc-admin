@@ -118,6 +118,9 @@
 </template>
 
 <script setup lang="ts">
+import type { AdminPointsPackage, PointsPackage } from '@/types/api';
+
+import { message } from 'antdv-next';
 /**
  * 点数包（充值套餐）管理。
  *
@@ -127,31 +130,30 @@
  * 金额在页面上按主单位（元）填，提交时乘 100 转成最小单位（分）——
  * 后端与订单表全程用分，换算只发生在这一层，不要让两种口径同时在接口里流动。
  */
-import { ref, reactive, computed, onMounted } from 'vue'
-import { message } from 'antdv-next'
-import { useI18n } from 'vue-i18n'
+import { ref, reactive, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+
 import {
   getPointsPackages,
   createPointsPackage,
   updatePointsPackage,
   togglePointsPackage,
   deletePointsPackage,
-} from '@/api/points-package'
-import type { AdminPointsPackage, PointsPackage } from '@/types/api'
+} from '@/api/points-package';
 
-const { t } = useI18n()
+const { t } = useI18n();
 
-const MINOR_UNITS_PER_MAJOR = 100
+const MINOR_UNITS_PER_MAJOR = 100;
 
-const packages = ref<AdminPointsPackage[]>([])
-const loading = ref(false)
-const togglingId = ref<number | null>(null)
+const packages = ref<AdminPointsPackage[]>([]);
+const loading = ref(false);
+const togglingId = ref<number | null>(null);
 
-const modalOpen = ref(false)
-const saving = ref(false)
-const editing = ref<PointsPackage | null>(null)
+const modalOpen = ref(false);
+const saving = ref(false);
+const editing = ref<PointsPackage | null>(null);
 // 与其它页一致：不引框架内部类型，避免 antdv-next 版本升级时类型路径漂移
-const formRef = ref()
+const formRef = ref();
 
 /** 表单里存主单位价格（priceMajor），提交时才换成最小单位。 */
 const form = reactive({
@@ -165,14 +167,14 @@ const form = reactive({
   sort: 0,
   enabled: true,
   remark: '',
-})
+});
 
 const formRules: Record<string, Array<Record<string, unknown>>> = {
   packageCode: [{ required: true, message: 'PKG_128' }],
   name: [{ required: true }],
   priceMajor: [{ required: true }],
   basePoints: [{ required: true }],
-}
+};
 
 const columns = [
   { title: t('pointsPackage.packageCode'), dataIndex: 'packageCode', key: 'packageCode' },
@@ -183,10 +185,10 @@ const columns = [
   { title: t('common.sort'), dataIndex: 'sort', key: 'sort' },
   { title: t('common.enabled'), key: 'enabled', width: 90 },
   { title: t('common.action'), key: 'action', width: 140 },
-]
+];
 
 function toMajor(minor?: number) {
-  return ((minor ?? 0) / MINOR_UNITS_PER_MAJOR).toFixed(2)
+  return ((minor ?? 0) / MINOR_UNITS_PER_MAJOR).toFixed(2);
 }
 
 /**
@@ -203,18 +205,18 @@ function toMajor(minor?: number) {
 const knownRate = computed<number | null>(() => {
   const sample = packages.value.find(
     (item) => (item.priceAmount ?? 0) > 0 && item.expectedBasePoints != null,
-  )
-  if (!sample) return null
-  return sample.expectedBasePoints! / (sample.priceAmount! / MINOR_UNITS_PER_MAJOR)
-})
+  );
+  if (!sample) return null;
+  return sample.expectedBasePoints! / (sample.priceAmount! / MINOR_UNITS_PER_MAJOR);
+});
 
 const expectedBase = computed(() =>
   knownRate.value === null ? null : Math.round(form.priceMajor * knownRate.value),
-)
+);
 
 const baseMatchesRate = computed(
   () => expectedBase.value === null || form.basePoints === expectedBase.value,
-)
+);
 
 /**
  * 改售价时同步基础点数。
@@ -225,23 +227,23 @@ const baseMatchesRate = computed(
  */
 function syncBasePoints() {
   if (expectedBase.value !== null) {
-    form.basePoints = expectedBase.value
+    form.basePoints = expectedBase.value;
   }
 }
 
 async function load() {
-  loading.value = true
+  loading.value = true;
   try {
-    packages.value = await getPointsPackages()
+    packages.value = await getPointsPackages();
   } catch {
     /* 错误已由拦截器提示 */
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 function openCreate() {
-  editing.value = null
+  editing.value = null;
   Object.assign(form, {
     packageCode: '',
     name: '',
@@ -253,12 +255,12 @@ function openCreate() {
     sort: packages.value.length * 10,
     enabled: true,
     remark: '',
-  })
-  modalOpen.value = true
+  });
+  modalOpen.value = true;
 }
 
 function openEdit(record: AdminPointsPackage) {
-  editing.value = record
+  editing.value = record;
   Object.assign(form, {
     packageCode: record.packageCode,
     name: record.name,
@@ -272,8 +274,8 @@ function openEdit(record: AdminPointsPackage) {
     sort: record.sort ?? 0,
     enabled: record.enabled ?? true,
     remark: record.remark ?? '',
-  })
-  modalOpen.value = true
+  });
+  modalOpen.value = true;
 }
 
 function toPayload(): PointsPackage {
@@ -290,50 +292,50 @@ function toPayload(): PointsPackage {
     sort: form.sort,
     enabled: form.enabled,
     remark: form.remark.trim() || null,
-  }
+  };
 }
 
 async function handleSubmit() {
-  await formRef.value?.validate()
-  saving.value = true
+  await formRef.value?.validate();
+  saving.value = true;
   try {
     if (editing.value?.id) {
-      await updatePointsPackage(editing.value.id, toPayload())
+      await updatePointsPackage(editing.value.id, toPayload());
     } else {
-      await createPointsPackage(toPayload())
+      await createPointsPackage(toPayload());
     }
-    message.success(t('common.saveSuccess'))
-    modalOpen.value = false
-    await load()
+    message.success(t('common.saveSuccess'));
+    modalOpen.value = false;
+    await load();
   } catch {
     /* 编码重复等冲突由后端返回 409，拦截器已提示 */
   } finally {
-    saving.value = false
+    saving.value = false;
   }
 }
 
 async function handleToggle(record: AdminPointsPackage, checked: boolean) {
-  if (!record.id) return
-  togglingId.value = record.id
+  if (!record.id) return;
+  togglingId.value = record.id;
   try {
-    await togglePointsPackage(record.id, checked)
-    record.enabled = checked
-    message.success(checked ? t('pointsPackage.enabledOn') : t('pointsPackage.enabledOff'))
+    await togglePointsPackage(record.id, checked);
+    record.enabled = checked;
+    message.success(checked ? t('pointsPackage.enabledOn') : t('pointsPackage.enabledOff'));
   } catch {
     /* 失败时不改本地值，开关自动回弹到原状态 */
   } finally {
-    togglingId.value = null
+    togglingId.value = null;
   }
 }
 
 async function handleDelete(record: AdminPointsPackage) {
-  if (!record.id) return
-  await deletePointsPackage(record.id)
-  message.success(t('common.deleteSuccess'))
-  await load()
+  if (!record.id) return;
+  await deletePointsPackage(record.id);
+  message.success(t('common.deleteSuccess'));
+  await load();
 }
 
-onMounted(load)
+onMounted(load);
 </script>
 
 <style scoped>

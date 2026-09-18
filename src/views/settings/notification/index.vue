@@ -112,6 +112,9 @@
 </template>
 
 <script setup lang="ts">
+import type { AdminNotification, NotificationPublishParams } from '@/types/api';
+
+import { message } from 'antdv-next';
 /**
  * 站内通知发布与撤回。
  *
@@ -121,33 +124,32 @@
  * 列表口径与用户端**刻意不同**：这里能看到未到发布时间的排期稿和已撤回的历史，
  * 运营要据此判断「是不是已经发过了」—— 只看用户端列表会重复发一遍。
  */
-import { ref, reactive, onMounted } from 'vue'
-import { message } from 'antdv-next'
-import { useI18n } from 'vue-i18n'
-import { getNotifications, publishNotification, revokeNotification } from '@/api/notification'
-import type { AdminNotification, NotificationPublishParams } from '@/types/api'
+import { ref, reactive, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n()
+import { getNotifications, publishNotification, revokeNotification } from '@/api/notification';
+
+const { t } = useI18n();
 
 /** 后端只有两个状态：0-已撤回 1-已发布。「排期中」不是状态，而是 publishTime 还没到。 */
-const STATUS_REVOKED = 0
-const STATUS_PUBLISHED = 1
+const STATUS_REVOKED = 0;
+const STATUS_PUBLISHED = 1;
 
-const list = ref<AdminNotification[]>([])
-const loading = ref(false)
-const total = ref(0)
+const list = ref<AdminNotification[]>([]);
+const loading = ref(false);
+const total = ref(0);
 const query = reactive({
   page: 1,
   pageSize: 10,
   targetScope: undefined as string | undefined,
   status: undefined as number | undefined,
   keyword: '',
-})
+});
 
-const modalOpen = ref(false)
-const publishing = ref(false)
+const modalOpen = ref(false);
+const publishing = ref(false);
 // 与其它页一致：不引框架内部类型，避免 antdv-next 版本升级时类型路径漂移
-const formRef = ref()
+const formRef = ref();
 const form = reactive<NotificationPublishParams & { targetUserId: number | null }>({
   title: '',
   content: '',
@@ -156,30 +158,30 @@ const form = reactive<NotificationPublishParams & { targetUserId: number | null 
   targetUserId: null,
   publishTime: null,
   expireTime: null,
-})
+});
 
 const formRules: Record<string, Array<Record<string, unknown>>> = {
   title: [{ required: true }],
   content: [{ required: true }],
   notificationType: [{ required: true }],
   targetScope: [{ required: true }],
-}
+};
 
 const scopeOptions = [
   { value: 'ALL', label: t('notification.scopeAll') },
   { value: 'USER', label: t('notification.scopeUser') },
-]
+];
 
 const typeOptions = [
   { value: 'SYSTEM', label: t('notification.typeSystem') },
   { value: 'ACTIVITY', label: t('notification.typeActivity') },
   { value: 'BILLING', label: t('notification.typeBilling') },
-]
+];
 
 const statusOptions = [
   { value: STATUS_PUBLISHED, label: t('notification.statusPublished') },
   { value: STATUS_REVOKED, label: t('notification.statusRevoked') },
-]
+];
 
 const columns = [
   { title: t('notification.title'), dataIndex: 'title', key: 'title', ellipsis: true },
@@ -189,23 +191,23 @@ const columns = [
   { title: t('notification.expireTime'), dataIndex: 'expireTime', key: 'expireTime' },
   { title: t('notification.status'), key: 'status' },
   { title: t('common.action'), key: 'action', width: 100 },
-]
+];
 
 const pagination = reactive({
   get current() {
-    return query.page
+    return query.page;
   },
   get pageSize() {
-    return query.pageSize
+    return query.pageSize;
   },
   get total() {
-    return total.value
+    return total.value;
   },
   showSizeChanger: true,
-})
+});
 
 function scopeLabel(scope: string) {
-  return scopeOptions.find((item) => item.value === scope)?.label ?? scope
+  return scopeOptions.find((item) => item.value === scope)?.label ?? scope;
 }
 
 /**
@@ -213,49 +215,49 @@ function scopeLabel(scope: string) {
  * 把它当状态显示会让运营以为能按它筛选，而后端的 status 参数里根本没有这个值。
  */
 function statusLabel(record: AdminNotification) {
-  if (record.status === STATUS_REVOKED) return t('notification.statusRevoked')
-  if (record.publishTime && record.publishTime > nowIso()) return t('notification.statusScheduled')
-  return t('notification.statusPublished')
+  if (record.status === STATUS_REVOKED) return t('notification.statusRevoked');
+  if (record.publishTime && record.publishTime > nowIso()) return t('notification.statusScheduled');
+  return t('notification.statusPublished');
 }
 
 function statusColor(record: AdminNotification) {
-  if (record.status === STATUS_REVOKED) return 'default'
-  if (record.publishTime && record.publishTime > nowIso()) return 'gold'
-  return 'green'
+  if (record.status === STATUS_REVOKED) return 'default';
+  if (record.publishTime && record.publishTime > nowIso()) return 'gold';
+  return 'green';
 }
 
 /** 后端时间是 yyyy-MM-ddTHH:mm:ss 的本地时间字符串，同格式下字典序即时间序。 */
 function nowIso() {
-  const now = new Date()
-  const pad = (value: number) => String(value).padStart(2, '0')
+  const now = new Date();
+  const pad = (value: number) => String(value).padStart(2, '0');
   return (
     `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}` +
     `T${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`
-  )
+  );
 }
 
 async function load() {
-  loading.value = true
+  loading.value = true;
   try {
-    const data = await getNotifications({ ...query })
-    list.value = data.list
-    total.value = data.total
+    const data = await getNotifications({ ...query });
+    list.value = data.list;
+    total.value = data.total;
   } catch {
     /* 错误已由拦截器提示 */
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 function reload() {
-  query.page = 1
-  return load()
+  query.page = 1;
+  return load();
 }
 
 function handleTableChange(page: { current?: number; pageSize?: number }) {
-  query.page = page.current ?? 1
-  query.pageSize = page.pageSize ?? 10
-  return load()
+  query.page = page.current ?? 1;
+  query.pageSize = page.pageSize ?? 10;
+  return load();
 }
 
 function openPublish() {
@@ -267,41 +269,41 @@ function openPublish() {
     targetUserId: null,
     publishTime: null,
     expireTime: null,
-  })
-  modalOpen.value = true
+  });
+  modalOpen.value = true;
 }
 
 async function handlePublish() {
-  await formRef.value?.validate()
+  await formRef.value?.validate();
   if (form.targetScope === 'USER' && !form.targetUserId) {
-    message.error(t('notification.targetUserRequired'))
-    return
+    message.error(t('notification.targetUserRequired'));
+    return;
   }
-  publishing.value = true
+  publishing.value = true;
   try {
     await publishNotification({
       ...form,
       // 全体公告不该带 targetUserId：后端按 scope 判断，但把一个无意义的用户号发过去，
       // 事后查审计时会分不清这条到底发给了谁
       targetUserId: form.targetScope === 'USER' ? form.targetUserId : null,
-    })
-    message.success(t('notification.publishSuccess'))
-    modalOpen.value = false
-    await reload()
+    });
+    message.success(t('notification.publishSuccess'));
+    modalOpen.value = false;
+    await reload();
   } catch {
     /* 错误已由拦截器提示 */
   } finally {
-    publishing.value = false
+    publishing.value = false;
   }
 }
 
 async function handleRevoke(record: AdminNotification) {
-  await revokeNotification(record.id)
-  message.success(t('notification.revokeSuccess'))
-  await load()
+  await revokeNotification(record.id);
+  message.success(t('notification.revokeSuccess'));
+  await load();
 }
 
-onMounted(load)
+onMounted(load);
 </script>
 
 <style scoped>

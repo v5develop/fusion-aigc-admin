@@ -1,38 +1,39 @@
-import { request } from '@/utils/request'
-import type { PageResult } from '@/types/api'
+import type { PageResult } from '@/types/api';
+
+import { request } from '@/utils/request';
 
 /**
  * 子资产（afv_asset_item）。只有 customizedModel / realPersonModel 这类
  * 「一条素材下面还挂着多张图」的素材才有，普通产物恒为空数组，且**只在详情接口返回**。
  */
 export interface UserAssetItem {
-  id: number
-  assetId: number
+  id: number;
+  assetId: number;
   /**
    * 这一项在这组里的角色，**不是媒体形态**（那是 mediaType）：
    * initial 主项 / original 原始 / front 正面 / side 侧面 / back 背面 /
    * detail 细节 / expression 表情 / pose 姿势 / variant 变体
    */
-  itemType: string | null
-  name: string | null
+  itemType: string | null;
+  name: string | null;
   /** 产物地址。是图是视频看 mediaType，别靠后缀猜——签名地址根本没有后缀 */
-  mediaUrl: string | null
+  mediaUrl: string | null;
   /** image / video / audio。后端 NOT NULL，不会给空 */
-  mediaType: string
+  mediaType: string;
   /** 展示帧。视频/音频必有；图片可能为空，此时回退 mediaUrl 自己 */
-  coverUrl: string | null
+  coverUrl: string | null;
   /** 0 = 未知 */
-  width: number | null
-  height: number | null
+  width: number | null;
+  height: number | null;
   /** 归一化标准比例；空 = 还没算过 */
-  aspectRatio: string | null
+  aspectRatio: string | null;
   /** 动态属性 JSON 字符串，原样透出 */
-  properties: string | null
-  sortOrder: number | null
+  properties: string | null;
+  sortOrder: number | null;
   /** 1-用户上传 2-AI生成 */
-  sourceType: number | null
-  aiPrompt: string | null
-  createTime?: string
+  sourceType: number | null;
+  aiPrompt: string | null;
+  createTime?: string;
 }
 
 /**
@@ -45,71 +46,71 @@ export interface UserAssetItem {
  *   封面对不对，只有在这一层才看得见。
  */
 export interface UserAsset {
-  id: number
-  userId: number | null
+  id: number;
+  userId: number | null;
   /** 昵称 → 登录名 → 脱敏手机号，后端保证非空 */
-  username: string
+  username: string;
   /** 来源创作主任务ID；用户自己上传的素材没有这个值 */
-  sourceTaskId: string | null
+  sourceTaskId: string | null;
   /** 资产类型，值域不统一（image/video 或电商 entryCode），仅供展示 */
-  type: string | null
-  entryCode: string | null
+  type: string | null;
+  entryCode: string | null;
   /** 入口中文名，取自计费 offer；查不到时后端已回退成 entryCode */
-  entryName: string | null
-  name: string | null
+  entryName: string | null;
+  name: string | null;
   /**
    * 归一化媒体类型：image / video。**渲染判断只能用它**。
    * 别拿 type 自己判：它混着大小写两套约定，且电商视频入口的字面量里根本没有
    * "video"（productReplacement / personReplacement），怎么比都会把视频渲染成裂图。
    */
-  mediaType: string
+  mediaType: string;
   /** 封面。视频素材这里可能仍是 mp4 地址本身（存量未回填），前端要按 mediaType 兜底 */
-  coverUrl: string | null
-  resultUrl: string | null
+  coverUrl: string | null;
+  resultUrl: string | null;
   /** 0 = 未知（探测失败或还没探到），不是「宽 0 像素」 */
-  width: number
-  height: number
+  width: number;
+  height: number;
   /** 归一化标准比例；空串/null = 还没算出来 */
-  aspectRatio: string | null
+  aspectRatio: string | null;
   /** 1-用户上传 2-AI生成 */
-  sourceType: number | null
-  aiPrompt: string | null
+  sourceType: number | null;
+  aiPrompt: string | null;
   /** 0-草稿 1-正常 */
-  status: number | null
+  status: number | null;
   /** 用户端是否已删除（逻辑删除位）。列表默认连已删的一起给，排查「我的图没了」正需要 */
-  userDeleted: boolean
-  createTime: string
+  userDeleted: boolean;
+  createTime: string;
   /** 仅详情返回 */
-  items?: UserAssetItem[] | null
+  items?: UserAssetItem[] | null;
 }
 
 export interface UserAssetQuery {
   /** 名称 / 素材ID / 来源任务ID */
-  keyword?: string
-  userId?: number
+  keyword?: string;
+  userId?: number;
   /**
    * 聚合分类编码（一级或二级都行），后端展开成入口集合再筛。
    * 与 entryCode 同传时**以 entryCode 为准**：分类是入口的集合，两者求交会让人
    * 选了具体入口却查不到。
    */
-  assetCategory?: string
-  entryCode?: string
-  aspectRatio?: string
+  assetCategory?: string;
+  entryCode?: string;
+  aspectRatio?: string;
   /** image / video；其余值后端一律当不筛 */
-  mediaType?: string
+  mediaType?: string;
   /** 1-用户上传 2-AI生成 */
-  sourceType?: number
+  sourceType?: number;
   /** 三态：不传=不限、true=仅已删除、false=仅未删除。别写成 `x || undefined`，会把 false 吞掉 */
-  deleted?: boolean
+  deleted?: boolean;
   /** ISO 本地日期时间，如 2026-08-28T00:00:00 */
-  startTime?: string
-  endTime?: string
-  page?: number
-  pageSize?: number
+  startTime?: string;
+  endTime?: string;
+  page?: number;
+  pageSize?: number;
 }
 
 export function getUserAssetList(params: UserAssetQuery) {
-  return request.get<PageResult<UserAsset>>('/api/v1/admin/user-assets', { params })
+  return request.get<PageResult<UserAsset>>('/api/v1/admin/user-assets', { params });
 }
 
 /**
@@ -117,12 +118,12 @@ export function getUserAssetList(params: UserAssetQuery) {
  * 两边各写一份，加比例时必然漏改一边，下拉里就会出现永远筛不到东西的死选项。
  */
 export function getUserAssetAspectRatios() {
-  return request.get<string[]>('/api/v1/admin/user-assets/aspect-ratios')
+  return request.get<string[]>('/api/v1/admin/user-assets/aspect-ratios');
 }
 
 /** 详情：比列表多一个 items（子资产）。已被用户删除的素材同样查得到 */
 export function getUserAssetDetail(id: number) {
-  return request.get<UserAsset>(`/api/v1/admin/user-assets/${id}`)
+  return request.get<UserAsset>(`/api/v1/admin/user-assets/${id}`);
 }
 
 /**
@@ -131,5 +132,5 @@ export function getUserAssetDetail(id: number) {
  * 但删的是用户自己的东西，调用前必须二次确认。
  */
 export function deleteUserAsset(id: number) {
-  return request.delete<boolean>(`/api/v1/admin/user-assets/${id}`)
+  return request.delete<boolean>(`/api/v1/admin/user-assets/${id}`);
 }

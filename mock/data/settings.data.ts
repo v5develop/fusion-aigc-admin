@@ -6,7 +6,7 @@ export const mockUnionConfig = {
   appSecret: 'secret_abcdef',
   tokenUrl: 'https://union.example.com/oauth/token',
   callbackUrl: 'https://admin.example.com/callback',
-}
+};
 
 export const mockAIProviderConfig = {
   providers: [
@@ -35,7 +35,7 @@ export const mockAIProviderConfig = {
       status: 1,
     },
   ],
-}
+};
 
 export const mockStorageConfigs = [
   {
@@ -66,11 +66,11 @@ export const mockStorageConfigs = [
     createTime: '2026-05-28T10:00:00',
     updateTime: '2026-05-28T10:00:00',
   },
-]
+];
 
 export const mockSystemConfig = {
   siteName: 'Fusion AIGC',
   siteBaseUrl: 'https://admin.example.com',
   allowRegister: 'true',
   defaultPoints: '100',
-}
+};

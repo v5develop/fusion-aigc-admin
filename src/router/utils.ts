@@ -27,10 +27,8 @@ export function filterRoutesByPermission(
     if (route.meta?.requiredPermissions && !hasAllPermission) {
       const perms = Array.isArray(route.meta.requiredPermissions)
         ? route.meta.requiredPermissions
-        : [route.meta.requiredPermissions]
-      const hasPermission = perms.some((perm: string) =>
-        permissions.includes(perm),
-      );
+        : [route.meta.requiredPermissions];
+      const hasPermission = perms.some((perm: string) => permissions.includes(perm));
       if (!hasPermission) return false;
     }
 
@@ -204,8 +202,8 @@ export function hasRoutePermission(route: AppRouteRecordRaw, permissions: string
 
   const perms = Array.isArray(route.meta.requiredPermissions)
     ? route.meta.requiredPermissions
-    : [route.meta.requiredPermissions]
-  return perms.some((perm: string) => permissions.includes(perm))
+    : [route.meta.requiredPermissions];
+  return perms.some((perm: string) => permissions.includes(perm));
 }
 
 /**

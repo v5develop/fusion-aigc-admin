@@ -1,19 +1,11 @@
 <template>
   <div class="page-container">
-    <ProTable
-      :columns="columns"
-      :request="loadData"
-      :search="{}"
-      :toolbar="{}"
-      row-key="id"
-    >
+    <ProTable :columns="columns" :request="loadData" :search="{}" :toolbar="{}" row-key="id">
       <template #emptyText>
         <a-empty :description="$t('feature.noChangeLogData')" />
       </template>
       <template #toolbar>
-        <a-button @click="handleExport">
-          <DownloadOutlined /> {{ $t('common.export') }}
-        </a-button>
+        <a-button @click="handleExport"> <DownloadOutlined /> {{ $t('common.export') }} </a-button>
       </template>
 
       <template #bodyCell="{ column, record }">
@@ -34,13 +26,14 @@
 </template>
 
 <script setup lang="ts">
-import { message } from 'antdv-next'
-import { DownloadOutlined } from '@antdv-next/icons'
-import { useI18n } from 'vue-i18n'
-import ProTable from '@/components/Pro/ProTable/index.vue'
-import { getFeatureChangeLog } from '@/api/feature'
+import { DownloadOutlined } from '@antdv-next/icons';
+import { message } from 'antdv-next';
+import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n()
+import { getFeatureChangeLog } from '@/api/feature';
+import ProTable from '@/components/Pro/ProTable/index.vue';
+
+const { t } = useI18n();
 
 const featureChangeLogChangeTypeMap: Record<string, string> = {
   grant: t('featureChangeLog.changeTypeMap.grant'),
@@ -52,14 +45,14 @@ const featureChangeLogChangeTypeMap: Record<string, string> = {
   manualRenew: t('featureChangeLog.changeTypeMap.manualRenew'),
   supersede: t('featureChangeLog.changeTypeMap.supersede'),
   expire: t('featureChangeLog.changeTypeMap.expire'),
-}
+};
 
 const featureChangeLogSourceMap: Record<string, string> = {
   unionGrant: t('featureChangeLog.sourceMap.unionGrant'),
   unionRevoke: t('featureChangeLog.sourceMap.unionRevoke'),
   manual: t('featureChangeLog.sourceMap.manual'),
   systemExpire: t('featureChangeLog.sourceMap.systemExpire'),
-}
+};
 
 const changeTypeColorMap: Record<string, string> = {
   grant: 'green',
@@ -71,7 +64,7 @@ const changeTypeColorMap: Record<string, string> = {
   manualRenew: 'cyan',
   supersede: 'gold',
   expire: 'default',
-}
+};
 
 const columns = [
   {
@@ -135,7 +128,7 @@ const columns = [
     dataIndex: 'createTime',
     width: 180,
   },
-]
+];
 
 async function loadData(params: Record<string, unknown>) {
   const res = await getFeatureChangeLog({
@@ -146,15 +139,15 @@ async function loadData(params: Record<string, unknown>) {
     changeType: params.changeType as string | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
-  })
+  });
   return {
     data: res.list || [],
     total: res.total || 0,
     success: true,
-  }
+  };
 }
 
 function handleExport() {
-  message.success(t('featureChangeLog.exportSuccess'))
+  message.success(t('featureChangeLog.exportSuccess'));
 }
 </script>

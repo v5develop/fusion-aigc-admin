@@ -41,51 +41,52 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import type { InputWidgetConfig, RenderMode } from '@/types/template-builder';
 
-import Icon from '@/components/Icon/index.vue'
-import type { InputWidgetConfig, RenderMode } from '@/types/template-builder'
+import { computed } from 'vue';
+
+import Icon from '@/components/Icon/index.vue';
 
 const props = withDefaults(
   defineProps<{
-    config: InputWidgetConfig
-    mode: RenderMode
-    formValues?: Record<string, unknown>
-    isSelected?: boolean
+    config: InputWidgetConfig;
+    mode: RenderMode;
+    formValues?: Record<string, unknown>;
+    isSelected?: boolean;
   }>(),
   {
     formValues: undefined,
     isSelected: false,
   },
-)
+);
 
 const emit = defineEmits<{
-  (e: 'update:form-values', key: string, value: unknown): void
-}>()
+  (e: 'update:form-values', key: string, value: unknown): void;
+}>();
 
 /** 输入框原生 type，仅限 InputWidgetConfig 允许的取值 */
 const inputType = computed<'text' | 'password' | 'email' | 'url'>(
   () => props.config.inputType ?? 'text',
-)
+);
 
 /** 当前值：viewer 优先读 formValues，回退 defaultValue；统一收窄为 string */
 const currentValue = computed<string>(() => {
-  const raw = props.formValues?.[props.config.key]
+  const raw = props.formValues?.[props.config.key];
   if (typeof raw === 'string') {
-    return raw
+    return raw;
   }
   if (typeof props.config.defaultValue === 'string') {
-    return props.config.defaultValue
+    return props.config.defaultValue;
   }
-  return ''
-})
+  return '';
+});
 
 /** viewer 模式下回写表单值；builder 模式只读，不 emit */
 function onInput(value: string) {
   if (props.mode !== 'viewer') {
-    return
+    return;
   }
-  emit('update:form-values', props.config.key, value)
+  emit('update:form-values', props.config.key, value);
 }
 </script>
 

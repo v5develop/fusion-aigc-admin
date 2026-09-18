@@ -160,7 +160,9 @@
               <a-tooltip :title="unionStatusHint">
                 <a-badge
                   :status="stats.unionConnected ? 'success' : 'default'"
-                  :text="stats.unionConnected ? $t('dashboard.connected') : $t('dashboard.disconnected')"
+                  :text="
+                    stats.unionConnected ? $t('dashboard.connected') : $t('dashboard.disconnected')
+                  "
                 />
               </a-tooltip>
             </a-descriptions-item>
@@ -187,11 +189,11 @@ import {
   ThunderboltOutlined,
   WalletOutlined,
   WarningOutlined,
-} from '@antdv-next/icons'
-import { reactive, ref, computed, onMounted, nextTick } from 'vue'
-import { useI18n } from 'vue-i18n'
+} from '@antdv-next/icons';
+import { reactive, ref, computed, onMounted, nextTick } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-import { getDashboardStats } from '@/api/dashboard'
+import { getDashboardStats } from '@/api/dashboard';
 
 const stats = reactive({
   totalUsers: 0,
@@ -213,72 +215,74 @@ const stats = reactive({
   unionConnected: false,
   unionEnabledApps: 0,
   unionLastSuccessTime: null as string | null,
-})
+});
 
 /**
  * 「未连接」到底是哪种未连接——鼠标悬停时说清楚。
  * 之前这里是个恒为 false 的 ref，徽标永远显示未连接，
  * 看的人分不清是真断了还是这个功能压根没接。
  */
-const { t } = useI18n()
+const { t } = useI18n();
 
 const unionStatusHint = computed(() => {
   if (stats.unionEnabledApps === 0) {
-    return t('dashboard.unionNoApp')
+    return t('dashboard.unionNoApp');
   }
   if (!stats.unionLastSuccessTime) {
-    return t('dashboard.unionNeverCalled')
+    return t('dashboard.unionNeverCalled');
   }
-  return t('dashboard.unionLastSuccess', { time: stats.unionLastSuccessTime })
-})
+  return t('dashboard.unionLastSuccess', { time: stats.unionLastSuccessTime });
+});
 
-const taskChartRef = ref<HTMLElement>()
-const consumeChartRef = ref<HTMLElement>()
+const taskChartRef = ref<HTMLElement>();
+const consumeChartRef = ref<HTMLElement>();
 
 async function loadStats() {
   try {
-    const res = await getDashboardStats()
-    stats.totalUsers = res.totalUsers || 0
-    stats.totalFeatures = res.totalFeatures || 0
-    stats.totalModels = res.totalModels || 0
-    stats.totalProjects = res.totalProjects || 0
-    stats.todayNewUsers = res.todayNewUsers || 0
-    stats.todayNewProjects = res.todayNewProjects || 0
-    stats.todayTasks = res.todayTasks || 0
-    stats.todaySuccessTasks = res.todaySuccessTasks || 0
-    stats.todayFailedTasks = res.todayFailedTasks || 0
-    stats.todayConsumption = res.todayConsumption || 0
-    stats.todayPaidOrders = res.todayPaidOrders || 0
-    stats.todayRechargeAmount = res.todayRechargeAmount || 0
-    stats.todayRechargePoints = res.todayRechargePoints || 0
-    stats.todayUnionRequests = res.todayUnionRequests || 0
-    stats.todayUnionSuccess = res.todayUnionSuccess || 0
+    const res = await getDashboardStats();
+    stats.totalUsers = res.totalUsers || 0;
+    stats.totalFeatures = res.totalFeatures || 0;
+    stats.totalModels = res.totalModels || 0;
+    stats.totalProjects = res.totalProjects || 0;
+    stats.todayNewUsers = res.todayNewUsers || 0;
+    stats.todayNewProjects = res.todayNewProjects || 0;
+    stats.todayTasks = res.todayTasks || 0;
+    stats.todaySuccessTasks = res.todaySuccessTasks || 0;
+    stats.todayFailedTasks = res.todayFailedTasks || 0;
+    stats.todayConsumption = res.todayConsumption || 0;
+    stats.todayPaidOrders = res.todayPaidOrders || 0;
+    stats.todayRechargeAmount = res.todayRechargeAmount || 0;
+    stats.todayRechargePoints = res.todayRechargePoints || 0;
+    stats.todayUnionRequests = res.todayUnionRequests || 0;
+    stats.todayUnionSuccess = res.todayUnionSuccess || 0;
     // 布尔值不能用 || 兜底：false 会被吞成默认值，这里默认值也是 false 所以看不出问题，
     // 但写法本身是错的，照抄到别处就会出事
-    stats.unionConnected = res.unionConnected ?? false
-    stats.unionEnabledApps = res.unionEnabledApps || 0
-    stats.unionLastSuccessTime = res.unionLastSuccessTime ?? null
-    stats.openDifferences = res.openDifferences || 0
+    stats.unionConnected = res.unionConnected ?? false;
+    stats.unionEnabledApps = res.unionEnabledApps || 0;
+    stats.unionLastSuccessTime = res.unionLastSuccessTime ?? null;
+    stats.openDifferences = res.openDifferences || 0;
 
-    await nextTick()
-    renderCharts(res.trend)
+    await nextTick();
+    renderCharts(res.trend);
   } catch (error) {
-    console.error('Failed to load dashboard stats:', error)
+    console.error('Failed to load dashboard stats:', error);
   }
 }
 
 function renderCharts(trend: Record<string, unknown> | undefined) {
-  if (!trend) return
-  const labels = trend.labels as string[]
-  const taskCounts = trend.taskCounts as number[]
-  const consumeAmounts = trend.consumeAmounts as number[]
+  if (!trend) return;
+  const labels = trend.labels as string[];
+  const taskCounts = trend.taskCounts as number[];
+  const consumeAmounts = trend.consumeAmounts as number[];
 
   // Simple bar chart using CSS (no external chart library needed)
   if (taskChartRef.value && labels?.length) {
-    const maxTask = Math.max(...taskCounts, 1)
+    const maxTask = Math.max(...taskCounts, 1);
     taskChartRef.value.innerHTML = `
       <div class="bar-chart">
-        ${labels.map((label, i) => `
+        ${labels
+              .map(
+                (label, i) => `
           <div class="bar-item">
             <div class="bar-track">
               <div class="bar" style="height: ${(taskCounts[i] / maxTask) * 100}%">
@@ -287,16 +291,20 @@ function renderCharts(trend: Record<string, unknown> | undefined) {
             </div>
             <div class="bar-label">${label.slice(5)}</div>
           </div>
-        `).join('')}
+        `,
+              )
+              .join('')}
       </div>
-    `
+    `;
   }
 
   if (consumeChartRef.value && labels?.length) {
-    const maxConsume = Math.max(...consumeAmounts, 1)
+    const maxConsume = Math.max(...consumeAmounts, 1);
     consumeChartRef.value.innerHTML = `
       <div class="bar-chart">
-        ${labels.map((label, i) => `
+        ${labels
+              .map(
+                (label, i) => `
           <div class="bar-item">
             <div class="bar-track">
               <div class="bar bar-consume" style="height: ${(consumeAmounts[i] / maxConsume) * 100}%">
@@ -305,15 +313,17 @@ function renderCharts(trend: Record<string, unknown> | undefined) {
             </div>
             <div class="bar-label">${label.slice(5)}</div>
           </div>
-        `).join('')}
+        `,
+              )
+              .join('')}
       </div>
-    `
+    `;
   }
 }
 
 onMounted(() => {
-  loadStats()
-})
+  loadStats();
+});
 </script>
 
 <style scoped>

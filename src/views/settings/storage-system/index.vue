@@ -1,14 +1,24 @@
 <template>
   <div class="page-container">
     <a-card variant="borderless">
-      <a-alert class="storage-alert" type="info" show-icon :message="$t('settingsStorageSystem.tip')" />
+      <a-alert
+        class="storage-alert"
+        type="info"
+        show-icon
+        :message="$t('settingsStorageSystem.tip')"
+      />
 
       <a-form layout="vertical" :model="formData" class="max-w-3xl">
         <a-row :gutter="32">
           <a-col :span="12">
-            <a-divider orientation="left">{{ $t('settingsStorageSystem.privateBucketTitle') }}</a-divider>
+            <a-divider orientation="left">{{
+              $t('settingsStorageSystem.privateBucketTitle')
+            }}</a-divider>
             <a-form-item :label="$t('settingsStorageSystem.endpoint')">
-              <a-input v-model:value="formData.privateEndpoint" :placeholder="$t('settingsStorageSystem.endpointPlaceholder')" />
+              <a-input
+                v-model:value="formData.privateEndpoint"
+                :placeholder="$t('settingsStorageSystem.endpointPlaceholder')"
+              />
             </a-form-item>
             <a-form-item :label="$t('settingsStorageSystem.bucket')">
               <a-input v-model:value="formData.privateBucket" />
@@ -27,11 +37,17 @@
               <a-input v-model:value="formData.privateCustomDomain" />
             </a-form-item>
             <a-form-item :label="$t('settingsStorageSystem.stsRoleArn')">
-              <a-input v-model:value="formData.privateStsRoleArn" :placeholder="$t('settingsStorageSystem.stsRoleArnPlaceholder')" />
+              <a-input
+                v-model:value="formData.privateStsRoleArn"
+                :placeholder="$t('settingsStorageSystem.stsRoleArnPlaceholder')"
+              />
             </a-form-item>
             <a-form-item :label="$t('settingsStorageSystem.stsRegion')">
               <a-space style="width: 100%">
-                <a-checkbox v-model:checked="privateStsRegionSameAsRegion" @change="handlePrivateStsRegionSameChange">
+                <a-checkbox
+                  v-model:checked="privateStsRegionSameAsRegion"
+                  @change="handlePrivateStsRegionSameChange"
+                >
                   {{ $t('settingsStorageSystem.stsRegionSameAsRegion') }}
                 </a-checkbox>
               </a-space>
@@ -48,9 +64,14 @@
           </a-col>
 
           <a-col :span="12">
-            <a-divider orientation="left">{{ $t('settingsStorageSystem.publicBucketTitle') }}</a-divider>
+            <a-divider orientation="left">{{
+              $t('settingsStorageSystem.publicBucketTitle')
+            }}</a-divider>
             <a-form-item :label="$t('settingsStorageSystem.endpoint')">
-              <a-input v-model:value="formData.publicEndpoint" :placeholder="$t('settingsStorageSystem.endpointPlaceholder')" />
+              <a-input
+                v-model:value="formData.publicEndpoint"
+                :placeholder="$t('settingsStorageSystem.endpointPlaceholder')"
+              />
             </a-form-item>
             <a-form-item :label="$t('settingsStorageSystem.bucket')">
               <a-input v-model:value="formData.publicBucket" />
@@ -69,11 +90,17 @@
               <a-input v-model:value="formData.publicCustomDomain" />
             </a-form-item>
             <a-form-item :label="$t('settingsStorageSystem.stsRoleArn')">
-              <a-input v-model:value="formData.publicStsRoleArn" :placeholder="$t('settingsStorageSystem.stsRoleArnPlaceholder')" />
+              <a-input
+                v-model:value="formData.publicStsRoleArn"
+                :placeholder="$t('settingsStorageSystem.stsRoleArnPlaceholder')"
+              />
             </a-form-item>
             <a-form-item :label="$t('settingsStorageSystem.stsRegion')">
               <a-space style="width: 100%">
-                <a-checkbox v-model:checked="publicStsRegionSameAsRegion" @change="handlePublicStsRegionSameChange">
+                <a-checkbox
+                  v-model:checked="publicStsRegionSameAsRegion"
+                  @change="handlePublicStsRegionSameChange"
+                >
                   {{ $t('settingsStorageSystem.stsRegionSameAsRegion') }}
                 </a-checkbox>
               </a-space>
@@ -106,18 +133,24 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, onMounted } from 'vue'
-import { message } from 'antdv-next'
-import { useI18n } from 'vue-i18n'
-import { getSystemStorageConfig, saveSystemStorageConfig, testSystemStorageConnection } from '@/api/config'
-import type { SystemStorageConfig } from '@/types/api'
+import type { SystemStorageConfig } from '@/types/api';
 
-const { t } = useI18n()
+import { message } from 'antdv-next';
+import { reactive, ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-const submitting = ref(false)
-const testing = ref(false)
-const privateStsRegionSameAsRegion = ref(true)
-const publicStsRegionSameAsRegion = ref(true)
+import {
+  getSystemStorageConfig,
+  saveSystemStorageConfig,
+  testSystemStorageConnection,
+} from '@/api/config';
+
+const { t } = useI18n();
+
+const submitting = ref(false);
+const testing = ref(false);
+const privateStsRegionSameAsRegion = ref(true);
+const publicStsRegionSameAsRegion = ref(true);
 
 const formData = reactive<SystemStorageConfig>({
   privateEndpoint: '',
@@ -136,49 +169,51 @@ const formData = reactive<SystemStorageConfig>({
   publicCustomDomain: '',
   publicStsRoleArn: '',
   publicStsRegion: '',
-})
+});
 
 function isMasked(value?: string) {
-  return !!value && value.includes('****')
+  return !!value && value.includes('****');
 }
 
 function handlePrivateStsRegionSameChange() {
   if (privateStsRegionSameAsRegion.value) {
-    formData.privateStsRegion = formData.privateRegion
+    formData.privateStsRegion = formData.privateRegion;
   }
 }
 
 function handlePublicStsRegionSameChange() {
   if (publicStsRegionSameAsRegion.value) {
-    formData.publicStsRegion = formData.publicRegion
+    formData.publicStsRegion = formData.publicRegion;
   }
 }
 
 // 脱敏字段未修改（仍含 ****）则不回传，避免把掩码写回后端
 function buildPayload(): SystemStorageConfig {
-  const payload: SystemStorageConfig = { ...formData }
+  const payload: SystemStorageConfig = { ...formData };
   if (privateStsRegionSameAsRegion.value) {
-    payload.privateStsRegion = formData.privateRegion
+    payload.privateStsRegion = formData.privateRegion;
   }
   if (publicStsRegionSameAsRegion.value) {
-    payload.publicStsRegion = formData.publicRegion
+    payload.publicStsRegion = formData.publicRegion;
   }
-  if (isMasked(payload.privateAccessKey)) delete payload.privateAccessKey
-  if (isMasked(payload.privateSecretKey)) delete payload.privateSecretKey
-  if (isMasked(payload.privateStsRoleArn)) delete payload.privateStsRoleArn
-  if (isMasked(payload.publicAccessKey)) delete payload.publicAccessKey
-  if (isMasked(payload.publicSecretKey)) delete payload.publicSecretKey
-  if (isMasked(payload.publicStsRoleArn)) delete payload.publicStsRoleArn
-  return payload
+  if (isMasked(payload.privateAccessKey)) delete payload.privateAccessKey;
+  if (isMasked(payload.privateSecretKey)) delete payload.privateSecretKey;
+  if (isMasked(payload.privateStsRoleArn)) delete payload.privateStsRoleArn;
+  if (isMasked(payload.publicAccessKey)) delete payload.publicAccessKey;
+  if (isMasked(payload.publicSecretKey)) delete payload.publicSecretKey;
+  if (isMasked(payload.publicStsRoleArn)) delete payload.publicStsRoleArn;
+  return payload;
 }
 
 async function loadConfig() {
   try {
-    const res = await getSystemStorageConfig()
+    const res = await getSystemStorageConfig();
     if (res) {
-      Object.assign(formData, res)
-      privateStsRegionSameAsRegion.value = !res.privateStsRegion || res.privateStsRegion === res.privateRegion
-      publicStsRegionSameAsRegion.value = !res.publicStsRegion || res.publicStsRegion === res.publicRegion
+      Object.assign(formData, res);
+      privateStsRegionSameAsRegion.value =
+        !res.privateStsRegion || res.privateStsRegion === res.privateRegion;
+      publicStsRegionSameAsRegion.value =
+        !res.publicStsRegion || res.publicStsRegion === res.publicRegion;
     }
   } catch {
     // 使用默认空值
@@ -186,31 +221,31 @@ async function loadConfig() {
 }
 
 async function handleSubmit() {
-  submitting.value = true
+  submitting.value = true;
   try {
-    await saveSystemStorageConfig(buildPayload())
-    message.success(t('settingsStorageSystem.saveSuccess'))
-    await loadConfig()
+    await saveSystemStorageConfig(buildPayload());
+    message.success(t('settingsStorageSystem.saveSuccess'));
+    await loadConfig();
   } finally {
-    submitting.value = false
+    submitting.value = false;
   }
 }
 
 async function handleTest() {
-  testing.value = true
+  testing.value = true;
   try {
-    await testSystemStorageConnection(buildPayload())
-    message.success(t('settingsStorageSystem.testSuccess'))
+    await testSystemStorageConnection(buildPayload());
+    message.success(t('settingsStorageSystem.testSuccess'));
   } catch {
-    message.error(t('settingsStorageSystem.testFailed'))
+    message.error(t('settingsStorageSystem.testFailed'));
   } finally {
-    testing.value = false
+    testing.value = false;
   }
 }
 
 onMounted(() => {
-  loadConfig()
-})
+  loadConfig();
+});
 </script>
 
 <style scoped>

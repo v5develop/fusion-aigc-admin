@@ -1,52 +1,52 @@
 // Mock data for prompt management module
 
 export interface MockPromptVariable {
-  name: string
-  label?: string
-  description?: string
-  defaultValue?: string
-  required?: boolean
+  name: string;
+  label?: string;
+  description?: string;
+  defaultValue?: string;
+  required?: boolean;
 }
 
 export interface MockPromptSlotOption {
-  label: string
-  value: string
+  label: string;
+  value: string;
 }
 
 export interface MockPromptSlot {
-  key: string
-  slotType: 'text' | 'select' | 'image' | 'chip' | 'number'
-  label: string
-  placeholder?: string
-  required?: boolean
-  defaultValue?: unknown
-  options?: MockPromptSlotOption[]
-  multiple?: boolean
-  maxCount?: number
-  recommendedSize?: string
-  min?: number
-  max?: number
-  step?: number
+  key: string;
+  slotType: 'text' | 'select' | 'image' | 'chip' | 'number';
+  label: string;
+  placeholder?: string;
+  required?: boolean;
+  defaultValue?: unknown;
+  options?: MockPromptSlotOption[];
+  multiple?: boolean;
+  maxCount?: number;
+  recommendedSize?: string;
+  min?: number;
+  max?: number;
+  step?: number;
 }
 
 export interface MockPromptRecord {
-  id: string
-  name: string
-  code?: string
-  category?: string
-  description?: string
-  icon?: string
-  coverImage?: string
-  content: string
-  slots?: MockPromptSlot[]
-  variables?: MockPromptVariable[]
-  tags?: string[]
-  version?: number
-  usageCount?: number
-  enabled?: number
-  sort?: number
-  createTime?: string
-  updateTime?: string
+  id: string;
+  name: string;
+  code?: string;
+  category?: string;
+  description?: string;
+  icon?: string;
+  coverImage?: string;
+  content: string;
+  slots?: MockPromptSlot[];
+  variables?: MockPromptVariable[];
+  tags?: string[];
+  version?: number;
+  usageCount?: number;
+  enabled?: number;
+  sort?: number;
+  createTime?: string;
+  updateTime?: string;
 }
 
 export const mockPrompts: MockPromptRecord[] = [
@@ -61,18 +61,54 @@ export const mockPrompts: MockPromptRecord[] = [
     content:
       '{{productImage}}，生成电商主图（{{count}}），商品名称是{{productName}}，卖点是{{sellingPoint}}，坐垫可拆洗，风格是居家治愈风，适配{{platform}}平台，主图比例为{{ratio}}',
     slots: [
-      { key: 'productImage', slotType: 'image', label: '点击上传产品图', maxCount: 1, recommendedSize: '1:1' },
-      { key: 'count', slotType: 'select', label: '生成数量', defaultValue: '1张', options: [
-        { label: '1张', value: '1张' }, { label: '4张', value: '4张' }, { label: '8张', value: '8张' },
-      ] },
-      { key: 'productName', slotType: 'text', label: '商品名称', placeholder: '单人沙发', required: true },
+      {
+        key: 'productImage',
+        slotType: 'image',
+        label: '点击上传产品图',
+        maxCount: 1,
+        recommendedSize: '1:1',
+      },
+      {
+        key: 'count',
+        slotType: 'select',
+        label: '生成数量',
+        defaultValue: '1张',
+        options: [
+          { label: '1张', value: '1张' },
+          { label: '4张', value: '4张' },
+          { label: '8张', value: '8张' },
+        ],
+      },
+      {
+        key: 'productName',
+        slotType: 'text',
+        label: '商品名称',
+        placeholder: '单人沙发',
+        required: true,
+      },
       { key: 'sellingPoint', slotType: 'text', label: '卖点', placeholder: '亲肤面料' },
-      { key: 'platform', slotType: 'select', label: '平台', defaultValue: '淘宝/天猫', options: [
-        { label: '淘宝/天猫', value: '淘宝/天猫' }, { label: '京东', value: '京东' }, { label: '拼多多', value: '拼多多' },
-      ] },
-      { key: 'ratio', slotType: 'select', label: '主图比例', defaultValue: '1:1', options: [
-        { label: '1:1', value: '1:1' }, { label: '3:4', value: '3:4' }, { label: '9:16', value: '9:16' },
-      ] },
+      {
+        key: 'platform',
+        slotType: 'select',
+        label: '平台',
+        defaultValue: '淘宝/天猫',
+        options: [
+          { label: '淘宝/天猫', value: '淘宝/天猫' },
+          { label: '京东', value: '京东' },
+          { label: '拼多多', value: '拼多多' },
+        ],
+      },
+      {
+        key: 'ratio',
+        slotType: 'select',
+        label: '主图比例',
+        defaultValue: '1:1',
+        options: [
+          { label: '1:1', value: '1:1' },
+          { label: '3:4', value: '3:4' },
+          { label: '9:16', value: '9:16' },
+        ],
+      },
     ],
     tags: ['电商', '主图', 'Agent'],
     version: 1,
@@ -145,4 +181,4 @@ export const mockPrompts: MockPromptRecord[] = [
     createTime: '2025-01-20T08:15:00',
     updateTime: '2025-03-10T16:45:00',
   },
-]
+];

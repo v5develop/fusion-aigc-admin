@@ -1,31 +1,19 @@
 <template>
-  <div
-    class="widget-wrapper"
-    :class="{ 'widget-selected': mode === 'builder' && isSelected }"
-  >
+  <div class="widget-wrapper" :class="{ 'widget-selected': mode === 'builder' && isSelected }">
     <div v-if="config.label" class="widget-header">
       <label class="widget-label">{{ config.label }}</label>
       <a-tooltip v-if="config.helpText" :title="config.helpText">
-        <Icon
-          icon="antdv-next:QuestionCircleOutlined"
-          class="help-icon"
-        />
+        <Icon icon="antdv-next:QuestionCircleOutlined" class="help-icon" />
       </a-tooltip>
     </div>
 
     <!-- C-end 模式: 提示文案 -->
-    <div
-      v-if="mode === 'viewer' && config.promptHint"
-      class="prompt-hint"
-    >
+    <div v-if="mode === 'viewer' && config.promptHint" class="prompt-hint">
       <Icon icon="antdv-next:BulbOutlined" />
       <span>{{ config.promptHint }}</span>
     </div>
 
-    <div
-      class="chip-input-container"
-      :style="{ minHeight: `${config.minHeight || 120}px` }"
-    >
+    <div class="chip-input-container" :style="{ minHeight: `${config.minHeight || 120}px` }">
       <!-- 文本输入区 (C-end 可编辑, Builder 预览禁用) -->
       <textarea
         v-model="inputText"
@@ -55,10 +43,7 @@
     </div>
 
     <!-- 预置标签选择器 (C-end 模式) -->
-    <div
-      v-if="mode === 'viewer' && availablePresetChips.length > 0"
-      class="preset-chips-area"
-    >
+    <div v-if="mode === 'viewer' && availablePresetChips.length > 0" class="preset-chips-area">
       <span class="preset-label">{{ $t('template.presetTags') }}:</span>
       <div class="preset-chips-grid">
         <div
@@ -78,73 +63,71 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import { message } from 'antdv-next'
-import Icon from '@/components/Icon/index.vue'
-import { $t } from '@/locales'
-import type {
-  ChipInputWidgetConfig,
-  ChipOption,
-  RenderMode,
-} from '@/types/template-builder'
+import type { ChipInputWidgetConfig, ChipOption, RenderMode } from '@/types/template-builder';
+
+import { message } from 'antdv-next';
+import { computed, ref, watch } from 'vue';
+
+import Icon from '@/components/Icon/index.vue';
+import { $t } from '@/locales';
 
 const props = withDefaults(
   defineProps<{
-    config: ChipInputWidgetConfig
-    mode: RenderMode
-    formValues?: Record<string, unknown>
-    isSelected?: boolean
+    config: ChipInputWidgetConfig;
+    mode: RenderMode;
+    formValues?: Record<string, unknown>;
+    isSelected?: boolean;
   }>(),
   { formValues: undefined, isSelected: false },
-)
+);
 
 const emit = defineEmits<{
-  (e: 'update:form-values', key: string, value: unknown): void
-}>()
+  (e: 'update:form-values', key: string, value: unknown): void;
+}>();
 
 /** chip-input 的值形态：输入框文本 + 已选 chip 的 key 列表 */
 interface ChipInputValue {
-  text: string
-  chips: string[]
+  text: string;
+  chips: string[];
 }
 
 // ─── 本地受控状态 ──────────────────────────────────────────
 // 以 props 值为权威来源，本地 ref 仅作编辑缓冲，通过 watch 同步。
-const inputText = ref('')
-const chipKeys = ref<string[]>([])
+const inputText = ref('');
+const chipKeys = ref<string[]>([]);
 
 /** 从 formValues / defaultValue 解析当前值，做防御性兜底 */
 function readValue(): ChipInputValue {
-  const raw = props.formValues?.[props.config.key] ?? props.config.defaultValue
+  const raw = props.formValues?.[props.config.key] ?? props.config.defaultValue;
   if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
-    const obj = raw as Record<string, unknown>
-    const text = typeof obj.text === 'string' ? obj.text : ''
+    const obj = raw as Record<string, unknown>;
+    const text = typeof obj.text === 'string' ? obj.text : '';
     const chips = Array.isArray(obj.chips)
       ? obj.chips.filter((c): c is string => typeof c === 'string')
-      : []
-    return { text, chips }
+      : [];
+    return { text, chips };
   }
-  return { text: '', chips: [] }
+  return { text: '', chips: [] };
 }
 
 watch(
   () => [props.formValues?.[props.config.key], props.mode] as const,
   () => {
-    const value = readValue()
-    inputText.value = value.text
-    chipKeys.value = value.chips
+    const value = readValue();
+    inputText.value = value.text;
+    chipKeys.value = value.chips;
   },
   { immediate: true, deep: true },
-)
+);
 
 /** 自定义 chip 的 key 前缀，默认 'custom_' */
-const customKeyPrefix = computed(() => props.config.customKeyPrefix ?? 'custom_')
+const customKeyPrefix = computed(() => props.config.customKeyPrefix ?? 'custom_');
 
 /** 是否达到最大 chip 数（maxChips=0 表示不限制） */
 const atChipLimit = computed(() => {
-  const max = props.config.maxChips ?? 0
-  return max > 0 && chipKeys.value.length >= max
-})
+  const max = props.config.maxChips ?? 0;
+  return max > 0 && chipKeys.value.length >= max;
+});
 
 /**
  * 把存储的 key 还原成可渲染的 ChipOption：
@@ -152,101 +135,95 @@ const atChipLimit = computed(() => {
  * - 否则视为自定义 chip，剥离前缀作为展示标签
  */
 function resolveChip(key: string): ChipOption {
-  const preset = props.config.presetChips?.find((c) => c.key === key)
+  const preset = props.config.presetChips?.find((c) => c.key === key);
   if (preset) {
-    return preset
+    return preset;
   }
-  const prefix = customKeyPrefix.value
-  const label = key.startsWith(prefix) ? key.slice(prefix.length) : key
-  return { key, label }
+  const prefix = customKeyPrefix.value;
+  const label = key.startsWith(prefix) ? key.slice(prefix.length) : key;
+  return { key, label };
 }
 
-const selectedChips = computed<ChipOption[]>(() =>
-  chipKeys.value.map(resolveChip),
-)
+const selectedChips = computed<ChipOption[]>(() => chipKeys.value.map(resolveChip));
 
-const availablePresetChips = computed<ChipOption[]>(
-  () => props.config.presetChips ?? [],
-)
+const availablePresetChips = computed<ChipOption[]>(() => props.config.presetChips ?? []);
 
 function isChipSelected(key: string): boolean {
-  return chipKeys.value.includes(key)
+  return chipKeys.value.includes(key);
 }
 
 function emitUpdate(): void {
   // builder 模式只读预览，不发任何值
   if (props.mode !== 'viewer') {
-    return
+    return;
   }
   const value: ChipInputValue = {
     text: inputText.value,
     chips: [...chipKeys.value],
-  }
-  emit('update:form-values', props.config.key, value)
+  };
+  emit('update:form-values', props.config.key, value);
 }
 
 /** 添加一个 chip（含上限校验与 insertText 文本注入） */
 function addChip(key: string, insertText?: string): void {
   if (chipKeys.value.includes(key)) {
-    return
+    return;
   }
   if (atChipLimit.value) {
-    message.warning($t('template.chipLimitReached'))
-    return
+    message.warning($t('template.chipLimitReached'));
+    return;
   }
-  chipKeys.value = [...chipKeys.value, key]
+  chipKeys.value = [...chipKeys.value, key];
   if (insertText) {
-    inputText.value = inputText.value
-      ? `${inputText.value} ${insertText}`
-      : insertText
+    inputText.value = inputText.value ? `${inputText.value} ${insertText}` : insertText;
   }
-  emitUpdate()
+  emitUpdate();
 }
 
 function removeChip(key: string): void {
   if (props.mode !== 'viewer') {
-    return
+    return;
   }
-  chipKeys.value = chipKeys.value.filter((k) => k !== key)
-  emitUpdate()
+  chipKeys.value = chipKeys.value.filter((k) => k !== key);
+  emitUpdate();
 }
 
 function toggleChip(chip: ChipOption): void {
   if (props.mode !== 'viewer') {
-    return
+    return;
   }
   if (isChipSelected(chip.key)) {
-    removeChip(chip.key)
+    removeChip(chip.key);
   } else {
-    addChip(chip.key, chip.insertText)
+    addChip(chip.key, chip.insertText);
   }
 }
 
 /** 输入框回车：把当前文本作为自定义 chip 添加 */
 function handleEnterKey(): void {
   if (props.mode !== 'viewer') {
-    return
+    return;
   }
   if (props.config.allowCustomInput === false) {
-    return
+    return;
   }
-  const text = inputText.value.trim()
+  const text = inputText.value.trim();
   if (!text) {
-    return
+    return;
   }
-  const key = `${customKeyPrefix.value}${text}`
+  const key = `${customKeyPrefix.value}${text}`;
   if (chipKeys.value.includes(key)) {
-    inputText.value = ''
-    emitUpdate()
-    return
+    inputText.value = '';
+    emitUpdate();
+    return;
   }
   if (atChipLimit.value) {
-    message.warning($t('template.chipLimitReached'))
-    return
+    message.warning($t('template.chipLimitReached'));
+    return;
   }
-  chipKeys.value = [...chipKeys.value, key]
-  inputText.value = ''
-  emitUpdate()
+  chipKeys.value = [...chipKeys.value, key];
+  inputText.value = '';
+  emitUpdate();
 }
 </script>
 

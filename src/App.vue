@@ -17,10 +17,10 @@ import { ConfigProvider, theme as antdTheme, type ThemeConfig } from 'antdv-next
 // 见下面 syncAntdGlobalConfig 的说明。升级 antdv-next 时若这条路径没了，
 // 表现是弹窗按钮变回 OK/Cancel（不会编译报错），届时按同样思路重新接一次。
 import { changeConfirmLocale } from 'antdv-next/dist/modal/locale';
-import zhCN from 'antdv-next/locale/zh_CN';
 import enUS from 'antdv-next/locale/en_US';
 import jaJP from 'antdv-next/locale/ja_JP';
 import koKR from 'antdv-next/locale/ko_KR';
+import zhCN from 'antdv-next/locale/zh_CN';
 import { computed, onMounted, watchEffect } from 'vue';
 
 import { getLocale } from './locales';
@@ -94,9 +94,9 @@ watchEffect((onCleanup) => {
 
 onMounted(() => {
   // Initialize theme and settings from localStorage
-  themeStore.initTheme()
-  settingsStore.initSettings()
-})
+  themeStore.initTheme();
+  settingsStore.initSettings();
+});
 </script>
 
 <style>

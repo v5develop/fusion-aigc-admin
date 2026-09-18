@@ -75,60 +75,60 @@
 </template>
 
 <script setup lang="ts">
-import { UserOutlined, LockOutlined } from '@antdv-next/icons'
-import { message } from 'antdv-next'
-import { reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { UserOutlined, LockOutlined } from '@antdv-next/icons';
+import { message } from 'antdv-next';
+import { reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
-import logoImg from '@/assets/images/logo.png'
-import { SliderCaptcha } from '@/components/Captcha'
-import LanguageSwitch from '@/components/Layout/LanguageSwitch.vue'
-import ThemeToggle from '@/components/Layout/ThemeToggle.vue'
-import { $t } from '@/locales'
-import { useAuthStore } from '@/stores/auth'
+import logoImg from '@/assets/images/logo.png';
+import { SliderCaptcha } from '@/components/Captcha';
+import LanguageSwitch from '@/components/Layout/LanguageSwitch.vue';
+import ThemeToggle from '@/components/Layout/ThemeToggle.vue';
+import { $t } from '@/locales';
+import { useAuthStore } from '@/stores/auth';
 
-const router = useRouter()
-const authStore = useAuthStore()
+const router = useRouter();
+const authStore = useAuthStore();
 
-const loading = ref(false)
-const captchaVerified = ref(false)
-const captchaRef = ref<InstanceType<typeof SliderCaptcha>>()
+const loading = ref(false);
+const captchaVerified = ref(false);
+const captchaRef = ref<InstanceType<typeof SliderCaptcha>>();
 const formState = reactive({
   username: '',
   password: '',
-})
+});
 
 const rules = {
   username: [{ required: true, message: $t('login.usernameRequired') }],
   password: [{ required: true, message: $t('login.passwordRequired') }],
-}
+};
 
 const onCaptchaSuccess = () => {
-  captchaVerified.value = true
-}
+  captchaVerified.value = true;
+};
 
 const onCaptchaFail = () => {
-  captchaVerified.value = false
-}
+  captchaVerified.value = false;
+};
 
 const handleSubmit = async () => {
-  loading.value = true
+  loading.value = true;
   try {
-    await authStore.login(formState.username, formState.password)
-    message.success($t('login.loginSuccess'))
-    await new Promise((resolve) => setTimeout(resolve, 100))
-    const redirect = (router.currentRoute.value.query.redirect as string) || '/'
-    router.push(redirect)
+    await authStore.login(formState.username, formState.password);
+    message.success($t('login.loginSuccess'));
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    const redirect = (router.currentRoute.value.query.redirect as string) || '/';
+    router.push(redirect);
   } catch (error: unknown) {
     message.error(
       (error instanceof Error ? error.message : String(error)) || $t('login.loginFailed'),
-    )
-    captchaVerified.value = false
-    captchaRef.value?.reset()
+    );
+    captchaVerified.value = false;
+    captchaRef.value?.reset();
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 </script>
 
 <style scoped lang="scss">

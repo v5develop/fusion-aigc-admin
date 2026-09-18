@@ -53,74 +53,73 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { message } from 'antdv-next';
+import { ref, watch } from 'vue';
 
-import { message } from 'antdv-next'
-
-import Icon from '@/components/Icon/index.vue'
-import { $t } from '@/locales'
-import { getPromptList, type PromptRecord } from '@/api/prompt'
+import { getPromptList, type PromptRecord } from '@/api/prompt';
+import Icon from '@/components/Icon/index.vue';
+import { $t } from '@/locales';
 
 const props = defineProps<{
-  open: boolean
-}>()
+  open: boolean;
+}>();
 
 const emit = defineEmits<{
-  (e: 'update:open', value: boolean): void
-  (e: 'select', payload: { prompt: PromptRecord; mapVariables: boolean }): void
-}>()
+  (e: 'update:open', value: boolean): void;
+  (e: 'select', payload: { prompt: PromptRecord; mapVariables: boolean }): void;
+}>();
 
-const keyword = ref('')
-const loading = ref(false)
-const list = ref<PromptRecord[]>([])
-const selectedId = ref<string>('')
-const mapVariables = ref(true)
+const keyword = ref('');
+const loading = ref(false);
+const list = ref<PromptRecord[]>([]);
+const selectedId = ref<string>('');
+const mapVariables = ref(true);
 
-let searchTimer: ReturnType<typeof setTimeout> | null = null
+let searchTimer: ReturnType<typeof setTimeout> | null = null;
 
 async function loadData(): Promise<void> {
-  loading.value = true
+  loading.value = true;
   try {
     const res = await getPromptList({
       keyword: keyword.value || undefined,
       enabled: 1,
       page: 1,
       pageSize: 50,
-    })
-    list.value = res.list || []
+    });
+    list.value = res.list || [];
   } catch {
-    message.error($t('prompt.loadFailed'))
+    message.error($t('prompt.loadFailed'));
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 function onKeywordChange(): void {
-  if (searchTimer) clearTimeout(searchTimer)
-  searchTimer = setTimeout(loadData, 300)
+  if (searchTimer) clearTimeout(searchTimer);
+  searchTimer = setTimeout(loadData, 300);
 }
 
 function handleConfirm(): void {
-  const prompt = list.value.find(item => item.id === selectedId.value)
-  if (!prompt) return
-  emit('select', { prompt, mapVariables: mapVariables.value })
-  emit('update:open', false)
+  const prompt = list.value.find((item) => item.id === selectedId.value);
+  if (!prompt) return;
+  emit('select', { prompt, mapVariables: mapVariables.value });
+  emit('update:open', false);
 }
 
 function handleCancel(): void {
-  emit('update:open', false)
+  emit('update:open', false);
 }
 
 watch(
   () => props.open,
   (value) => {
     if (value) {
-      selectedId.value = ''
-      keyword.value = ''
-      loadData()
+      selectedId.value = '';
+      keyword.value = '';
+      loadData();
     }
   },
-)
+);
 </script>
 
 <style scoped>

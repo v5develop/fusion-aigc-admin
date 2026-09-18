@@ -7,12 +7,8 @@
       <h2 class="error-title">页面出错了</h2>
       <p class="error-message">{{ errorMessage }}</p>
       <div class="error-actions">
-        <a-button type="primary" @click="handleReload">
-          重新加载
-        </a-button>
-        <a-button @click="handleGoHome">
-          返回首页
-        </a-button>
+        <a-button type="primary" @click="handleReload"> 重新加载 </a-button>
+        <a-button @click="handleGoHome"> 返回首页 </a-button>
       </div>
     </div>
   </div>
@@ -20,46 +16,49 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onErrorCaptured } from 'vue'
-import { ExclamationCircleOutlined } from '@antdv-next/icons'
-import { useRouter } from 'vue-router'
+import { ExclamationCircleOutlined } from '@antdv-next/icons';
+import { ref, onErrorCaptured } from 'vue';
+import { useRouter } from 'vue-router';
 
-const router = useRouter()
-const hasError = ref(false)
-const errorMessage = ref('发生了未知错误')
+const router = useRouter();
+const hasError = ref(false);
+const errorMessage = ref('发生了未知错误');
 
 onErrorCaptured((err, _instance, info) => {
-  console.error('[ErrorBoundary]', err, info)
+  console.error('[ErrorBoundary]', err, info);
 
   // 生产环境可接入错误监控平台
   if (import.meta.env.PROD) {
-    reportError(err, info)
+    reportError(err, info);
   }
 
-  errorMessage.value = err instanceof Error ? err.message : String(err)
-  hasError.value = true
-  return false
-})
+  errorMessage.value = err instanceof Error ? err.message : String(err);
+  hasError.value = true;
+  return false;
+});
 
 function handleReload() {
-  hasError.value = false
-  window.location.reload()
+  hasError.value = false;
+  window.location.reload();
 }
 
 function handleGoHome() {
-  hasError.value = false
-  router.push('/')
+  hasError.value = false;
+  router.push('/');
 }
 
 function reportError(error: unknown, info: string) {
   try {
-    navigator.sendBeacon?.('/api/error-report', JSON.stringify({
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-      info,
-      url: window.location.href,
-      timestamp: Date.now(),
-    }))
+    navigator.sendBeacon?.(
+      '/api/error-report',
+      JSON.stringify({
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        info,
+        url: window.location.href,
+        timestamp: Date.now(),
+      }),
+    );
   } catch {
     // 静默失败
   }

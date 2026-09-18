@@ -133,7 +133,9 @@
               v-model:value="formData.secretKey"
               :placeholder="currentPlatformConfig.secretKeyPlaceholder"
             />
-            <div v-if="hasMaskedSecret" class="form-hint">{{ $t('settingsStorage.maskedSecretHint') }}</div>
+            <div v-if="hasMaskedSecret" class="form-hint">
+              {{ $t('settingsStorage.maskedSecretHint') }}
+            </div>
           </a-form-item>
 
           <a-form-item :label="$t('settingsStorage.region')">
@@ -170,7 +172,10 @@
 
             <a-form-item :label="currentPlatformConfig.stsRegionLabel">
               <a-space style="width: 100%">
-                <a-checkbox v-model:checked="stsRegionSameAsRegion" @change="handleStsRegionSameChange">
+                <a-checkbox
+                  v-model:checked="stsRegionSameAsRegion"
+                  @change="handleStsRegionSameChange"
+                >
                   {{ $t('settingsStorage.stsRegionSameAsRegion') }}
                 </a-checkbox>
               </a-space>
@@ -201,60 +206,62 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
-import { message } from 'antdv-next'
-import { PlusOutlined } from '@antdv-next/icons'
-import { useI18n } from 'vue-i18n'
+import type { StorageConfig, StoragePlatform } from '@/types/api';
+
+import { PlusOutlined } from '@antdv-next/icons';
+import { message } from 'antdv-next';
+import { ref, reactive, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+
 import {
   getStorageConfigs,
   createStorageConfig,
   updateStorageConfig,
   setDefaultStorageConfig,
   deleteStorageConfig,
-} from '@/api/config'
-import type { StorageConfig, StoragePlatform } from '@/types/api'
+} from '@/api/config';
 
 interface StorageFormData {
-  id?: number
-  name: string
-  storagePlatform: StoragePlatform
-  endpoint: string
-  bucketName: string
-  accessKey: string
-  secretKey: string
-  region: string
-  basePath: string
-  customDomain: string
-  stsRoleArn: string
-  stsRegion: string
-  remark: string
+  id?: number;
+  name: string;
+  storagePlatform: StoragePlatform;
+  endpoint: string;
+  bucketName: string;
+  accessKey: string;
+  secretKey: string;
+  region: string;
+  basePath: string;
+  customDomain: string;
+  stsRoleArn: string;
+  stsRegion: string;
+  remark: string;
 }
 
 interface PlatformConfig {
-  value: StoragePlatform
-  label: string
-  description: string
-  endpointPlaceholder: string
-  endpointHint: string
-  accessKeyLabel: string
-  accessKeyPlaceholder: string
-  secretKeyLabel: string
-  secretKeyPlaceholder: string
-  regionPlaceholder: string
-  stsRoleArnLabel: string
-  stsRoleArnPlaceholder: string
-  stsRegionLabel: string
-  stsRegionPlaceholder: string
+  value: StoragePlatform;
+  label: string;
+  description: string;
+  endpointPlaceholder: string;
+  endpointHint: string;
+  accessKeyLabel: string;
+  accessKeyPlaceholder: string;
+  secretKeyLabel: string;
+  secretKeyPlaceholder: string;
+  regionPlaceholder: string;
+  stsRoleArnLabel: string;
+  stsRoleArnPlaceholder: string;
+  stsRegionLabel: string;
+  stsRegionPlaceholder: string;
 }
 
-const { t } = useI18n()
+const { t } = useI18n();
 
-const loading = ref(false)
-const submitLoading = ref(false)
-const modalVisible = ref(false)
-const isEdit = ref(false)
-const configList = ref<StorageConfig[]>([])
-const stsRegionSameAsRegion = ref(true)
+const loading = ref(false);
+const submitLoading = ref(false);
+const modalVisible = ref(false);
+const isEdit = ref(false);
+const configList = ref<StorageConfig[]>([]);
+const stsRegionSameAsRegion = ref(true);
 
 const formData = reactive<StorageFormData>({
   name: '',
@@ -269,7 +276,7 @@ const formData = reactive<StorageFormData>({
   stsRoleArn: '',
   stsRegion: '',
   remark: '',
-})
+});
 
 const platformConfigs = computed<Record<StoragePlatform, PlatformConfig>>(() => ({
   local: {
@@ -368,26 +375,30 @@ const platformConfigs = computed<Record<StoragePlatform, PlatformConfig>>(() => 
     stsRegionLabel: t('settingsStorage.stsRegion'),
     stsRegionPlaceholder: t('settingsStorage.stsRegionPlaceholder'),
   },
-}))
+}));
 
-const platformOptions = computed(() => Object.values(platformConfigs.value).map((item) => ({
-  label: item.label,
-  value: item.value,
-})))
+const platformOptions = computed(() =>
+  Object.values(platformConfigs.value).map((item) => ({
+    label: item.label,
+    value: item.value,
+  })),
+);
 
 const platformMap = computed(() => {
-  const map: Record<string, string> = {}
+  const map: Record<string, string> = {};
   Object.values(platformConfigs.value).forEach((item) => {
-    map[item.value] = item.label
-  })
-  return map
-})
+    map[item.value] = item.label;
+  });
+  return map;
+});
 
-const currentPlatformConfig = computed(() => platformConfigs.value[formData.storagePlatform])
-const isLocalPlatform = computed(() => formData.storagePlatform === 'local')
-const isMinioPlatform = computed(() => formData.storagePlatform === 'minio')
-const supportsSts = computed(() => !isLocalPlatform.value && !isMinioPlatform.value)
-const hasMaskedSecret = computed(() => isMaskedValue(formData.accessKey) || isMaskedValue(formData.secretKey))
+const currentPlatformConfig = computed(() => platformConfigs.value[formData.storagePlatform]);
+const isLocalPlatform = computed(() => formData.storagePlatform === 'local');
+const isMinioPlatform = computed(() => formData.storagePlatform === 'minio');
+const supportsSts = computed(() => !isLocalPlatform.value && !isMinioPlatform.value);
+const hasMaskedSecret = computed(
+  () => isMaskedValue(formData.accessKey) || isMaskedValue(formData.secretKey),
+);
 
 const columns = computed(() => [
   { title: t('settingsStorage.name'), dataIndex: 'name', key: 'name' },
@@ -396,21 +407,21 @@ const columns = computed(() => [
   { title: t('settingsStorage.isDefault'), dataIndex: 'isDefault', key: 'isDefault', width: 100 },
   { title: t('settingsStorage.remark'), dataIndex: 'remark', key: 'remark', ellipsis: true },
   { title: t('common.operation'), key: 'operation', width: 220 },
-])
+]);
 
 function isMaskedValue(value?: string) {
-  return !!value && value.includes('****')
+  return !!value && value.includes('****');
 }
 
 function inferPlatform(config: StorageConfig): StoragePlatform {
-  if (config.type === 'local') return 'local'
+  if (config.type === 'local') return 'local';
 
-  const endpoint = (config.endpoint || '').toLowerCase()
-  if (endpoint.includes('aliyuncs.com')) return 'aliyun_oss'
-  if (endpoint.includes('myqcloud.com') || endpoint.includes('tencentcos')) return 'tencent_cos'
-  if (endpoint.includes('amazonaws.com')) return 'aws_s3'
-  if (endpoint.includes('minio')) return 'minio'
-  return 's3'
+  const endpoint = (config.endpoint || '').toLowerCase();
+  if (endpoint.includes('aliyuncs.com')) return 'aliyun_oss';
+  if (endpoint.includes('myqcloud.com') || endpoint.includes('tencentcos')) return 'tencent_cos';
+  if (endpoint.includes('amazonaws.com')) return 'aws_s3';
+  if (endpoint.includes('minio')) return 'minio';
+  return 's3';
 }
 
 function hydrateForm(config: StorageConfig) {
@@ -428,8 +439,8 @@ function hydrateForm(config: StorageConfig) {
     stsRoleArn: config.stsRoleArn || '',
     stsRegion: config.stsRegion || '',
     remark: config.remark || '',
-  })
-  stsRegionSameAsRegion.value = !config.stsRegion || config.stsRegion === config.region
+  });
+  stsRegionSameAsRegion.value = !config.stsRegion || config.stsRegion === config.region;
 }
 
 function resetForm() {
@@ -447,13 +458,13 @@ function resetForm() {
     stsRoleArn: '',
     stsRegion: '',
     remark: '',
-  })
-  stsRegionSameAsRegion.value = true
+  });
+  stsRegionSameAsRegion.value = true;
 }
 
 function handleStsRegionSameChange() {
   if (stsRegionSameAsRegion.value) {
-    formData.stsRegion = formData.region
+    formData.stsRegion = formData.region;
   }
 }
 
@@ -465,110 +476,114 @@ function toSavePayload(): StorageConfig {
     basePath: formData.basePath.trim() || undefined,
     status: 1,
     remark: formData.remark.trim() || undefined,
-  }
+  };
 
   if (!isLocalPlatform.value) {
-    payload.endpoint = formData.endpoint.trim()
-    payload.bucketName = formData.bucketName.trim()
-    payload.region = formData.region.trim() || undefined
-    payload.customDomain = formData.customDomain.trim() || undefined
-    payload.stsRoleArn = formData.stsRoleArn.trim() || undefined
-    payload.stsRegion = stsRegionSameAsRegion.value ? formData.region.trim() || undefined : formData.stsRegion.trim() || undefined
+    payload.endpoint = formData.endpoint.trim();
+    payload.bucketName = formData.bucketName.trim();
+    payload.region = formData.region.trim() || undefined;
+    payload.customDomain = formData.customDomain.trim() || undefined;
+    payload.stsRoleArn = formData.stsRoleArn.trim() || undefined;
+    payload.stsRegion = stsRegionSameAsRegion.value
+      ? formData.region.trim() || undefined
+      : formData.stsRegion.trim() || undefined;
     if (!isMaskedValue(formData.accessKey)) {
-      payload.accessKey = formData.accessKey.trim()
+      payload.accessKey = formData.accessKey.trim();
     }
     if (!isMaskedValue(formData.secretKey)) {
-      payload.secretKey = formData.secretKey.trim()
+      payload.secretKey = formData.secretKey.trim();
     }
   }
 
-  return payload
+  return payload;
 }
 
 function handlePlatformChange() {
   if (isLocalPlatform.value) {
-    formData.endpoint = ''
-    formData.bucketName = ''
-    formData.accessKey = ''
-    formData.secretKey = ''
-    formData.region = ''
-    formData.customDomain = ''
+    formData.endpoint = '';
+    formData.bucketName = '';
+    formData.accessKey = '';
+    formData.secretKey = '';
+    formData.region = '';
+    formData.customDomain = '';
     if (!formData.basePath) {
-      formData.basePath = './data/media'
+      formData.basePath = './data/media';
     }
-    return
+    return;
   }
 
   if (formData.basePath === './data/media') {
-    formData.basePath = ''
+    formData.basePath = '';
   }
   if (!formData.region && ['aws_s3', 'minio', 's3'].includes(formData.storagePlatform)) {
-    formData.region = 'us-east-1'
+    formData.region = 'us-east-1';
   }
 }
 
 async function loadConfigs() {
-  loading.value = true
+  loading.value = true;
   try {
-    const res = await getStorageConfigs()
-    configList.value = res || []
+    const res = await getStorageConfigs();
+    configList.value = res || [];
   } catch {
-    configList.value = []
+    configList.value = [];
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 function handleAdd() {
-  isEdit.value = false
-  resetForm()
-  modalVisible.value = true
+  isEdit.value = false;
+  resetForm();
+  modalVisible.value = true;
 }
 
 function handleEdit(record: StorageConfig) {
-  isEdit.value = true
-  hydrateForm(record)
-  modalVisible.value = true
+  isEdit.value = true;
+  hydrateForm(record);
+  modalVisible.value = true;
 }
 
 async function handleSubmit() {
   if (!formData.name.trim()) {
-    message.error(t('settingsStorage.nameRequired'))
-    return
+    message.error(t('settingsStorage.nameRequired'));
+    return;
   }
   if (!isLocalPlatform.value) {
     if (!formData.endpoint.trim()) {
-      message.error(t('settingsStorage.endpointRequired'))
-      return
+      message.error(t('settingsStorage.endpointRequired'));
+      return;
     }
     if (!formData.bucketName.trim()) {
-      message.error(t('settingsStorage.bucketNameRequired'))
-      return
+      message.error(t('settingsStorage.bucketNameRequired'));
+      return;
     }
     if (!formData.accessKey.trim()) {
-      message.error(t('settingsStorage.accessKeyRequired'))
-      return
+      message.error(t('settingsStorage.accessKeyRequired'));
+      return;
     }
     if (!formData.secretKey.trim()) {
-      message.error(t('settingsStorage.secretKeyRequired'))
-      return
+      message.error(t('settingsStorage.secretKeyRequired'));
+      return;
     }
   } else if (!formData.basePath.trim()) {
-    message.error(t('settingsStorage.basePathRequired'))
-    return
+    message.error(t('settingsStorage.basePathRequired'));
+    return;
   }
 
-  submitLoading.value = true
+  submitLoading.value = true;
   try {
-    const result = await (isEdit.value ? updateStorageConfig : createStorageConfig)(toSavePayload())
+    const result = await (isEdit.value ? updateStorageConfig : createStorageConfig)(
+      toSavePayload(),
+    );
     if (!isEdit.value && typeof result === 'number') {
-      formData.id = result
+      formData.id = result;
     }
-    message.success(t('settingsStorage.saveSuccess'))
-    modalVisible.value = false
-    await loadConfigs()
+    message.success(t('settingsStorage.saveSuccess'));
+    modalVisible.value = false;
+    await loadConfigs();
   } finally {
-    submitLoading.value = false
+    submitLoading.value = false;
   }
 }
 
@@ -577,19 +592,19 @@ async function handleStatusChange(record: StorageConfig) {
     await updateStorageConfig({
       ...record,
       status: record.status === 1 ? 0 : 1,
-    })
-    message.success(t('common.operationSuccess'))
-    await loadConfigs()
+    });
+    message.success(t('common.operationSuccess'));
+    await loadConfigs();
   } catch {
-    record.status = record.status === 1 ? 0 : 1
+    record.status = record.status === 1 ? 0 : 1;
   }
 }
 
 async function handleSetDefault(record: StorageConfig) {
   try {
-    await setDefaultStorageConfig(record.id!)
-    message.success(t('settingsStorage.setDefaultSuccess'))
-    await loadConfigs()
+    await setDefaultStorageConfig(record.id!);
+    message.success(t('settingsStorage.setDefaultSuccess'));
+    await loadConfigs();
   } catch {
     // Error handled by interceptor
   }
@@ -597,22 +612,21 @@ async function handleSetDefault(record: StorageConfig) {
 
 async function handleDelete(record: StorageConfig) {
   try {
-    await deleteStorageConfig(record.id!)
-    message.success(t('common.deleteSuccess'))
-    await loadConfigs()
+    await deleteStorageConfig(record.id!);
+    message.success(t('common.deleteSuccess'));
+    await loadConfigs();
   } catch {
     // Error handled by interceptor
   }
 }
 
 onMounted(() => {
-  loadConfigs()
-})
+  loadConfigs();
+});
 </script>
 
 <style scoped>
 .storage-alert {
   margin-bottom: 16px;
 }
-
 </style>
