@@ -145,6 +145,8 @@ export default {
     billingPointsPackage: '点数包',
     creaftBinding: 'Creaft 能力绑定',
     creaftCatalog: 'Creaft 目录',
+    creaftTemplate: 'Creaft 公共模板',
+    creaftSkill: 'Creaft 技能目录',
     reconciliationManagement: '对账管理',
     reconciliationSummary: '对账汇总',
     reconciliationDifference: '差异处理',

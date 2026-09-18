@@ -517,6 +517,31 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
+        // 创意广场 / 本地生活官方模板。此前没有任何管理入口，铺数据只能直连 SQL——
+        // 而没数据时下发接口照样回 200 + 空信封，端上分不清「没铺」和「没通」
+        path: 'creaft-templates',
+        name: 'CreaftTemplate',
+        component: () => import('@/views/billing/creaft-template/index.vue'),
+        meta: {
+          title: 'menu.creaftTemplate',
+          icon: 'AppstoreOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'creaft_catalog:view',
+        },
+      },
+      {
+        // @技能 列表的数据源。分类为空的行会被整行跳过，所以「弹窗空着」多半是这页没配
+        path: 'creaft-skills',
+        name: 'CreaftSkill',
+        component: () => import('@/views/billing/creaft-skill/index.vue'),
+        meta: {
+          title: 'menu.creaftSkill',
+          icon: 'ExperimentOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'creaft_catalog:view',
+        },
+      },
+      {
         // 点数包是下单金额的唯一出处，权限跟定价同一把钥匙（pricing:update 才能改）
         path: 'points-packages',
         name: 'BillingPointsPackage',

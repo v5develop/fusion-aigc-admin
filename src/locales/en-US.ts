@@ -141,6 +141,8 @@ export default {
     billingPointsPackage: 'Points Packages',
     creaftBinding: 'Creaft Capability Binding',
     creaftCatalog: 'Creaft Catalog',
+    creaftTemplate: 'Creaft Public Templates',
+    creaftSkill: 'Creaft Skill Catalog',
     reconciliationManagement: 'Reconciliation',
     reconciliationSummary: 'Reconciliation Summary',
     reconciliationDifference: 'Difference Handling',

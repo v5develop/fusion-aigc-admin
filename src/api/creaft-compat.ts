@@ -215,3 +215,139 @@ export function updateCreaftCatalog(id: number, data: CreaftCatalogSaveData) {
 export function deleteCreaftCatalog(id: number) {
   return request.delete(`/api/v1/admin/creaft/feature-catalog/${id}`)
 }
+
+/**
+ * creaft v1 公共模板（创意广场 / 本地生活官方模板）。
+ *
+ * 这批数据原先只能直连 SQL 铺：`afv_compat_template` 建表在 V1.0.75，但没有任何管理入口，
+ * 也没有任何迁移往里插过数据。表现是三条下发接口都正常回 200 + 空分页信封，
+ * 调用方分不清「还没铺数据」和「接口没通」。
+ */
+export type CreaftTemplateType = 'PLAZA' | 'LOCAL_LIFE'
+
+export interface CreaftTemplateRow {
+  /** 即用户端回包里的 templateId */
+  id: number
+  templateType: CreaftTemplateType
+  title: string
+  category: string | null
+  description: string | null
+  /** 已从库里的 {"tags": [...]} 取出，前端按数组用即可 */
+  tags: string[]
+  /** 模板载荷原文（JSON 对象文本）。用户端拿到的版本会摘掉 prompt */
+  payloadJson: string | null
+  /** 升序：小的靠前（与 v1 的 weight 语义相反） */
+  sortOrder: number | null
+  enabled: number | null
+  createTime?: string
+  updateTime?: string
+}
+
+export interface CreaftTemplateSaveData {
+  templateType: CreaftTemplateType
+  title: string
+  category?: string
+  description?: string
+  tags?: string[]
+  payloadJson?: string
+  sortOrder?: number
+  enabled?: number
+}
+
+export function getCreaftTemplates(params?: {
+  templateType?: string
+  category?: string
+  keyword?: string
+  enabled?: number
+}) {
+  return request.get<CreaftTemplateRow[]>('/api/v1/admin/creaft/templates', { params })
+}
+
+/** 已用过的分类，供下拉。本地生活的 category 要与品牌档案行业分类字面量一致，优先选、别手打 */
+export function getCreaftTemplateCategories(templateType?: string) {
+  return request.get<string[]>('/api/v1/admin/creaft/templates/categories', {
+    params: { templateType },
+  })
+}
+
+/** 已用过的标签，供下拉（不受用户端「只扫前 1000 条」的限制） */
+export function getCreaftTemplateTags() {
+  return request.get<string[]>('/api/v1/admin/creaft/templates/tags')
+}
+
+export function createCreaftTemplate(data: CreaftTemplateSaveData) {
+  return request.post<number>('/api/v1/admin/creaft/templates', data)
+}
+
+/** 整体替换语义：没带上的值列会被清空 */
+export function updateCreaftTemplate(id: number, data: CreaftTemplateSaveData) {
+  return request.put(`/api/v1/admin/creaft/templates/${id}`, data)
+}
+
+export function deleteCreaftTemplate(id: number) {
+  return request.delete(`/api/v1/admin/creaft/templates/${id}`)
+}
+
+/**
+ * creaft v1 技能目录（`GET /api/v1/agent/skills` 的数据源）。
+ *
+ * 两条规则决定一条技能能不能被用户看到：`enabled = 1`，且 `category` 非空——
+ * 空分类的行会被**整行跳过**，这就是「@技能弹窗为空」的原因（V1.0.112 的种子刻意不填分类）。
+ * 没有新增/删除接口：agentSkillId 是与铺货侧共用的身份，凭空造一条等于造出上游不存在的技能。
+ */
+export interface CreaftAgentSkillRow {
+  /** 表主键，编辑用 */
+  id: number
+  /** 技能身份，与铺货侧同一个 int64，不可改 */
+  agentSkillId: number
+  agentSkillCode: string
+  title: string
+  description: string | null
+  icon: string | null
+  version: string | null
+  /** 分组键；为空则用户端看不到这一行 */
+  category: string | null
+  weight: number | null
+  enabled: number | null
+  /** 用户端现在能不能看到（启用 且 有分类） */
+  visible: boolean
+  /** 编码是否还是 skill_<id> 占位值（未与 v1 对齐） */
+  placeholderCode: boolean
+}
+
+export interface CreaftAgentSkillSummary {
+  total: number
+  enabled: number
+  /** 启用但没有分类——不为 0 意味着用户端 @技能 列表不全 */
+  uncategorised: number
+  placeholderCode: number
+}
+
+export interface CreaftAgentSkillSaveData {
+  category?: string
+  title?: string
+  description?: string
+  icon?: string
+  version?: string
+  weight?: number
+  enabled?: number
+  agentSkillCode?: string
+}
+
+export function getCreaftAgentSkills(params?: {
+  /** 传 __EMPTY__ 只看没分类的那批（NULL 与空串都算） */
+  category?: string
+  keyword?: string
+  enabled?: number
+}) {
+  return request.get<CreaftAgentSkillRow[]>('/api/v1/admin/creaft/agent-skills', { params })
+}
+
+export function getCreaftAgentSkillSummary() {
+  return request.get<CreaftAgentSkillSummary>('/api/v1/admin/creaft/agent-skills/summary')
+}
+
+/** 整体替换语义：分类清空 = 这条技能从用户端消失 */
+export function updateCreaftAgentSkill(id: number, data: CreaftAgentSkillSaveData) {
+  return request.put(`/api/v1/admin/creaft/agent-skills/${id}`, data)
+}
