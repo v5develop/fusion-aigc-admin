@@ -493,53 +493,32 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
           requiredPermissions: 'billing_rule:view',
         },
       },
+      // 这四条从 /billing 挪到了 /creaft（见下方 Creaft 管理分组）。
+      // 留重定向而不是直接删：这些路径发给过运营与对接方，删掉就是 404，
+      // 而 404 不会告诉人"它搬去哪儿了"。hidden 让它们不进菜单。
       {
-        // creaft v1 兼容面的能力绑定：配的是"这条路由用哪个模型按哪条价计费、卖不卖"
         path: 'creaft-bindings',
-        name: 'CreaftBinding',
-        component: () => import('@/views/billing/creaft-binding/index.vue'),
-        meta: {
-          title: 'menu.creaftBinding',
-          icon: 'ApiOutlined',
-          requiresAuth: true,
-          requiredPermissions: 'creaft_binding:view',
-        },
+        name: 'CreaftBindingMoved',
+        redirect: '/creaft/bindings',
+        meta: { title: 'menu.creaftBinding', hidden: true, requiresAuth: true },
       },
       {
         path: 'creaft-catalog',
-        name: 'CreaftCatalog',
-        component: () => import('@/views/billing/creaft-catalog/index.vue'),
-        meta: {
-          title: 'menu.creaftCatalog',
-          icon: 'ProfileOutlined',
-          requiresAuth: true,
-          requiredPermissions: 'creaft_catalog:view',
-        },
+        name: 'CreaftCatalogMoved',
+        redirect: '/creaft/catalog',
+        meta: { title: 'menu.creaftCatalog', hidden: true, requiresAuth: true },
       },
       {
-        // 创意广场 / 本地生活官方模板。此前没有任何管理入口，铺数据只能直连 SQL——
-        // 而没数据时下发接口照样回 200 + 空信封，端上分不清「没铺」和「没通」
         path: 'creaft-templates',
-        name: 'CreaftTemplate',
-        component: () => import('@/views/billing/creaft-template/index.vue'),
-        meta: {
-          title: 'menu.creaftTemplate',
-          icon: 'AppstoreOutlined',
-          requiresAuth: true,
-          requiredPermissions: 'creaft_catalog:view',
-        },
+        name: 'CreaftTemplateMoved',
+        redirect: '/creaft/templates',
+        meta: { title: 'menu.creaftTemplate', hidden: true, requiresAuth: true },
       },
       {
-        // @技能 列表的数据源。分类为空的行会被整行跳过，所以「弹窗空着」多半是这页没配
         path: 'creaft-skills',
-        name: 'CreaftSkill',
-        component: () => import('@/views/billing/creaft-skill/index.vue'),
-        meta: {
-          title: 'menu.creaftSkill',
-          icon: 'ExperimentOutlined',
-          requiresAuth: true,
-          requiredPermissions: 'creaft_catalog:view',
-        },
+        name: 'CreaftSkillMoved',
+        redirect: '/creaft/skills',
+        meta: { title: 'menu.creaftSkill', hidden: true, requiresAuth: true },
       },
       {
         // 点数包是下单金额的唯一出处，权限跟定价同一把钥匙（pricing:update 才能改）
@@ -551,6 +530,72 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
           icon: 'GiftOutlined',
           requiresAuth: true,
           requiredPermissions: 'pricing:view',
+        },
+      },
+    ],
+  },
+  {
+    // creaft v1 兼容面的后台：能力绑定、目录、公共模板、技能目录。
+    // 这四页原先挂在「计费管理」下，但只有「能力绑定」与计费真有关系——
+    // 目录/模板/技能是运营内容配置，放在计费里既不好找，也会让人以为改它们会动钱。
+    path: '/creaft',
+    name: 'Creaft',
+    redirect: '/creaft/bindings',
+    component: () => import('@/components/Layout/AdminLayout.vue'),
+    meta: {
+      title: 'menu.creaftManagement',
+      icon: 'ApiOutlined',
+      requiresAuth: true,
+      order: 55,
+    },
+    children: [
+      {
+        // 配的是"这条路由用哪个模型按哪条价计费、卖不卖"——这一页仍与计费强相关，
+        // 所以权限是独立的 creaft_binding:*，与下面三页的 creaft_catalog:* 分开
+        path: 'bindings',
+        name: 'CreaftBinding',
+        component: () => import('@/views/creaft/binding/index.vue'),
+        meta: {
+          title: 'menu.creaftBinding',
+          icon: 'ApiOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'creaft_binding:view',
+        },
+      },
+      {
+        path: 'catalog',
+        name: 'CreaftCatalog',
+        component: () => import('@/views/creaft/catalog/index.vue'),
+        meta: {
+          title: 'menu.creaftCatalog',
+          icon: 'ProfileOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'creaft_catalog:view',
+        },
+      },
+      {
+        // 创意广场 / 本地生活官方模板。此前没有任何管理入口，铺数据只能直连 SQL——
+        // 而没数据时下发接口照样回 200 + 空信封，端上分不清「没铺」和「没通」
+        path: 'templates',
+        name: 'CreaftTemplate',
+        component: () => import('@/views/creaft/template/index.vue'),
+        meta: {
+          title: 'menu.creaftTemplate',
+          icon: 'AppstoreOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'creaft_catalog:view',
+        },
+      },
+      {
+        // @技能 列表的数据源。分类为空的行会被整行跳过，所以「弹窗空着」多半是这页没配
+        path: 'skills',
+        name: 'CreaftSkill',
+        component: () => import('@/views/creaft/skill/index.vue'),
+        meta: {
+          title: 'menu.creaftSkill',
+          icon: 'ExperimentOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'creaft_catalog:view',
         },
       },
     ],
