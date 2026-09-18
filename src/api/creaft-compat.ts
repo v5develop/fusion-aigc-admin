@@ -330,7 +330,14 @@ export interface CreaftAgentSkillSummary {
   placeholderCode: number;
 }
 
+/** 完整配置仅由单条详情返回，目录列表不包含 config。 */
+export interface CreaftAgentSkillDetail extends CreaftAgentSkillRow {
+  config: Record<string, unknown>;
+}
+
 export interface CreaftAgentSkillSaveData {
+  /** 省略时保留原配置；显式传 {} 时清空。 */
+  config?: Record<string, unknown>;
   category?: string;
   title?: string;
   description?: string;
@@ -352,6 +359,10 @@ export function getCreaftAgentSkills(params?: {
 
 export function getCreaftAgentSkillSummary() {
   return request.get<CreaftAgentSkillSummary>('/api/v1/admin/creaft/agent-skills/summary');
+}
+
+export function getCreaftAgentSkillDetail(id: number) {
+  return request.get<CreaftAgentSkillDetail>(`/api/v1/admin/creaft/agent-skills/${id}`);
 }
 
 /** 整体替换语义：分类清空 = 这条技能从用户端消失 */

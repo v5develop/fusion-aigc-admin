@@ -114,10 +114,28 @@
       v-model:open="modalVisible"
       title="编辑技能"
       :confirm-loading="saving"
+      :ok-button-props="{ disabled: detailLoading || !editing }"
+      :cancel-button-props="{ disabled: saving }"
+      :closable="!saving"
+      :mask-closable="false"
+      :keyboard="!saving"
       width="640px"
       @ok="handleSubmit"
     >
-      <a-form :model="form" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
+      <a-spin v-if="detailLoading" />
+      <a-alert
+        v-else-if="!editing"
+        type="error"
+        show-icon
+        message="技能详情加载失败，请关闭后重试；当前无法保存。"
+      />
+      <a-form
+        v-else
+        :model="form"
+        :disabled="saving"
+        :label-col="{ span: 6 }"
+        :wrapper-col="{ span: 16 }"
+      >
         <a-form-item label="技能身份">
           <code class="route-code">{{ editing?.agentSkillId }}</code>
           <div class="muted">与铺货侧共用的 int64，不可改</div>
@@ -168,6 +186,10 @@
           <a-switch v-model:checked="enabled" />
           <span class="muted" style="margin-left: 8px">停用等于该技能在 @技能 列表里不存在</span>
         </a-form-item>
+        <a-form-item label="执行配置 JSON">
+          <a-textarea v-model:value="configText" :rows="12" spellcheck="false" />
+          <div class="muted warn">仅修改时提交配置；必须是 JSON 对象，保存 {} 会清空配置。</div>
+        </a-form-item>
       </a-form>
     </a-modal>
   </div>
@@ -175,9 +197,10 @@
 
 <script setup lang="ts">
 import { message } from 'antdv-next';
-import { computed, reactive, ref } from 'vue';
+import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue';
 
 import {
+  getCreaftAgentSkillDetail,
   getCreaftAgentSkillSummary,
   getCreaftAgentSkills,
   updateCreaftAgentSkill,
@@ -269,6 +292,23 @@ reload();
 const modalVisible = ref(false);
 const saving = ref(false);
 const editing = ref<CreaftAgentSkillRow | null>(null);
+const detailLoading = ref(false);
+const configText = ref('');
+let originalConfigText = '';
+let detailRequest = 0;
+
+watch(modalVisible, (open) => {
+  if (!open) {
+    detailRequest++;
+    editing.value = null;
+    detailLoading.value = false;
+  }
+});
+
+onBeforeUnmount(() => {
+  detailRequest++;
+  clearTimeout(keywordTimer);
+});
 
 const form = reactive({
   category: undefined as string | undefined,
@@ -286,30 +326,66 @@ const enabled = computed({
   set: (value: boolean) => (form.enabled = value ? 1 : 0),
 });
 
-function openEdit(record: CreaftAgentSkillRow) {
-  editing.value = record;
-  Object.assign(form, {
-    category: record.category || undefined,
-    title: record.title || '',
-    description: record.description || '',
-    icon: record.icon || '',
-    version: record.version || '',
-    weight: record.weight ?? 0,
-    enabled: record.enabled ?? 1,
-    agentSkillCode: record.agentSkillCode || '',
-  });
+async function openEdit(record: CreaftAgentSkillRow) {
+  if (saving.value) return;
+  const requestId = ++detailRequest;
+  editing.value = null;
+  configText.value = '';
+  detailLoading.value = true;
   modalVisible.value = true;
+  try {
+    const detail = await getCreaftAgentSkillDetail(record.id);
+    if (requestId !== detailRequest || !modalVisible.value) return;
+    if (
+      detail.id !== record.id ||
+      !detail.config ||
+      typeof detail.config !== 'object' ||
+      Array.isArray(detail.config)
+    ) {
+      message.error('技能详情缺少有效配置，请刷新后重试');
+      return;
+    }
+    Object.assign(form, {
+      category: detail.category || undefined,
+      title: detail.title || '',
+      description: detail.description || '',
+      icon: detail.icon || '',
+      version: detail.version || '',
+      weight: detail.weight ?? 0,
+      enabled: detail.enabled ?? 1,
+      agentSkillCode: detail.agentSkillCode || '',
+    });
+    originalConfigText = JSON.stringify(detail.config, null, 2);
+    configText.value = originalConfigText;
+    editing.value = detail;
+  } catch {
+    /* 拦截器已提示，保持禁止保存；不要用空对象替代未加载的配置。 */
+  } finally {
+    if (requestId === detailRequest) detailLoading.value = false;
+  }
 }
 
 async function handleSubmit() {
-  if (!editing.value) return;
+  if (!editing.value || detailLoading.value || saving.value) return;
   if (!form.agentSkillCode.trim()) {
     message.warning('技能编码不能为空');
     return;
   }
+  let config: Record<string, unknown> | undefined;
+  if (configText.value !== originalConfigText) {
+    try {
+      const parsed: unknown = JSON.parse(configText.value);
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error();
+      config = parsed as Record<string, unknown>;
+    } catch {
+      message.warning('执行配置必须是合法的 JSON 对象');
+      return;
+    }
+  }
   saving.value = true;
   try {
     await updateCreaftAgentSkill(editing.value.id, {
+      ...(config === undefined ? {} : { config }),
       category: form.category || undefined,
       title: form.title.trim() || undefined,
       description: form.description || undefined,
