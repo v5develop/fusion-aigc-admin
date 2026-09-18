@@ -298,10 +298,15 @@ export function deleteCreaftTemplate(id: number) {
  * 没有新增/删除接口：agentSkillId 是与铺货侧共用的身份，凭空造一条等于造出上游不存在的技能。
  */
 export interface CreaftAgentSkillRow {
-  /** 表主键，编辑用 */
+  /** 表主键，编辑用（自增，安全范围内，仍是 number） */
   id: number;
-  /** 技能身份，与铺货侧同一个 int64，不可改 */
-  agentSkillId: number;
+  /**
+   * 技能身份，与铺货侧同一个 int64，不可改。
+   *
+   * **字符串**：值来自 v1 的雪花 id（18~19 位），超过 JS 安全整数上限 2^53-1。
+   * 后端刻意以字符串下发，前端也不要 Number() 它——转一次就丢末几位，而且不报错。
+   */
+  agentSkillId: string;
   agentSkillCode: string;
   title: string;
   description: string | null;
