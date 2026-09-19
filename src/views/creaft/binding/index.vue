@@ -9,7 +9,7 @@
       type="info"
       show-icon
       style="margin-bottom: 12px"
-      message="一行 = 冻结契约里的一条 creaft v1 路由。可改的只有「计费模型 / 计费能力码 / 计费动作类型 / 点数覆盖 / 启用位」；入口码、能力码、执行方选择器、计费策略种类、价目码由契约决定，直接改库会让下次启动判为结构漂移。CATALOG_PRICE 那些的价钱在「定价管理」里配（模型 + 定价）；FIXED / FREE_THEN_FIXED 的点数原本写死在契约里，现在可以用「改点数」覆盖（写独立的覆盖列，不碰契约投影，无缓存即刻生效）；NO_CHARGE 没有可改的数。"
+      message="在这里统一配置能力、模型和执行参数，Java 与 Python 读取同一份数据库配置。模型以 ID 关联，模型编码由服务端派生，只读展示。Agent 选择启用的文本模型即可；按模型计费的能力仍需配置生效定价。协议与处理器由程序管理。"
     />
 
     <a-alert
@@ -34,7 +34,7 @@
       show-icon
       style="margin-bottom: 12px"
       :message="`v1 线能力 ${item.capabilityCode}（入口码 ${item.entryCode || '未声明'}）不可提交：${item.problems.join('；')}`"
-      description="这条能力不在下面那 32 条冻结契约里，配置入口是「计费场景」与「定价管理」，配完记得刷计费缓存。"
+      description="这条能力属于独立的 v1 协议，配置入口是「计费场景」与「定价管理」，配完记得刷计费缓存。"
     />
 
     <a-card variant="borderless">
@@ -74,22 +74,16 @@
             <a-tag :color="record.requiresModelBinding ? 'purple' : 'default'">
               {{ record.billingPolicyKind || '-' }}
             </a-tag>
-            <div v-if="record.overrideFixedPoints !== null" class="muted">
-              <span class="struck">冻结 {{ frozenFixedPoints(record) ?? '-' }} 点</span>
-              <a-tag color="gold">覆盖 {{ record.overrideFixedPoints }} 点</a-tag>
+            <div v-if="record.fixedPoints !== null" class="muted">
+              固定 {{ record.fixedPoints }} 点
             </div>
-            <div v-else-if="frozenFixedPoints(record) !== null" class="muted">
-              固定 {{ frozenFixedPoints(record) }} 点
-            </div>
-            <div v-if="record.effectiveFreeQuota !== null" class="muted">
-              每日免费 {{ record.effectiveFreeQuota }} 次{{
-                record.overrideFreeQuota !== null ? '（覆盖）' : ''
-              }}
+            <div v-if="record.freeQuota !== null" class="muted">
+              每日免费 {{ record.freeQuota }} 次
             </div>
           </template>
 
           <template v-if="column.dataIndex === 'modelCode'">
-            <template v-if="record.requiresModelBinding">
+            <template v-if="record.requiresModelBinding || isAgent(record)">
               <code v-if="record.modelCode" class="route-code">{{ record.modelCode }}</code>
               <a-tag v-else color="orange">未配模型</a-tag>
               <div v-if="catalogMismatch(record)" class="danger-text">
@@ -129,19 +123,19 @@
                 配置
               </a-button>
               <a-button
-                v-if="record.policyOverridable"
+                v-if="record.policyEditable"
                 v-permission="'creaft_binding:config'"
                 type="link"
                 size="small"
                 :disabled="!record.bindingId"
-                @click="openOverride(record)"
+                @click="openPolicy(record)"
               >
                 改点数
               </a-button>
               <a-popconfirm
                 v-if="!record.enabled"
                 v-permission="'creaft_binding:config'"
-                title="启用前服务端会做一次完整装配自检，装配不起来会被拒绝（防止下次重启失败）。确认启用？"
+                title="启用前服务端会做一次完整装配自检，缺少必要配置会拒绝启用。确认启用？"
                 @confirm="handleEnable(record)"
               >
                 <a-button type="link" size="small" :disabled="!record.bindingId">启用</a-button>
@@ -162,7 +156,7 @@
 
     <a-modal
       v-model:open="modalVisible"
-      title="配置计费绑定"
+      title="配置能力与执行模型"
       :confirm-loading="saving"
       width="680px"
       @ok="handleSave"
@@ -182,25 +176,32 @@
       </a-descriptions>
 
       <a-form :model="form" :label-col="{ span: 7 }" :wrapper-col="{ span: 15 }">
-        <a-form-item label="计费模型">
+        <a-form-item
+          v-if="current?.requiresModelBinding || isAgent(current)"
+          :label="isAgent(current) ? 'Agent 执行模型' : '计费模型'"
+          required
+        >
           <a-select
-            v-model:value="form.modelCode"
+            v-model:value="form.modelId"
             :options="modelOptions"
             :loading="optionsLoading"
-            allow-clear
             show-search
             option-filter-prop="label"
             placeholder="选择启用中的 Java 模型"
           />
-          <div class="muted">
+          <div v-if="isAgent(current)" class="muted">
+            选择启用的 TEXT 模型，两端共用该模型 ID，模型编码和执行 provider 自动关联。 NO_CHARGE
+            不要求计费绑定或定价。
+          </div>
+          <div v-else class="muted">
             不可选的项缺少前置条件：要么模型没挂到该计费能力，要么没有生效定价。
             这两样分别在「权益/能力」与「定价管理」里配。
           </div>
         </a-form-item>
-        <a-form-item label="计费能力码">
+        <a-form-item v-if="current?.billingPolicyKind === 'CATALOG_PRICE'" label="计费能力码">
           <a-input v-model:value="form.billingFeatureCode" placeholder="留空表示不改" />
         </a-form-item>
-        <a-form-item label="计费动作类型">
+        <a-form-item v-if="current?.billingPolicyKind === 'CATALOG_PRICE'" label="计费动作类型">
           <a-input
             v-model:value="form.billingActionType"
             placeholder="留空表示不改，兼容面统一填 CREAFT_V1"
@@ -211,51 +212,105 @@
             「动作类型无效或已禁用」被拒。
           </div>
         </a-form-item>
+        <template v-if="!isAgent(current) && form.executionProfile">
+          <a-form-item label="执行配置">
+            <a-checkbox v-model:checked="editExecutionProfile">调整共享执行参数（高级）</a-checkbox>
+            <div class="muted">
+              默认使用数据库配置。仅在需要调整执行池或候选 provider
+              时展开；保存后两端读取同一份数据。
+            </div>
+          </a-form-item>
+          <template v-if="editExecutionProfile">
+            <a-form-item label="目标选择方式">
+              <a-tag>{{ current?.executionTargetMode || '未登记' }}</a-tag>
+              <span class="muted">{{ targetModeHint }}</span>
+            </a-form-item>
+            <a-form-item v-if="needsPool" label="执行池" required>
+              <a-select
+                v-model:value="form.executionProfile.poolName"
+                :options="poolOptions"
+                placeholder="从执行面已装载的池中选择"
+                @change="form.executionProfile.providerKeys = []"
+              />
+            </a-form-item>
+            <a-form-item label="选择策略">
+              <a-select
+                v-model:value="form.executionProfile.selectionPolicy"
+                :options="selectionPolicyOptions"
+              />
+            </a-form-item>
+            <a-form-item v-if="needsProviders" label="候选 provider" required>
+              <a-space direction="vertical" style="width: 100%">
+                <a-space
+                  v-for="(_, index) in form.executionProfile.providerKeys"
+                  :key="index"
+                  style="width: 100%"
+                >
+                  <a-select
+                    v-model:value="form.executionProfile.providerKeys[index]"
+                    :options="providerOptions"
+                    style="width: 320px"
+                    :placeholder="`候选 ${index + 1}（按列表顺序）`"
+                  />
+                  <a-button danger @click="form.executionProfile.providerKeys.splice(index, 1)"
+                    >移除</a-button
+                  >
+                </a-space>
+                <a-button
+                  :disabled="needsPool && !form.executionProfile.poolName"
+                  @click="form.executionProfile.providerKeys.push('')"
+                  >添加候选</a-button
+                >
+              </a-space>
+            </a-form-item>
+            <a-form-item label="暂存策略">
+              <a-select
+                v-model:value="form.executionProfile.stagingProfile"
+                :options="stagingOptions"
+              />
+            </a-form-item>
+            <a-form-item label="执行超时">
+              <a-select
+                v-model:value="form.executionProfile.timeoutProfile"
+                :options="timeoutOptions"
+              />
+            </a-form-item>
+          </template>
+        </template>
       </a-form>
 
       <a-alert
         type="info"
         show-icon
-        message="保存只写配置，不改启用位；两张表（绑定 + 价目行）由服务端在同一事务里改成一致。配好后再点「启用」过自检。"
+        message="保存只更新共享配置，不改启用位；模型、计费和执行配置由服务端统一维护。配好后再点「启用」过自检。"
       />
     </a-modal>
 
-    <a-modal v-model:open="overrideVisible" title="覆盖冻结策略里的点数" width="620px">
+    <a-modal v-model:open="policyVisible" title="配置策略点数" width="620px">
       <a-descriptions
-        v-if="overrideTarget"
+        v-if="policyTarget"
         :column="1"
         size="small"
         bordered
         style="margin-bottom: 16px"
       >
-        <a-descriptions-item label="路由">{{ overrideTarget.creaftV1Route }}</a-descriptions-item>
+        <a-descriptions-item label="路由">{{ policyTarget.creaftV1Route }}</a-descriptions-item>
         <a-descriptions-item label="计费策略（只读）">
-          {{ overrideTarget.billingPolicyKind }}
+          {{ policyTarget.billingPolicyKind }}
         </a-descriptions-item>
-        <a-descriptions-item label="契约冻结值">
-          固定 {{ frozenFixedPoints(overrideTarget) ?? '-' }} 点<template
-            v-if="frozenFreeQuota(overrideTarget) !== null"
+        <a-descriptions-item label="当前配置">
+          固定 {{ policyTarget.fixedPoints ?? '-' }} 点<template
+            v-if="policyTarget.freeQuota !== null"
           >
-            ，每日免费 {{ frozenFreeQuota(overrideTarget) }} 次</template
+            ，每日免费 {{ policyTarget.freeQuota }} 次</template
           >
-        </a-descriptions-item>
-        <a-descriptions-item label="当前生效值">
-          固定 {{ overrideTarget.effectiveFixedPoints ?? '-' }} 点<template
-            v-if="overrideTarget.effectiveFreeQuota !== null"
-          >
-            ，每日免费 {{ overrideTarget.effectiveFreeQuota }} 次</template
-          >
-        </a-descriptions-item>
-        <a-descriptions-item v-if="overrideTarget.overrideBy" label="上次覆盖">
-          {{ overrideTarget.overrideBy }} · {{ overrideTarget.overrideTime }} ·
-          {{ overrideTarget.overrideReason }}
         </a-descriptions-item>
       </a-descriptions>
 
-      <a-form :model="overrideForm" :label-col="{ span: 7 }" :wrapper-col="{ span: 15 }">
+      <a-form :model="policyForm" :label-col="{ span: 7 }" :wrapper-col="{ span: 15 }">
         <a-form-item label="固定点数" required>
           <a-input-number
-            v-model:value="overrideForm.fixedPoints"
+            v-model:value="policyForm.fixedPoints"
             :min="0"
             :precision="0"
             style="width: 100%"
@@ -263,19 +318,20 @@
           <div class="muted">填 0 表示这条能力改成免费。允许，但它是一次会留痕的显式决定。</div>
         </a-form-item>
         <a-form-item
-          v-if="overrideTarget?.billingPolicyKind === 'FREE_THEN_FIXED'"
+          v-if="policyTarget?.billingPolicyKind === 'FREE_THEN_FIXED'"
           label="每日免费次数"
+          required
         >
           <a-input-number
-            v-model:value="overrideForm.freeQuota"
+            v-model:value="policyForm.freeQuota"
             :min="0"
             :precision="0"
             style="width: 100%"
           />
         </a-form-item>
-        <a-form-item label="覆盖原因" required>
+        <a-form-item label="修改原因" required>
           <a-textarea
-            v-model:value="overrideForm.reason"
+            v-model:value="policyForm.reason"
             :rows="2"
             placeholder="例：促销期临时降价，负责人 X"
           />
@@ -286,22 +342,13 @@
       <a-alert
         type="info"
         show-icon
-        message="只覆盖点数，不改计费策略种类：策略种类决定这条路由要不要配模型、价目接口走哪条分支、准入检查什么，运行期改它会让页面显示的判据与实扣脱节。"
+        message="保存直接更新唯一的当前点数配置，并记录修改原因。计费策略种类保持不变；按模型定价的能力请在定价管理修改。"
       />
 
       <template #footer>
         <a-space>
-          <a-popconfirm
-            v-if="overrideTarget && overrideTarget.overrideFixedPoints !== null"
-            title="清除后立即回到契约冻结值。确认？"
-            @confirm="handleClearOverride"
-          >
-            <a-button danger>清除覆盖</a-button>
-          </a-popconfirm>
-          <a-button @click="overrideVisible = false">取消</a-button>
-          <a-button type="primary" :loading="overrideSaving" @click="handleSaveOverride"
-            >保存</a-button
-          >
+          <a-button @click="policyVisible = false">取消</a-button>
+          <a-button type="primary" :loading="policySaving" @click="handleSavePolicy">保存</a-button>
         </a-space>
       </template>
     </a-modal>
@@ -313,21 +360,30 @@ import { message } from 'antdv-next';
 import { computed, reactive, ref } from 'vue';
 
 import {
-  clearCreaftBindingPolicyOverride,
   configureCreaftBinding,
   disableCreaftBinding,
   enableCreaftBinding,
   getCreaftBindingModelOptions,
   getCreaftBindings,
-  saveCreaftBindingPolicyOverride,
+  saveCreaftBindingPolicy,
   type CreaftBindingRow,
   type CreaftBindingState,
+  type CreaftExecutionOptions,
+  type CreaftExecutionProfile,
   type CreaftV1CapabilityRow,
 } from '@/api/creaft-compat';
 
 const rows = ref<CreaftBindingRow[]>([]);
 const v1Capabilities = ref<CreaftV1CapabilityRow[]>([]);
 const executionPlaneEnabled = ref(false);
+const executionOptions = ref<CreaftExecutionOptions>({
+  selectionPolicies: [],
+  stagingProfiles: [],
+  timeoutProfiles: [],
+  pools: {},
+  variantProviders: [],
+  textModels: [],
+});
 const loading = ref(false);
 const stateFilter = ref<'' | CreaftBindingState>('');
 const keyword = ref('');
@@ -357,15 +413,11 @@ const quoteReadyCount = computed(() => rows.value.filter((r) => r.quotePreviewRe
 /** v1 线能力缺配时提交会被直接拒，且它不在下面的表里 —— 只能单独告警 */
 const unreadyV1 = computed(() => v1Capabilities.value.filter((item) => !item.ready));
 
-/**
- * 同一个 NOT_ASSEMBLABLE，后果取决于执行面开没开：
- * 开着时启动校验器会拦（下次重启起不来），关着时它根本不注册，只是开启前的待办。
- * 两种情况用同一句话说，必然有一边被误导。
- */
+/** 普通配置缺失只影响对应能力，不阻止整个 Java 服务启动。 */
 const brokenMessage = computed(() =>
   executionPlaneEnabled.value
-    ? `${brokenCount.value} 条已启用但装配不起来：下一次重启会失败。请补齐模型/定价，或先停用这些能力。`
-    : `${brokenCount.value} 条已启用但装配不起来。执行面当前未开启，暂不影响启动；开启执行面前必须补齐或停用，否则应用起不来。`,
+    ? `${brokenCount.value} 条已启用能力缺少必要配置，暂不可用；不影响整个 Java 服务启动。请补齐模型、执行配置或定价，也可先停用这些能力。`
+    : `${brokenCount.value} 条已启用能力缺少必要配置。执行面当前未开启，请在使用这些能力前补齐模型、执行配置或定价；不影响整个 Java 服务启动。`,
 );
 
 const filteredRows = computed(() => {
@@ -383,38 +435,11 @@ const filteredRows = computed(() => {
 const columns = [
   { title: '路由', dataIndex: 'creaftV1Route', width: 300, fixed: 'left' as const },
   { title: '计费策略', dataIndex: 'billingPolicyKind', width: 170 },
-  { title: '计费模型', dataIndex: 'modelCode', width: 280 },
+  { title: '关联模型', dataIndex: 'modelCode', width: 280 },
   { title: '准入状态', dataIndex: 'state', width: 300 },
   { title: '价目接口', dataIndex: 'quotePreviewReady', width: 300 },
   { title: '操作', dataIndex: 'operation', key: 'operation', width: 90, fixed: 'right' as const },
 ];
-
-/**
- * 冻结契约里的固定点数。解析失败就不显示——策略原文是只读的，这里不负责纠错。
- *
- * 生效值不在这里算：后端已经下发 effectiveFixedPoints（与提交、价目预览同一份解析）。
- * 前端自己再算一遍就是给同一个价钱造第二个口径。
- */
-function frozenFixedPoints(record: CreaftBindingRow): number | null {
-  if (!record.billingPolicyJson) return null;
-  try {
-    const policy = JSON.parse(record.billingPolicyJson);
-    return typeof policy.fixed_points === 'number' ? policy.fixed_points : null;
-  } catch {
-    return null;
-  }
-}
-
-/** 契约冻结的每日免费次数，仅 FREE_THEN_FIXED 有 */
-function frozenFreeQuota(record: CreaftBindingRow): number | null {
-  if (!record.billingPolicyJson) return null;
-  try {
-    const policy = JSON.parse(record.billingPolicyJson);
-    return typeof policy.free_quota === 'number' ? policy.free_quota : null;
-  } catch {
-    return null;
-  }
-}
 
 /** 两张表的模型码必须逐字一致，不一致时装配自检会判失败 */
 function catalogMismatch(record: CreaftBindingRow) {
@@ -443,6 +468,7 @@ async function loadList() {
     rows.value = overview?.rows || [];
     v1Capabilities.value = overview?.protocolV1Capabilities || [];
     executionPlaneEnabled.value = !!overview?.executionPlaneEnabled;
+    if (overview?.executionOptions) executionOptions.value = overview.executionOptions;
   } catch {
     /* 拦截器已提示 */
   } finally {
@@ -456,49 +482,182 @@ const modalVisible = ref(false);
 const saving = ref(false);
 const optionsLoading = ref(false);
 const current = ref<CreaftBindingRow | null>(null);
-const modelOptions = ref<{ label: string; value: string; disabled: boolean }[]>([]);
+const modelOptions = ref<{ label: string; value: number; disabled: boolean }[]>([]);
+const editExecutionProfile = ref(false);
+/**
+ * 取值**集合**一律来自后端下发的执行清单，这里只放中文说明。
+ *
+ * 此前三张词表整份抄在这里，与后端校验、执行面的 profile_config.py、迁移的 CHECK 约束
+ * 并列为第四份副本；池名和候选 provider 还是自由文本框，拼错要等到启动准入才有反馈。
+ * 现在后端多一个取值这里自动出现（无中文说明就直接显示原值），少一个就自动消失。
+ */
+const VOCABULARY_LABELS: Record<string, string> = {
+  FIXED_FIRST: '固定首个',
+  ORDERED_FIRST_AVAILABLE: '按顺序选择可用项',
+  ROUND_ROBIN: '轮询',
+  'none-v1': '无需暂存',
+  'verified-spool-v1': '校验后的暂存文件',
+  'private-url-15m-v1': '私有链接（15 分钟）',
+  'sync-60s-v1': '同步任务（60 秒）',
+  'image-150s-v1': '图片任务（150 秒）',
+  'media-600s-v1': '媒体任务（600 秒）',
+};
+
+function labelled(values: string[]) {
+  return values.map((value) => ({
+    label: VOCABULARY_LABELS[value] ? `${VOCABULARY_LABELS[value]}（${value}）` : value,
+    value,
+  }));
+}
+
+const selectionPolicyOptions = computed(() => labelled(executionOptions.value.selectionPolicies));
+const stagingOptions = computed(() => labelled(executionOptions.value.stagingProfiles));
+const timeoutOptions = computed(() => labelled(executionOptions.value.timeoutProfiles));
+const poolOptions = computed(() =>
+  Object.keys(executionOptions.value.pools).map((value) => ({ label: value, value })),
+);
+
+/**
+ * 候选的可选集合。
+ *
+ * POOL 能力只能从所选池里挑（池外的 provider 执行面查不到，后端也会拒）；
+ * SINGLE_PROVIDER 能力由后端按能力下发自己的集合（prompt-write 是已实现的文本模型）。
+ */
+const providerOptions = computed(() => {
+  if (targetMode.value === 'SINGLE_PROVIDER') {
+    return (current.value?.executionTargetOptions || []).map((value) => ({ label: value, value }));
+  }
+  const pool = form.executionProfile?.poolName;
+  const members = pool ? executionOptions.value.pools[pool] : undefined;
+  return (members || []).map((value) => ({ label: value, value }));
+});
+
+/** 执行目标怎么选。为空（执行面没实现这条能力）时按最保守的 POOL 渲染。 */
+const targetMode = computed(() => current.value?.executionTargetMode ?? null);
+const needsPool = computed(() => targetMode.value === 'POOL' || targetMode.value === null);
+const needsProviders = computed(
+  () =>
+    targetMode.value === 'POOL' ||
+    targetMode.value === 'SINGLE_PROVIDER' ||
+    targetMode.value === null,
+);
+const targetModeHint = computed(() => {
+  switch (targetMode.value) {
+    case 'POOL':
+      return '按池查 provider：先选池，再按顺序配候选。';
+    case 'VARIANT':
+      return '按请求里的模型别名区分执行目标，别名表由后端维护，这里不配池和候选。';
+    case 'SINGLE_PROVIDER':
+      return '固定一个 provider，不按池查找。';
+    case 'JAVA_MODEL':
+      return '执行目标由上面所选的模型派生，不需要配池和候选。';
+    case 'HANDLER_OWNED':
+      return 'provider 由执行面代码按操作类型自己挑，池和候选都不填。';
+    default:
+      return '执行面没有登记这条能力，保存可能被拒。';
+  }
+});
 const form = reactive({
-  modelCode: undefined as string | undefined,
+  modelId: undefined as number | undefined,
+  executionProfile: null as CreaftExecutionProfile | null,
   billingFeatureCode: '',
   billingActionType: '',
 });
 
+/**
+ * 执行目标由 Java 侧所选模型派生（当前只有 /agent/stream）。
+ *
+ * 判据取自后端下发的 executionTargetMode，不是路由字面量：同一件事后端已经把 Java、
+ * 执行面注册表里写死的那两处删成了清单查表，这里再留一个 `route === '/agent/stream'`
+ * 就是第三份，而且是加一条新的模型派生能力时最容易忘的那份。
+ */
+function isAgent(record: CreaftBindingRow | null) {
+  return record?.executionTargetMode === 'JAVA_MODEL';
+}
+
+let configureRequest = 0;
+
 async function openConfigure(record: CreaftBindingRow) {
   if (!record.bindingId) return;
   current.value = record;
-  form.modelCode = record.modelCode || undefined;
+  const requestId = ++configureRequest;
+  modelOptions.value = [];
+  form.modelId = record.modelId ?? undefined;
+  form.executionProfile = record.executionProfile
+    ? { ...record.executionProfile, providerKeys: [...record.executionProfile.providerKeys] }
+    : null;
+  editExecutionProfile.value = false;
   form.billingFeatureCode = record.billingFeatureCode || '';
   form.billingActionType = record.billingActionType || '';
   modalVisible.value = true;
   optionsLoading.value = true;
   try {
     const options = (await getCreaftBindingModelOptions(record.bindingId)) || [];
+    if (requestId !== configureRequest) return;
     modelOptions.value = options.map((option) => {
-      const missing = [
-        option.boundToFeature ? '' : '未挂到计费能力',
-        option.hasActivePrice ? '' : '无生效定价',
-      ]
+      const missing = (
+        record.billingPolicyKind === 'CATALOG_PRICE'
+          ? [
+              option.boundToFeature ? '' : '未挂到计费能力',
+              option.hasActivePrice ? '' : '无生效定价',
+            ]
+          : []
+      )
         .filter(Boolean)
         .join('、');
       return {
         label: `${option.code}（${option.name}）${missing ? ' — ' + missing : ''}`,
-        value: option.code,
+        value: option.modelId,
         disabled: !option.selectable,
       };
     });
   } catch {
-    modelOptions.value = [];
+    if (requestId === configureRequest) modelOptions.value = [];
   } finally {
-    optionsLoading.value = false;
+    if (requestId === configureRequest) optionsLoading.value = false;
   }
 }
 
 async function handleSave() {
   if (!current.value?.bindingId) return;
+  if (saving.value || optionsLoading.value) return;
+  if ((current.value.requiresModelBinding || isAgent(current.value)) && !form.modelId) {
+    message.warning('请选择模型');
+    return;
+  }
+  let executionProfile: CreaftExecutionProfile | undefined;
+  if (!isAgent(current.value) && editExecutionProfile.value && form.executionProfile) {
+    // 池与候选按目标选择方式取舍：此前这里无条件要求两者非空，而 VARIANT / HANDLER_OWNED
+    // 两类能力在后端恰恰必须**没有**它们——那 10 条能力从这个弹窗根本存不下去。
+    executionProfile = {
+      ...form.executionProfile,
+      poolName: needsPool.value ? (form.executionProfile.poolName || '').trim() || null : null,
+      providerKeys: needsProviders.value
+        ? form.executionProfile.providerKeys.map((key) => key.trim()).filter(Boolean)
+        : [],
+    };
+    if (needsPool.value && !executionProfile.poolName) {
+      message.warning('请选择执行池');
+      return;
+    }
+    if (needsProviders.value && !executionProfile.providerKeys.length) {
+      message.warning('请至少配置一个候选 provider');
+      return;
+    }
+    if (targetMode.value === 'SINGLE_PROVIDER' && executionProfile.providerKeys.length !== 1) {
+      message.warning('该能力必须恰好配置一个 provider');
+      return;
+    }
+    if (new Set(executionProfile.providerKeys).size !== executionProfile.providerKeys.length) {
+      message.warning('候选 provider 不能重复');
+      return;
+    }
+  }
   saving.value = true;
   try {
     await configureCreaftBinding(current.value.bindingId, {
-      modelCode: form.modelCode ?? '',
+      modelId: form.modelId,
+      executionProfile,
       billingFeatureCode: form.billingFeatureCode.trim(),
       billingActionType: form.billingActionType.trim(),
     });
@@ -523,66 +682,58 @@ async function handleEnable(record: CreaftBindingRow) {
   }
 }
 
-// ---- 点数覆盖 ----
-const overrideVisible = ref(false);
-const overrideSaving = ref(false);
-const overrideTarget = ref<CreaftBindingRow | null>(null);
-const overrideForm = reactive({
+// ---- 当前策略点数 ----
+const policyVisible = ref(false);
+const policySaving = ref(false);
+const policyTarget = ref<CreaftBindingRow | null>(null);
+const policyForm = reactive({
   fixedPoints: 0 as number | null,
   freeQuota: null as number | null,
   reason: '',
 });
 
-function openOverride(record: CreaftBindingRow) {
+function openPolicy(record: CreaftBindingRow) {
   if (!record.bindingId) return;
-  overrideTarget.value = record;
-  // 默认填当前生效值而不是 0：多数改价是"在现价上调一点"，填 0 等于给一次误操作让路
-  overrideForm.fixedPoints = record.effectiveFixedPoints ?? frozenFixedPoints(record) ?? 0;
-  overrideForm.freeQuota = record.effectiveFreeQuota;
-  overrideForm.reason = '';
-  overrideVisible.value = true;
+  policyTarget.value = record;
+  policyForm.fixedPoints = record.fixedPoints;
+  policyForm.freeQuota = record.freeQuota;
+  policyForm.reason = '';
+  policyVisible.value = true;
 }
 
-async function handleSaveOverride() {
-  const target = overrideTarget.value;
+async function handleSavePolicy() {
+  const target = policyTarget.value;
   if (!target?.bindingId) return;
-  if (overrideForm.fixedPoints === null || overrideForm.fixedPoints < 0) {
+  if (policyForm.fixedPoints === null || policyForm.fixedPoints < 0) {
     message.warning('固定点数必填且不能为负');
     return;
   }
-  if (!overrideForm.reason.trim()) {
-    message.warning('请填写覆盖原因');
+  if (
+    target.billingPolicyKind === 'FREE_THEN_FIXED' &&
+    (policyForm.freeQuota === null || policyForm.freeQuota < 0)
+  ) {
+    message.warning('每日免费次数必填且不能为负');
     return;
   }
-  overrideSaving.value = true;
+  if (!policyForm.reason.trim()) {
+    message.warning('请填写修改原因');
+    return;
+  }
+  policySaving.value = true;
   try {
-    await saveCreaftBindingPolicyOverride(target.bindingId, {
-      fixedPoints: overrideForm.fixedPoints,
+    await saveCreaftBindingPolicy(target.bindingId, {
+      fixedPoints: policyForm.fixedPoints,
       // 非 FREE_THEN_FIXED 传了会被后端拒（避免在页面上留一个永远不生效的值）
-      freeQuota:
-        target.billingPolicyKind === 'FREE_THEN_FIXED' ? overrideForm.freeQuota : undefined,
-      reason: overrideForm.reason.trim(),
+      freeQuota: target.billingPolicyKind === 'FREE_THEN_FIXED' ? policyForm.freeQuota : undefined,
+      reason: policyForm.reason.trim(),
     });
-    message.success('已覆盖，立即生效');
-    overrideVisible.value = false;
+    message.success('点数配置已保存');
+    policyVisible.value = false;
     loadList();
   } catch {
     /* CATALOG_PRICE / NO_CHARGE 等由后端拒绝并说明原因，拦截器已提示 */
   } finally {
-    overrideSaving.value = false;
-  }
-}
-
-async function handleClearOverride() {
-  const target = overrideTarget.value;
-  if (!target?.bindingId) return;
-  try {
-    await clearCreaftBindingPolicyOverride(target.bindingId);
-    message.success('已清除覆盖，回到契约冻结值');
-    overrideVisible.value = false;
-    loadList();
-  } catch {
-    /* 拦截器已提示 */
+    policySaving.value = false;
   }
 }
 
@@ -621,10 +772,6 @@ async function handleDisable(record: CreaftBindingRow) {
 .muted {
   color: var(--color-text-tertiary, #999);
   font-size: 12px;
-}
-.struck {
-  text-decoration: line-through;
-  margin-right: 6px;
 }
 .reason {
   white-space: normal;

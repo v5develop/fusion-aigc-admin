@@ -12,10 +12,51 @@ import { request } from '@/utils/request';
  * 绑定准入状态。
  * - `READY` 已启用且可装配
  * - `DISABLED` 结构完整但停用中，用户提交不到这条能力
- * - `NOT_ASSEMBLABLE` 已启用但装配不起来，下次重启会失败，须尽快处理
+ * - `NOT_ASSEMBLABLE` 已启用但配置不完整，仅对应能力不可用，不阻止服务启动
  * - `DRIFT` 与冻结契约不一致（缺行/重复行/某列不符），只能改数据，不能改契约
  */
 export type CreaftBindingState = 'READY' | 'DISABLED' | 'NOT_ASSEMBLABLE' | 'DRIFT';
+
+/** 两端共享数据库中的运营执行参数，处理器身份由程序维护。 */
+export interface CreaftExecutionProfile {
+  /** 只有 POOL 能力有池（按池查 provider）；其余能力自己挑 provider，这一列为 null */
+  poolName: string | null;
+  selectionPolicy: string;
+  providerKeys: string[];
+  stagingProfile: string;
+  timeoutProfile: string;
+}
+
+/**
+ * 执行目标怎么选，决定该显示哪些执行配置字段。
+ *
+ * 由后端按执行清单下发。不要按路由名自己判断——同一件事后端已经从三处删掉了写死的判据，
+ * 前端再留一个（比如 `route === '/agent/stream'`）就是第四份。
+ */
+export type CreaftExecutionTargetMode =
+  | 'POOL'
+  | 'VARIANT'
+  | 'SINGLE_PROVIDER'
+  | 'JAVA_MODEL'
+  | 'HANDLER_OWNED';
+
+/**
+ * 编辑执行配置时的可选值，与后端提交期校验同源（执行清单）。
+ *
+ * 此前这三张词表抄在本文件的常量数组里、池名与 provider 是自由文本框。那是第四份副本，
+ * 也是唯一一份运营看得见的：抄漏一个值，运营只能在保存被拒之后才知道；provider 拼错
+ * 一个字母更是要等到启动准入才有反馈。
+ */
+export interface CreaftExecutionOptions {
+  selectionPolicies: string[];
+  stagingProfiles: string[];
+  timeoutProfiles: string[];
+  /** 池名 -> 池里的 provider。POOL 能力的候选只能从所选池里挑 */
+  pools: Record<string, string[]>;
+  /** 视频别名能用的 provider */
+  variantProviders: string[];
+  textModels: string[];
+}
 
 export interface CreaftBindingRow {
   /** 为空表示库里没有这条路由的绑定行（DRIFT） */
@@ -29,27 +70,21 @@ export interface CreaftBindingRow {
   capabilityVersion: string | null;
   taskType: string | null;
   billingPolicyKind: string | null;
-  /** FIXED / FREE_THEN_FIXED 的点数与免费额度写在这里 */
-  billingPolicyJson: string | null;
-  modelSelectorType: string | null;
-  /** creaft v1 的执行池名，不是 Java 模型码 */
-  modelSelectorValue: string | null;
 
-  // 点数覆盖：冻结策略里那两个数是运营可改的那一小块
-  /** 只有 FIXED / FREE_THEN_FIXED 可覆盖；CATALOG_PRICE 的价钱在「定价管理」里配 */
-  policyOverridable: boolean;
-  /** 为空表示没有覆盖，按冻结策略 */
-  overrideFixedPoints: number | null;
-  overrideFreeQuota: number | null;
-  /** 实际生效值（有覆盖取覆盖值，否则取冻结值）。三个值都要显示，否则对不上账时无法自证 */
-  effectiveFixedPoints: number | null;
-  effectiveFreeQuota: number | null;
-  overrideReason: string | null;
-  overrideBy: string | null;
-  overrideTime: string | null;
+  /** FIXED / FREE_THEN_FIXED 可直接配置；其他策略由各自定价机制决定。 */
+  policyEditable: boolean;
+  fixedPoints: number | null;
+  freeQuota: number | null;
 
   // 可配置
+  modelId: number | null;
+  /** 由 modelId 关联模型派生，仅用于展示。 */
   modelCode: string | null;
+  executionProfile: CreaftExecutionProfile | null;
+  /** 为空表示执行面没有实现这条能力 */
+  executionTargetMode: CreaftExecutionTargetMode | null;
+  /** SINGLE_PROVIDER 能力能选哪些 provider；其余方式为空（候选由所选池决定） */
+  executionTargetOptions: string[];
   billingFeatureCode: string | null;
   billingActionType: string | null;
   enabled: boolean | null;
@@ -64,12 +99,12 @@ export interface CreaftBindingRow {
   stateReason: string | null;
   /**
    * 价目接口（biz-points / *-model-configs）能否出数；与 state 是两条独立链路。
-   * 点数写在冻结策略里的三种（NO_CHARGE / FIXED / FREE_THEN_FIXED）恒为 true —— 不需要运营配；
+   * NO_CHARGE / FIXED / FREE_THEN_FIXED 使用策略字段；
    * 只有 CATALOG_PRICE 依赖「模型 + 生效定价」。
    */
   quotePreviewReady: boolean;
   quotePreviewReason: string | null;
-  /** 仅 CATALOG_PRICE 需要配模型与价格 */
+  /** 是否需要关联模型；Agent 不因此要求计费与价格。 */
   requiresModelBinding: boolean;
 }
 
@@ -81,24 +116,19 @@ export interface CreaftModelOption {
   boundToFeature: boolean;
   /** 缺它要去「定价管理」加一条生效定价 */
   hasActivePrice: boolean;
-  /** 两个前置条件都满足；选它启用一定能过装配自检 */
+  /** 是否可选择；Agent 不要求计费绑定，完整启用校验仍由服务端执行。 */
   selectable: boolean;
 }
 
 export interface CreaftBindingConfigureData {
-  /** 传空串表示清空 */
-  modelCode?: string;
+  modelId?: number;
+  executionProfile?: CreaftExecutionProfile;
   billingFeatureCode?: string;
   billingActionType?: string;
 }
 
-/**
- * 点数覆盖。
- *
- * 只有这两个数可覆盖：kind 是结构事实（决定要不要配模型、价目走哪条分支、准入查什么），
- * 运行期改它会让页面显示的判据与实扣脱节，所以后端不接收。
- */
-export interface CreaftBindingPolicyOverrideData {
+/** 修改唯一的当前策略点数，原因写入审计记录。策略种类不在此修改。 */
+export interface CreaftBindingPolicyData {
   /** 0 表示改成免费；这是一次显式的、留痕的决定 */
   fixedPoints: number;
   /** 仅 FREE_THEN_FIXED 可填，其它策略传了会被拒 */
@@ -119,13 +149,14 @@ export interface CreaftV1CapabilityRow {
 export interface CreaftBindingOverview {
   /**
    * 执行面（app.internal-execution.enabled）是否开启。
-   * 它决定 `NOT_ASSEMBLABLE` 的后果：关着时只是待办，开着时意味着下次重启起不来。
+   * 用于区分当前执行配置是否投入使用；普通配置缺失不阻止服务启动。
    */
   executionPlaneEnabled: boolean;
+  executionOptions: CreaftExecutionOptions;
   rows: CreaftBindingRow[];
   /**
    * v1 线协议能力（当前只有 media.cutout / 抠图）。
-   * 它不在上面那 32 条冻结契约里，但计费同样要运营配 —— 缺配时抠图提交会被直接拒。
+   * 它属于独立协议，计费同样要运营配置，缺配时抠图提交会被直接拒。
    */
   protocolV1Capabilities: CreaftV1CapabilityRow[];
 }
@@ -153,17 +184,9 @@ export function disableCreaftBinding(bindingId: number) {
   return request.post(`/api/v1/admin/creaft/bindings/${bindingId}/disable`);
 }
 
-/** 覆盖冻结策略里的点数。写独立的覆盖列，不碰契约投影列；无缓存，即刻生效 */
-export function saveCreaftBindingPolicyOverride(
-  bindingId: number,
-  data: CreaftBindingPolicyOverrideData,
-) {
-  return request.put(`/api/v1/admin/creaft/bindings/${bindingId}/billing-policy-override`, data);
-}
-
-/** 清除覆盖，回到冻结策略 */
-export function clearCreaftBindingPolicyOverride(bindingId: number) {
-  return request.delete(`/api/v1/admin/creaft/bindings/${bindingId}/billing-policy-override`);
+/** 更新共享表的当前策略点数并审计。 */
+export function saveCreaftBindingPolicy(bindingId: number, data: CreaftBindingPolicyData) {
+  return request.put(`/api/v1/admin/creaft/bindings/${bindingId}/billing-policy`, data);
 }
 
 /**
