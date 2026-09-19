@@ -144,6 +144,7 @@ export default {
     creaftCatalog: 'Data Catalog',
     creaftTemplate: 'Public Templates',
     creaftSkill: 'Skill Catalog',
+    creaftBatchBinding: 'Batch Hosting Bindings',
     reconciliationManagement: 'Reconciliation',
     reconciliationSummary: 'Reconciliation Summary',
     reconciliationDifference: 'Difference Handling',

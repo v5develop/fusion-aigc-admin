@@ -587,6 +587,19 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
+        // 批量托管（电商生图）的技能绑定。这张表此前没有任何写入口——建表与加列的迁移都只改结构，
+        // 没有一条往里插过数据，所以上线至今只可能是空的，用户点批量托管必然报「尚未配置」
+        path: 'batch-bindings',
+        name: 'CreaftBatchBinding',
+        component: () => import('@/views/creaft/batch-binding/index.vue'),
+        meta: {
+          title: 'menu.creaftBatchBinding',
+          icon: 'BlockOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'creaft_catalog:view',
+        },
+      },
+      {
         // @技能 列表的数据源。分类为空的行会被整行跳过，所以「弹窗空着」多半是这页没配
         path: 'skills',
         name: 'CreaftSkill',

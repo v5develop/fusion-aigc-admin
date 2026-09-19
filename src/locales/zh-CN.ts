@@ -148,6 +148,7 @@ export default {
     creaftCatalog: '数据目录',
     creaftTemplate: '公共模板',
     creaftSkill: '技能目录',
+    creaftBatchBinding: '批量托管绑定',
     reconciliationManagement: '对账管理',
     reconciliationSummary: '对账汇总',
     reconciliationDifference: '差异处理',

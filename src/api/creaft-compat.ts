@@ -392,3 +392,139 @@ export function getCreaftAgentSkillDetail(id: number) {
 export function updateCreaftAgentSkill(id: number, data: CreaftAgentSkillSaveData) {
   return request.put(`/api/v1/admin/creaft/agent-skills/${id}`, data);
 }
+
+// ---------------------------------------------------------------------------
+// 批量托管（电商生图）技能绑定
+//
+// 在这一页之前 afv_compat_batch_skill_binding **没有任何写入口**：建表与加列的迁移
+// 都只改结构，没有一条往里插过数据，后台也没有页面。所以这张表上线至今只可能是空的，
+// 每一次批量托管提交都报「该技能尚未配置Java权威提交能力」。
+//
+// 与「能力绑定」页不是一回事：那页管 v2 的路由级能力（按 creaft_v1_route 走 CATALOG_PRICE），
+// 批量托管走 offer 路（submitByUrls），两套机制。
+// ---------------------------------------------------------------------------
+
+/** 一行技能 + 它的批量托管绑定 + 解析结论。 */
+export interface CreaftBatchBindingRow {
+  /**
+   * **字符串**：v1 的雪花 id，超过 JS 安全整数上限 2^53-1。
+   * 不要 Number() 它——转一次就丢末几位，而且不报错。
+   */
+  agentSkillId: string;
+  agentSkillCode: string;
+  title: string;
+  category?: string;
+  skillEnabled?: number;
+  /** 按 v1 的编码形状该有绑定（`{平台}_image_generation` 及 `_rich`）。仅提示，不限制能绑什么 */
+  expectedBatchSkill: boolean;
+  /** 为真时 info 接口会多给「亚马逊A+」图种与 1k 档的 amazon_* 比例（判据是技能名含 amazon） */
+  amazonImageTypes: boolean;
+
+  bound: boolean;
+  bindingId?: number;
+  entryCode?: string;
+  modelCode?: string;
+  taskType?: string;
+  enabled?: number;
+  /** 绑定里存的技能名是否与目录一致；不一致时亚马逊判定可能是旧的 */
+  skillTitleInSync?: boolean;
+  /**
+   * 这对 (entryCode, modelCode) 提交时会落到的执行 mode。
+   * 可能与模型无关：offer 只有一条 BILLED 收费项时 model_id 被忽略，mode 恒取那一条。
+   */
+  resolvedMode?: number;
+  featureCode?: string;
+  variantCode?: string;
+  /** 为空表示这条绑定现在真能提交；非空是具体缺什么 */
+  problem?: string;
+}
+
+/** 候选入口码，按选定模型标注解析结论。 */
+export interface CreaftBatchBindingEntryOption {
+  entryCode: string;
+  name?: string;
+  category?: string;
+  featureCode?: string;
+  variantCode?: string;
+  /** 为 1 时模型不参与选档——换模型不会改变执行器 */
+  billedComponents?: number;
+  /** 未选模型时为空（mode 取决于模型，给数字会被当成定论） */
+  resolvedMode?: number;
+  supportsModel?: boolean;
+  selectable: boolean;
+  problem?: string;
+}
+
+export interface CreaftBatchBindingModelOption {
+  modelId: number;
+  code: string;
+  name: string;
+  /** 1 文本 / 2 图片 / 3 视频 */
+  modelType?: number;
+  /**
+   * 是否图片模型。服务端**不据此过滤**：类型是后台手填的，填错一个下拉就会少一行且没有提示。
+   * 真正的约束（这一对 (入口, 模型) 能否选出计费档）由保存时的校验拦。
+   */
+  imageModel?: boolean;
+}
+
+export interface CreaftBatchBindingSaveData {
+  entryCode: string;
+  modelCode: string;
+  /** 省略时按入口的 category 归一（与提交路径同口径），电商生图是 image */
+  taskType?: string;
+  enabled?: number;
+}
+
+export interface CreaftBatchBindingBulkResult {
+  bound: number;
+  resolvedMode?: number;
+  skillCodes: string[];
+}
+
+export function getCreaftBatchBindings(params?: { onlyUnbound?: boolean; keyword?: string }) {
+  return request.get<CreaftBatchBindingRow[]>('/api/v1/admin/creaft/batch-skill-bindings', {
+    params,
+  });
+}
+
+/** 传 modelCode 才会给出 resolvedMode——mode 取决于模型 */
+export function getCreaftBatchBindingEntryOptions(modelCode?: string) {
+  return request.get<CreaftBatchBindingEntryOption[]>(
+    '/api/v1/admin/creaft/batch-skill-bindings/entry-options',
+    { params: { modelCode } },
+  );
+}
+
+export function getCreaftBatchBindingModelOptions() {
+  return request.get<CreaftBatchBindingModelOption[]>(
+    '/api/v1/admin/creaft/batch-skill-bindings/model-options',
+  );
+}
+
+/** agentSkillId 走路径串，避免雪花 id 在 JSON 里丢精度 */
+export function saveCreaftBatchBinding(agentSkillId: string, data: CreaftBatchBindingSaveData) {
+  return request.put<CreaftBatchBindingRow>(
+    `/api/v1/admin/creaft/batch-skill-bindings/${agentSkillId}`,
+    data,
+  );
+}
+
+/** 36 条平台生图技能共用同一套取值，逐条点要点 36 次——这是主要用法 */
+export function bulkBindCreaftBatchBindings(
+  agentSkillIds: string[],
+  binding: CreaftBatchBindingSaveData,
+) {
+  return request.post<CreaftBatchBindingBulkResult>(
+    '/api/v1/admin/creaft/batch-skill-bindings/bulk',
+    { agentSkillIds, binding },
+  );
+}
+
+export function enableCreaftBatchBinding(agentSkillId: string) {
+  return request.post(`/api/v1/admin/creaft/batch-skill-bindings/${agentSkillId}/enable`);
+}
+
+export function disableCreaftBatchBinding(agentSkillId: string) {
+  return request.post(`/api/v1/admin/creaft/batch-skill-bindings/${agentSkillId}/disable`);
+}
