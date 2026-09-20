@@ -117,6 +117,7 @@ export default {
     creationDashboard: '创作数据看板',
     creationTaskList: '创作任务列表',
     moderationLog: '内容审核日志',
+    externalExecutionList: '外部执行',
     creationBackfill: '数据回填',
     creationTaskDetail: '任务详情',
     userManagement: '用户管理',

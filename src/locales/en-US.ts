@@ -113,6 +113,7 @@ export default {
     creationDashboard: 'Creation Dashboard',
     creationTaskList: 'Creation Tasks',
     moderationLog: 'Moderation Logs',
+    externalExecutionList: 'External Executions',
     creationBackfill: 'Data Backfill',
     creationTaskDetail: 'Task Detail',
     userManagement: 'User Management',

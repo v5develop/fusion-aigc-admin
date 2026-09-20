@@ -242,6 +242,19 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
+        // 外部执行面（exe_ 前缀）。与创作任务列表并排放在这里：它们是同一档「任务态数据」，
+        // 而此前只有创作任务有强制收口入口，外部执行卡在非终态时只能直连改库
+        path: 'external-executions',
+        name: 'ExternalExecutionList',
+        component: () => import('@/views/external-execution/index.vue'),
+        meta: {
+          title: 'menu.externalExecutionList',
+          icon: 'DeploymentUnitOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'task:view',
+        },
+      },
+      {
         path: 'moderation-log',
         name: 'ModerationLogList',
         component: () => import('@/views/creation/moderation-log/index.vue'),
