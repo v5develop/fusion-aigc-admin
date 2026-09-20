@@ -740,6 +740,26 @@ export interface BatchPlannerModel {
   fileDefault?: string | null;
 }
 
+/**
+ * creaft v1 画布识别 / 视觉分析用的模型（`/agent/canvas/identify` 等）。
+ *
+ * 取值口径同样是 **DB > 配置文件**：清空即回退 yaml 的 `app.compat.v1.vision-model-code`。
+ * 与批量托管规划模型**刻意分开**：换模型是各自的产品决定，跟着换会让另一条链的效果莫名其妙地变。
+ *
+ * 为什么值得在后台可配：这个键此前只有 yaml 兜底值，而它取不到模型时是「画布识别整块回 7001」，
+ * 修它却只能改 env + 重启 —— 代价与故障面不对等。
+ */
+export interface VisionModel {
+  /** 生效中的模型编码。存 code 不存 id —— 要与 yaml 和运维自检 SQL 对得上 */
+  modelCode: string | null;
+  modelName?: string | null;
+  /** 是否支持视觉（只读展示）。这条链路恒带图，不支持视觉的模型会在调用时失败 */
+  supportVision?: boolean | null;
+  /** 当前取值是否来自数据库；false 表示正在用配置文件的兜底值 */
+  fromDatabase?: boolean | null;
+  fileDefault?: string | null;
+}
+
 // Feature Grant Types
 export interface FeatureGrant {
   id: number;

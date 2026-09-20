@@ -3712,6 +3712,15 @@ export default {
       'Only vision-capable models are listed: selling-point analysis always reads the reference images, so a non-vision model makes every image type fail. Leave empty to fall back to the config-file default.',
     batchPlannerModelFromFile:
       'Currently using the config-file default ({code}); not yet stored in the database',
+    visionModel: 'Canvas Vision Model',
+    visionModelHint:
+      "The model used by canvas region editing (/agent/canvas/identify) and visual analysis. Resolution order is database over config file: clearing it falls back to the config-file default. Kept separate from the batch hosting planner model on purpose — changing either is its own product decision, and coupling them would silently shift the other chain's output. Previously this key existed only as a config-file default, yet when the model cannot be resolved canvas identification fails as a whole and fixing it required an env change plus a restart.",
+    visionModelLabel: 'Vision model',
+    visionModelPlaceholder: 'Select a vision-capable model',
+    visionModelSelectHint:
+      'Only vision-capable models are listed: this chain always carries an image, so a non-vision model makes canvas identification fail entirely. Leave empty to fall back to the config-file default.',
+    visionModelFromFile:
+      'Currently using the config-file default ({code}); not yet stored in the database',
     saveSuccess: 'System parameters saved successfully',
   },
 

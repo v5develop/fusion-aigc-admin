@@ -3723,6 +3723,14 @@ export default {
     batchPlannerModelSelectHint:
       '只列支持视觉的模型：卖点分析一定要读参考图，选看不了图的模型会让每个图种都失败。清空表示回退配置文件的兜底值。',
     batchPlannerModelFromFile: '当前用的是配置文件兜底值（{code}），尚未落库',
+    visionModel: '画布识别视觉模型',
+    visionModelHint:
+      '画布区域编辑（/agent/canvas/identify）与视觉分析走的模型。取值口径同样是「数据库 > 配置文件」：清空即回退配置文件的兜底值。与批量托管规划模型刻意分成两项 —— 换模型是各自的产品决定，跟着换会让另一条链的效果莫名其妙地变。此前这一项只有配置文件兜底值，而它取不到模型时是画布识别整块报错，修它却只能改环境变量 + 重启。',
+    visionModelLabel: '视觉模型',
+    visionModelPlaceholder: '选择支持视觉的模型',
+    visionModelSelectHint:
+      '只列支持视觉的模型：这条链路恒带图，选看不了图的模型会让画布识别整块失败。清空表示回退配置文件的兜底值。',
+    visionModelFromFile: '当前用的是配置文件兜底值（{code}），尚未落库',
     saveSuccess: '系统参数保存成功',
   },
 
