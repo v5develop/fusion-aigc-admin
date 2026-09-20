@@ -269,6 +269,10 @@ const modelSelectOptions = computed(() =>
   models.value.map((model) => ({
     label: `${model.name}（${model.code}）${model.imageModel === false ? ' · 非图片模型' : ''}`,
     value: model.code,
+    // 提交侧反查不到的模型置灰：不置灰的话运营能选中一个「一保存就报模型不存在」的模型，
+    // 而它明明就在列表里。原因挂在 title 上，鼠标悬停即可看到该怎么办
+    disabled: model.selectable === false,
+    title: model.problem ?? undefined,
   })),
 );
 

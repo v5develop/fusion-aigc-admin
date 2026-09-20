@@ -466,6 +466,14 @@ export interface CreaftBatchBindingModelOption {
    * 真正的约束（这一对 (入口, 模型) 能否选出计费档）由保存时的校验拦。
    */
   imageModel?: boolean;
+  /**
+   * 能不能选它。提交侧是按 code + 用户隔离反查模型的，反查不到就不能用 ——
+   * 典型反例是 `creaft-*` 那批计费载体模型（`user_id = -1`，刻意不进用户下拉）。
+   * 列出来但置灰，比直接不列好：否则「我要的模型去哪了」无从下手。
+   */
+  selectable?: boolean;
+  /** 不可选的原因 */
+  problem?: string;
 }
 
 export interface CreaftBatchBindingSaveData {
