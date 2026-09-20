@@ -335,6 +335,53 @@
             </a-form>
           </div>
         </a-tab-pane>
+
+        <a-tab-pane key="batchPlanner" :tab="$t('settingsSystem.batchPlannerModel')">
+          <div class="max-w-2xl">
+            <a-alert
+              type="info"
+              show-icon
+              :message="$t('settingsSystem.batchPlannerModelHint')"
+              class="agent-model-alert"
+            />
+
+            <a-form layout="vertical" class="agent-profile-block">
+              <a-form-item :label="$t('settingsSystem.batchPlannerModelLabel')">
+                <a-select
+                  v-model:value="batchPlannerModelCode"
+                  :options="visionModelCodeOptions"
+                  :loading="loadingModels"
+                  :placeholder="$t('settingsSystem.batchPlannerModelPlaceholder')"
+                  allow-clear
+                  show-search
+                  option-filter-prop="label"
+                  style="max-width: 360px"
+                />
+                <div class="form-hint">{{ $t('settingsSystem.batchPlannerModelSelectHint') }}</div>
+              </a-form-item>
+
+              <a-form-item v-if="!batchPlannerFromDatabase && batchPlannerFileDefault">
+                <a-tag color="orange">
+                  {{
+                    $t('settingsSystem.batchPlannerModelFromFile', {
+                      code: batchPlannerFileDefault,
+                    })
+                  }}
+                </a-tag>
+              </a-form-item>
+
+              <a-form-item>
+                <a-button
+                  type="primary"
+                  @click="handleSaveBatchPlanner"
+                  :loading="savingBatchPlanner"
+                >
+                  {{ $t('common.save') }}
+                </a-button>
+              </a-form-item>
+            </a-form>
+          </div>
+        </a-tab-pane>
       </a-tabs>
     </a-card>
   </div>
@@ -354,6 +401,8 @@ import {
   bindAgentModelProfile,
   getAiWritingModel,
   saveAiWritingModel,
+  getBatchPlannerModel,
+  saveBatchPlannerModel,
   getVideoWatermarkEnabled,
   setVideoWatermarkEnabled,
   getBlindWatermarkEnabled,
@@ -435,6 +484,10 @@ const agentProfiles = ref<AgentModelProfile[]>([]);
 
 // 前端「AI 帮写」专用优化模型（独立一档，与管线内部自动优化解耦）；null=未配置回退默认档位路由
 const aiWritingModelId = ref<number | null>(null);
+const batchPlannerModelCode = ref<string | null>(null);
+const batchPlannerFromDatabase = ref(false);
+const batchPlannerFileDefault = ref<string | null>(null);
+const savingBatchPlanner = ref(false);
 const savingAiWriting = ref(false);
 
 // 全部启用模型的下拉项（label 含 code）
@@ -444,6 +497,20 @@ const allModelOptions = computed(() =>
     value: m.id,
     supportVision: !!m.supportVision,
   })),
+);
+
+/**
+ * 规划模型的候选：**只列支持视觉的**，且值是 code 不是 id。
+ *
+ * 规划第一步（卖点分析）一定带参考图，选一个看不了图的模型，症状是每个图种都标失败，
+ * 而不是"效果差一点" —— 所以这里直接不让选，后端保存时也会再拒一次。
+ * 用 code 是因为这一项要与 yaml 的 app.compat.v1.batch-planner-model-code
+ * 和运维自检 SQL 里的 @planner_model_code 对得上，那两处认的都是编码。
+ */
+const visionModelCodeOptions = computed(() =>
+  models.value
+    .filter((m) => m.supportVision && m.code)
+    .map((m) => ({ label: m.code ? `${m.name} (${m.code})` : m.name, value: m.code as string })),
 );
 
 // VISION 档仅可选支持视觉的模型；TEXT 档不限
@@ -475,10 +542,11 @@ function profileHint(profile: string) {
 async function loadAgentModelConfig() {
   loadingModels.value = true;
   try {
-    const [options, profiles, aiWriting] = await Promise.all([
+    const [options, profiles, aiWriting, batchPlanner] = await Promise.all([
       getModelOptions(),
       getAgentModelProfiles(),
       getAiWritingModel(),
+      getBatchPlannerModel(),
     ]);
     models.value = options ?? [];
     // 保证 TEXT 在前、VISION 在后的稳定顺序
@@ -487,6 +555,11 @@ async function loadAgentModelConfig() {
       .slice()
       .sort((a, b) => order.indexOf(a.profile) - order.indexOf(b.profile));
     aiWritingModelId.value = aiWriting?.modelId ?? null;
+    // fromDatabase=false 时 modelCode 是 yaml 的兜底值：照样显示出来（运营要看见"现在到底在用哪个"），
+    // 但另给一个标记说明它还没落库
+    batchPlannerModelCode.value = batchPlanner?.modelCode ?? null;
+    batchPlannerFromDatabase.value = !!batchPlanner?.fromDatabase;
+    batchPlannerFileDefault.value = batchPlanner?.fileDefault ?? null;
   } catch {
     // Error handled by interceptor
   } finally {
@@ -515,6 +588,20 @@ async function handleSaveAiWriting() {
     // Error handled by interceptor
   } finally {
     savingAiWriting.value = false;
+  }
+}
+
+async function handleSaveBatchPlanner() {
+  savingBatchPlanner.value = true;
+  try {
+    await saveBatchPlannerModel(batchPlannerModelCode.value ?? null);
+    message.success(t('settingsSystem.saveSuccess'));
+    // 重新拉一次：清空时后端会回退到配置文件的值，不重载的话页面还显示空
+    await loadAgentModelConfig();
+  } catch {
+    // Error handled by interceptor
+  } finally {
+    savingBatchPlanner.value = false;
   }
 }
 

@@ -721,6 +721,25 @@ export interface AiWritingModel {
   supportVision?: boolean | null;
 }
 
+/**
+ * creaft v1 批量托管的规划模型（出图前的卖点分析 / 视觉规划）。
+ *
+ * 取值口径是 **DB > 配置文件**：清空就回退到 yaml 的
+ * `app.compat.v1.batch-planner-model-code`，不是"没有模型"。
+ */
+export interface BatchPlannerModel {
+  /** 生效中的模型编码。存 code 不存 id —— 要与 yaml 和运维自检 SQL 对得上 */
+  modelCode: string | null;
+  /** 模型名称（只读展示） */
+  modelName?: string | null;
+  /** 是否支持视觉（只读展示）。规划第一步一定带参考图，不支持视觉的模型会在调用时失败 */
+  supportVision?: boolean | null;
+  /** 当前取值是否来自数据库；false 表示正在用配置文件的兜底值 */
+  fromDatabase?: boolean | null;
+  /** 配置文件里的兜底值（只读展示） */
+  fileDefault?: string | null;
+}
+
 // Feature Grant Types
 export interface FeatureGrant {
   id: number;

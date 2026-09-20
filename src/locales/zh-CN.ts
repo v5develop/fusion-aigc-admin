@@ -3715,6 +3715,14 @@ export default {
     aiWritingModelLabel: 'AI 帮写专用模型',
     aiWritingModelSelectHint:
       '仅可选择已启用的文本对话模型；清空表示不单独配置、回退默认档位路由。带图帮写时若所选模型不支持视觉，会自动回退视觉档。',
+    batchPlannerModel: '批量托管规划模型',
+    batchPlannerModelHint:
+      'creaft v1 批量托管在出图之前要先跑两步：卖点分析、视觉规划，把一段商品描述变成逐张分镜提示词。这里配的就是这两步用的模型。取值口径是「数据库 > 配置文件」：清空即回退配置文件的兜底值，不是关闭功能。模型取不到时该图种整组标失败，但不扣点数（计费排在规划之后）。',
+    batchPlannerModelLabel: '规划模型',
+    batchPlannerModelPlaceholder: '选择支持视觉的文本对话模型',
+    batchPlannerModelSelectHint:
+      '只列支持视觉的模型：卖点分析一定要读参考图，选看不了图的模型会让每个图种都失败。清空表示回退配置文件的兜底值。',
+    batchPlannerModelFromFile: '当前用的是配置文件兜底值（{code}），尚未落库',
     saveSuccess: '系统参数保存成功',
   },
 

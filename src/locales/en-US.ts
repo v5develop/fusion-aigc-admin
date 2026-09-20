@@ -3703,6 +3703,15 @@ export default {
     aiWritingModelLabel: 'AI Writing dedicated model',
     aiWritingModelSelectHint:
       'Only enabled text chat models can be selected; leave empty to skip the dedicated config and fall back to default routing. When writing with images, a non-vision model automatically falls back to the vision profile.',
+    batchPlannerModel: 'Batch Hosting Planner Model',
+    batchPlannerModelHint:
+      'creaft v1 batch hosting runs two steps before generating: selling-point analysis and visual planning, turning one product description into a distinct prompt per image. This sets the model for those two steps. Resolution order is database over config file: clearing it falls back to the config-file default rather than disabling the feature. When the model cannot be resolved, that image type fails as a group but no points are charged (billing happens after planning).',
+    batchPlannerModelLabel: 'Planner model',
+    batchPlannerModelPlaceholder: 'Select a vision-capable text chat model',
+    batchPlannerModelSelectHint:
+      'Only vision-capable models are listed: selling-point analysis always reads the reference images, so a non-vision model makes every image type fail. Leave empty to fall back to the config-file default.',
+    batchPlannerModelFromFile:
+      'Currently using the config-file default ({code}); not yet stored in the database',
     saveSuccess: 'System parameters saved successfully',
   },
 

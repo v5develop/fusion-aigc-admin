@@ -8,6 +8,7 @@ import type {
   SystemStorageConfig,
   AgentModelProfile,
   AiWritingModel,
+  BatchPlannerModel,
 } from '@/types/api';
 
 import { request } from '@/utils/request';
@@ -118,6 +119,16 @@ export function getAiWritingModel() {
 
 export function saveAiWritingModel(modelId: number | null) {
   return request.put<boolean>('/api/v1/admin/settings/ai-writing-model', { modelId });
+}
+
+/** creaft v1 批量托管的规划模型（出图前两步 LLM）。DB > 配置文件。 */
+export function getBatchPlannerModel() {
+  return request.get<BatchPlannerModel>('/api/v1/admin/settings/batch-planner-model');
+}
+
+/** 传空串/ null 即清除，回退配置文件默认值。 */
+export function saveBatchPlannerModel(modelCode: string | null) {
+  return request.put<boolean>('/api/v1/admin/settings/batch-planner-model', { modelCode });
 }
 
 /**
