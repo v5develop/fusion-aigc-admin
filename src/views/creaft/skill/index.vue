@@ -3,6 +3,9 @@
     <div class="page-header">
       <h2 class="ph-title">Creaft 技能目录</h2>
       <a-space>
+        <a-button v-permission="'creaft_catalog:edit'" @click="openCategoryOrder">
+          调整分类顺序
+        </a-button>
         <a-button @click="reload">刷新</a-button>
       </a-space>
     </div>
@@ -111,6 +114,60 @@
     </a-card>
 
     <a-modal
+      v-model:open="categoryOrderVisible"
+      title="调整技能分类顺序"
+      :confirm-loading="categoryOrderSaving"
+      :ok-button-props="{
+        disabled: categoryOrderLoading || categoryOrderItems.length === 0,
+      }"
+      :cancel-button-props="{ disabled: categoryOrderSaving }"
+      :closable="!categoryOrderSaving"
+      :mask-closable="false"
+      :keyboard="!categoryOrderSaving"
+      width="560px"
+      @ok="saveCategoryOrder"
+    >
+      <a-alert
+        type="info"
+        show-icon
+        style="margin-bottom: 12px"
+        message="第一项分类的第一条技能是桌面端默认技能。拖动分类可固定组间顺序，不再随技能数量或权重变化。"
+      />
+      <a-alert
+        v-if="!categoryOrderLoading && !categoryOrderConfigured"
+        type="warning"
+        show-icon
+        style="margin-bottom: 12px"
+        message="当前没有显式配置；下面展示的是后端按 v1 回退规则算出的实际顺序。保存后会固定为该顺序。"
+      />
+      <a-spin :spinning="categoryOrderLoading">
+        <draggable
+          v-if="categoryOrderItems.length > 0"
+          v-model="categoryOrderItems"
+          class="category-order-list"
+          item-key="name"
+          handle=".category-order-item__handle"
+          ghost-class="category-order-item--ghost"
+          :animation="180"
+          :disabled="categoryOrderSaving"
+        >
+          <template #item="{ element, index }">
+            <div class="category-order-item">
+              <HolderOutlined class="category-order-item__handle" />
+              <span class="category-order-item__index">{{ index + 1 }}</span>
+              <span class="category-order-item__name">{{ element.name }}</span>
+              <a-tag v-if="index === 0" color="blue">默认分类</a-tag>
+            </div>
+          </template>
+        </draggable>
+        <a-empty
+          v-else-if="!categoryOrderLoading"
+          description="暂无用户可见的技能分类，请先补齐并启用技能"
+        />
+      </a-spin>
+    </a-modal>
+
+    <a-modal
       v-model:open="modalVisible"
       title="编辑技能"
       :confirm-loading="saving"
@@ -196,13 +253,17 @@
 </template>
 
 <script setup lang="ts">
+import { HolderOutlined } from '@antdv-next/icons';
 import { message } from 'antdv-next';
 import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue';
+import draggable from 'vuedraggable';
 
 import {
+  getCreaftAgentSkillCategoryOrder,
   getCreaftAgentSkillDetail,
   getCreaftAgentSkillSummary,
   getCreaftAgentSkills,
+  updateCreaftAgentSkillCategoryOrder,
   updateCreaftAgentSkill,
   type CreaftAgentSkillRow,
   type CreaftAgentSkillSummary,
@@ -288,6 +349,64 @@ function reload() {
 
 reload();
 
+// ---- 分类组间顺序 ----
+interface CategoryOrderItem {
+  name: string;
+}
+
+const categoryOrderVisible = ref(false);
+const categoryOrderLoading = ref(false);
+const categoryOrderSaving = ref(false);
+const categoryOrderConfigured = ref(false);
+const categoryOrderItems = ref<CategoryOrderItem[]>([]);
+let categoryOrderRequest = 0;
+
+watch(categoryOrderVisible, (open) => {
+  if (!open) {
+    categoryOrderRequest++;
+    categoryOrderLoading.value = false;
+  }
+});
+
+async function openCategoryOrder() {
+  if (categoryOrderSaving.value) return;
+  const requestId = ++categoryOrderRequest;
+  categoryOrderItems.value = [];
+  categoryOrderConfigured.value = false;
+  categoryOrderLoading.value = true;
+  categoryOrderVisible.value = true;
+  try {
+    const result = await getCreaftAgentSkillCategoryOrder();
+    if (requestId !== categoryOrderRequest || !categoryOrderVisible.value) return;
+    categoryOrderConfigured.value = result.configuredOrder.length > 0;
+    categoryOrderItems.value = result.effectiveOrder.map((name) => ({ name }));
+  } catch {
+    /* 拦截器已提示；保持空态和禁止保存，避免把加载失败误当成空配置覆盖。 */
+  } finally {
+    if (requestId === categoryOrderRequest) categoryOrderLoading.value = false;
+  }
+}
+
+async function saveCategoryOrder() {
+  if (categoryOrderLoading.value || categoryOrderSaving.value || !categoryOrderItems.value.length) {
+    return;
+  }
+  categoryOrderSaving.value = true;
+  try {
+    const result = await updateCreaftAgentSkillCategoryOrder(
+      categoryOrderItems.value.map((item) => item.name),
+    );
+    categoryOrderConfigured.value = result.configuredOrder.length > 0;
+    categoryOrderItems.value = result.effectiveOrder.map((name) => ({ name }));
+    message.success('分类顺序已保存并生效');
+    categoryOrderVisible.value = false;
+  } catch {
+    /* 拦截器已提示 */
+  } finally {
+    categoryOrderSaving.value = false;
+  }
+}
+
 // ---- 编辑 ----
 const modalVisible = ref(false);
 const saving = ref(false);
@@ -306,6 +425,7 @@ watch(modalVisible, (open) => {
 });
 
 onBeforeUnmount(() => {
+  categoryOrderRequest++;
   detailRequest++;
   clearTimeout(keywordTimer);
 });
@@ -444,5 +564,41 @@ async function handleSubmit() {
   background: var(--color-fill-quaternary, #fafafa);
   color: var(--color-text-primary, #262626);
   font-size: 12px;
+}
+.category-order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.category-order-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border-secondary, #f0f0f0);
+  border-radius: 6px;
+  background: var(--color-bg-container, #fff);
+}
+.category-order-item__handle {
+  color: var(--color-text-tertiary, #999);
+  cursor: grab;
+}
+.category-order-item__handle:active {
+  cursor: grabbing;
+}
+.category-order-item__index {
+  width: 24px;
+  color: var(--color-text-tertiary, #999);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.category-order-item__name {
+  flex: 1;
+  font-weight: 500;
+}
+.category-order-item--ghost {
+  opacity: 0.45;
+  background: var(--color-primary-bg, #e6f4ff);
 }
 </style>

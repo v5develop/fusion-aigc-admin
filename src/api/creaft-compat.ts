@@ -353,6 +353,13 @@ export interface CreaftAgentSkillSummary {
   placeholderCode: number;
 }
 
+export interface CreaftAgentSkillCategoryOrder {
+  /** system_config 中显式保存的顺序；为空表示仍在使用 v1 回退规则 */
+  configuredOrder: string[];
+  /** /api/v1/agent/skills 当前实际返回的分类顺序 */
+  effectiveOrder: string[];
+}
+
 /** 完整配置仅由单条详情返回，目录列表不包含 config。 */
 export interface CreaftAgentSkillDetail extends CreaftAgentSkillRow {
   config: Record<string, unknown>;
@@ -382,6 +389,19 @@ export function getCreaftAgentSkills(params?: {
 
 export function getCreaftAgentSkillSummary() {
   return request.get<CreaftAgentSkillSummary>('/api/v1/admin/creaft/agent-skills/summary');
+}
+
+export function getCreaftAgentSkillCategoryOrder() {
+  return request.get<CreaftAgentSkillCategoryOrder>(
+    '/api/v1/admin/creaft/agent-skills/category-order',
+  );
+}
+
+export function updateCreaftAgentSkillCategoryOrder(categoryOrder: string[]) {
+  return request.put<CreaftAgentSkillCategoryOrder>(
+    '/api/v1/admin/creaft/agent-skills/category-order',
+    { categoryOrder },
+  );
 }
 
 export function getCreaftAgentSkillDetail(id: number) {
