@@ -224,6 +224,16 @@
 
 /* ========== Dark Mode ========== */
 :root.dark {
+  /* Functional colors for dark surfaces */
+  --color-success-bg: #162312;
+  --color-success-border: #274916;
+  --color-warning-bg: #2b2111;
+  --color-warning-border: #594214;
+  --color-error-bg: #2c1618;
+  --color-error-border: #5c2223;
+  --color-info-bg: #111a2c;
+  --color-info-border: #15325b;
+
   --color-text-primary: rgba(255, 255, 255, 0.85);
   --color-text-secondary: rgba(255, 255, 255, 0.65);
   --color-text-tertiary: rgba(255, 255, 255, 0.45);

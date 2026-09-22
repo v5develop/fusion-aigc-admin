@@ -766,10 +766,6 @@ async function submitForce() {
   font-weight: 600;
 }
 .observability-card {
-  /* 透明告警色叠加当前主题底色：亮色是浅黄，暗色是深琥珀，不需要全局覆盖主题变量。 */
-  --execution-warning-bg: rgba(250, 173, 20, 0.12);
-  --execution-warning-border: rgba(250, 173, 20, 0.38);
-
   margin-bottom: 16px;
 }
 .metric-grid {
@@ -785,8 +781,8 @@ async function submitForce() {
   background: var(--color-fill-quaternary, #fafafa);
 }
 .metric-item.danger {
-  border-color: var(--execution-warning-border);
-  background: var(--execution-warning-bg);
+  border-color: var(--color-warning-border);
+  background: var(--color-warning-bg);
 }
 .metric-label,
 .section-label {
@@ -827,7 +823,8 @@ async function submitForce() {
   border-radius: 8px;
 }
 .stuck-item.active {
-  border-color: var(--execution-warning-border);
+  border-color: var(--color-warning-border);
+  background: var(--color-warning-bg);
   box-shadow: inset 3px 0 0 var(--color-warning, #faad14);
 }
 .stuck-title {
