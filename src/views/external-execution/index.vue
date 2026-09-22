@@ -3,9 +3,118 @@
     <div class="page-header">
       <h2 class="ph-title">外部执行</h2>
       <a-space>
-        <a-button @click="reload">刷新</a-button>
+        <span v-if="overview?.generatedAt" class="muted">观测于 {{ overview.generatedAt }}</span>
+        <a-button :loading="loading || overviewLoading" @click="reload">刷新全部</a-button>
       </a-space>
     </div>
+
+    <a-card class="observability-card" variant="borderless" :loading="overviewLoading">
+      <template #title>
+        <a-space>
+          <span>执行面驾驶舱</span>
+          <a-tag :color="healthColor">{{ healthLabel }}</a-tag>
+        </a-space>
+      </template>
+
+      <a-alert
+        v-if="overview?.message"
+        :type="overview.health === 'DISABLED' ? 'info' : 'warning'"
+        show-icon
+        :message="overview.message"
+        style="margin-bottom: 16px"
+      />
+
+      <div class="metric-grid">
+        <div class="metric-item">
+          <div class="metric-label">当前在途</div>
+          <div class="metric-value">{{ overview?.activeExecutions ?? '—' }}</div>
+          <div class="metric-note">等待、执行及恢复中的总量</div>
+        </div>
+        <div class="metric-item" :class="{ danger: (overview?.totalStuck ?? 0) > 0 }">
+          <div class="metric-label">卡点命中</div>
+          <div class="metric-value">{{ stuckTotalDisplay }}</div>
+          <div class="metric-note">五类可重叠，不等于执行单数</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">24h 执行</div>
+          <div class="metric-value">{{ overview?.total24h ?? '—' }}</div>
+          <div class="metric-note">成功 {{ overview?.succeeded24h ?? '—' }}</div>
+        </div>
+        <div class="metric-item" :class="{ danger: (overview?.abnormal24h ?? 0) > 0 }">
+          <div class="metric-label">24h 异常终态</div>
+          <div class="metric-value">{{ overview?.abnormal24h ?? '—' }}</div>
+          <div class="metric-note">失败、超时及人工审核</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">24h 终态成功率</div>
+          <div class="metric-value">{{ formatPercent(overview?.successRate24h) }}</div>
+          <div class="metric-note">只统计已经到达终态的执行</div>
+        </div>
+      </div>
+
+      <div v-if="overview?.statusCounts?.length" class="status-strip">
+        <span class="section-label">状态分布</span>
+        <a-tag
+          v-for="item in overview.statusCounts"
+          :key="item.status"
+          :color="statusColor(item.status)"
+        >
+          {{ item.status }} {{ item.count }}
+        </a-tag>
+      </div>
+
+      <div v-if="overview?.stuckFindings?.length" class="stuck-grid">
+        <div
+          v-for="finding in overview.stuckFindings"
+          :key="finding.kind"
+          class="stuck-item"
+          :class="{ active: finding.count > 0 }"
+        >
+          <div class="stuck-title">
+            <span>{{ finding.label }}</span>
+            <a-badge :count="finding.count" :show-zero="true" :overflow-count="999" />
+          </div>
+          <div class="metric-note">
+            {{
+              finding.stuckMinutes == null
+                ? '按执行截止时间判断'
+                : `停留超过 ${finding.stuckMinutes} 分钟`
+            }}
+            <span v-if="finding.saturated"> · 已达扫描上限</span>
+          </div>
+          <div v-if="finding.samples.length" class="sample-list">
+            <a-button
+              v-for="sample in finding.samples"
+              :key="sample"
+              type="link"
+              size="small"
+              @click="openTimeline(sample)"
+            >
+              {{ sample }}
+            </a-button>
+          </div>
+        </div>
+      </div>
+
+      <a-table
+        v-if="overview?.providers?.length"
+        class="provider-table"
+        :columns="providerColumns"
+        :data-source="overview.providers"
+        :pagination="false"
+        row-key="providerSystem"
+        size="small"
+      >
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.dataIndex === 'providerSystem'">
+            <code class="route-code">{{ record.providerSystem }}</code>
+          </template>
+          <template v-if="column.dataIndex === 'abnormal24h'">
+            <span :class="{ warn: record.abnormal24h > 0 }">{{ record.abnormal24h }}</span>
+          </template>
+        </template>
+      </a-table>
+    </a-card>
 
     <a-alert
       type="info"
@@ -92,6 +201,9 @@
 
           <template v-if="column.dataIndex === 'operation'">
             <a-space size="small">
+              <a-button type="link" size="small" @click="openTimeline(record.executionNo)">
+                诊断
+              </a-button>
               <a-button type="link" size="small" @click="openDetail(record.executionNo)">
                 详情
               </a-button>
@@ -179,6 +291,107 @@
         </a-descriptions-item>
       </a-descriptions>
     </a-modal>
+
+    <a-drawer
+      v-model:open="timelineVisible"
+      title="执行链路诊断"
+      width="860"
+      :destroy-on-close="true"
+    >
+      <a-spin :spinning="timelineLoading">
+        <template v-if="timeline">
+          <a-alert
+            :type="verdictAlertType"
+            show-icon
+            :message="timeline.verdictSummary"
+            :description="timeline.verdictNextStep"
+            style="margin-bottom: 16px"
+          />
+
+          <div class="diagnosis-head">
+            <div>
+              <span class="section-label">结论</span>
+              <a-tag :color="verdictColor">{{ timeline.verdict }}</a-tag>
+            </div>
+            <a-space>
+              <span class="muted">{{ timeline.generatedAt }}</span>
+              <a-button size="small" :loading="timelineLoading" @click="reloadTimeline">
+                重新探测
+              </a-button>
+            </a-space>
+          </div>
+
+          <a-descriptions :column="3" size="small" bordered style="margin-bottom: 20px">
+            <a-descriptions-item label="执行号" :span="2">
+              <code class="route-code">{{ timeline.execution.executionNo }}</code>
+            </a-descriptions-item>
+            <a-descriptions-item label="本地状态">
+              <a-tag :color="statusColor(timeline.execution.status)">
+                {{ timeline.execution.status }}
+              </a-tag>
+            </a-descriptions-item>
+            <a-descriptions-item label="实时探针">
+              <a-tag :color="probeColor(timeline.probe.state)">{{ timeline.probe.state }}</a-tag>
+            </a-descriptions-item>
+            <a-descriptions-item label="执行方权威态">{{
+              timeline.probe.status || '—'
+            }}</a-descriptions-item>
+            <a-descriptions-item label="事件序号">{{
+              timeline.probe.sequence ?? '—'
+            }}</a-descriptions-item>
+            <a-descriptions-item v-if="timeline.probe.reason" label="探针说明" :span="3">
+              {{ timeline.probe.reason }}
+            </a-descriptions-item>
+          </a-descriptions>
+
+          <a-timeline>
+            <a-timeline-item v-for="stage in timelineStages" :key="stage.key" :color="stage.color">
+              <div class="stage-title">{{ stage.title }}</div>
+              <div class="stage-summary">{{ stage.summary }}</div>
+            </a-timeline-item>
+          </a-timeline>
+
+          <a-collapse ghost>
+            <a-collapse-panel key="evidence" header="查看诊断证据">
+              <a-descriptions :column="2" size="small" bordered>
+                <a-descriptions-item label="匹配方式">{{ timeline.matchedBy }}</a-descriptions-item>
+                <a-descriptions-item label="同业务任务执行数">
+                  {{ timeline.matchedBy === 'AGGREGATE_ID' ? timeline.aggregateMatchCount : '—' }}
+                </a-descriptions-item>
+                <a-descriptions-item label="Java 发件箱"
+                  >{{ timeline.outbox.length }} 条</a-descriptions-item
+                >
+                <a-descriptions-item label="Java 收件箱"
+                  >{{ timeline.inbox.length }} 条</a-descriptions-item
+                >
+                <a-descriptions-item label="交付 checkpoint">
+                  {{ timeline.deliveries.length }} 条
+                </a-descriptions-item>
+                <a-descriptions-item label="计费预占">
+                  {{ timeline.reservation?.status || '未找到' }}
+                </a-descriptions-item>
+                <a-descriptions-item v-if="timeline.agentTurn" label="Agent 轮次状态">
+                  {{ timeline.agentTurn.status || '—' }}
+                </a-descriptions-item>
+                <a-descriptions-item v-if="timeline.agentEventStats" label="Agent 事件">
+                  {{ timeline.agentEventStats.eventCount ?? 0 }} 条，最新序号
+                  {{ timeline.agentEventStats.maxSequence ?? '—' }}
+                </a-descriptions-item>
+                <a-descriptions-item
+                  v-if="timeline.execution.lastErrorMessage"
+                  label="最后错误"
+                  :span="2"
+                >
+                  <span class="warn">{{ timeline.execution.lastErrorCode }}</span>
+                  {{ timeline.execution.lastErrorMessage }}
+                </a-descriptions-item>
+              </a-descriptions>
+            </a-collapse-panel>
+          </a-collapse>
+        </template>
+        <a-empty v-else-if="!timelineLoading" description="暂无诊断结果" />
+      </a-spin>
+    </a-drawer>
   </div>
 </template>
 
@@ -190,15 +403,21 @@ import {
   batchForceTerminalExternalExecutions,
   forceTerminalExternalExecution,
   getExternalExecutionDetail,
+  getExternalExecutionObservability,
   getExternalExecutions,
+  getExternalExecutionTimeline,
   FORCE_TERMINAL_STATUSES,
+  type ExecutionObservabilityOverview,
   type ExternalExecutionDetail,
   type ExternalExecutionListItem,
+  type ExternalExecutionTimeline,
 } from '@/api/external-execution';
 
 const rows = ref<ExternalExecutionListItem[]>([]);
 const total = ref(0);
 const loading = ref(false);
+const overviewLoading = ref(false);
+const overview = ref<ExecutionObservabilityOverview | null>(null);
 const selectedKeys = ref<string[]>([]);
 const filters = reactive({
   status: undefined as string | undefined,
@@ -229,8 +448,39 @@ const columns = [
   { title: '状态', dataIndex: 'status', width: 180 },
   { title: '最后错误', dataIndex: 'error', width: 300 },
   { title: '更新时间', dataIndex: 'updateTime', width: 180 },
-  { title: '操作', dataIndex: 'operation', key: 'operation', width: 160, align: 'center' as const },
+  { title: '操作', dataIndex: 'operation', key: 'operation', width: 210, align: 'center' as const },
 ];
+const providerColumns = [
+  { title: '执行方', dataIndex: 'providerSystem' },
+  { title: '当前在途', dataIndex: 'active', width: 100 },
+  { title: '24h 执行', dataIndex: 'total24h', width: 100 },
+  { title: '24h 成功', dataIndex: 'succeeded24h', width: 100 },
+  { title: '24h 异常', dataIndex: 'abnormal24h', width: 100 },
+];
+
+const healthLabel = computed(() => {
+  const labels: Record<string, string> = {
+    HEALTHY: '运行正常',
+    DEGRADED: '存在卡点',
+    DISABLED: '执行面未启用',
+    UNAVAILABLE: '观测不可用',
+  };
+  return labels[overview.value?.health ?? ''] ?? '加载中';
+});
+const healthColor = computed(() => {
+  const colors: Record<string, string> = {
+    HEALTHY: 'green',
+    DEGRADED: 'orange',
+    DISABLED: 'default',
+    UNAVAILABLE: 'red',
+  };
+  return colors[overview.value?.health ?? ''] ?? 'blue';
+});
+const stuckTotalDisplay = computed(() => {
+  if (!overview.value) return '—';
+  const prefix = overview.value.stuckFindings.some((finding) => finding.saturated) ? '≥' : '';
+  return `${prefix}${overview.value.totalStuck}`;
+});
 
 const stuckCount = computed(() => rows.value.filter((row) => row.forceable).length);
 /** 只把可收口的行计入批量：勾了终态行再提交，后端会逐条拒，白跑一趟 */
@@ -284,9 +534,20 @@ async function loadList() {
   }
 }
 
+async function loadOverview() {
+  overviewLoading.value = true;
+  try {
+    overview.value = await getExternalExecutionObservability();
+  } catch {
+    /* 拦截器已提示；保留上一次快照，避免一次网络抖动把整个驾驶舱清空 */
+  } finally {
+    overviewLoading.value = false;
+  }
+}
+
 function reload() {
   filters.page = 1;
-  loadList();
+  void Promise.all([loadList(), loadOverview()]);
 }
 
 reload();
@@ -303,6 +564,135 @@ async function openDetail(executionNo: string) {
   } catch {
     detailVisible.value = false;
   }
+}
+
+// ---- 执行链路诊断 ----
+const timelineVisible = ref(false);
+const timelineLoading = ref(false);
+const timeline = ref<ExternalExecutionTimeline | null>(null);
+const timelineRef = ref('');
+let timelineRequestId = 0;
+
+async function openTimeline(refValue: string) {
+  timelineRef.value = refValue;
+  timeline.value = null;
+  timelineVisible.value = true;
+  await loadTimeline(refValue);
+}
+
+async function reloadTimeline() {
+  if (timelineRef.value) await loadTimeline(timelineRef.value);
+}
+
+async function loadTimeline(refValue: string) {
+  const requestId = ++timelineRequestId;
+  timelineLoading.value = true;
+  try {
+    const result = await getExternalExecutionTimeline(refValue, true);
+    if (requestId === timelineRequestId) timeline.value = result;
+  } catch {
+    if (requestId === timelineRequestId) timeline.value = null;
+  } finally {
+    if (requestId === timelineRequestId) timelineLoading.value = false;
+  }
+}
+
+const verdictHealthy = computed(() =>
+  ['RUNNING_NORMALLY', 'TERMINAL'].includes(timeline.value?.verdict ?? ''),
+);
+const verdictAlertType = computed(() => (verdictHealthy.value ? 'success' : 'warning'));
+const verdictColor = computed(() => (verdictHealthy.value ? 'green' : 'orange'));
+
+const timelineStages = computed(() => {
+  if (!timeline.value) return [];
+  const value = timeline.value;
+  const outbox = value.outbox.at(-1);
+  const inbox = value.inbox.at(-1);
+  const delivery = value.deliveries.at(-1);
+  const stages = [
+    {
+      key: 'dispatch',
+      title: '1. 控制面发出执行命令',
+      summary: outbox
+        ? `${value.outbox.length} 条发件箱记录，最新 ${outbox.eventType ?? '事件'} 为 ${outbox.status ?? '未知状态'}，尝试 ${outbox.attempts ?? 0} 次`
+        : '没有找到发件箱记录，命令可能从未入队',
+      color: outbox?.status === 'SENT' ? 'green' : outbox ? 'orange' : 'red',
+    },
+    {
+      key: 'executor',
+      title: '2. creaft_serv 受理并执行',
+      summary:
+        value.probe.state === 'OK'
+          ? `实时权威状态 ${value.probe.status ?? '未知'}，事件序号 ${value.probe.sequence ?? '—'}，产物 ${value.probe.resultCount ?? 0} 件`
+          : `实时探针 ${value.probe.state}：${value.probe.reason ?? '未取得执行方状态'}；本地状态 ${value.execution.status}`,
+      color: executionStageColor(value.probe.status ?? value.execution.status),
+    },
+  ];
+  if (value.agentTurn) {
+    stages.push({
+      key: 'agent',
+      title: '3. Agent 运行与事件流',
+      summary: `轮次 ${value.agentTurn.status ?? '未知'}，已记录 ${value.agentEventStats?.eventCount ?? 0} 个事件，最新序号 ${value.agentEventStats?.maxSequence ?? value.agentTurn.lastSequence ?? '—'}`,
+      color: value.agentTurn.status === 'FAILED' ? 'red' : 'blue',
+    });
+  }
+  stages.push(
+    {
+      key: 'callback',
+      title: `${value.agentTurn ? '4' : '3'}. 执行结果回推控制面`,
+      summary: inbox
+        ? `${value.inbox.length} 条回调，最新序号 ${inbox.eventSequence ?? '—'}，消费状态 ${inbox.status ?? '未知'}，执行态 ${inbox.callbackStatus ?? '—'}`
+        : '尚未收到执行方回调',
+      color: inbox?.status === 'PROCESSED' ? 'green' : inbox ? 'orange' : 'gray',
+    },
+    {
+      key: 'delivery',
+      title: `${value.agentTurn ? '5' : '4'}. 产物交付`,
+      summary: delivery
+        ? `${value.deliveries.length} 个交付 checkpoint，最新阶段 ${delivery.stage ?? '未知'}，结算标记 ${delivery.settlementStatus ?? '—'}`
+        : '尚无交付 checkpoint',
+      color: delivery ? (delivery.reviewReason ? 'orange' : 'green') : 'gray',
+    },
+    {
+      key: 'billing',
+      title: `${value.agentTurn ? '6' : '5'}. 点数结算`,
+      summary: value.reservation
+        ? `预占单 ${value.reservation.status ?? '未知'}，${value.reservation.pricePoints ?? '—'} 点，重试 ${value.reservation.retryCount ?? 0} 次`
+        : '未找到计费预占单',
+      color: ['CONFIRMED', 'REFUNDED', 'RELEASED'].includes(value.reservation?.status ?? '')
+        ? 'green'
+        : value.reservation
+          ? 'orange'
+          : 'red',
+    },
+  );
+  return stages;
+});
+
+function executionStageColor(status?: string | null) {
+  if (status === 'SUCCEEDED') return 'green';
+  if (['FAILED', 'CANCELLED', 'TIMED_OUT', 'MANUAL_REVIEW'].includes(status ?? '')) return 'red';
+  return status ? 'blue' : 'gray';
+}
+
+function statusColor(status?: string | null) {
+  if (status === 'SUCCEEDED') return 'green';
+  if (['FAILED', 'TIMED_OUT'].includes(status ?? '')) return 'red';
+  if (['MANUAL_REVIEW', 'DISPATCH_UNKNOWN', 'SETTLEMENT_RETRY'].includes(status ?? ''))
+    return 'orange';
+  if (status === 'CANCELLED') return 'default';
+  return 'blue';
+}
+
+function probeColor(state: string) {
+  if (state === 'OK') return 'green';
+  if (state === 'FAILED') return 'red';
+  if (state === 'DISABLED') return 'default';
+  return 'orange';
+}
+
+function formatPercent(value?: number | null) {
+  return value == null ? '—' : `${value.toFixed(1)}%`;
 }
 
 // ---- 强制收口 ----
@@ -352,7 +742,7 @@ async function submitForce() {
     }
     forceVisible.value = false;
     selectedKeys.value = [];
-    loadList();
+    void Promise.all([loadList(), loadOverview()]);
   } catch {
     /* 拦截器已提示 */
   } finally {
@@ -375,6 +765,110 @@ async function submitForce() {
   font-size: 17px;
   font-weight: 600;
 }
+.observability-card {
+  margin-bottom: 16px;
+}
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+.metric-item {
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border-secondary, #f0f0f0);
+  border-radius: 8px;
+  background: var(--color-fill-quaternary, #fafafa);
+}
+.metric-item.danger {
+  border-color: var(--color-warning-border, #ffe58f);
+  background: var(--color-warning-bg, #fffbe6);
+}
+.metric-label,
+.section-label {
+  color: var(--color-text-secondary, #666);
+  font-size: 13px;
+}
+.metric-value {
+  margin: 4px 0;
+  color: var(--color-text-primary, #262626);
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.metric-note {
+  color: var(--color-text-tertiary, #999);
+  font-size: 12px;
+}
+.status-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 16px;
+}
+.status-strip .section-label {
+  margin-right: 4px;
+}
+.stuck-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+.stuck-item {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--color-border-secondary, #f0f0f0);
+  border-radius: 8px;
+}
+.stuck-item.active {
+  border-color: var(--color-warning-border, #ffe58f);
+  box-shadow: inset 3px 0 0 var(--color-warning, #faad14);
+}
+.stuck-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+  color: var(--color-text-primary, #262626);
+  font-weight: 500;
+}
+.sample-list {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-height: 96px;
+  margin-top: 6px;
+  overflow: auto;
+}
+.sample-list :deep(.ant-btn) {
+  max-width: 100%;
+  height: 22px;
+  padding: 0;
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+}
+.provider-table {
+  margin-top: 16px;
+}
+.diagnosis-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.stage-title {
+  color: var(--color-text-primary, #262626);
+  font-weight: 500;
+}
+.stage-summary {
+  margin-top: 3px;
+  color: var(--color-text-secondary, #666);
+  line-height: 1.55;
+}
 .filter-bar {
   display: flex;
   align-items: center;
@@ -396,5 +890,19 @@ async function submitForce() {
   background: var(--color-fill-quaternary, #fafafa);
   color: var(--color-text-primary, #262626);
   font-size: 12px;
+}
+
+@media (max-width: 1200px) {
+  .metric-grid,
+  .stuck-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .metric-grid,
+  .stuck-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

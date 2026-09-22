@@ -56,6 +56,135 @@ export interface BatchForceTerminalResult {
   items: BatchForceTerminalItem[];
 }
 
+export interface ExecutionStatusCount {
+  status: string;
+  count: number;
+}
+
+export interface ExecutionProviderSummary {
+  providerSystem: string;
+  active: number;
+  total24h: number;
+  succeeded24h: number;
+  abnormal24h: number;
+}
+
+export interface ExecutionStuckFinding {
+  kind: string;
+  tag: string;
+  label: string;
+  count: number;
+  saturated: boolean;
+  samples: string[];
+  stuckMinutes?: number | null;
+}
+
+export interface ExecutionObservabilityOverview {
+  health: 'HEALTHY' | 'DEGRADED' | 'DISABLED' | 'UNAVAILABLE';
+  enabled: boolean;
+  message?: string | null;
+  generatedAt: string;
+  totalExecutions: number;
+  activeExecutions: number;
+  total24h: number;
+  succeeded24h: number;
+  abnormal24h: number;
+  successRate24h: number | null;
+  statusCounts: ExecutionStatusCount[];
+  providers: ExecutionProviderSummary[];
+  /** 五类卡点可以重叠，所以这是卡点命中数，不是去重后的执行单数。 */
+  totalStuck: number;
+  stuckFindings: ExecutionStuckFinding[];
+}
+
+export interface ExecutionTimelineOutboxRow {
+  eventId?: string | null;
+  destination?: string | null;
+  eventType?: string | null;
+  status?: string | null;
+  attempts?: number | null;
+  lastErrorMessage?: string | null;
+  createTime?: string | null;
+  updateTime?: string | null;
+}
+
+export interface ExecutionTimelineInboxRow {
+  eventId?: string | null;
+  eventType?: string | null;
+  eventSequence?: number | null;
+  status?: string | null;
+  callbackStatus?: string | null;
+  attempts?: number | null;
+  errorMessage?: string | null;
+  createTime?: string | null;
+  updateTime?: string | null;
+}
+
+export interface ExecutionTimelineDeliveryRow {
+  artifactSlot?: number | null;
+  stage?: string | null;
+  settlementStatus?: string | null;
+  assetId?: number | null;
+  reviewReason?: string | null;
+  objectKeyPresent?: boolean | null;
+  publicUrlPresent?: boolean | null;
+  watermarkUrlPresent?: boolean | null;
+  updateTime?: string | null;
+}
+
+export interface ExecutionTimelineProbe {
+  state: 'OK' | 'SKIPPED' | 'FAILED' | 'DISABLED';
+  reason?: string | null;
+  status?: string | null;
+  sequence?: number | null;
+  remoteExecutionId?: string | null;
+  errorCode?: string | null;
+  resultCount?: number | null;
+}
+
+export interface ExternalExecutionTimeline {
+  ref: string;
+  matchedBy: 'EXECUTION_NO' | 'AGGREGATE_ID';
+  aggregateMatchCount: number;
+  verdict: string;
+  verdictSummary: string;
+  verdictNextStep: string;
+  generatedAt: string;
+  execution: ExternalExecutionDetail & {
+    executionDeadline?: string | null;
+    lastEventSequence?: number | null;
+    resultManifestPresent?: boolean | null;
+  };
+  outbox: ExecutionTimelineOutboxRow[];
+  inbox: ExecutionTimelineInboxRow[];
+  deliveries: ExecutionTimelineDeliveryRow[];
+  agentTurn?: {
+    status?: string | null;
+    lastSequence?: number | null;
+    providerCode?: string | null;
+    updateTime?: string | null;
+  } | null;
+  agentEventStats?: {
+    eventCount?: number | null;
+    minSequence?: number | null;
+    maxSequence?: number | null;
+  } | null;
+  agentEventTail?: {
+    sequence?: number | null;
+    eventType?: string | null;
+    phase?: string | null;
+    occurredAt?: string | null;
+  } | null;
+  reservation?: {
+    reservationNo?: string | null;
+    status?: string | null;
+    pricePoints?: number | null;
+    retryCount?: number | null;
+    updateTime?: string | null;
+  } | null;
+  probe: ExecutionTimelineProbe;
+}
+
 /**
  * 可强制置入的终态。
  *
@@ -90,6 +219,21 @@ export function getExternalExecutions(params?: {
 
 export function getExternalExecutionDetail(executionNo: string) {
   return request.get<ExternalExecutionDetail>(`/api/v1/admin/external-executions/${executionNo}`);
+}
+
+/** 执行面驾驶舱：状态/执行方聚合 + 五类卡点，只读且刷新不会制造告警。 */
+export function getExternalExecutionObservability() {
+  return request.get<ExecutionObservabilityOverview>(
+    '/api/v1/admin/external-executions/observability/overview',
+  );
+}
+
+/** 单笔闭集诊断；probe=true 时会向 creaft_serv 查询权威运行态。 */
+export function getExternalExecutionTimeline(ref: string, probe = true) {
+  return request.get<ExternalExecutionTimeline>(
+    `/api/v1/admin/external-executions/${encodeURIComponent(ref)}/timeline`,
+    { params: { probe } },
+  );
 }
 
 /** 原因必填：这是人工介入，审计里要留下为什么。 */
