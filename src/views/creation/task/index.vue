@@ -286,7 +286,7 @@ import type { CreationTask } from '@/api/creation-task';
 
 import { ExportOutlined, StopOutlined } from '@antdv-next/icons';
 import { message, Modal } from 'antdv-next';
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onActivated, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
@@ -309,6 +309,21 @@ import ChildTaskExpand from './ChildTaskExpand.vue';
 const { t } = useI18n();
 const router = useRouter();
 const tableRef = ref();
+
+// 布局的 <keep-alive :include> 按组件名匹配（值是路由名），<script setup> 默认名是文件名 index，
+// 一直匹配不上，于是从详情页返回时列表整页重挂，页码与筛选条件全丢。
+defineOptions({ name: 'CreationTaskList' });
+
+// 从详情返回时实例是缓存的，页码与筛选都还在；原地重查一次，让在详情里做的取消/重试等操作体现出来。
+// 首次挂载时 ProTable 自己会加载，跳过那一次激活，免得重复请求。
+let firstActivation = true;
+onActivated(() => {
+  if (firstActivation) {
+    firstActivation = false;
+    return;
+  }
+  tableRef.value?.reload();
+});
 const selectedRowKeys = ref<string[]>([]);
 // 子任务展开行强制刷新：动作作用于子任务后 +1，重挂 ChildTaskExpand 拉取最新子状态
 const childReloadTick = ref(0);
