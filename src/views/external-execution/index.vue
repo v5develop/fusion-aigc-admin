@@ -170,6 +170,13 @@
         >
           批量强制收口 {{ selectedForceable.length || '' }}
         </a-button>
+        <a-button
+          v-permission="'task:retry'"
+          :disabled="!selectedPublishable.length"
+          @click="openAction('publish', selectedPublishable, true)"
+        >
+          批量发布公开副本 {{ selectedPublishable.length || '' }}
+        </a-button>
       </div>
 
       <a-table
@@ -216,6 +223,24 @@
               >
                 强制收口
               </a-button>
+              <a-button
+                v-if="record.canRedeliver"
+                v-permission="'task:retry'"
+                type="link"
+                size="small"
+                @click="openAction('redeliver', [record.executionNo])"
+              >
+                重新交付
+              </a-button>
+              <a-button
+                v-if="record.canPublishPrivate"
+                v-permission="'task:retry'"
+                type="link"
+                size="small"
+                @click="openAction('publish', [record.executionNo])"
+              >
+                发布公开副本
+              </a-button>
             </a-space>
           </template>
         </template>
@@ -252,7 +277,85 @@
       </a-form>
     </a-modal>
 
-    <a-modal v-model:open="detailVisible" title="外部执行详情" width="720px" :footer="null">
+    <a-modal
+      v-model:open="actionVisible"
+      :title="actionTitle"
+      :confirm-loading="actionSubmitting"
+      @ok="submitAction"
+    >
+      <a-alert
+        type="info"
+        show-icon
+        style="margin-bottom: 12px"
+        :message="actionMode === 'redeliver' ? REDELIVER_EXPLAIN : PUBLISH_EXPLAIN"
+      />
+      <div v-if="actionBatch" class="muted" style="margin-bottom: 12px">
+        共 {{ actionTargets.length }} 条（只含可发布公开副本的行，单次上限
+        {{ PUBLISH_PRIVATE_BATCH_LIMIT }} 条）
+      </div>
+      <a-form layout="vertical">
+        <a-form-item label="原因" required>
+          <a-textarea
+            v-model:value="actionReason"
+            :rows="3"
+            :maxlength="200"
+            show-count
+            placeholder="为什么要人工处理，会记进审计"
+          />
+        </a-form-item>
+      </a-form>
+    </a-modal>
+
+    <a-modal
+      v-model:open="batchResultVisible"
+      title="批量发布公开副本结果"
+      :footer="null"
+      width="640px"
+    >
+      <template v-if="batchResult">
+        <a-alert
+          :type="batchResult.failed.length ? 'warning' : 'success'"
+          show-icon
+          style="margin-bottom: 12px"
+          :message="`成功 ${batchResult.succeeded.length} 条 / 失败 ${batchResult.failed.length} 条`"
+        />
+        <a-table
+          v-if="batchResult.failed.length"
+          :columns="batchFailedColumns"
+          :data-source="batchResult.failed"
+          :pagination="false"
+          row-key="executionNo"
+          size="small"
+        >
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.dataIndex === 'executionNo'">
+              <code class="route-code">{{ record.executionNo }}</code>
+            </template>
+          </template>
+        </a-table>
+      </template>
+    </a-modal>
+
+    <a-modal v-model:open="detailVisible" title="外部执行详情" width="720px">
+      <template #footer>
+        <a-space>
+          <a-button
+            v-if="detail?.canRedeliver"
+            v-permission="'task:retry'"
+            @click="openAction('redeliver', [detail.executionNo])"
+          >
+            重新交付
+          </a-button>
+          <a-button
+            v-if="detail?.canPublishPrivate"
+            v-permission="'task:retry'"
+            @click="openAction('publish', [detail.executionNo])"
+          >
+            发布公开副本
+          </a-button>
+          <a-button @click="detailVisible = false">关闭</a-button>
+        </a-space>
+      </template>
       <a-descriptions v-if="detail" :column="2" size="small" bordered>
         <a-descriptions-item label="执行号" :span="2">
           <code class="route-code">{{ detail.executionNo }}</code>
@@ -406,7 +509,12 @@ import {
   getExternalExecutionObservability,
   getExternalExecutions,
   getExternalExecutionTimeline,
+  batchPublishPrivateExternalExecutions,
+  publishPrivateExternalExecution,
+  redeliverExternalExecution,
   FORCE_TERMINAL_STATUSES,
+  PUBLISH_PRIVATE_BATCH_LIMIT,
+  type BatchPublishPrivateResult,
   type ExecutionObservabilityOverview,
   type ExternalExecutionDetail,
   type ExternalExecutionListItem,
@@ -448,7 +556,7 @@ const columns = [
   { title: '状态', dataIndex: 'status', width: 180 },
   { title: '最后错误', dataIndex: 'error', width: 300 },
   { title: '更新时间', dataIndex: 'updateTime', width: 180 },
-  { title: '操作', dataIndex: 'operation', key: 'operation', width: 210, align: 'center' as const },
+  { title: '操作', dataIndex: 'operation', key: 'operation', width: 340, align: 'center' as const },
 ];
 const providerColumns = [
   { title: '执行方', dataIndex: 'providerSystem' },
@@ -489,13 +597,21 @@ const selectedForceable = computed(() =>
     .filter((row) => selectedKeys.value.includes(row.executionNo) && row.forceable)
     .map((row) => row.executionNo),
 );
+/** 同理，批量发布只取 canPublishPrivate 的行 */
+const selectedPublishable = computed(() =>
+  rows.value
+    .filter((row) => selectedKeys.value.includes(row.executionNo) && row.canPublishPrivate)
+    .map((row) => row.executionNo),
+);
 
 const rowSelection = computed(() => ({
   selectedRowKeys: selectedKeys.value,
   onChange: (keys: (string | number)[]) => {
     selectedKeys.value = keys.map(String);
   },
-  getCheckboxProps: (record: ExternalExecutionListItem) => ({ disabled: !record.forceable }),
+  getCheckboxProps: (record: ExternalExecutionListItem) => ({
+    disabled: !record.forceable && !record.canPublishPrivate,
+  }),
 }));
 
 const pagination = computed(() => ({
@@ -747,6 +863,102 @@ async function submitForce() {
     /* 拦截器已提示 */
   } finally {
     forcing.value = false;
+  }
+}
+
+// ---- 重新交付 / 发布公开副本 ----
+// 显隐只看后端下发的 canRedeliver / canPublishPrivate（缺省即 false），前端不复刻判据
+type ActionMode = 'redeliver' | 'publish';
+const REDELIVER_EXPLAIN =
+  '适用于交付取回失败、停在人工审核的执行：重置交付并重新取回一次。不改计费，不会重复扣点或退点；若仍取不回会再次回到人工审核。';
+const PUBLISH_EXPLAIN =
+  '适用于产物只存进了私有桶、用户看不到结果的交付：补发一份公开副本，并把可访问地址回写到任务和素材。不改计费，只是给用户补上可访问地址。';
+
+const actionVisible = ref(false);
+const actionSubmitting = ref(false);
+const actionMode = ref<ActionMode>('redeliver');
+const actionTargets = ref<string[]>([]);
+/** 批量入口走批量接口并展示逐条结果，哪怕只勾了一条 */
+const actionBatch = ref(false);
+const actionReason = ref('');
+const batchResultVisible = ref(false);
+const batchResult = ref<BatchPublishPrivateResult | null>(null);
+const batchFailedColumns = [
+  { title: '执行号', dataIndex: 'executionNo', width: 260 },
+  { title: '失败原因', dataIndex: 'reason' },
+];
+
+const actionTitle = computed(() => {
+  if (actionMode.value === 'redeliver') return '重新交付';
+  return actionBatch.value ? `批量发布公开副本 ${actionTargets.value.length} 条` : '发布公开副本';
+});
+
+function openAction(mode: ActionMode, targets: string[], batch = false) {
+  if (!targets.length) return;
+  if (targets.length > PUBLISH_PRIVATE_BATCH_LIMIT) {
+    message.warning(`单次最多 ${PUBLISH_PRIVATE_BATCH_LIMIT} 条，请减少勾选`);
+    return;
+  }
+  actionMode.value = mode;
+  actionTargets.value = targets;
+  actionBatch.value = batch;
+  actionReason.value = '';
+  actionVisible.value = true;
+}
+
+async function submitAction() {
+  const reason = actionReason.value.trim();
+  if (!reason) {
+    message.warning('请填写原因，它会记进审计');
+    return;
+  }
+  const targets = actionTargets.value;
+  actionSubmitting.value = true;
+  try {
+    if (actionMode.value === 'redeliver') {
+      const result = await redeliverExternalExecution(targets[0], reason);
+      if (result?.pendingReview) {
+        message.warning(
+          '已重新取回，但仍未交付成功，执行已回到人工审核（可能是冻结的结果地址已取不到），请改走退款处理',
+          6,
+        );
+      } else {
+        message.success(`已重新交付，当前阶段 ${result?.stage ?? '—'}`);
+      }
+    } else if (!actionBatch.value) {
+      await publishSingle(targets[0], reason);
+    } else {
+      const result = await batchPublishPrivateExternalExecutions(targets, reason);
+      batchResult.value = {
+        succeeded: result?.succeeded ?? [],
+        failed: result?.failed ?? [],
+      };
+      batchResultVisible.value = true;
+      selectedKeys.value = [];
+    }
+    actionVisible.value = false;
+    void Promise.all([loadList(), loadOverview()]);
+    if (detailVisible.value && detail.value && targets.includes(detail.value.executionNo)) {
+      void refreshDetail(detail.value.executionNo);
+    }
+  } catch {
+    /* 拦截器已弹出后端 msg（409 时即没过的那条判据），保留弹窗便于修改原因后重试 */
+  } finally {
+    actionSubmitting.value = false;
+  }
+}
+
+async function publishSingle(executionNo: string, reason: string) {
+  const result = await publishPrivateExternalExecution(executionNo, reason);
+  const slots = result?.publishedSlots?.length ?? 0;
+  message.success(`已发布公开副本${slots ? ` ${slots} 个产物位` : ''}`);
+}
+
+async function refreshDetail(executionNo: string) {
+  try {
+    detail.value = await getExternalExecutionDetail(executionNo);
+  } catch {
+    /* 拦截器已提示 */
   }
 }
 </script>

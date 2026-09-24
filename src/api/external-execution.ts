@@ -29,6 +29,10 @@ export interface ExternalExecutionListItem {
   updateTime?: string | null;
   /** 后端算出来的「这条能不能强制收口」。按钮显隐只看它，前端不自己判状态机 */
   forceable?: boolean | null;
+  /** 交付取回失败、停在人工审核的执行可重新交付一次。后端下发，缺省按 false */
+  canRedeliver?: boolean | null;
+  /** 早先只存进私有桶、用户拿不到图的交付，可补发公开副本。后端下发，缺省按 false */
+  canPublishPrivate?: boolean | null;
 }
 
 export interface ExternalExecutionDetail extends ExternalExecutionListItem {
@@ -257,5 +261,54 @@ export function batchForceTerminalExternalExecutions(
   return request.post<BatchForceTerminalResult>(
     '/api/v1/admin/external-executions/batch-force-terminal',
     { executionNos, targetStatus, reason },
+  );
+}
+
+export interface RedeliverResult {
+  executionNo: string;
+  slots: number[];
+  stage: string;
+  /** true 表示重新取回仍失败、又回到人工审核（如冻结的结果地址已取不到），应改走退款 */
+  pendingReview: boolean;
+}
+
+export interface PublishPrivateResult {
+  executionNo: string;
+  publishedSlots: number[];
+  resultUrl: string | null;
+}
+
+export interface BatchPublishPrivateResult {
+  succeeded: PublishPrivateResult[];
+  failed: { executionNo: string; reason: string }[];
+}
+
+/** 批量发布公开副本单次上限。 */
+export const PUBLISH_PRIVATE_BATCH_LIMIT = 100;
+
+/**
+ * 重新交付：只对交付取回失败、停在人工审核的执行有效，重置后重新取回一次，不改计费。
+ * 判据不满足时后端回 409，msg 里写明没过的那条判据（拦截器会直接弹出）。
+ */
+export function redeliverExternalExecution(executionNo: string, reason: string) {
+  return request.post<RedeliverResult>(
+    `/api/v1/admin/external-executions/${encodeURIComponent(executionNo)}/redeliver`,
+    { reason },
+  );
+}
+
+/** 发布公开副本：把只存进私有桶的产物补发一份公开地址，回写任务与素材；不改计费。 */
+export function publishPrivateExternalExecution(executionNo: string, reason: string) {
+  return request.post<PublishPrivateResult>(
+    `/api/v1/admin/external-executions/${encodeURIComponent(executionNo)}/publish-private`,
+    { reason },
+  );
+}
+
+/** 批量发布公开副本，1..100 条；逐条结果分 succeeded / failed 返回。 */
+export function batchPublishPrivateExternalExecutions(executionNos: string[], reason: string) {
+  return request.post<BatchPublishPrivateResult>(
+    '/api/v1/admin/external-executions/publish-private/batch',
+    { executionNos, reason },
   );
 }
