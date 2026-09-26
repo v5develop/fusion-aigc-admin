@@ -1,4 +1,4 @@
-import type { UserLevelRule, UserLevelSettings } from '@/types/api';
+import type { UserLevelAssignment, UserLevelRule, UserLevelSettings } from '@/types/api';
 
 import { request } from '@/utils/request';
 
@@ -26,6 +26,26 @@ export function updateUserLevelRule(id: number, data: UserLevelRule) {
 /** 最低档（minScore=0）是兜底档位，后端会拒绝删除。 */
 export function deleteUserLevelRule(id: number) {
   return request.delete<boolean>(`/api/v1/admin/user-levels/${id}`);
+}
+
+/**
+ * 按用户指定等级。指定**覆盖**打分：被指定的人等级就是那一档，排队优先级与按等级计价的规则
+ * （如 Prime-2 图片七折）都跟着它；到期或档位被停用后回落到打分等级。
+ */
+export function getUserLevelAssignments() {
+  return request.get<UserLevelAssignment[]>('/api/v1/admin/user-levels/assignments');
+}
+
+/** 同一用户再次指定即覆盖；expireTime 留空表示长期有效。 */
+export function assignUserLevel(
+  userId: string,
+  data: { levelCode: string; reason?: string | null; expireTime?: string | null },
+) {
+  return request.put<boolean>(`/api/v1/admin/user-levels/assignments/${userId}`, data);
+}
+
+export function unassignUserLevel(userId: string) {
+  return request.delete<boolean>(`/api/v1/admin/user-levels/assignments/${userId}`);
 }
 
 export function getUserLevelSettings() {

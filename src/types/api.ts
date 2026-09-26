@@ -595,6 +595,21 @@ export interface UserLevelRule {
   sort?: number;
   enabled?: boolean;
   remark?: string | null;
+  /** 只能由运营指定给用户、不参与打分匹配（如 creaft v1 的 Prime 企业合伙人档） */
+  manualOnly?: boolean;
+}
+
+/** 按用户指定的等级：覆盖打分结果，到期或档位停用后回落到打分等级。 */
+export interface UserLevelAssignment {
+  id?: number;
+  /** 字符串：18 位雪花号超过 JS 安全整数 */
+  userId: string;
+  levelCode: string;
+  reason?: string | null;
+  operator?: string | null;
+  /** 为空表示长期有效 */
+  expireTime?: string | null;
+  updateTime?: string;
 }
 
 /** 等级总开关与加权系数。关闭后所有人同优先级，队列退回纯 FIFO。 */
@@ -629,6 +644,16 @@ export interface PointsPackage {
   enabled?: boolean;
   /** 运营备注，不对 C 端暴露 */
   remark?: string | null;
+  /** 划线价（分），v1 meta.original_price；必须高于售价，为空不展示 */
+  originalPriceAmount?: number | null;
+  /** 权益清单，v1 meta.feature */
+  features?: string[];
+  /** 到账点数有效天数（从支付成功起算），v1 duration；为空表示永不过期 */
+  validDays?: number | null;
+  /** 每人限购次数，v1 purchase_rule.limit；为空表示不限 */
+  purchaseLimit?: number | null;
+  /** 须先买过的档位编码，v1 purchase_rule.prerequisite；买过前置、未买满限购的用户才看得到这一档 */
+  prerequisitePackageCodes?: string[];
 }
 
 /**

@@ -3550,6 +3550,24 @@ export default {
     queuePriorityDesc: 'Higher dequeues first; within the same priority, FIFO still holds.',
     deleteConfirm: 'This level will no longer be matched. Delete it?',
     baseLevel: 'Base level, cannot be deleted',
+    manualOnly: 'Assign only',
+    manualOnlyDesc:
+      'When on, this level is never matched by score and can only be assigned to specific users below (e.g. the v1 Prime partner levels).',
+    manualOnlyTag: 'Assign only',
+    assignments: 'Assigned Levels',
+    assignmentsHint:
+      'An assignment overrides the score: the user is on that level, and queue priority and level-based pricing rules follow it. It falls back to the scored level once expired or when the level is disabled.',
+    assign: 'Assign level',
+    userId: 'User ID',
+    assignLevel: 'Level',
+    reason: 'Reason',
+    reasonPlaceholder: 'e.g. creaft v1 Prime-2 migration',
+    expireTime: 'Expires at',
+    expireTimeDesc: 'Leave empty for no expiry.',
+    longTerm: 'No expiry',
+    operator: 'Operator',
+    unassign: 'Revoke',
+    unassignConfirm: 'The user falls back to the scored level immediately. Revoke?',
   },
 
   pointsPackage: {
@@ -3581,6 +3599,24 @@ export default {
     enabledOff: 'Delisted — stale pages can no longer check out at the old price',
     deleteConfirm:
       'This package will no longer be sellable. Existing orders are unaffected. Delete it?',
+    purchaseRules: 'Purchase Rules',
+    originalPriceMajor: 'List Price (major unit)',
+    originalPriceDesc: 'Strike-through price on the product card; must be above the sale price. Leave empty to hide.',
+    features: 'Perks',
+    featuresPlaceholder: 'One per line, e.g. Unlock all AI tools',
+    validDays: 'Points Validity (days)',
+    validDaysDesc:
+      'Counted from payment; unused points are reclaimed when they expire. Empty or 0 means never expires. Applies to new orders only.',
+    purchaseLimit: 'Limit per User',
+    purchaseLimitDesc:
+      'Once reached, the package is hidden from the user; pending orders count too. Empty means unlimited.',
+    prerequisites: 'Prerequisite Packages',
+    prerequisitesDesc:
+      'Users must have bought these packages before this one shows up — e.g. a trial → trial-plus first-purchase chain.',
+    ruleValidDays: 'Valid {days} days',
+    ruleLimit: 'Limit {limit}',
+    rulePrerequisite: 'Requires {codes}',
+    ruleNone: 'None',
   },
 
   checkIn: {

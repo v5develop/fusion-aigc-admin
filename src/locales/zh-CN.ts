@@ -3556,7 +3556,7 @@ export default {
 
   // Settings System
   userLevel: {
-    hint: '经验等级由「累计充值额 / 付费月数 / 最高单笔充值额」加权打分得出，只决定生成任务的排队优先级；是否带水印看的是设置页的「免费/付费分层」，两者不要混。金额按主单位计，不绑定币种。',
+    hint: '经验等级由「累计充值额 / 付费月数 / 最高单笔充值额」加权打分得出，决定生成任务的排队优先级，也是按等级计价规则（如 Prime-2 图片七折）的依据；是否带水印看的是设置页的「免费/付费分层」，两者不要混。金额按主单位计，不绑定币种。',
     enabled: '等级与排队加权',
     enabledOn: '已开启等级排队加权',
     enabledOff: '已关闭，所有人同优先级（队列退回先进先出）',
@@ -3573,6 +3573,23 @@ export default {
     queuePriorityDesc: '越大越先出队；同一优先级内仍按入队先后（先进先出不受影响）。',
     deleteConfirm: '删除后该档位不再参与匹配，确认删除？',
     baseLevel: '兜底档，不可删除',
+    manualOnly: '仅指定',
+    manualOnlyDesc: '开启后这一档不参与打分匹配，只能在下方「指定等级」里给具体用户（如 v1 的 Prime 企业合伙人档）。',
+    manualOnlyTag: '仅指定',
+    assignments: '指定等级',
+    assignmentsHint:
+      '指定覆盖打分：被指定的用户等级就是那一档，排队优先级与按等级计价的规则都跟着它；到期或该档被停用后回落到打分等级。',
+    assign: '指定等级',
+    userId: '用户 ID',
+    assignLevel: '等级',
+    reason: '原因',
+    reasonPlaceholder: '如：creaft v1 Prime-2 迁移',
+    expireTime: '到期时间',
+    expireTimeDesc: '留空表示长期有效。',
+    longTerm: '长期',
+    operator: '操作人',
+    unassign: '撤销',
+    unassignConfirm: '撤销后该用户立即回落到打分等级，确认撤销？',
   },
 
   pointsPackage: {
@@ -3602,6 +3619,21 @@ export default {
     enabledOn: '已上架，用户端立即可见',
     enabledOff: '已下架，拿旧页面来下单也会被拒',
     deleteConfirm: '删除后该档位不再可售，历史订单不受影响。确认删除？',
+    purchaseRules: '购买规则',
+    originalPriceMajor: '划线价（元）',
+    originalPriceDesc: '商品卡上的原价，必须高于售价；不需要就留空。',
+    features: '权益清单',
+    featuresPlaceholder: '一行一条，如：解锁所有 AI 工具',
+    validDays: '点数有效期（天）',
+    validDaysDesc: '从支付成功起算，到期未用完的点数自动收回；留空或 0 表示永不过期。只影响之后下的单。',
+    purchaseLimit: '每人限购（次）',
+    purchaseLimitDesc: '买满后用户端不再展示这一档；待支付的订单也占名额。留空表示不限。',
+    prerequisites: '前置档位',
+    prerequisitesDesc: '用户须先买过这些档位才能看到并购买本档，用于「体验包 → 体验包 Plus」这类首购链。',
+    ruleValidDays: '{days} 天有效',
+    ruleLimit: '限购 {limit} 次',
+    rulePrerequisite: '需先买 {codes}',
+    ruleNone: '不限',
   },
 
   checkIn: {

@@ -31,6 +31,21 @@
               <a-tag color="red" class="mismatch">{{ $t('pointsPackage.rateMismatch') }}</a-tag>
             </a-tooltip>
           </template>
+          <template v-else-if="column.key === 'rules'">
+            <a-space :size="4" wrap>
+              <a-tag v-if="record.validDays">{{ $t('pointsPackage.ruleValidDays', { days: record.validDays }) }}</a-tag>
+              <a-tag v-if="record.purchaseLimit" color="blue">
+                {{ $t('pointsPackage.ruleLimit', { limit: record.purchaseLimit }) }}
+              </a-tag>
+              <a-tag v-if="record.prerequisitePackageCodes?.length" color="purple">
+                {{ $t('pointsPackage.rulePrerequisite', { codes: record.prerequisitePackageCodes.join('、') }) }}
+              </a-tag>
+              <span
+                v-if="!record.validDays && !record.purchaseLimit && !record.prerequisitePackageCodes?.length"
+                class="form-hint"
+              >{{ $t('pointsPackage.ruleNone') }}</span>
+            </a-space>
+          </template>
           <template v-else-if="column.key === 'badge'">
             <a-tag v-if="record.badge" color="orange">{{ record.badge }}</a-tag>
             <span v-else class="form-hint">—</span>
@@ -96,6 +111,40 @@
         <a-form-item :label="$t('pointsPackage.bonusPoints')">
           <a-input-number v-model:value="form.bonusPoints" :min="0" :step="100" class="w-full" />
           <div class="form-hint">{{ $t('pointsPackage.bonusDesc') }}</div>
+        </a-form-item>
+        <a-form-item :label="$t('pointsPackage.originalPriceMajor')">
+          <a-input-number
+            v-model:value="form.originalPriceMajor"
+            :min="0.01"
+            :step="1"
+            :precision="2"
+            class="w-full"
+          />
+          <div class="form-hint">{{ $t('pointsPackage.originalPriceDesc') }}</div>
+        </a-form-item>
+        <a-form-item :label="$t('pointsPackage.features')">
+          <a-textarea
+            v-model:value="form.featuresText"
+            :auto-size="{ minRows: 2, maxRows: 6 }"
+            :placeholder="$t('pointsPackage.featuresPlaceholder')"
+          />
+        </a-form-item>
+        <a-form-item :label="$t('pointsPackage.validDays')">
+          <a-input-number v-model:value="form.validDays" :min="0" :precision="0" class="w-full" />
+          <div class="form-hint">{{ $t('pointsPackage.validDaysDesc') }}</div>
+        </a-form-item>
+        <a-form-item :label="$t('pointsPackage.purchaseLimit')">
+          <a-input-number v-model:value="form.purchaseLimit" :min="1" :precision="0" class="w-full" />
+          <div class="form-hint">{{ $t('pointsPackage.purchaseLimitDesc') }}</div>
+        </a-form-item>
+        <a-form-item :label="$t('pointsPackage.prerequisites')">
+          <a-select
+            v-model:value="form.prerequisitePackageCodes"
+            mode="multiple"
+            allow-clear
+            :options="prerequisiteOptions"
+          />
+          <div class="form-hint">{{ $t('pointsPackage.prerequisitesDesc') }}</div>
         </a-form-item>
         <a-form-item :label="$t('pointsPackage.badge')">
           <a-input v-model:value="form.badge" :placeholder="$t('pointsPackage.badgePlaceholder')" />
@@ -167,7 +216,19 @@ const form = reactive({
   sort: 0,
   enabled: true,
   remark: '',
+  originalPriceMajor: null as number | null,
+  featuresText: '',
+  validDays: null as number | null,
+  purchaseLimit: null as number | null,
+  prerequisitePackageCodes: [] as string[],
 });
+
+/** 前置档位只能选别的、未删除的档位（后端也校验：不存在或指向自己都拒）。 */
+const prerequisiteOptions = computed(() =>
+  packages.value
+    .filter((item) => item.packageCode !== form.packageCode.trim())
+    .map((item) => ({ label: `${item.name}（${item.packageCode}）`, value: item.packageCode })),
+);
 
 const formRules: Record<string, Array<Record<string, unknown>>> = {
   packageCode: [{ required: true, message: 'PKG_128' }],
@@ -181,6 +242,7 @@ const columns = [
   { title: t('pointsPackage.name'), dataIndex: 'name', key: 'name' },
   { title: t('pointsPackage.priceMajor'), key: 'priceAmount' },
   { title: t('pointsPackage.points'), key: 'points' },
+  { title: t('pointsPackage.purchaseRules'), key: 'rules' },
   { title: t('pointsPackage.badge'), key: 'badge' },
   { title: t('common.sort'), dataIndex: 'sort', key: 'sort' },
   { title: t('common.enabled'), key: 'enabled', width: 90 },
@@ -255,6 +317,11 @@ function openCreate() {
     sort: packages.value.length * 10,
     enabled: true,
     remark: '',
+    originalPriceMajor: null,
+    featuresText: '',
+    validDays: null,
+    purchaseLimit: null,
+    prerequisitePackageCodes: [],
   });
   modalOpen.value = true;
 }
@@ -274,6 +341,12 @@ function openEdit(record: AdminPointsPackage) {
     sort: record.sort ?? 0,
     enabled: record.enabled ?? true,
     remark: record.remark ?? '',
+    originalPriceMajor:
+      record.originalPriceAmount == null ? null : record.originalPriceAmount / MINOR_UNITS_PER_MAJOR,
+    featuresText: (record.features ?? []).join('\n'),
+    validDays: record.validDays ?? null,
+    purchaseLimit: record.purchaseLimit ?? null,
+    prerequisitePackageCodes: [...(record.prerequisitePackageCodes ?? [])],
   });
   modalOpen.value = true;
 }
@@ -292,6 +365,16 @@ function toPayload(): PointsPackage {
     sort: form.sort,
     enabled: form.enabled,
     remark: form.remark.trim() || null,
+    originalPriceAmount:
+      form.originalPriceMajor == null ? null : Math.round(form.originalPriceMajor * MINOR_UNITS_PER_MAJOR),
+    features: form.featuresText
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean),
+    // 0 与留空同义（永不过期），统一提交 null
+    validDays: form.validDays ? form.validDays : null,
+    purchaseLimit: form.purchaseLimit ?? null,
+    prerequisitePackageCodes: form.prerequisitePackageCodes,
   };
 }
 
