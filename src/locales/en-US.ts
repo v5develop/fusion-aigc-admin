@@ -3837,13 +3837,13 @@ export default {
     entryStuckHint:
       'The first two are a "rows still to fill" count, not a "how many can still be fixed" count: old tasks where all four sources are empty (typically direct aigcbridge submissions whose type has collapsed to video) could only be guessed from feature_code, and one feature carries a dozen entries - a plausible but wrong value is harder to track down than an empty one, so those rows stay in this number forever.',
     entryUnregisteredTitle:
-      '{count} tasks carry an entry code that no enabled offer knows about - entry-related features are silently degrading right now',
+      '{count} tasks carry an entry code that is neither an enabled offer nor a creaft compatibility capability - entry-related features are silently degrading right now',
     entryUnregisteredDesc:
-      'These tasks already have entry_code filled, so they are not part of the "to fill" counts above, and no amount of re-running the backfill will change them. The gap is on the other side: no enabled billing offer registers that code. Everything downstream degrades silently - the entry chip in the user task center does not render; filtering the admin content list by entry returns nothing; the asset-library category aggregation is a plain IN intersection, so these assets land in no tab at all; "make a similar one" looks the offer up, fails, and is swallowed into "not supported yet". Nothing is ever reported as an error - only a WARN line nobody reads.',
+      'These tasks already have entry_code filled, so they are not part of the "to fill" counts above, and no amount of re-running the backfill will change them. The gap is on the other side: no enabled billing offer registers that code, and it is not a creaft compatibility capability either (creaft.v1.* codes are billed through capability bindings, have no offer by design, are recognised automatically and never show up here). Everything downstream degrades silently - the entry chip in the user task center does not render; filtering the admin content list by entry returns nothing; the asset-library category aggregation is a plain IN intersection, so these assets land in no tab at all; "make a similar one" looks the offer up, fails, and is swallowed into "not supported yet". Nothing is ever reported as an error - only a WARN line nobody reads.',
     entryUnregisteredAction:
-      "What needs fixing is the billing offer configuration, not another backfill run: create and enable the matching offer for each entry code below (the usual cause is an environment where that entry's offer seed script was never run).",
+      "What needs fixing is the billing offer configuration, not another backfill run: create and enable the matching offer for each entry code below (the usual cause is an environment where that entry's offer seed script was never run). Do not create offers for creaft.v1.* compatibility codes - that would give the same feature a second price source.",
     entryUnregisteredNone:
-      'Every filled entry code resolves to an enabled offer - entry-related features are healthy.',
+      'Every filled entry code is recognised (an enabled offer or a creaft compatibility capability) - entry-related features are healthy.',
     entryCodeCol: 'Entry code',
     entryCountCol: 'Tasks',
     entryHistorySide: '{side} scanned {scanned} / filled {filled} / left empty {stuck}',

@@ -3840,12 +3840,12 @@ export default {
     entryStuckHint:
       '前两项是「待补条数」而不是「还能补多少」：四个来源全空的老任务（典型是 aigcbridge 直提、type 已塌成 video）只能靠 feature_code 反查，而一个 feature 挂着十来个入口，填进去是个看着对其实错的值，比空着更难查——它们会永远留在这个数里。',
     entryUnregisteredTitle:
-      '有 {count} 条任务的入口码没有任何启用中的 offer 认识，入口相关功能正在静默降级',
+      '有 {count} 条任务的入口码既不是启用中的计费 offer，也不是 creaft 兼容能力，入口相关功能正在静默降级',
     entryUnregisteredDesc:
-      '这批任务的 entry_code 已经填上了，所以不算在上面的「待补」里，再点多少次回填也不会变。问题出在另一头：没有任何启用中的计费 offer 登记过这个码。后果是全线静默降级——任务中心的入口 chip 显示不出来；后台内容列表按入口筛选一条都筛不到；素材库聚合分类是纯 IN 交集，这批素材哪个 tab 都进不去；「做同款」查 offer 查不到，会被吞成「暂不支持做同款」。全程不报错，只有一条没人看的 WARN 日志。',
+      '这批任务的 entry_code 已经填上了，所以不算在上面的「待补」里，再点多少次回填也不会变。问题出在另一头：这个码既没有启用中的计费 offer 登记，也不是 creaft 兼容能力（creaft.v1.* 这类码计费走能力绑定，本来就没有 offer，已自动认得，不会出现在这里）。后果是全线静默降级——任务中心的入口 chip 显示不出来；后台内容列表按入口筛选一条都筛不到；素材库聚合分类是纯 IN 交集，这批素材哪个 tab 都进不去；「做同款」查 offer 查不到，会被吞成「暂不支持做同款」。全程不报错，只有一条没人看的 WARN 日志。',
     entryUnregisteredAction:
-      '要补的是计费 offer 配置，不是再跑一次回填：请按下面的入口码逐个把对应的 offer 配上并启用（常见原因是某个环境没跑过该入口的 offer 种子脚本）。',
-    entryUnregisteredNone: '所有已填的入口码都能在启用中的 offer 里找到，入口相关功能正常。',
+      '要补的是计费 offer 配置，不是再跑一次回填：请按下面的入口码逐个把对应的 offer 配上并启用（常见原因是某个环境没跑过该入口的 offer 种子脚本）。不要为 creaft.v1.* 这类兼容能力码建 offer——那等于给同一个功能造第二个定价来源。',
+    entryUnregisteredNone: '所有已填的入口码都认得（启用中的计费 offer 或 creaft 兼容能力），入口相关功能正常。',
     entryCodeCol: '入口码',
     entryCountCol: '任务条数',
     entryHistorySide: '{side} 扫 {scanned} / 补 {filled} / 留空 {stuck}',

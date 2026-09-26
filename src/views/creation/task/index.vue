@@ -290,7 +290,6 @@ import { ref, computed, onActivated, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
-import { getAllOffers } from '@/api/billing-offer';
 import {
   getCreationTaskList,
   cancelCreationTask,
@@ -302,6 +301,7 @@ import {
   exportCreationTasks,
   batchCancelCreationTasks,
 } from '@/api/creation-task';
+import { getContentEntryCodes } from '@/api/creation-content';
 import ProTable from '@/components/Pro/ProTable/index.vue';
 
 import ChildTaskExpand from './ChildTaskExpand.vue';
@@ -357,14 +357,16 @@ const expandableConfig = computed(() => ({
   },
 }));
 
-// 动态类型筛选选项（从 offer 表加载）
+// 入口筛选选项：与创作内容列表同源（启用中的 offer + creaft v1 兼容能力入口）。
+// 只取 offer 的话，v1 线协议提交的任务（entry_code 是 creaft.v1.*）在这里一条都筛不到
 const typeSearchOptions = ref<{ label: string; value: string }[]>([]);
 onMounted(async () => {
   try {
-    const offers = await getAllOffers();
-    typeSearchOptions.value = (offers || [])
-      .filter((o: any) => o.entryCode && o.status === 'ENABLED')
-      .map((o: any) => ({ label: o.name || o.entryCode, value: o.entryCode }));
+    const entries = (await getContentEntryCodes()) || [];
+    typeSearchOptions.value = entries.map((e) => ({
+      label: e.entryName || e.entryCode,
+      value: e.entryCode,
+    }));
   } catch {
     // 加载失败时留空，不影响主流程
   }
