@@ -3578,7 +3578,7 @@ export default {
     manualOnlyTag: '仅指定',
     assignments: '指定等级',
     assignmentsHint:
-      '指定覆盖打分：被指定的用户等级就是那一档，排队优先级与按等级计价的规则都跟着它；到期或该档被停用后回落到打分等级。',
+      '指定覆盖打分：被指定的用户等级就是那一档，排队优先级与按等级计价的规则都跟着它；到期或该档被停用后回落到打分等级。等级有 5 分钟缓存，指定与撤销在所有服务实例上最多 5 分钟内全部生效。',
     assign: '指定等级',
     userId: '用户 ID',
     assignLevel: '等级',
@@ -3589,7 +3589,7 @@ export default {
     longTerm: '长期',
     operator: '操作人',
     unassign: '撤销',
-    unassignConfirm: '撤销后该用户立即回落到打分等级，确认撤销？',
+    unassignConfirm: '撤销后该用户回落到打分等级（最多 5 分钟内全部生效），确认撤销？',
   },
 
   pointsPackage: {

@@ -3556,7 +3556,7 @@ export default {
     manualOnlyTag: 'Assign only',
     assignments: 'Assigned Levels',
     assignmentsHint:
-      'An assignment overrides the score: the user is on that level, and queue priority and level-based pricing rules follow it. It falls back to the scored level once expired or when the level is disabled.',
+      'An assignment overrides the score: the user is on that level, and queue priority and level-based pricing rules follow it. It falls back to the scored level once expired or when the level is disabled. Levels are cached for 5 minutes, so assignments and revocations take effect on every instance within 5 minutes.',
     assign: 'Assign level',
     userId: 'User ID',
     assignLevel: 'Level',
@@ -3567,7 +3567,7 @@ export default {
     longTerm: 'No expiry',
     operator: 'Operator',
     unassign: 'Revoke',
-    unassignConfirm: 'The user falls back to the scored level immediately. Revoke?',
+    unassignConfirm: 'The user falls back to the scored level (within 5 minutes everywhere). Revoke?',
   },
 
   pointsPackage: {
