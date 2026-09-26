@@ -539,7 +539,10 @@ export function updateCreaftAgentSkillCategoryOrder(categoryOrder: string[]) {
 }
 
 export function getCreaftAgentSkillDetail(id: number) {
-  return request.get<CreaftAgentSkillDetail>(`/api/v1/admin/creaft/agent-skills/${id}`);
+  // 编辑页自己显示「加载失败 / 重试」：出错时不跳 /500，免得离开编辑页
+  return request.get<CreaftAgentSkillDetail>(`/api/v1/admin/creaft/agent-skills/${id}`, {
+    noErrorRedirect: true,
+  } as Parameters<typeof request.get>[1]);
 }
 
 /** 整体替换语义：分类清空 = 这条技能从用户端消失 */

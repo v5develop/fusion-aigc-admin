@@ -100,11 +100,25 @@
         </div>
       </div>
     </div>
+
+    <!-- 离开确认用模板里的弹窗而不是静态 Modal.confirm：从路由守卫里调用静态方法时，
+         弹窗拿不到配置上下文，按钮前缀变成 undefined、没有文字，取消按钮也不渲染 -->
+    <a-modal
+      v-model:open="leaveOpen"
+      title="有未保存的修改"
+      ok-text="离开"
+      cancel-text="继续编辑"
+      :mask-closable="false"
+      @ok="settleLeave(true)"
+      @cancel="settleLeave(false)"
+    >
+      离开后这些修改会丢失。确定离开？
+    </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { message, Modal } from 'antdv-next';
+import { message } from 'antdv-next';
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router';
 
@@ -176,6 +190,11 @@ const dirty = computed(() => !!detail.value
 async function load() {
   loading.value = true;
   detail.value = null;
+  if (!Number.isInteger(id.value) || id.value <= 0) {
+    // 地址里的编号不对（手输、旧链接）：直接显示加载失败，不去请求一个必然出错的接口
+    loading.value = false;
+    return;
+  }
   try {
     const result = await getCreaftAgentSkillDetail(id.value);
     if (!result || result.id !== id.value || !result.config || typeof result.config !== 'object' || Array.isArray(result.config)) {
@@ -284,17 +303,23 @@ function goBack() {
   router.push({ name: 'CreaftSkill' });
 }
 
+const leaveOpen = ref(false);
+let leaveResolver: ((leave: boolean) => void) | null = null;
+
 function confirmLeave(): Promise<boolean> {
+  // 上一次询问还没答完又触发了导航：先按「不离开」收掉上一次
+  leaveResolver?.(false);
+  leaveOpen.value = true;
   return new Promise((resolve) => {
-    Modal.confirm({
-      title: '有未保存的修改',
-      content: '离开后这些修改会丢失。确定离开？',
-      okText: '离开',
-      cancelText: '继续编辑',
-      onOk: () => resolve(true),
-      onCancel: () => resolve(false),
-    });
+    leaveResolver = resolve;
   });
+}
+
+function settleLeave(leave: boolean) {
+  leaveOpen.value = false;
+  const resolve = leaveResolver;
+  leaveResolver = null;
+  resolve?.(leave);
 }
 
 async function guardLeave() {
