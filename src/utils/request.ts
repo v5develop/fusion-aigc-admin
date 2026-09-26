@@ -21,6 +21,13 @@ const service: AxiosInstance = axios.create({
 
 // ---- Retry config ----
 const RETRYABLE_STATUS = [408, 429, 500, 502, 503, 504];
+
+/**
+ * 按请求声明的两个开关：
+ * - noRetry：不自动重传。大文件上传失败后自动重传只会把同一个文件再传两遍（每次都在桶里多留一个对象）；
+ * - noErrorRedirect：出错只在原地提示、不跳 /403、/500。弹窗里正在编辑时一跳页，没保存的内容就全丢了。
+ */
+type RequestFlags = { silentError?: boolean; noRetry?: boolean; noErrorRedirect?: boolean };
 const MAX_RETRY_COUNT = 2;
 const RETRY_DELAY_BASE = 500;
 
@@ -144,7 +151,11 @@ service.interceptors.response.use(
     };
 
     // 重试逻辑：对可重试状态码进行指数退避重试
-    if (originalRequest && RETRYABLE_STATUS.includes(error.response?.status ?? 0)) {
+    if (
+      originalRequest &&
+      !(originalRequest as RequestFlags).noRetry &&
+      RETRYABLE_STATUS.includes(error.response?.status ?? 0)
+    ) {
       const retryCount = originalRequest._retryCount ?? 0;
       if (retryCount < MAX_RETRY_COUNT) {
         originalRequest._retryCount = retryCount + 1;
@@ -233,7 +244,10 @@ function handleHttpError(error: AxiosError) {
   console.error('Response error:', error);
 
   // 请求显式声明静默时，不弹全局错误，交由上层自行处理
-  const silentError = (error.config as AxiosRequestConfig & { silentError?: boolean })?.silentError;
+  const silentError = (error.config as AxiosRequestConfig & RequestFlags)?.silentError;
+  const redirect = (path: string) => {
+    if (!(error.config as AxiosRequestConfig & RequestFlags)?.noErrorRedirect) router.push(path);
+  };
 
   if (error.response) {
     const { status, data } = error.response as {
@@ -244,8 +258,8 @@ function handleHttpError(error: AxiosError) {
 
     if (silentError) {
       // 静默：仅对需要跳转的状态码做路由跳转，不弹 message
-      if (status === 403) router.push('/403');
-      if (status === 500) router.push('/500');
+      if (status === 403) redirect('/403');
+      if (status === 500) redirect('/500');
       return;
     }
 
@@ -255,7 +269,7 @@ function handleHttpError(error: AxiosError) {
         break;
       case 403:
         message.error(errorMsg || '没有访问权限');
-        router.push('/403');
+        redirect('/403');
         break;
       case 404:
         message.error(errorMsg || '请求的资源不存在');
@@ -271,7 +285,7 @@ function handleHttpError(error: AxiosError) {
         break;
       case 500:
         message.error(errorMsg || '服务器错误，请稍后重试');
-        router.push('/500');
+        redirect('/500');
         break;
       case 502:
         message.error(errorMsg || '网关错误');

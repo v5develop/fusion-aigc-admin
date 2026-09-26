@@ -314,6 +314,127 @@ export function deleteCreaftTemplate(id: number) {
 }
 
 /**
+ * 上传目录展示素材（工作流示例图 / 视频、音色试听）到系统公有桶，返回公开地址。
+ * 格式由服务端按文件头识别：图片 PNG / JPEG / WebP / GIF（≤20MB），视频 MP4 / MOV / WebM（≤100MB），音频 WAV / MP3（≤20MB）。
+ */
+export function uploadCatalogMedia(file: File) {
+  const form = new FormData();
+  form.append('file', file);
+  // 实例默认头是 application/json：axios 1.x 见到它会把 FormData 转成 JSON 发出去，所以必须显式声明 multipart
+  // （浏览器环境下 axios 会去掉这个值、让浏览器补上 boundary）。默认 15 秒超时对 100MB 视频不够。
+  return request.post<string>('/api/v1/admin/media/upload', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 300000,
+    // 失败不自动重传（重传就是把同一个大文件再传两遍）、不跳错误页（弹窗里没保存的编辑会丢）
+    noRetry: true,
+    noErrorRedirect: true,
+  } as Parameters<typeof request.post>[2]);
+}
+
+/**
+ * creaft v1 工作流模板（`GET /api/v1/workflows/templates/{category}` 的数据源，表 `afv_compat_workflow_template`）。
+ *
+ * 只下发启用的行；某分类一条都没启用时，下发接口退回旧的按能力绑定生成的列表。
+ * `title` 是端侧提交体里的工作流名、也是历史分桶键，建好后不可改。
+ */
+export type CreaftWorkflowCategory = 'fashion' | 'ecommerce' | 'video' | 'visual' | 'local-life';
+
+export interface CreaftWorkflowTemplateRow {
+  /** 即端侧回包里的 workflowId */
+  id: number;
+  category: CreaftWorkflowCategory;
+  title: string;
+  titleZh: string;
+  /** 载荷原文（JSON 对象文本），原样下发：{"result": [...], "payload": {"prompt", "image_urls", "video_urls"}} */
+  payloadJson: string | null;
+  /** 升序 */
+  sortOrder: number | null;
+  enabled: number | null;
+  createTime?: string;
+  updateTime?: string;
+}
+
+export interface CreaftWorkflowTemplateSaveData {
+  category: CreaftWorkflowCategory;
+  /** 编辑时服务端忽略 */
+  title: string;
+  titleZh: string;
+  payloadJson?: string;
+  sortOrder?: number;
+  enabled?: number;
+}
+
+export function getCreaftWorkflowTemplates(params?: {
+  category?: string;
+  keyword?: string;
+  enabled?: number;
+}) {
+  return request.get<CreaftWorkflowTemplateRow[]>('/api/v1/admin/creaft/workflow-templates', { params });
+}
+
+export function createCreaftWorkflowTemplate(data: CreaftWorkflowTemplateSaveData) {
+  return request.post<number>('/api/v1/admin/creaft/workflow-templates', data);
+}
+
+/** 整体替换分类、中文名、载荷、排序、启用；title 不可改 */
+export function updateCreaftWorkflowTemplate(id: number, data: CreaftWorkflowTemplateSaveData) {
+  return request.put(`/api/v1/admin/creaft/workflow-templates/${id}`, data);
+}
+
+export function deleteCreaftWorkflowTemplate(id: number) {
+  return request.delete(`/api/v1/admin/creaft/workflow-templates/${id}`);
+}
+
+/**
+ * creaft v1 音色（`GET /api/v1/voices/list` 的数据源，表 `afv_compat_voice`）。
+ *
+ * 端侧提交视频翻译时把 model / voiceKey 原样作为 voice_model / voice_key 带上，
+ * Java 与执行方都不回查本表：键填错不会在保存时报错，只会在执行时被供应商拒。
+ */
+export interface CreaftVoiceRow {
+  /** 即端侧回包里的 voiceId */
+  id: number;
+  voiceName: string;
+  voiceKey: string;
+  model: string;
+  /** 扩展信息原文（JSON 对象文本），原样下发为 meta：{"demo": {语言: 试听地址}, "locales": [...]} */
+  metaJson: string | null;
+  tags: string[];
+  /** 降序：大的靠前 */
+  weight: number | null;
+  status: number | null;
+  createTime?: string;
+  updateTime?: string;
+}
+
+export interface CreaftVoiceSaveData {
+  voiceName: string;
+  voiceKey: string;
+  model: string;
+  metaJson?: string;
+  tags?: string[];
+  weight?: number;
+  status?: number;
+}
+
+export function getCreaftVoices(params?: { keyword?: string; status?: number }) {
+  return request.get<CreaftVoiceRow[]>('/api/v1/admin/creaft/voices', { params });
+}
+
+export function createCreaftVoice(data: CreaftVoiceSaveData) {
+  return request.post<number>('/api/v1/admin/creaft/voices', data);
+}
+
+/** 整体替换语义：没带上的标签、扩展信息会被清空 */
+export function updateCreaftVoice(id: number, data: CreaftVoiceSaveData) {
+  return request.put(`/api/v1/admin/creaft/voices/${id}`, data);
+}
+
+export function deleteCreaftVoice(id: number) {
+  return request.delete(`/api/v1/admin/creaft/voices/${id}`);
+}
+
+/**
  * creaft v1 技能目录（`GET /api/v1/agent/skills` 的数据源）。
  *
  * 两条规则决定一条技能能不能被用户看到：`enabled = 1`，且 `category` 非空——
@@ -385,6 +506,19 @@ export function getCreaftAgentSkills(params?: {
   enabled?: number;
 }) {
   return request.get<CreaftAgentSkillRow[]>('/api/v1/admin/creaft/agent-skills', { params });
+}
+
+/** 技能执行配置的表单结构（键名取自服务端权威常量，前端不另存一份） */
+export interface CreaftSkillConfigSchema {
+  promptFields: { key: string; label: string; description: string }[];
+  tools: { key: string; label: string; description: string }[];
+  /** group：PIPELINE 出图流水线 / TEMPLATE AI 生成模板；requiredWhen：受理时在什么条件下要求非空 */
+  localLifeStages: { key: string; label: string; group: 'PIPELINE' | 'TEMPLATE'; requiredWhen: string }[];
+  localLifeSkillCodes: string[];
+}
+
+export function getCreaftAgentSkillConfigSchema() {
+  return request.get<CreaftSkillConfigSchema>('/api/v1/admin/creaft/agent-skills/config-schema');
 }
 
 export function getCreaftAgentSkillSummary() {

@@ -600,6 +600,44 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
+        // 技能编辑独立页：单条技能的提示词上万字，放弹窗里只能层层滚动、点遮罩就全丢
+        path: 'skills/:id/edit',
+        name: 'CreaftSkillEdit',
+        component: () => import('@/views/creaft/skill/edit.vue'),
+        meta: {
+          title: 'menu.creaftSkillEdit',
+          requiresAuth: true,
+          hidden: true,
+          activeMenu: '/creaft/skills',
+          requiredPermissions: 'creaft_catalog:edit',
+        },
+      },
+      {
+        // /workflows/templates/{category} 的数据源。某分类一条都没启用时下发接口退回旧列表，
+        // 所以「端上只有一条 video」多半是这页没导入 / 没启用
+        path: 'workflow-templates',
+        name: 'CreaftWorkflowTemplate',
+        component: () => import('@/views/creaft/workflow-template/index.vue'),
+        meta: {
+          title: 'menu.creaftWorkflowTemplate',
+          icon: 'PartitionOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'creaft_catalog:view',
+        },
+      },
+      {
+        // /voices/list 的数据源：没有启用的音色时，视频翻译选不了音色
+        path: 'voices',
+        name: 'CreaftVoice',
+        component: () => import('@/views/creaft/voice/index.vue'),
+        meta: {
+          title: 'menu.creaftVoice',
+          icon: 'SoundOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'creaft_catalog:view',
+        },
+      },
+      {
         // 批量托管（电商生图）的技能绑定。这张表此前没有任何写入口——建表与加列的迁移都只改结构，
         // 没有一条往里插过数据，所以上线至今只可能是空的，用户点批量托管必然报「尚未配置」
         path: 'batch-bindings',

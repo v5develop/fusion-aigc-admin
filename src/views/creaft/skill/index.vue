@@ -167,108 +167,27 @@
       </a-spin>
     </a-modal>
 
-    <a-modal
-      v-model:open="modalVisible"
-      title="编辑技能"
-      :confirm-loading="saving"
-      :ok-button-props="{ disabled: detailLoading || !editing }"
-      :cancel-button-props="{ disabled: saving }"
-      :closable="!saving"
-      :mask-closable="false"
-      :keyboard="!saving"
-      width="640px"
-      @ok="handleSubmit"
-    >
-      <a-spin v-if="detailLoading" />
-      <a-alert
-        v-else-if="!editing"
-        type="error"
-        show-icon
-        message="技能详情加载失败，请关闭后重试；当前无法保存。"
-      />
-      <a-form
-        v-else
-        :model="form"
-        :disabled="saving"
-        :label-col="{ span: 6 }"
-        :wrapper-col="{ span: 16 }"
-      >
-        <a-form-item label="技能身份">
-          <code class="route-code">{{ editing?.agentSkillId }}</code>
-          <div class="muted">与铺货侧共用的 int64，不可改</div>
-        </a-form-item>
-
-        <a-form-item label="分类">
-          <!-- 选已有分类或输新的：仓库里这种场合用 a-auto-complete
-               （select 的 combobox 模式在 antdv 4 已经去掉了） -->
-          <a-auto-complete
-            v-model:value="form.category"
-            :options="categoryOptions"
-            :filter-option="filterCategoryOption"
-            allow-clear
-            placeholder="照 v1 的 agent_skill.category 填"
-          />
-          <div class="muted warn">清空分类 = 这条技能从用户端的 @技能 列表里消失</div>
-        </a-form-item>
-
-        <a-form-item label="技能名">
-          <a-input v-model:value="form.title" />
-        </a-form-item>
-
-        <a-form-item label="描述">
-          <a-input v-model:value="form.description" />
-        </a-form-item>
-
-        <a-form-item label="图标地址">
-          <a-input v-model:value="form.icon" placeholder="选填" />
-        </a-form-item>
-
-        <a-form-item label="版本">
-          <a-input v-model:value="form.version" placeholder="v1 的 version，是字符串不是数字" />
-        </a-form-item>
-
-        <a-form-item label="排序权重">
-          <a-input-number v-model:value="form.weight" :min="0" style="width: 100%" />
-          <div class="muted">同分类内降序：大的在前（与 v1 一致）</div>
-        </a-form-item>
-
-        <a-form-item label="技能编码">
-          <a-input v-model:value="form.agentSkillCode" />
-          <div class="muted warn">
-            与 v1 对齐身份用的编码。改成别的会让按编码反查的地方找不到，非对齐需要时别动。
-          </div>
-        </a-form-item>
-
-        <a-form-item label="启用">
-          <a-switch v-model:checked="enabled" />
-          <span class="muted" style="margin-left: 8px">停用等于该技能在 @技能 列表里不存在</span>
-        </a-form-item>
-        <a-form-item label="执行配置 JSON">
-          <a-textarea v-model:value="configText" :rows="12" spellcheck="false" />
-          <div class="muted warn">仅修改时提交配置；必须是 JSON 对象，保存 {} 会清空配置。</div>
-        </a-form-item>
-      </a-form>
-    </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { HolderOutlined } from '@antdv-next/icons';
 import { message } from 'antdv-next';
-import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue';
+import { computed, onActivated, onBeforeUnmount, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import draggable from 'vuedraggable';
 
 import {
   getCreaftAgentSkillCategoryOrder,
-  getCreaftAgentSkillDetail,
   getCreaftAgentSkillSummary,
   getCreaftAgentSkills,
   updateCreaftAgentSkillCategoryOrder,
-  updateCreaftAgentSkill,
   type CreaftAgentSkillRow,
   type CreaftAgentSkillSummary,
 } from '@/api/creaft-compat';
 
+
+const router = useRouter();
 const rows = ref<CreaftAgentSkillRow[]>([]);
 const summary = ref<CreaftAgentSkillSummary | null>(null);
 const loading = ref(false);
@@ -290,12 +209,8 @@ const categoryFilterOptions = computed(() => [
   { label: '未分类', value: '__EMPTY__' },
   ...categories.value.map((c) => ({ label: c, value: c })),
 ]);
-const categoryOptions = computed(() => categories.value.map((c) => ({ label: c, value: c })));
 const visibleCount = computed(() => rows.value.filter((row) => row.visible).length);
 
-function filterCategoryOption(input: string, option: { value: string }) {
-  return option.value.toLowerCase().includes(input.toLowerCase());
-}
 
 const columns = [
   { title: '技能', dataIndex: 'title', width: 260 },
@@ -407,123 +322,28 @@ async function saveCategoryOrder() {
   }
 }
 
-// ---- 编辑 ----
-const modalVisible = ref(false);
-const saving = ref(false);
-const editing = ref<CreaftAgentSkillRow | null>(null);
-const detailLoading = ref(false);
-const configText = ref('');
-let originalConfigText = '';
-let detailRequest = 0;
-
-watch(modalVisible, (open) => {
-  if (!open) {
-    detailRequest++;
-    editing.value = null;
-    detailLoading.value = false;
-  }
-});
+// ---- 编辑：独立页（内容太长，不放弹窗）----
+function openEdit(record: CreaftAgentSkillRow) {
+  router.push({ name: 'CreaftSkillEdit', params: { id: record.id } });
+}
 
 onBeforeUnmount(() => {
   categoryOrderRequest++;
-  detailRequest++;
   clearTimeout(keywordTimer);
 });
 
-const form = reactive({
-  category: undefined as string | undefined,
-  title: '',
-  description: '',
-  icon: '',
-  version: '',
-  weight: 0,
-  enabled: 1,
-  agentSkillCode: '',
-});
+// 布局的 <keep-alive :include> 按组件名匹配路由名：不设名字的话从编辑页返回时整页重挂、筛选条件全丢。
+defineOptions({ name: 'CreaftSkill' });
 
-const enabled = computed({
-  get: () => form.enabled === 1,
-  set: (value: boolean) => (form.enabled = value ? 1 : 0),
-});
-
-async function openEdit(record: CreaftAgentSkillRow) {
-  if (saving.value) return;
-  const requestId = ++detailRequest;
-  editing.value = null;
-  configText.value = '';
-  detailLoading.value = true;
-  modalVisible.value = true;
-  try {
-    const detail = await getCreaftAgentSkillDetail(record.id);
-    if (requestId !== detailRequest || !modalVisible.value) return;
-    if (
-      detail.id !== record.id ||
-      !detail.config ||
-      typeof detail.config !== 'object' ||
-      Array.isArray(detail.config)
-    ) {
-      message.error('技能详情缺少有效配置，请刷新后重试');
-      return;
-    }
-    Object.assign(form, {
-      category: detail.category || undefined,
-      title: detail.title || '',
-      description: detail.description || '',
-      icon: detail.icon || '',
-      version: detail.version || '',
-      weight: detail.weight ?? 0,
-      enabled: detail.enabled ?? 1,
-      agentSkillCode: detail.agentSkillCode || '',
-    });
-    originalConfigText = JSON.stringify(detail.config, null, 2);
-    configText.value = originalConfigText;
-    editing.value = detail;
-  } catch {
-    /* 拦截器已提示，保持禁止保存；不要用空对象替代未加载的配置。 */
-  } finally {
-    if (requestId === detailRequest) detailLoading.value = false;
-  }
-}
-
-async function handleSubmit() {
-  if (!editing.value || detailLoading.value || saving.value) return;
-  if (!form.agentSkillCode.trim()) {
-    message.warning('技能编码不能为空');
+// 从编辑页返回时实例是缓存的，筛选都还在；原地重查一次，让刚保存的修改体现出来。首次挂载已经加载过，跳过那一次。
+let firstActivation = true;
+onActivated(() => {
+  if (firstActivation) {
+    firstActivation = false;
     return;
   }
-  let config: Record<string, unknown> | undefined;
-  if (configText.value !== originalConfigText) {
-    try {
-      const parsed: unknown = JSON.parse(configText.value);
-      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error();
-      config = parsed as Record<string, unknown>;
-    } catch {
-      message.warning('执行配置必须是合法的 JSON 对象');
-      return;
-    }
-  }
-  saving.value = true;
-  try {
-    await updateCreaftAgentSkill(editing.value.id, {
-      ...(config === undefined ? {} : { config }),
-      category: form.category || undefined,
-      title: form.title.trim() || undefined,
-      description: form.description || undefined,
-      icon: form.icon || undefined,
-      version: form.version || undefined,
-      weight: form.weight ?? 0,
-      enabled: form.enabled,
-      agentSkillCode: form.agentSkillCode.trim(),
-    });
-    message.success('已保存');
-    modalVisible.value = false;
-    reload();
-  } catch {
-    /* 拦截器已提示 */
-  } finally {
-    saving.value = false;
-  }
-}
+  reload();
+});
 </script>
 
 <style scoped>
