@@ -440,6 +440,54 @@
         </a-table>
       </a-card>
 
+      <!-- Workflow Steps：Java 工作流逐步状态，每步链到 AI 网关的调用记录 -->
+      <a-card
+        v-if="workflowSteps.length > 0"
+        :title="$t('creationTask.workflowSteps')"
+        style="margin-bottom: 16px"
+      >
+        <a-table
+          :columns="workflowStepColumns"
+          :data-source="workflowSteps"
+          :pagination="false"
+          :row-key="(r: WorkflowStep) => r.stepPath"
+          size="small"
+          :scroll="{ x: 1200 }"
+        >
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.dataIndex === 'stepPath'">
+              <code>{{ record.stepPath }}</code>
+            </template>
+            <template v-else-if="column.dataIndex === 'status'">
+              <a-badge
+                :color="
+                  workflowStepStatusColor[String(record.status || '').toUpperCase()] || '#d9d9d9'
+                "
+                :text="record.status || '-'"
+              />
+            </template>
+            <template v-else-if="column.dataIndex === 'gatewayCallId'">
+              <router-link
+                v-if="record.gatewayCallId"
+                :to="{ name: 'AiGatewayCalls', query: { callId: record.gatewayCallId } }"
+              >
+                <code>{{ record.gatewayCallId }}</code>
+              </router-link>
+              <span v-else>-</span>
+            </template>
+            <template v-else-if="column.dataIndex === 'errorMsg'">
+              <span v-if="record.errorMsg" class="error-text">{{
+                decodeUnicode(String(record.errorMsg))
+              }}</span>
+              <span v-else>-</span>
+            </template>
+            <template v-else>
+              {{ record[column.dataIndex as string] ?? '-' }}
+            </template>
+          </template>
+        </a-table>
+      </a-card>
+
       <!-- Pipeline Steps (交付 B) -->
       <a-card
         v-if="pipelineSteps && pipelineSteps.steps.length > 0"
@@ -600,6 +648,7 @@ import type {
   CompositeCostSummary,
   ApiRequestLog,
   PipelineStepsResponse,
+  WorkflowStep,
 } from '@/api/creation-task';
 import type { ModerationLog } from '@/api/moderation-log';
 
@@ -619,6 +668,7 @@ import {
   getCompositeCostSummary,
   getCreationTaskApiLogs,
   getPipelineSteps,
+  getWorkflowSteps,
   fixTaskContentType,
 } from '@/api/creation-task';
 import { getCreationTaskModerationLogs } from '@/api/moderation-log';
@@ -632,6 +682,31 @@ const loading = ref(false);
 const task = ref<CreationTask | null>(null);
 const costSummary = ref<CompositeCostSummary | null>(null);
 const pipelineSteps = ref<PipelineStepsResponse | null>(null);
+const workflowSteps = ref<WorkflowStep[]>([]);
+
+const workflowStepStatusColor: Record<string, string> = {
+  PENDING: '#d9d9d9',
+  RUNNING: '#1890ff',
+  WAITING: '#faad14',
+  SUCCEEDED: '#52c41a',
+  DONE: '#52c41a',
+  FAILED: '#ff4d4f',
+  UNKNOWN: '#fa541c',
+  CANCELLED: '#8c8c8c',
+  SKIPPED: '#bfbfbf',
+};
+
+const workflowStepColumns = [
+  { title: t('creationTask.stepPath'), dataIndex: 'stepPath', width: 220, fixed: 'left' as const },
+  { title: t('creationTask.stepStatus'), dataIndex: 'status', width: 120 },
+  { title: t('creationTask.stepOperation'), dataIndex: 'operation', width: 150 },
+  { title: t('creationTask.stepModelGroup'), dataIndex: 'modelGroup', width: 180 },
+  { title: t('creationTask.gatewayCall'), dataIndex: 'gatewayCallId', width: 240 },
+  { title: t('creationTask.stepAttempt'), dataIndex: 'attempt', width: 70 },
+  { title: t('creationTask.stepStartedAt'), dataIndex: 'startedAt', width: 170 },
+  { title: t('creationTask.stepFinishedAt'), dataIndex: 'finishedAt', width: 170 },
+  { title: t('creationTask.errorMsg'), dataIndex: 'errorMsg', ellipsis: true },
+];
 
 // 是否存在子任务：存在则展示父任务计费聚合（合计消耗点数 / 折叠计费状态 / 子任务数）
 const hasSubTasks = computed(() => (task.value?.subTasks?.length ?? 0) > 0);
@@ -904,6 +979,15 @@ async function loadTask() {
       moderationLogs.value = (await getCreationTaskModerationLogs(id)) ?? [];
     } catch {
       moderationLogs.value = [];
+    }
+    // 工作流任务：详情带了步骤就直接用，否则按需另取（取不到不影响其余信息）
+    workflowSteps.value = task.value?.workflowSteps || [];
+    if (
+      !workflowSteps.value.length &&
+      task.value?.orchestrationTopology === 'WORKFLOW' &&
+      task.value.taskId
+    ) {
+      workflowSteps.value = await getWorkflowSteps(task.value.taskId).catch(() => []);
     }
     // 组合任务加载成本明细和 pipeline steps
     if (task.value?.mode != null && isCompositeMode(task.value.mode) && task.value.taskId) {

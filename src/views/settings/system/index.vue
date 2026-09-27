@@ -383,52 +383,6 @@
           </div>
         </a-tab-pane>
 
-        <a-tab-pane key="visionModel" :tab="$t('settingsSystem.visionModel')">
-          <div class="max-w-2xl">
-            <a-alert
-              type="info"
-              show-icon
-              :message="$t('settingsSystem.visionModelHint')"
-              class="agent-model-alert"
-            />
-
-            <a-form layout="vertical" class="agent-profile-block">
-              <a-form-item :label="$t('settingsSystem.visionModelLabel')">
-                <a-select
-                  v-model:value="visionModelCode"
-                  :options="visionModelCodeOptions"
-                  :loading="loadingModels"
-                  :placeholder="$t('settingsSystem.visionModelPlaceholder')"
-                  allow-clear
-                  show-search
-                  option-filter-prop="label"
-                  style="max-width: 360px"
-                />
-                <div class="form-hint">{{ $t('settingsSystem.visionModelSelectHint') }}</div>
-              </a-form-item>
-
-              <a-form-item v-if="!visionModelFromDatabase && visionModelFileDefault">
-                <a-tag color="orange">
-                  {{
-                    $t('settingsSystem.visionModelFromFile', {
-                      code: visionModelFileDefault,
-                    })
-                  }}
-                </a-tag>
-              </a-form-item>
-
-              <a-form-item>
-                <a-button
-                  type="primary"
-                  @click="handleSaveVisionModel"
-                  :loading="savingVisionModel"
-                >
-                  {{ $t('common.save') }}
-                </a-button>
-              </a-form-item>
-            </a-form>
-          </div>
-        </a-tab-pane>
       </a-tabs>
     </a-card>
   </div>
@@ -450,8 +404,6 @@ import {
   saveAiWritingModel,
   getBatchPlannerModel,
   saveBatchPlannerModel,
-  getVisionModel,
-  saveVisionModel,
   getVideoWatermarkEnabled,
   setVideoWatermarkEnabled,
   getBlindWatermarkEnabled,
@@ -537,12 +489,6 @@ const batchPlannerModelCode = ref<string | null>(null);
 const batchPlannerFromDatabase = ref(false);
 const batchPlannerFileDefault = ref<string | null>(null);
 const savingBatchPlanner = ref(false);
-// 画布识别 / 视觉分析的模型。与规划模型同一套 DB > 配置文件口径，但**刻意是两个独立配置**：
-// 换模型是各自的产品决定，跟着换会让另一条链的效果莫名其妙地变
-const visionModelCode = ref<string | null>(null);
-const visionModelFromDatabase = ref(false);
-const visionModelFileDefault = ref<string | null>(null);
-const savingVisionModel = ref(false);
 const savingAiWriting = ref(false);
 
 // 全部启用模型的下拉项（label 含 code）
@@ -597,12 +543,11 @@ function profileHint(profile: string) {
 async function loadAgentModelConfig() {
   loadingModels.value = true;
   try {
-    const [options, profiles, aiWriting, batchPlanner, vision] = await Promise.all([
+    const [options, profiles, aiWriting, batchPlanner] = await Promise.all([
       getModelOptions(),
       getAgentModelProfiles(),
       getAiWritingModel(),
       getBatchPlannerModel(),
-      getVisionModel(),
     ]);
     models.value = options ?? [];
     // 保证 TEXT 在前、VISION 在后的稳定顺序
@@ -616,9 +561,6 @@ async function loadAgentModelConfig() {
     batchPlannerModelCode.value = batchPlanner?.modelCode ?? null;
     batchPlannerFromDatabase.value = !!batchPlanner?.fromDatabase;
     batchPlannerFileDefault.value = batchPlanner?.fileDefault ?? null;
-    visionModelCode.value = vision?.modelCode ?? null;
-    visionModelFromDatabase.value = !!vision?.fromDatabase;
-    visionModelFileDefault.value = vision?.fileDefault ?? null;
   } catch {
     // Error handled by interceptor
   } finally {
@@ -647,20 +589,6 @@ async function handleSaveAiWriting() {
     // Error handled by interceptor
   } finally {
     savingAiWriting.value = false;
-  }
-}
-
-async function handleSaveVisionModel() {
-  savingVisionModel.value = true;
-  try {
-    await saveVisionModel(visionModelCode.value ?? null);
-    message.success(t('settingsSystem.saveSuccess'));
-    // 同规划模型：清空时后端回退配置文件的值，不重载页面还显示空
-    await loadAgentModelConfig();
-  } catch {
-    // Error handled by interceptor
-  } finally {
-    savingVisionModel.value = false;
   }
 }
 

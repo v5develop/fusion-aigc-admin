@@ -9,7 +9,7 @@
       type="info"
       show-icon
       style="margin-bottom: 12px"
-      message="在这里统一配置能力、模型和执行参数，Java 与 Python 读取同一份数据库配置。模型以 ID 关联，模型编码由服务端派生，只读展示。Agent 选择启用的文本模型即可；按模型计费的能力仍需配置生效定价。协议与处理器由程序管理。"
+      message="在这里配置每条能力用哪些模型：计费模型（Java 模型，以 ID 关联）与工作流各步骤的模型角色（网关模型组）。工作流由 Java 编排，供应商与中转站的选择在 AI 网关里配。Agent 选择启用的文本模型即可；按模型计费的能力仍需配置生效定价。"
     />
 
     <a-alert
@@ -17,11 +17,11 @@
       type="error"
       show-icon
       style="margin-bottom: 12px"
-      :message="`${driftCount} 条结构漂移：库里的绑定与冻结契约不一致。执行面开启时这会让应用起不来，需按提示把数据改回契约。`"
+      :message="`${driftCount} 条结构漂移：库里的绑定与冻结契约不一致，需按提示把数据改回契约。`"
     />
     <a-alert
       v-if="brokenCount"
-      :type="executionPlaneEnabled ? 'warning' : 'info'"
+      type="warning"
       show-icon
       style="margin-bottom: 12px"
       :message="brokenMessage"
@@ -94,6 +94,11 @@
               </div>
             </template>
             <span v-else class="muted">该策略不按模型计价</span>
+            <div v-if="roleEntries(record).length" class="role-list">
+              <div v-for="[role, group] in roleEntries(record)" :key="role" class="muted">
+                {{ role }} → <code>{{ group }}</code>
+              </div>
+            </div>
           </template>
 
           <template v-if="column.dataIndex === 'state'">
@@ -156,9 +161,9 @@
 
     <a-modal
       v-model:open="modalVisible"
-      title="配置能力与执行模型"
+      title="配置能力与模型"
       :confirm-loading="saving"
-      width="680px"
+      width="760px"
       @ok="handleSave"
     >
       <a-descriptions v-if="current" :column="1" size="small" bordered style="margin-bottom: 16px">
@@ -212,77 +217,71 @@
             「动作类型无效或已禁用」被拒。
           </div>
         </a-form-item>
-        <template v-if="!isAgent(current) && form.executionProfile">
-          <a-form-item label="执行配置">
-            <a-checkbox v-model:checked="editExecutionProfile">调整共享执行参数（高级）</a-checkbox>
+        <template v-if="!isAgent(current)">
+          <a-form-item label="工作流">
+            <code v-if="current?.workflowCode">{{ current.workflowCode }}</code>
+            <span v-else class="muted">未登记（由程序维护）</span>
+          </a-form-item>
+          <a-form-item label="模型角色">
+            <a-space direction="vertical" style="width: 100%">
+              <a-space v-for="row in form.roleRows" :key="row.id" style="width: 100%">
+                <a-input
+                  v-model:value="row.role"
+                  :disabled="row.declared"
+                  placeholder="角色"
+                  style="width: 150px"
+                />
+                <a-select
+                  v-model:value="row.group"
+                  :options="groupOptionsFor(row.operation)"
+                  :loading="groupsLoading"
+                  show-search
+                  allow-clear
+                  option-filter-prop="label"
+                  :placeholder="row.operation ? `选择模型组（${row.operation}）` : '选择模型组'"
+                  style="width: 300px"
+                />
+                <a-button v-if="!row.declared" danger @click="removeRoleRow(row.id)">移除</a-button>
+                <a-tag v-else-if="row.required" color="orange">必填</a-tag>
+              </a-space>
+              <a-button @click="addRoleRow">添加角色</a-button>
+            </a-space>
             <div class="muted">
-              默认使用数据库配置。仅在需要调整执行池或候选 provider
-              时展开；保存后两端读取同一份数据。
+              工作流每一步按角色取模型组；模型组的成员（哪些中转站、怎么切换）在「AI 网关 →
+              模型组」里配。 启用时服务端会向网关查就绪度，模型组不存在或无可用部署会拒绝启用。
             </div>
           </a-form-item>
-          <template v-if="editExecutionProfile">
-            <a-form-item label="目标选择方式">
-              <a-tag>{{ current?.executionTargetMode || '未登记' }}</a-tag>
-              <span class="muted">{{ targetModeHint }}</span>
-            </a-form-item>
-            <a-form-item v-if="needsPool" label="执行池" required>
-              <a-select
-                v-model:value="form.executionProfile.poolName"
-                :options="poolOptions"
-                placeholder="从执行面已装载的池中选择"
-                @change="form.executionProfile.providerKeys = []"
-              />
-            </a-form-item>
-            <a-form-item label="选择策略">
-              <a-select
-                v-model:value="form.executionProfile.selectionPolicy"
-                :options="selectionPolicyOptions"
-              />
-            </a-form-item>
-            <a-form-item v-if="needsProviders" label="候选 provider" required>
-              <a-space direction="vertical" style="width: 100%">
-                <a-space
-                  v-for="(_, index) in form.executionProfile.providerKeys"
-                  :key="index"
-                  style="width: 100%"
-                >
-                  <a-select
-                    v-model:value="form.executionProfile.providerKeys[index]"
-                    :options="providerOptions"
-                    style="width: 320px"
-                    :placeholder="`候选 ${index + 1}（按列表顺序）`"
-                  />
-                  <a-button danger @click="form.executionProfile.providerKeys.splice(index, 1)"
-                    >移除</a-button
-                  >
-                </a-space>
-                <a-button
-                  :disabled="needsPool && !form.executionProfile.poolName"
-                  @click="form.executionProfile.providerKeys.push('')"
-                  >添加候选</a-button
-                >
+          <a-form-item label="视频模型别名">
+            <a-space direction="vertical" style="width: 100%">
+              <a-space v-for="row in form.aliasRows" :key="row.id" style="width: 100%">
+                <a-input
+                  v-model:value="row.alias"
+                  placeholder="端上传的模型别名"
+                  style="width: 150px"
+                />
+                <a-select
+                  v-model:value="row.group"
+                  :options="groupOptionsFor('video.generate')"
+                  :loading="groupsLoading"
+                  show-search
+                  allow-clear
+                  option-filter-prop="label"
+                  placeholder="选择视频模型组"
+                  style="width: 300px"
+                />
+                <a-button danger @click="removeAliasRow(row.id)">移除</a-button>
               </a-space>
-            </a-form-item>
-            <a-form-item label="暂存策略">
-              <a-select
-                v-model:value="form.executionProfile.stagingProfile"
-                :options="stagingOptions"
-              />
-            </a-form-item>
-            <a-form-item label="执行超时">
-              <a-select
-                v-model:value="form.executionProfile.timeoutProfile"
-                :options="timeoutOptions"
-              />
-            </a-form-item>
-          </template>
+              <a-button @click="addAliasRow">添加别名</a-button>
+            </a-space>
+            <div class="muted">只有端上按别名选视频模型的能力需要；其余能力留空。</div>
+          </a-form-item>
         </template>
       </a-form>
 
       <a-alert
         type="info"
         show-icon
-        message="保存只更新共享配置，不改启用位；模型、计费和执行配置由服务端统一维护。配好后再点「启用」过自检。"
+        message="保存只更新配置，不改启用位。配好后再点「启用」过自检（含网关模型组就绪度）。"
       />
     </a-modal>
 
@@ -360,6 +359,11 @@ import { message } from 'antdv-next';
 import { computed, reactive, ref } from 'vue';
 
 import {
+  listModelGroupOptions,
+  toModelGroupSelectOptions,
+  type ModelGroupOption,
+} from '@/api/ai-gateway';
+import {
   configureCreaftBinding,
   disableCreaftBinding,
   enableCreaftBinding,
@@ -368,22 +372,11 @@ import {
   saveCreaftBindingPolicy,
   type CreaftBindingRow,
   type CreaftBindingState,
-  type CreaftExecutionOptions,
-  type CreaftExecutionProfile,
   type CreaftV1CapabilityRow,
 } from '@/api/creaft-compat';
 
 const rows = ref<CreaftBindingRow[]>([]);
 const v1Capabilities = ref<CreaftV1CapabilityRow[]>([]);
-const executionPlaneEnabled = ref(false);
-const executionOptions = ref<CreaftExecutionOptions>({
-  selectionPolicies: [],
-  stagingProfiles: [],
-  timeoutProfiles: [],
-  pools: {},
-  variantProviders: [],
-  textModels: [],
-});
 const loading = ref(false);
 const stateFilter = ref<'' | CreaftBindingState>('');
 const keyword = ref('');
@@ -414,10 +407,9 @@ const quoteReadyCount = computed(() => rows.value.filter((r) => r.quotePreviewRe
 const unreadyV1 = computed(() => v1Capabilities.value.filter((item) => !item.ready));
 
 /** 普通配置缺失只影响对应能力，不阻止整个 Java 服务启动。 */
-const brokenMessage = computed(() =>
-  executionPlaneEnabled.value
-    ? `${brokenCount.value} 条已启用能力缺少必要配置，暂不可用；不影响整个 Java 服务启动。请补齐模型、执行配置或定价，也可先停用这些能力。`
-    : `${brokenCount.value} 条已启用能力缺少必要配置。执行面当前未开启，请在使用这些能力前补齐模型、执行配置或定价；不影响整个 Java 服务启动。`,
+const brokenMessage = computed(
+  () =>
+    `${brokenCount.value} 条已启用能力缺少必要配置，暂不可用；不影响整个 Java 服务启动。请补齐模型、模型角色（网关模型组需已发布且有可用部署）或定价，也可先停用这些能力。`,
 );
 
 const filteredRows = computed(() => {
@@ -467,8 +459,6 @@ async function loadList() {
     const overview = await getCreaftBindings();
     rows.value = overview?.rows || [];
     v1Capabilities.value = overview?.protocolV1Capabilities || [];
-    executionPlaneEnabled.value = !!overview?.executionPlaneEnabled;
-    if (overview?.executionOptions) executionOptions.value = overview.executionOptions;
   } catch {
     /* 拦截器已提示 */
   } finally {
@@ -483,96 +473,104 @@ const saving = ref(false);
 const optionsLoading = ref(false);
 const current = ref<CreaftBindingRow | null>(null);
 const modelOptions = ref<{ label: string; value: number; disabled: boolean }[]>([]);
-const editExecutionProfile = ref(false);
-/**
- * 取值**集合**一律来自后端下发的执行清单，这里只放中文说明。
- *
- * 此前三张词表整份抄在这里，与后端校验、执行面的 profile_config.py、迁移的 CHECK 约束
- * 并列为第四份副本；池名和候选 provider 还是自由文本框，拼错要等到启动准入才有反馈。
- * 现在后端多一个取值这里自动出现（无中文说明就直接显示原值），少一个就自动消失。
- */
-const VOCABULARY_LABELS: Record<string, string> = {
-  FIXED_FIRST: '固定首个',
-  ORDERED_FIRST_AVAILABLE: '按顺序选择可用项',
-  ROUND_ROBIN: '轮询',
-  'none-v1': '无需暂存',
-  'verified-spool-v1': '校验后的暂存文件',
-  'private-url-15m-v1': '私有链接（15 分钟）',
-  'sync-60s-v1': '同步任务（60 秒）',
-  'image-150s-v1': '图片任务（150 秒）',
-  'media-600s-v1': '媒体任务（600 秒）',
-};
 
-function labelled(values: string[]) {
-  return values.map((value) => ({
-    label: VOCABULARY_LABELS[value] ? `${VOCABULARY_LABELS[value]}（${value}）` : value,
-    value,
-  }));
+// ---- 模型角色 / 视频别名（选项来自网关模型组） ----
+const modelGroups = ref<ModelGroupOption[]>([]);
+const groupsLoading = ref(false);
+
+async function loadModelGroups() {
+  if (modelGroups.value.length || groupsLoading.value) return;
+  groupsLoading.value = true;
+  try {
+    modelGroups.value = await listModelGroupOptions();
+  } catch {
+    message.warning('网关模型组加载失败，下拉为空；已配置的值照常保留');
+  } finally {
+    groupsLoading.value = false;
+  }
 }
 
-const selectionPolicyOptions = computed(() => labelled(executionOptions.value.selectionPolicies));
-const stagingOptions = computed(() => labelled(executionOptions.value.stagingProfiles));
-const timeoutOptions = computed(() => labelled(executionOptions.value.timeoutProfiles));
-const poolOptions = computed(() =>
-  Object.keys(executionOptions.value.pools).map((value) => ({ label: value, value })),
-);
+/** 已配的值即使网关里已不存在也要能显示出来，否则一保存就被清掉 */
+function groupOptionsFor(operation?: string | null) {
+  const options = toModelGroupSelectOptions(modelGroups.value, operation || undefined);
+  const known = new Set(options.map((o) => o.value));
+  const extra = [...form.roleRows.map((r) => r.group), ...form.aliasRows.map((r) => r.group)]
+    .filter((g): g is string => !!g && !known.has(g))
+    .filter((g, i, arr) => arr.indexOf(g) === i)
+    .filter((g) => !modelGroups.value.some((m) => m.code === g))
+    .map((g) => ({ label: `${g}（网关中不存在）`, value: g, disabled: false }));
+  return [...options, ...extra];
+}
 
-/**
- * 候选的可选集合。
- *
- * POOL 能力只能从所选池里挑（池外的 provider 执行面查不到，后端也会拒）；
- * SINGLE_PROVIDER 能力由后端按能力下发自己的集合（prompt-write 是已实现的文本模型）。
- */
-const providerOptions = computed(() => {
-  if (targetMode.value === 'SINGLE_PROVIDER') {
-    return (current.value?.executionTargetOptions || []).map((value) => ({ label: value, value }));
-  }
-  const pool = form.executionProfile?.poolName;
-  const members = pool ? executionOptions.value.pools[pool] : undefined;
-  return (members || []).map((value) => ({ label: value, value }));
-});
+function roleEntries(record: CreaftBindingRow) {
+  return Object.entries(record.modelRoles || {});
+}
 
-/** 执行目标怎么选。为空（执行面没实现这条能力）时按最保守的 POOL 渲染。 */
-const targetMode = computed(() => current.value?.executionTargetMode ?? null);
-const needsPool = computed(() => targetMode.value === 'POOL' || targetMode.value === null);
-const needsProviders = computed(
-  () =>
-    targetMode.value === 'POOL' ||
-    targetMode.value === 'SINGLE_PROVIDER' ||
-    targetMode.value === null,
-);
-const targetModeHint = computed(() => {
-  switch (targetMode.value) {
-    case 'POOL':
-      return '按池查 provider：先选池，再按顺序配候选。';
-    case 'VARIANT':
-      return '按请求里的模型别名区分执行目标，别名表由后端维护，这里不配池和候选。';
-    case 'SINGLE_PROVIDER':
-      return '固定一个 provider，不按池查找。';
-    case 'JAVA_MODEL':
-      return '执行目标由上面所选的模型派生，不需要配池和候选。';
-    case 'HANDLER_OWNED':
-      return 'provider 由执行面代码按操作类型自己挑，池和候选都不填。';
-    default:
-      return '执行面没有登记这条能力，保存可能被拒。';
+let rowSeq = 0;
+type RoleRow = {
+  id: number;
+  role: string;
+  group: string | undefined;
+  operation: string | null;
+  declared: boolean;
+  required: boolean;
+};
+type AliasRow = { id: number; alias: string; group: string | undefined };
+
+function buildRoleRows(record: CreaftBindingRow): RoleRow[] {
+  const roles = record.modelRoles || {};
+  const rows: RoleRow[] = (record.modelRoleSlots || []).map((slot) => ({
+    id: ++rowSeq,
+    role: slot.role,
+    group: roles[slot.role] || undefined,
+    operation: slot.operation || null,
+    declared: true,
+    required: !!slot.required,
+  }));
+  for (const [role, group] of Object.entries(roles)) {
+    if (!rows.some((r) => r.role === role)) {
+      rows.push({ id: ++rowSeq, role, group, operation: null, declared: false, required: false });
+    }
   }
-});
+  return rows;
+}
+
+function addRoleRow() {
+  form.roleRows.push({
+    id: ++rowSeq,
+    role: '',
+    group: undefined,
+    operation: null,
+    declared: false,
+    required: false,
+  });
+}
+function removeRoleRow(id: number) {
+  form.roleRows = form.roleRows.filter((r) => r.id !== id);
+}
+function addAliasRow() {
+  form.aliasRows.push({ id: ++rowSeq, alias: '', group: undefined });
+}
+function removeAliasRow(id: number) {
+  form.aliasRows = form.aliasRows.filter((r) => r.id !== id);
+}
+
 const form = reactive({
   modelId: undefined as number | undefined,
-  executionProfile: null as CreaftExecutionProfile | null,
+  roleRows: [] as RoleRow[],
+  aliasRows: [] as AliasRow[],
   billingFeatureCode: '',
   billingActionType: '',
 });
 
 /**
- * 执行目标由 Java 侧所选模型派生（当前只有 /agent/stream）。
+ * 执行模型取自所选 Java 模型（当前只有 /agent/stream）。
  *
- * 判据取自后端下发的 executionTargetMode，不是路由字面量：同一件事后端已经把 Java、
- * 执行面注册表里写死的那两处删成了清单查表，这里再留一个 `route === '/agent/stream'`
- * 就是第三份，而且是加一条新的模型派生能力时最容易忘的那份。
+ * 判据取自后端下发的 usesJavaModel，不是路由字面量：前端留一个 `route === '/agent/stream'`
+ * 就是又一份副本，而且是加一条新的模型派生能力时最容易忘的那份。
  */
 function isAgent(record: CreaftBindingRow | null) {
-  return record?.executionTargetMode === 'JAVA_MODEL';
+  return !!record?.usesJavaModel;
 }
 
 let configureRequest = 0;
@@ -583,10 +581,13 @@ async function openConfigure(record: CreaftBindingRow) {
   const requestId = ++configureRequest;
   modelOptions.value = [];
   form.modelId = record.modelId ?? undefined;
-  form.executionProfile = record.executionProfile
-    ? { ...record.executionProfile, providerKeys: [...record.executionProfile.providerKeys] }
-    : null;
-  editExecutionProfile.value = false;
+  form.roleRows = buildRoleRows(record);
+  form.aliasRows = Object.entries(record.videoModelAliases || {}).map(([alias, group]) => ({
+    id: ++rowSeq,
+    alias,
+    group,
+  }));
+  loadModelGroups();
   form.billingFeatureCode = record.billingFeatureCode || '';
   form.billingActionType = record.billingActionType || '';
   modalVisible.value = true;
@@ -625,39 +626,51 @@ async function handleSave() {
     message.warning('请选择模型');
     return;
   }
-  let executionProfile: CreaftExecutionProfile | undefined;
-  if (!isAgent(current.value) && editExecutionProfile.value && form.executionProfile) {
-    // 池与候选按目标选择方式取舍：此前这里无条件要求两者非空，而 VARIANT / HANDLER_OWNED
-    // 两类能力在后端恰恰必须**没有**它们——那 10 条能力从这个弹窗根本存不下去。
-    executionProfile = {
-      ...form.executionProfile,
-      poolName: needsPool.value ? (form.executionProfile.poolName || '').trim() || null : null,
-      providerKeys: needsProviders.value
-        ? form.executionProfile.providerKeys.map((key) => key.trim()).filter(Boolean)
-        : [],
-    };
-    if (needsPool.value && !executionProfile.poolName) {
-      message.warning('请选择执行池');
-      return;
+  let modelRoles: Record<string, string> | undefined;
+  let videoModelAliases: Record<string, string> | undefined;
+  if (!isAgent(current.value)) {
+    modelRoles = {};
+    for (const row of form.roleRows) {
+      const role = row.role.trim();
+      if (!role && !row.group) continue;
+      if (!role) {
+        message.warning('模型角色名不能为空');
+        return;
+      }
+      if (role in modelRoles) {
+        message.warning(`模型角色重复：${role}`);
+        return;
+      }
+      if (!row.group) {
+        if (row.required) {
+          message.warning(`必填角色未选模型组：${role}`);
+          return;
+        }
+        continue;
+      }
+      modelRoles[role] = row.group;
     }
-    if (needsProviders.value && !executionProfile.providerKeys.length) {
-      message.warning('请至少配置一个候选 provider');
-      return;
-    }
-    if (targetMode.value === 'SINGLE_PROVIDER' && executionProfile.providerKeys.length !== 1) {
-      message.warning('该能力必须恰好配置一个 provider');
-      return;
-    }
-    if (new Set(executionProfile.providerKeys).size !== executionProfile.providerKeys.length) {
-      message.warning('候选 provider 不能重复');
-      return;
+    videoModelAliases = {};
+    for (const row of form.aliasRows) {
+      const alias = row.alias.trim();
+      if (!alias && !row.group) continue;
+      if (!alias || !row.group) {
+        message.warning('视频模型别名与模型组须成对填写');
+        return;
+      }
+      if (alias in videoModelAliases) {
+        message.warning(`视频模型别名重复：${alias}`);
+        return;
+      }
+      videoModelAliases[alias] = row.group;
     }
   }
   saving.value = true;
   try {
     await configureCreaftBinding(current.value.bindingId, {
       modelId: form.modelId,
-      executionProfile,
+      modelRoles,
+      videoModelAliases,
       billingFeatureCode: form.billingFeatureCode.trim(),
       billingActionType: form.billingActionType.trim(),
     });
@@ -780,6 +793,9 @@ async function handleDisable(record: CreaftBindingRow) {
 .danger-text {
   color: #cf1322;
   font-size: 12px;
+}
+.role-list {
+  margin-top: 4px;
 }
 .route-code {
   padding: 2px 6px;

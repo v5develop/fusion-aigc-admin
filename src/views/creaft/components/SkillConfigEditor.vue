@@ -12,7 +12,11 @@
         <template v-else>
           <div class="shape-line">
             <span class="muted">形态</span>
-            <a-radio-group :value="shape" size="small" @change="(e: { target: { value: Shape } }) => changeShape(e.target.value)">
+            <a-radio-group
+              :value="shape"
+              size="small"
+              @change="(e: { target: { value: Shape } }) => changeShape(e.target.value)"
+            >
               <a-radio-button value="react">智能体技能</a-radio-button>
               <a-radio-button value="localLife">本地生活行业技能</a-radio-button>
               <a-radio-button value="overrides">仅提示词覆盖</a-radio-button>
@@ -22,7 +26,12 @@
 
           <!-- 智能体技能：三段提示词、标签、工具 -->
           <template v-if="shape === 'react'">
-            <div v-for="field in schema.promptFields" :id="`cfg-${field.key}`" :key="field.key" class="section">
+            <div
+              v-for="field in schema.promptFields"
+              :id="`cfg-${field.key}`"
+              :key="field.key"
+              class="section"
+            >
               <div class="section-title">
                 {{ field.label }} <code>{{ field.key }}</code>
                 <span class="muted">{{ field.description }}</span>
@@ -37,7 +46,13 @@
 
             <div id="cfg-tags" class="section">
               <div class="section-title">标签 <code>tags</code></div>
-              <a-select v-model:value="model.tags" mode="tags" style="width: 100%" placeholder="回车添加" @change="emitText" />
+              <a-select
+                v-model:value="model.tags"
+                mode="tags"
+                style="width: 100%"
+                placeholder="回车添加"
+                @change="emitText"
+              />
             </div>
 
             <div id="cfg-tools" class="section">
@@ -58,14 +73,20 @@
                 />
               </div>
               <div v-for="unknown in unknownTools" :key="unknown" class="muted warn">
-                未知工具 {{ unknown }}：服务端只认上面这几个，发布快照时会被拒。在「原文 JSON」里删掉它。
+                未知工具 {{ unknown }}：服务端只认上面这几个，发布快照时会被拒。在「原文
+                JSON」里删掉它。
               </div>
             </div>
           </template>
 
           <!-- 本地生活行业技能：按分段逐条编辑，标出受理时必需的缺段 -->
           <template v-if="shape === 'localLife'">
-            <div v-for="group in STAGE_GROUPS" :id="`cfg-stage-${group.key}`" :key="group.key" class="section">
+            <div
+              v-for="group in STAGE_GROUPS"
+              :id="`cfg-stage-${group.key}`"
+              :key="group.key"
+              class="section"
+            >
               <div class="section-title">
                 {{ group.label }}
                 <span class="muted">{{ group.hint }}</span>
@@ -84,16 +105,19 @@
                   :auto-size="{ minRows: 2, maxRows: 14 }"
                   spellcheck="false"
                   placeholder="留空 = 缺这一段：满足必需条件的提交会在受理时被拒（不扣点数）"
-                  @change="(e: Event) => setOverride(stage.key, (e.target as HTMLTextAreaElement).value)"
+                  @change="
+                    (e: Event) => setOverride(stage.key, (e.target as HTMLTextAreaElement).value)
+                  "
                 />
               </div>
             </div>
           </template>
 
-          <!-- 提示词覆盖：智能体技能按工具覆盖、仅覆盖形态、以及本地生活里执行面不读的旧分段 -->
+          <!-- 提示词覆盖：智能体技能按工具覆盖、仅覆盖形态、以及本地生活里工作流不读的旧分段 -->
           <div id="cfg-overrides" class="section">
             <div class="section-title">
-              {{ shape === 'localLife' ? '其他分段' : '提示词覆盖' }} <code>tool_prompt_overrides</code>
+              {{ shape === 'localLife' ? '其他分段' : '提示词覆盖' }}
+              <code>tool_prompt_overrides</code>
               <span class="muted">{{ OVERRIDE_HINTS[shape] }}</span>
             </div>
             <div v-for="(row, index) in freeOverrides" :key="`o${index}`" class="stage-card">
@@ -108,7 +132,9 @@
                 />
                 <span v-if="labelOf(row.key)" class="muted">{{ labelOf(row.key) }}</span>
                 <a-button type="text" size="small" danger @click="removeFree(index)">移除</a-button>
-                <span v-if="rowProblems[index]" class="problem">{{ rowProblems[index] }}（这一行不会保存）</span>
+                <span v-if="rowProblems[index]" class="problem"
+                  >{{ rowProblems[index] }}（这一行不会保存）</span
+                >
               </div>
               <a-textarea
                 v-model:value="row.value"
@@ -130,17 +156,19 @@
           class="json-area"
           @change="(e: Event) => emit('update:text', (e.target as HTMLTextAreaElement).value)"
         />
-        <div class="muted">必须是 JSON 对象。表单不认识的字段原样保留；切回可视化时会重新解析。</div>
+        <div class="muted">
+          必须是 JSON 对象。表单不认识的字段原样保留；切回可视化时会重新解析。
+        </div>
       </a-tab-pane>
     </a-tabs>
   </div>
 </template>
 
 <script setup lang="ts">
+import type { CreaftSkillConfigSchema } from '@/api/creaft-compat';
+
 import { message } from 'antdv-next';
 import { computed, reactive, ref, watch } from 'vue';
-
-import type { CreaftSkillConfigSchema } from '@/api/creaft-compat';
 
 import {
   buildConfig,
@@ -161,7 +189,11 @@ import {
  * 每次表单改动都立刻序列化回文本，所以父组件拿到的永远是当前内容，两个页签随时可切。
  * 解析与回写在 skillConfigModel.ts（纯函数，已用 41 条真实技能验证过原样往返）。
  */
-const props = defineProps<{ text: string; schema: CreaftSkillConfigSchema | null; skillCode: string }>();
+const props = defineProps<{
+  text: string;
+  schema: CreaftSkillConfigSchema | null;
+  skillCode: string;
+}>();
 const emit = defineEmits<{ 'update:text': [value: string] }>();
 
 type Shape = SkillShape;
@@ -172,7 +204,7 @@ const SHAPE_HINTS: Record<Shape, string> = {
 };
 const OVERRIDE_HINTS: Record<Shape, string> = {
   react: '按工具名覆盖该工具内部用的提示词（如视觉分析、商品分析）',
-  localLife: '上面没列出的键：当前执行面不读，多为 v1 旧版分段，保留不影响出图',
+  localLife: '上面没列出的键：当前工作流不读，多为 v1 旧版分段，保留不影响出图',
   overrides: '按键名覆盖提示词，键名由使用它的流程决定',
 };
 const STAGE_GROUPS = [

@@ -30,6 +30,10 @@ export interface CreationTask {
   params?: string;
   /** 执行方任务 ID：执行方返回的任务标识（本地 task_id / 豆包 arkId / wavespeed requestId / comet taskId）*/
   executionTaskId?: string;
+  /** 编排拓扑：PIPELINE / FAN_OUT / WORKFLOW …；WORKFLOW 由 Java 工作流驱动 */
+  orchestrationTopology?: string | null;
+  /** 工作流步骤（仅 WORKFLOW 任务；详情接口可直接带上，缺省时按需另取） */
+  workflowSteps?: WorkflowStep[] | null;
   status: TaskStatus;
   /** 屏蔽状态：0未屏蔽 1屏蔽(可取消) 2永久屏蔽(不可逆) */
   blockStatus?: number;
@@ -316,6 +320,34 @@ export interface PipelineStep {
 export interface PipelineStepsResponse {
   parentTask: PipelineParentTask;
   steps: PipelineStep[];
+}
+
+// ======================== Workflow Steps（Java 工作流，topology = WORKFLOW） ========================
+
+/**
+ * 工作流的一步（`afv_workflow_step`）。字段宽容读取：后端多给的字段原样忽略，少给的不渲染。
+ * `gatewayCallId` 指向 AI 网关的调用记录，详情页据此链到「AI 网关 → 调用检索」。
+ */
+export interface WorkflowStep {
+  stepPath: string;
+  status?: string | null;
+  operation?: string | null;
+  modelGroup?: string | null;
+  gatewayCallId?: string | null;
+  attempt?: number | null;
+  startedAt?: string | null;
+  finishedAt?: string | null;
+  errorMsg?: string | null;
+  [key: string]: unknown;
+}
+
+export function getWorkflowSteps(taskId: string) {
+  return request
+    .get<WorkflowStep[] | { steps?: WorkflowStep[] }>(
+      `/api/v1/admin/creation/tasks/${taskId}/workflow-steps`,
+      { silentError: true, noErrorRedirect: true } as AxiosRequestConfig,
+    )
+    .then((res) => (Array.isArray(res) ? res : res?.steps || []));
 }
 
 export function getPipelineSteps(taskId: string) {

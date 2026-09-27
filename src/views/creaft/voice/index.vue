@@ -2,14 +2,16 @@
   <div class="page-container">
     <div class="page-header">
       <h2 class="ph-title">Creaft 音色</h2>
-      <a-button v-permission="'creaft_catalog:edit'" type="primary" @click="openCreate">新增音色</a-button>
+      <a-button v-permission="'creaft_catalog:edit'" type="primary" @click="openCreate"
+        >新增音色</a-button
+      >
     </div>
 
     <a-alert
       type="info"
       show-icon
       style="margin-bottom: 12px"
-      message="被 GET /api/v1/voices/list 读：只下发启用的行，按权重降序。端侧提交视频翻译时把「模型」「音色键」原样作为 voice_model / voice_key 带上，服务端不回查本表——键填错不会在保存时报错，只会在执行时被供应商拒。"
+      message="被 GET /api/v1/voices/list 读：只下发启用的行，按权重降序。端侧提交视频翻译时把「模型」「音色键」原样作为 voice_model / voice_key 带上。「模型」是 AI 网关的 TTS 模型组（在「AI 网关 → 模型组」维护）；音色键不回查，填错只会在调用时被供应商拒。"
     />
 
     <a-alert
@@ -86,7 +88,12 @@
 
           <template v-if="column.key === 'operation'">
             <a-space :size="4">
-              <a-button v-permission="'creaft_catalog:edit'" type="link" size="small" @click="openEdit(record)">
+              <a-button
+                v-permission="'creaft_catalog:edit'"
+                type="link"
+                size="small"
+                @click="openEdit(record)"
+              >
                 编辑
               </a-button>
               <a-popconfirm
@@ -119,14 +126,27 @@
           <div class="muted">端侧提交时原样作为 voice_key，必须是供应商实际可用的音色。</div>
         </a-form-item>
         <a-form-item label="模型" required>
-          <a-auto-complete
+          <a-select
             v-model:value="form.model"
             :options="modelOptions"
-            placeholder="供应商的语音模型，如 qwen3-tts-flash"
+            :loading="groupsLoading"
+            show-search
+            option-filter-prop="label"
+            placeholder="选择 TTS 模型组，如 tts.qwen3-tts-flash"
           />
+          <div class="muted">
+            下拉来自 AI 网关里能做 tts.synthesize
+            的模型组；列表外的值是存量数据，保存前请改成网关里存在的组。
+          </div>
         </a-form-item>
         <a-form-item label="标签">
-          <a-select v-model:value="form.tags" :options="tagOptions" mode="tags" allow-clear placeholder="回车添加" />
+          <a-select
+            v-model:value="form.tags"
+            :options="tagOptions"
+            mode="tags"
+            allow-clear
+            placeholder="回车添加"
+          />
           <div class="muted">端侧按标签筛选时要求全部命中；单个标签里不能有英文逗号。</div>
         </a-form-item>
         <a-form-item label="权重 / 启用">
@@ -140,7 +160,10 @@
 
       <div class="upload-toggle">
         <a-checkbox v-model:checked="uploadEnabled">使用上传</a-checkbox>
-        <span class="muted">默认填地址（与 v1 一致：素材先放到 OSS，再把地址填进来）；勾选后每个地址旁出现上传按钮，文件进系统公有桶。</span>
+        <span class="muted"
+          >默认填地址（与 v1 一致：素材先放到
+          OSS，再把地址填进来）；勾选后每个地址旁出现上传按钮，文件进系统公有桶。</span
+        >
       </div>
       <a-tabs v-model:active-key="metaTab" @change="onMetaTabChange">
         <a-tab-pane key="visual" tab="试听（可视化）">
@@ -155,13 +178,21 @@
               style="width: 140px"
             />
             <a-input v-model:value="demo.url" placeholder="试听音频地址 https://…" />
-            <CatalogMediaUpload v-if="uploadEnabled" :accept="AUDIO_ACCEPT" @uploaded="(url) => (demo.url = url)" />
+            <CatalogMediaUpload
+              v-if="uploadEnabled"
+              :accept="AUDIO_ACCEPT"
+              @uploaded="(url) => (demo.url = url)"
+            />
             <a-button size="small" :disabled="!demo.url" @click="togglePlay(demo.url)">
               {{ playing === demo.url ? '停止' : '试听' }}
             </a-button>
-            <a-button type="text" danger size="small" @click="meta.demos.splice(index, 1)">移除</a-button>
+            <a-button type="text" danger size="small" @click="meta.demos.splice(index, 1)"
+              >移除</a-button
+            >
           </div>
-          <a-button type="dashed" size="small" @click="meta.demos.push(demoRow())">+ 添加试听</a-button>
+          <a-button type="dashed" size="small" @click="meta.demos.push(demoRow())"
+            >+ 添加试听</a-button
+          >
 
           <div class="section-title" style="margin-top: 16px">支持的语言</div>
           <a-space align="start">
@@ -179,7 +210,8 @@
         <a-tab-pane key="json" tab="原文 JSON">
           <a-textarea v-model:value="rawMeta" :rows="14" class="json-area" />
           <div class="muted">
-            下发为 meta。必须是 JSON 对象；可视化没有覆盖的字段在这里改，两边切换时互相同步，表单不认识的字段原样保留。
+            下发为 meta。必须是 JSON
+            对象；可视化没有覆盖的字段在这里改，两边切换时互相同步，表单不认识的字段原样保留。
           </div>
         </a-tab-pane>
       </a-tabs>
@@ -192,6 +224,11 @@ import { message } from 'antdv-next';
 import { computed, onBeforeUnmount, reactive, ref } from 'vue';
 
 import {
+  listModelGroupOptions,
+  toModelGroupSelectOptions,
+  type ModelGroupOption,
+} from '@/api/ai-gateway';
+import {
   createCreaftVoice,
   deleteCreaftVoice,
   getCreaftVoices,
@@ -200,14 +237,24 @@ import {
 } from '@/api/creaft-compat';
 
 import CatalogMediaUpload from '../components/CatalogMediaUpload.vue';
-
 import { demoRow, fromMeta, toMeta, validateMeta, type MetaModel } from './voiceMetaModel';
 
 /** 上传默认隐藏：v1 的素材都是填地址，上传只在需要时打开 */
 const uploadEnabled = ref(false);
 
 const AUDIO_ACCEPT = 'audio/wav,audio/x-wav,audio/mpeg,.wav,.mp3';
-const LOCALES = ['zh-CN', 'en-US', 'en-GB', 'ja-JP', 'ko-KR', 'de-DE', 'es-ES', 'fr-FR', 'it-IT', 'pt-PT'];
+const LOCALES = [
+  'zh-CN',
+  'en-US',
+  'en-GB',
+  'ja-JP',
+  'ko-KR',
+  'de-DE',
+  'es-ES',
+  'fr-FR',
+  'it-IT',
+  'pt-PT',
+];
 const localeOptions = LOCALES.map((l) => ({ label: l, value: l }));
 
 const columns = [
@@ -233,9 +280,29 @@ const loading = ref(false);
 const keyword = ref('');
 const statusFilter = ref<'' | 1 | 0>('');
 
-const modelOptions = computed(() =>
-  [...new Set(allRows.value.map((r) => r.model).filter(Boolean))].map((m) => ({ label: m, value: m })),
-);
+/** TTS 模型组来自网关；存量行里网关已不存在的值也列出来，编辑时不至于显示成空 */
+const ttsGroups = ref<ModelGroupOption[]>([]);
+const groupsLoading = ref(false);
+async function loadTtsGroups() {
+  groupsLoading.value = true;
+  try {
+    ttsGroups.value = await listModelGroupOptions();
+  } catch {
+    message.warning('网关模型组加载失败，模型下拉只含已有值');
+  } finally {
+    groupsLoading.value = false;
+  }
+}
+loadTtsGroups();
+
+const modelOptions = computed(() => {
+  const options = toModelGroupSelectOptions(ttsGroups.value, 'tts.synthesize');
+  const known = new Set(ttsGroups.value.map((g) => g.code));
+  const stale = [...new Set(allRows.value.map((r) => r.model).filter(Boolean))]
+    .filter((m) => !known.has(m))
+    .map((m) => ({ label: `${m}（网关中不存在）`, value: m, disabled: false }));
+  return [...options, ...stale];
+});
 const tagOptions = computed(() =>
   [...new Set(allRows.value.flatMap((r) => r.tags || []))].map((t) => ({ label: t, value: t })),
 );
@@ -344,7 +411,8 @@ function onMetaTabChange(key: string | number) {
   }
   try {
     const parsed = JSON.parse(rawMeta.value || '{}');
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('not object');
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed))
+      throw new Error('not object');
     Object.assign(meta, toMeta(parsed));
   } catch {
     message.warning('原文不是合法的 JSON 对象，先改好再切回可视化');
@@ -354,7 +422,14 @@ function onMetaTabChange(key: string | number) {
 
 function openCreate() {
   editId.value = null;
-  Object.assign(form, { voiceName: '', voiceKey: '', model: modelOptions.value[0]?.value || '', tags: [], weight: 10, status: 1 });
+  Object.assign(form, {
+    voiceName: '',
+    voiceKey: '',
+    model: modelOptions.value.find((o) => !o.disabled)?.value || '',
+    tags: [],
+    weight: 10,
+    status: 1,
+  });
   loadMeta({ demo: {}, locales: [] });
   metaTab.value = 'visual';
   modalVisible.value = true;

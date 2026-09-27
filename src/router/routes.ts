@@ -242,19 +242,6 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
-        // 外部执行面（exe_ 前缀）。与创作任务列表并排放在这里：它们是同一档「任务态数据」，
-        // 而此前只有创作任务有强制收口入口，外部执行卡在非终态时只能直连改库
-        path: 'external-executions',
-        name: 'ExternalExecutionList',
-        component: () => import('@/views/external-execution/index.vue'),
-        meta: {
-          title: 'menu.externalExecutionList',
-          icon: 'DeploymentUnitOutlined',
-          requiresAuth: true,
-          requiredPermissions: 'task:view',
-        },
-      },
-      {
         path: 'moderation-log',
         name: 'ModerationLogList',
         component: () => import('@/views/creation/moderation-log/index.vue'),
@@ -660,6 +647,135 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
           icon: 'ExperimentOutlined',
           requiresAuth: true,
           requiredPermissions: 'creaft_catalog:view',
+        },
+      },
+    ],
+  },
+  {
+    // AI 网关：供应商、账户、密钥、部署、模型组、价格、配置发布、运行态、调用与告警。
+    // 数据全在网关，Java 只做通用透传（/api/v1/admin/ai-gateway/** → 网关 /admin/v1/**），
+    // 表单由网关下发的 JSON Schema 渲染，网关加配置项这里不用改。
+    // 权限：ai_gateway:view 看；ai_gateway:config 改草稿/发布/回滚；ai_gateway:secret 写密钥；
+    // ai_gateway:runtime 强制动作与探测。
+    path: '/ai-gateway',
+    name: 'AiGateway',
+    redirect: '/ai-gateway/providers',
+    component: () => import('@/components/Layout/AdminLayout.vue'),
+    meta: {
+      title: 'menu.aiGatewayManagement',
+      icon: 'GatewayOutlined',
+      requiresAuth: true,
+      order: 57,
+    },
+    children: [
+      {
+        path: 'providers',
+        name: 'AiGatewayProviders',
+        component: () => import('@/views/ai-gateway/providers/index.vue'),
+        meta: {
+          title: 'menu.aiGatewayProviders',
+          icon: 'CloudServerOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'ai_gateway:view',
+        },
+      },
+      {
+        path: 'accounts',
+        name: 'AiGatewayAccounts',
+        component: () => import('@/views/ai-gateway/accounts/index.vue'),
+        meta: {
+          title: 'menu.aiGatewayAccounts',
+          icon: 'IdcardOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'ai_gateway:view',
+        },
+      },
+      {
+        path: 'secrets',
+        name: 'AiGatewaySecrets',
+        component: () => import('@/views/ai-gateway/secrets/index.vue'),
+        meta: {
+          title: 'menu.aiGatewaySecrets',
+          icon: 'KeyOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'ai_gateway:view',
+        },
+      },
+      {
+        path: 'deployments',
+        name: 'AiGatewayDeployments',
+        component: () => import('@/views/ai-gateway/deployments/index.vue'),
+        meta: {
+          title: 'menu.aiGatewayDeployments',
+          icon: 'ClusterOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'ai_gateway:view',
+        },
+      },
+      {
+        path: 'model-groups',
+        name: 'AiGatewayModelGroups',
+        component: () => import('@/views/ai-gateway/model-groups/index.vue'),
+        meta: {
+          title: 'menu.aiGatewayModelGroups',
+          icon: 'AppstoreAddOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'ai_gateway:view',
+        },
+      },
+      {
+        path: 'pricing',
+        name: 'AiGatewayPricing',
+        component: () => import('@/views/ai-gateway/pricing/index.vue'),
+        meta: {
+          title: 'menu.aiGatewayPricing',
+          icon: 'MoneyCollectOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'ai_gateway:view',
+        },
+      },
+      {
+        path: 'config-versions',
+        name: 'AiGatewayConfigVersions',
+        component: () => import('@/views/ai-gateway/config-versions/index.vue'),
+        meta: {
+          title: 'menu.aiGatewayConfigVersions',
+          icon: 'HistoryOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'ai_gateway:view',
+        },
+      },
+      {
+        path: 'runtime',
+        name: 'AiGatewayRuntime',
+        component: () => import('@/views/ai-gateway/runtime/index.vue'),
+        meta: {
+          title: 'menu.aiGatewayRuntime',
+          icon: 'DashboardOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'ai_gateway:view',
+        },
+      },
+      {
+        path: 'calls',
+        name: 'AiGatewayCalls',
+        component: () => import('@/views/ai-gateway/calls/index.vue'),
+        meta: {
+          title: 'menu.aiGatewayCalls',
+          icon: 'SearchOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'ai_gateway:view',
+        },
+      },
+      {
+        path: 'alerts',
+        name: 'AiGatewayAlerts',
+        component: () => import('@/views/ai-gateway/alerts/index.vue'),
+        meta: {
+          title: 'menu.aiGatewayAlerts',
+          icon: 'AlertOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'ai_gateway:view',
         },
       },
     ],

@@ -27,7 +27,36 @@ const RETRYABLE_STATUS = [408, 429, 500, 502, 503, 504];
  * - noRetry：不自动重传。大文件上传失败后自动重传只会把同一个文件再传两遍（每次都在桶里多留一个对象）；
  * - noErrorRedirect：出错只在原地提示、不跳 /403、/500。弹窗里正在编辑时一跳页，没保存的内容就全丢了。
  */
-type RequestFlags = { silentError?: boolean; noRetry?: boolean; noErrorRedirect?: boolean };
+type RequestFlags = {
+  silentError?: boolean;
+  noRetry?: boolean;
+  noErrorRedirect?: boolean;
+  /**
+   * 响应体不是 CommonResult 信封时原样返回（AI 网关管理透传：Java 把网关的状态码与 JSON 原样回给前端）。
+   * 若恰好是 `{code:number, data}` 信封，仍按信封处理。
+   */
+  rawBody?: boolean;
+};
+
+/**
+ * 从错误响应体里取可读原因。兼容两种形状：
+ * - Java CommonResult：`{code, msg}`；
+ * - AI 网关错误信封：`{error: {code, check, message}}`，带上判据 `check`，便于定位是哪条校验拒的。
+ */
+export function extractErrorMessage(data: unknown): string | undefined {
+  if (!data || typeof data !== 'object') return undefined;
+  const d = data as {
+    msg?: string;
+    message?: string;
+    error?: { code?: string; check?: string; message?: string };
+  };
+  if (d.error && typeof d.error === 'object') {
+    const { check, message: msg, code } = d.error;
+    const text = msg || code;
+    if (text) return check ? `${text}（${check}）` : text;
+  }
+  return d.msg || d.message || undefined;
+}
 const MAX_RETRY_COUNT = 2;
 const RETRY_DELAY_BASE = 500;
 
@@ -89,6 +118,12 @@ service.interceptors.response.use(
     }
 
     const res = response.data;
+
+    if ((response.config as AxiosRequestConfig & RequestFlags).rawBody) {
+      const enveloped =
+        res && typeof res === 'object' && typeof res.code === 'number' && 'data' in res;
+      if (!enveloped) return res;
+    }
 
     if (res.code !== undefined && res.code !== 0) {
       const { code } = res;
@@ -172,8 +207,7 @@ service.interceptors.response.use(
     if (!originalRequest || error.response?.status !== 401) {
       handleHttpError(error);
       // 透传后端业务 msg，避免上层 catch 只拿到 "Request failed with status code 400"
-      const data = error.response?.data as { msg?: string; message?: string } | undefined;
-      const backendMsg = data?.msg || data?.message;
+      const backendMsg = extractErrorMessage(error.response?.data);
       if (backendMsg) {
         return Promise.reject(new Error(backendMsg));
       }
@@ -250,11 +284,8 @@ function handleHttpError(error: AxiosError) {
   };
 
   if (error.response) {
-    const { status, data } = error.response as {
-      status: number;
-      data?: { msg?: string; message?: string };
-    };
-    const errorMsg = data?.msg || data?.message || getHttpErrorMessage(status);
+    const { status, data } = error.response as { status: number; data?: unknown };
+    const errorMsg = extractErrorMessage(data) || getHttpErrorMessage(status);
 
     if (silentError) {
       // 静默：仅对需要跳转的状态码做路由跳转，不弹 message

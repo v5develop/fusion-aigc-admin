@@ -128,6 +128,7 @@ const billingStatusMap: Record<string, string> = {
   CANCELLED: '已取消',
   SETTLEMENT_FAILED: '结算失败',
   PARTIALLY_REFUNDED: '部分退款',
+  // 执行交付复核已随执行面下线，不再产生新的「待审核」；标签只为显示历史行
   BILLING_PENDING_REVIEW: '待审核',
 };
 
@@ -192,10 +193,7 @@ const taskColumns = [
     dataIndex: 'billingStatus',
     search: true,
     searchType: 'select' as const,
-    searchOptions: [
-      { label: '结算失败', value: 'SETTLEMENT_FAILED' },
-      { label: '待审核', value: 'BILLING_PENDING_REVIEW' },
-    ],
+    searchOptions: [{ label: '结算失败', value: 'SETTLEMENT_FAILED' }],
     width: 140,
     align: 'center' as const,
   },
@@ -216,11 +214,6 @@ const taskColumns = [
     dataIndex: 'errorMsg',
     ellipsis: true,
     width: 200,
-  },
-  {
-    title: '审核原因',
-    dataIndex: 'reviewReason',
-    width: 180,
   },
   {
     title: '创建时间',

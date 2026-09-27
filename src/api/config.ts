@@ -9,7 +9,6 @@ import type {
   AgentModelProfile,
   AiWritingModel,
   BatchPlannerModel,
-  VisionModel,
 } from '@/types/api';
 
 import { request } from '@/utils/request';
@@ -130,16 +129,6 @@ export function getBatchPlannerModel() {
 /** 传空串/ null 即清除，回退配置文件默认值。 */
 export function saveBatchPlannerModel(modelCode: string | null) {
   return request.put<boolean>('/api/v1/admin/settings/batch-planner-model', { modelCode });
-}
-
-/** creaft v1 画布识别 / 视觉分析用的模型。DB > 配置文件。 */
-export function getVisionModel() {
-  return request.get<VisionModel>('/api/v1/admin/settings/vision-model');
-}
-
-/** 传空串 / null 即清除，回退配置文件默认值。 */
-export function saveVisionModel(modelCode: string | null) {
-  return request.put<boolean>('/api/v1/admin/settings/vision-model', { modelCode });
 }
 
 /**

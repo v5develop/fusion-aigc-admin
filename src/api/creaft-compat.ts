@@ -17,45 +17,15 @@ import { request } from '@/utils/request';
  */
 export type CreaftBindingState = 'READY' | 'DISABLED' | 'NOT_ASSEMBLABLE' | 'DRIFT';
 
-/** 两端共享数据库中的运营执行参数，处理器身份由程序维护。 */
-export interface CreaftExecutionProfile {
-  /** 只有 POOL 能力有池（按池查 provider）；其余能力自己挑 provider，这一列为 null */
-  poolName: string | null;
-  selectionPolicy: string;
-  providerKeys: string[];
-  stagingProfile: string;
-  timeoutProfile: string;
-}
-
 /**
- * 执行目标怎么选，决定该显示哪些执行配置字段。
- *
- * 由后端按执行清单下发。不要按路由名自己判断——同一件事后端已经从三处删掉了写死的判据，
- * 前端再留一个（比如 `route === '/agent/stream'`）就是第四份。
+ * 工作流声明的一个模型角色：工作流里某一步用哪个网关模型组，由运营在这里选。
+ * `operation` 用来过滤候选（例如 tts.synthesize 只列语音模型组）；后端没声明时不过滤。
  */
-export type CreaftExecutionTargetMode =
-  | 'POOL'
-  | 'VARIANT'
-  | 'SINGLE_PROVIDER'
-  | 'JAVA_MODEL'
-  | 'HANDLER_OWNED';
-
-/**
- * 编辑执行配置时的可选值，与后端提交期校验同源（执行清单）。
- *
- * 此前这三张词表抄在本文件的常量数组里、池名与 provider 是自由文本框。那是第四份副本，
- * 也是唯一一份运营看得见的：抄漏一个值，运营只能在保存被拒之后才知道；provider 拼错
- * 一个字母更是要等到启动准入才有反馈。
- */
-export interface CreaftExecutionOptions {
-  selectionPolicies: string[];
-  stagingProfiles: string[];
-  timeoutProfiles: string[];
-  /** 池名 -> 池里的 provider。POOL 能力的候选只能从所选池里挑 */
-  pools: Record<string, string[]>;
-  /** 视频别名能用的 provider */
-  variantProviders: string[];
-  textModels: string[];
+export interface CreaftModelRoleSlot {
+  role: string;
+  operation?: string | null;
+  label?: string | null;
+  required?: boolean | null;
 }
 
 export interface CreaftBindingRow {
@@ -80,11 +50,16 @@ export interface CreaftBindingRow {
   modelId: number | null;
   /** 由 modelId 关联模型派生，仅用于展示。 */
   modelCode: string | null;
-  executionProfile: CreaftExecutionProfile | null;
-  /** 为空表示执行面没有实现这条能力 */
-  executionTargetMode: CreaftExecutionTargetMode | null;
-  /** SINGLE_PROVIDER 能力能选哪些 provider；其余方式为空（候选由所选池决定） */
-  executionTargetOptions: string[];
+  /** 这条能力由哪个 Java 工作流执行（只读，程序维护） */
+  workflowCode?: string | null;
+  /** 模型角色 → 网关模型组编码（`model_roles` 列） */
+  modelRoles?: Record<string, string> | null;
+  /** 端上传的视频模型别名 → 网关模型组编码（`video_model_aliases` 列） */
+  videoModelAliases?: Record<string, string> | null;
+  /** 工作流声明的角色；为空时按 modelRoles 已有的键展示 */
+  modelRoleSlots?: CreaftModelRoleSlot[] | null;
+  /** 执行模型取自上面所选的 Java 模型（/agent/stream），不走模型角色 */
+  usesJavaModel?: boolean | null;
   billingFeatureCode: string | null;
   billingActionType: string | null;
   enabled: boolean | null;
@@ -122,7 +97,8 @@ export interface CreaftModelOption {
 
 export interface CreaftBindingConfigureData {
   modelId?: number;
-  executionProfile?: CreaftExecutionProfile;
+  modelRoles?: Record<string, string>;
+  videoModelAliases?: Record<string, string>;
   billingFeatureCode?: string;
   billingActionType?: string;
 }
@@ -147,12 +123,6 @@ export interface CreaftV1CapabilityRow {
 }
 
 export interface CreaftBindingOverview {
-  /**
-   * 执行面（app.internal-execution.enabled）是否开启。
-   * 用于区分当前执行配置是否投入使用；普通配置缺失不阻止服务启动。
-   */
-  executionPlaneEnabled: boolean;
-  executionOptions: CreaftExecutionOptions;
   rows: CreaftBindingRow[];
   /**
    * v1 线协议能力（当前只有 media.cutout / 抠图）。
@@ -369,7 +339,9 @@ export function getCreaftWorkflowTemplates(params?: {
   keyword?: string;
   enabled?: number;
 }) {
-  return request.get<CreaftWorkflowTemplateRow[]>('/api/v1/admin/creaft/workflow-templates', { params });
+  return request.get<CreaftWorkflowTemplateRow[]>('/api/v1/admin/creaft/workflow-templates', {
+    params,
+  });
 }
 
 export function createCreaftWorkflowTemplate(data: CreaftWorkflowTemplateSaveData) {
@@ -388,8 +360,8 @@ export function deleteCreaftWorkflowTemplate(id: number) {
 /**
  * creaft v1 音色（`GET /api/v1/voices/list` 的数据源，表 `afv_compat_voice`）。
  *
- * 端侧提交视频翻译时把 model / voiceKey 原样作为 voice_model / voice_key 带上，
- * Java 与执行方都不回查本表：键填错不会在保存时报错，只会在执行时被供应商拒。
+ * 端侧提交视频翻译时把 model / voiceKey 原样作为 voice_model / voice_key 带上。
+ * `model` 是网关的 TTS 模型组编码（下拉来自网关），音色键不回查：填错只会在调用时被供应商拒。
  */
 export interface CreaftVoiceRow {
   /** 即端侧回包里的 voiceId */
@@ -513,7 +485,12 @@ export interface CreaftSkillConfigSchema {
   promptFields: { key: string; label: string; description: string }[];
   tools: { key: string; label: string; description: string }[];
   /** group：PIPELINE 出图流水线 / TEMPLATE AI 生成模板；requiredWhen：受理时在什么条件下要求非空 */
-  localLifeStages: { key: string; label: string; group: 'PIPELINE' | 'TEMPLATE'; requiredWhen: string }[];
+  localLifeStages: {
+    key: string;
+    label: string;
+    group: 'PIPELINE' | 'TEMPLATE';
+    requiredWhen: string;
+  }[];
   localLifeSkillCodes: string[];
 }
 

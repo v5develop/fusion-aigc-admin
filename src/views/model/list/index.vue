@@ -78,6 +78,18 @@
             allow-clear
           />
         </a-form-item>
+        <a-form-item :label="$t('model.gatewayModelGroup')">
+          <a-select
+            v-model:value="formData.gatewayModelGroup"
+            :options="gatewayGroupOptions"
+            :loading="gatewayGroupsLoading"
+            :placeholder="$t('model.gatewayModelGroupPlaceholder')"
+            show-search
+            option-filter-prop="label"
+            allow-clear
+          />
+          <div class="form-hint">{{ $t('model.gatewayModelGroupHint') }}</div>
+        </a-form-item>
         <a-form-item :label="$t('model.status')">
           <a-switch
             v-model:checked="formData.statusChecked"
@@ -125,9 +137,14 @@ import type { AIModel, AiProvider } from '@/types/api';
 
 import { PlusOutlined } from '@antdv-next/icons';
 import { message, Modal } from 'antdv-next';
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import {
+  listModelGroupOptions,
+  toModelGroupSelectOptions,
+  type ModelGroupOption,
+} from '@/api/ai-gateway';
 import { getAiProviderList } from '@/api/config';
 import { getModelList, createModel, updateModel, deleteModel } from '@/api/model';
 import ProTable from '@/components/Pro/ProTable/index.vue';
@@ -180,6 +197,12 @@ const columns = [
     width: 120,
   },
   {
+    title: t('model.gatewayModelGroup'),
+    dataIndex: 'gatewayModelGroup',
+    width: 180,
+    ellipsis: true,
+  },
+  {
     title: t('model.status'),
     dataIndex: 'status',
     search: true,
@@ -224,6 +247,43 @@ const formData = reactive({
   supportVision: false,
   supportReasoning: false,
   enableSearch: false,
+  gatewayModelGroup: undefined as string | undefined,
+});
+
+/** 模型类型 → 网关规范操作；只列能做该操作的模型组 */
+const OPERATIONS_BY_MODEL_TYPE: Record<number, string[]> = {
+  1: ['chat.completion'],
+  2: ['image.generate', 'image.edit'],
+  3: ['video.generate'],
+  4: ['tts.synthesize'],
+  5: ['asr.transcribe'],
+};
+
+const gatewayGroups = ref<ModelGroupOption[]>([]);
+const gatewayGroupsLoading = ref(false);
+
+async function loadGatewayGroups() {
+  gatewayGroupsLoading.value = true;
+  try {
+    gatewayGroups.value = await listModelGroupOptions();
+  } catch {
+    gatewayGroups.value = [];
+  } finally {
+    gatewayGroupsLoading.value = false;
+  }
+}
+
+const gatewayGroupOptions = computed(() => {
+  const options = toModelGroupSelectOptions(
+    gatewayGroups.value,
+    OPERATIONS_BY_MODEL_TYPE[formData.modelType],
+  );
+  const current = formData.gatewayModelGroup;
+  // 已配的值即使网关里已没有也要显示，否则一保存就被静默清掉
+  if (current && !options.some((o) => o.value === current)) {
+    options.push({ label: current, value: current, disabled: false });
+  }
+  return options;
 });
 
 // 保存编辑前的 config JSON 其它键（temperature/top_p 等），提交时只覆盖 enableSearch，不丢失
@@ -294,6 +354,7 @@ function handleCreate() {
   formData.supportVision = false;
   formData.supportReasoning = false;
   formData.enableSearch = false;
+  formData.gatewayModelGroup = undefined;
   configExtras = {};
   modalVisible.value = true;
 }
@@ -311,6 +372,7 @@ function handleEdit(record: AIModel) {
   formData.generationTimeoutSeconds = record.generationTimeoutSeconds ?? undefined;
   formData.supportVision = record.supportVision ?? false;
   formData.supportReasoning = record.supportReasoning ?? false;
+  formData.gatewayModelGroup = record.gatewayModelGroup || undefined;
   configExtras = parseConfig(record.config);
   formData.enableSearch = configExtras.enableSearch === true || configExtras.enable_search === true;
   modalVisible.value = true;
@@ -340,6 +402,8 @@ async function handleSubmit() {
       supportVision: formData.supportVision,
       supportReasoning: formData.supportReasoning,
       config: buildConfig(),
+      // 显式传 null 表示「不走网关」，与「没传这个字段」区分开
+      gatewayModelGroup: formData.gatewayModelGroup || null,
     };
 
     if (isEdit.value && editId.value) {
@@ -371,5 +435,6 @@ function handleDelete(record: AIModel) {
 
 onMounted(() => {
   loadApiConfigs();
+  loadGatewayGroups();
 });
 </script>
