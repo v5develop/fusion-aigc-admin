@@ -28,10 +28,10 @@
         <a-form-item :label="$t('aiGateway.deployment')">
           <a-input v-model:value="filters.deployment" allow-clear style="width: 190px" />
         </a-form-item>
-        <a-form-item label="execution_ref">
+        <a-form-item :label="fieldLabel('execution_ref')">
           <a-input v-model:value="filters.execution_ref" allow-clear style="width: 220px" />
         </a-form-item>
-        <a-form-item label="idempotency_key">
+        <a-form-item :label="fieldLabel('idempotency_key')">
           <a-input v-model:value="filters.idempotency_key" allow-clear style="width: 260px" />
         </a-form-item>
         <a-form-item :label="$t('aiGateway.moneyAtRisk')">
@@ -73,11 +73,16 @@
             >
           </template>
           <template v-if="column.dataIndex === 'status'">
-            <a-tag :color="statusColor(record.status)">{{ record.status }}</a-tag>
+            <a-tag :color="statusColor(record.status)" :title="record.status">{{
+              enumShort(record.status)
+            }}</a-tag>
             <a-tag v-if="record.money_at_risk" color="red">{{ $t('aiGateway.moneyAtRisk') }}</a-tag>
           </template>
           <template v-if="column.dataIndex === 'idempotency_key'">
             <code class="wrap">{{ record.idempotency_key }}</code>
+          </template>
+          <template v-if="column.dataIndex === 'operation'">
+            <span :title="record.operation">{{ enumShort(record.operation) }}</span>
           </template>
           <template v-if="column.dataIndex === 'labels'">
             <a-tag v-for="(v, k) in record.labels || {}" :key="k">{{ k }}={{ v }}</a-tag>
@@ -97,11 +102,11 @@
     <a-drawer v-model:open="detailOpen" :title="detailId" width="880">
       <a-spin :spinning="detailLoading">
         <template v-if="detail">
-          <h4>record</h4>
+          <h4>{{ formText('detailRecord') }}</h4>
           <pre class="json-viewer">{{ pretty(detail.record) }}</pre>
-          <h4>request</h4>
+          <h4>{{ formText('detailRequest') }}</h4>
           <pre class="json-viewer">{{ pretty(detail.request) }}</pre>
-          <h4>events</h4>
+          <h4>{{ formText('detailEvents') }}</h4>
           <a-timeline v-if="detail.events && detail.events.length">
             <a-timeline-item v-for="(ev, i) in detail.events" :key="i">
               <pre class="json-viewer small">{{ pretty(ev) }}</pre>
@@ -115,7 +120,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
@@ -129,6 +134,8 @@ import {
   type CallSummary,
 } from '@/api/ai-gateway';
 
+import { enumLabel, enumShort, fieldLabel, formText } from '../components/gatewayI18n';
+
 /**
  * 网关调用检索。任务详情里的「网关调用」链接带 `?callId=` 进来，直接打开详情抽屉；
  * 也可带 `idempotency_key` / `execution_ref` 预填筛选。
@@ -136,12 +143,12 @@ import {
 const { t } = useI18n();
 const route = useRoute();
 
-const statusOptions = CALL_STATUSES.map((s) => ({ label: s, value: s }));
-const operationOptions = OPERATIONS.map((s) => ({ label: s, value: s }));
-const moneyOptions = [
+const statusOptions = computed(() => CALL_STATUSES.map((s) => ({ label: enumLabel(s), value: s })));
+const operationOptions = computed(() => OPERATIONS.map((s) => ({ label: enumLabel(s), value: s })));
+const moneyOptions = computed(() => [
   { label: t('common.yes'), value: 'true' },
   { label: t('common.no'), value: 'false' },
-];
+]);
 
 const filters = reactive({
   status: undefined as string | undefined,
@@ -226,19 +233,19 @@ function statusColor(s: string) {
   return 'blue';
 }
 
-const columns = [
-  { title: 'call_id', dataIndex: 'id', width: 230, fixed: 'left' as const },
+const columns = computed(() => [
+  { title: fieldLabel('call_id'), dataIndex: 'id', width: 230, fixed: 'left' as const },
   { title: t('aiGateway.status'), dataIndex: 'status', width: 190 },
   { title: t('aiGateway.operation'), dataIndex: 'operation', width: 150 },
   { title: t('aiGateway.modelGroup'), dataIndex: 'model_group', width: 180 },
   { title: t('aiGateway.lastDeployment'), dataIndex: 'last_deployment', width: 180 },
   { title: t('aiGateway.attempts'), dataIndex: 'attempt_count', width: 80 },
   { title: t('aiGateway.costCny'), dataIndex: 'cost_amount_cny', width: 100 },
-  { title: 'idempotency_key', dataIndex: 'idempotency_key', width: 260 },
-  { title: 'labels', dataIndex: 'labels', width: 260 },
+  { title: fieldLabel('idempotency_key'), dataIndex: 'idempotency_key', width: 260 },
+  { title: fieldLabel('labels'), dataIndex: 'labels', width: 260 },
   { title: t('aiGateway.createdAt'), dataIndex: 'created_at', width: 190 },
   { title: t('aiGateway.completedAt'), dataIndex: 'completed_at', width: 190 },
-];
+]);
 
 // ---- 详情 ----
 const detailOpen = ref(false);

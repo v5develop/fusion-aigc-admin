@@ -1,3 +1,5 @@
+import aiGatewayDictZhCN from './ai-gateway/zh-CN';
+
 export default {
   common: {
     appName: 'Fusion AIGC',
@@ -177,6 +179,7 @@ export default {
     settingsUserLevel: '经验等级',
     settingsCheckIn: '每日签到',
     settingsNotification: '站内通知',
+    settingsRuntime: '运行参数',
     templateManagement: '模板管理',
     templateList: '模板列表',
     templateCreate: '创建模板',
@@ -3768,14 +3771,6 @@ export default {
     aiWritingModelLabel: 'AI 帮写专用模型',
     aiWritingModelSelectHint:
       '仅可选择已启用的文本对话模型；清空表示不单独配置、回退默认档位路由。带图帮写时若所选模型不支持视觉，会自动回退视觉档。',
-    batchPlannerModel: '批量托管规划模型',
-    batchPlannerModelHint:
-      'creaft v1 批量托管在出图之前要先跑两步：卖点分析、视觉规划，把一段商品描述变成逐张分镜提示词。这里配的就是这两步用的模型。取值口径是「数据库 > 配置文件」：清空即回退配置文件的兜底值，不是关闭功能。模型取不到时该图种整组标失败，但不扣点数（计费排在规划之后）。',
-    batchPlannerModelLabel: '规划模型',
-    batchPlannerModelPlaceholder: '选择支持视觉的文本对话模型',
-    batchPlannerModelSelectHint:
-      '只列支持视觉的模型：卖点分析一定要读参考图，选看不了图的模型会让每个图种都失败。清空表示回退配置文件的兜底值。',
-    batchPlannerModelFromFile: '当前用的是配置文件兜底值（{code}），尚未落库',
     saveSuccess: '系统参数保存成功',
   },
 
@@ -3879,6 +3874,7 @@ export default {
   },
 
   aiGateway: {
+    ...aiGatewayDictZhCN,
     create: '新建',
     refreshed: '已刷新',
     keywordPlaceholder: '按编码 / 任意字段过滤',
@@ -3901,6 +3897,17 @@ export default {
     secretConfirmDelete: '删除后使用该密钥的部署会立即鉴权失败，确认删除？',
     secretName: '名称',
     secretNameHint: '小写字母、数字、下划线，1–64 位，与适配器参数里引用的名称一致',
+    secretSearch: '搜索变量名 / 账户',
+    secretOnlyMissing: '只看未录',
+    secretWriteOther: '写入其他密钥',
+    secretChecklistHint:
+      '待补清单：在用供应商还缺 {missing} 把密钥（共 {total} 个密钥位）。逐行点「录入」填值即可，其余配置已就绪。',
+    secretEnv: '对应变量',
+    secretStatus: '状态',
+    secretSet: '已录',
+    secretMissing: '未录（该供应商暂不可用）',
+    secretOptional: '未录（供应商已停用，可不填）',
+    secretSharedBy: '另有 {n} 个账户共用这把密钥',
     secretValue: '值',
     secretValueRequired: '请填写密钥值',
     secretSaved: '已保存，指纹 {fingerprint}',
@@ -5099,5 +5106,36 @@ export default {
     fri: '周五',
     sat: '周六',
     sun: '周日',
+  },
+  runtimeSettings: {
+    title: '运行参数',
+    refresh: '刷新',
+    alertTitle: '运行参数说明',
+    alertPriority: '数据库值优先于配置文件：数据库里有值就用数据库的，没有才用配置文件默认值。',
+    alertPropagation: '修改后所有实例数秒内生效，无需重启。',
+    alertValidation: '保存前会校验：模型组须在 AI 网关已就绪、模型须存在；校验不通过不会保存。',
+    colLabel: '参数',
+    colEffective: '当前生效值',
+    colSource: '来源',
+    colFileValue: '配置文件默认',
+    colUpdatedAt: '更新时间',
+    sourceDb: '数据库覆盖',
+    sourceFile: '配置文件',
+    ungrouped: '未分组',
+    empty: '（空）',
+    on: '开启',
+    off: '关闭',
+    edit: '修改',
+    reset: '恢复默认',
+    resetConfirm: '确定删除数据库覆盖值、恢复为配置文件默认值吗？',
+    editTitle: '修改：{label}',
+    newValue: '新值',
+    modelGroupPlaceholder: '选择或输入 AI 网关模型组编码',
+    modelCodePlaceholder: '选择模型',
+    fileDefaultHint: '配置文件默认：{value}',
+    blankHint: '留空保存即恢复配置文件默认值。',
+    saveSuccess: '已保存，所有实例数秒内生效',
+    resetSuccess: '已恢复配置文件默认值',
+    goToRuntime: '前往运行参数',
   },
 };

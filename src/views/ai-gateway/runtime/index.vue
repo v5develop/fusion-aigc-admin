@@ -40,9 +40,16 @@
             <code>{{ record.deployment_code }}</code>
           </template>
           <template v-if="column.dataIndex === 'circuit'">
-            <a-tag :color="circuitColor(record.circuit)">{{ record.circuit }}</a-tag>
-            <a-tag v-if="record.forced && record.forced !== 'none'" color="purple">
-              {{ record.forced }}{{ record.forced_until ? ` → ${record.forced_until}` : '' }}
+            <a-tag :color="circuitColor(record.circuit)" :title="record.circuit">{{
+              enumShort(record.circuit)
+            }}</a-tag>
+            <a-tag
+              v-if="record.forced && record.forced !== 'none'"
+              color="purple"
+              :title="record.forced"
+            >
+              {{ enumShort(record.forced)
+              }}{{ record.forced_until ? ` → ${record.forced_until}` : '' }}
             </a-tag>
           </template>
           <template v-if="column.dataIndex === 'failure_ewma'">
@@ -54,9 +61,15 @@
             }}
           </template>
           <template v-if="column.dataIndex === 'gates'">
-            <div v-if="record.cooldown_until">cooldown → {{ record.cooldown_until }}</div>
-            <div v-if="record.rate_limited_until">429 → {{ record.rate_limited_until }}</div>
-            <div v-if="record.probe_failed_until">probe → {{ record.probe_failed_until }}</div>
+            <div v-if="record.cooldown_until">
+              {{ formText('gateCooldown') }} → {{ record.cooldown_until }}
+            </div>
+            <div v-if="record.rate_limited_until">
+              {{ formText('gateRateLimited') }}（429）→ {{ record.rate_limited_until }}
+            </div>
+            <div v-if="record.probe_failed_until">
+              {{ formText('gateProbe') }} → {{ record.probe_failed_until }}
+            </div>
             <span
               v-if="
                 !record.cooldown_until && !record.rate_limited_until && !record.probe_failed_until
@@ -65,7 +78,9 @@
             >
           </template>
           <template v-if="column.dataIndex === 'last_outcome'">
-            <a-tag v-if="record.last_outcome">{{ record.last_outcome }}</a-tag>
+            <a-tag v-if="record.last_outcome" :title="record.last_outcome">{{
+              enumShort(record.last_outcome)
+            }}</a-tag>
             <div v-if="record.last_error" class="muted reason">{{ record.last_error }}</div>
           </template>
           <template v-if="column.key === 'operation'">
@@ -84,10 +99,10 @@
                   <a-menu
                     @click="(e: { key: string }) => handleProbe(record.deployment_code, e.key)"
                   >
-                    <a-menu-item key="auth">auth</a-menu-item>
-                    <a-menu-item key="balance">balance</a-menu-item>
+                    <a-menu-item key="auth">{{ enumLabel('auth') }}</a-menu-item>
+                    <a-menu-item key="balance">{{ enumLabel('balance') }}</a-menu-item>
                     <a-menu-item key="minimal_call"
-                      >minimal_call（{{ $t('aiGateway.billable') }}）</a-menu-item
+                      >{{ enumLabel('minimal_call') }} · {{ $t('aiGateway.billable') }}</a-menu-item
                     >
                   </a-menu>
                 </template>
@@ -143,7 +158,7 @@
 
     <a-modal
       v-model:open="forceOpen"
-      :title="`${$t('aiGateway.force')} · ${forceTarget.kind} ${forceTarget.code}`"
+      :title="`${$t('aiGateway.force')} · ${$t(`aiGateway.${forceTarget.kind}`)} ${forceTarget.code}`"
       :confirm-loading="forcing"
       @ok="handleForce"
     >
@@ -186,6 +201,8 @@ import {
   type DeploymentRuntime,
   type RuntimeSnapshot,
 } from '@/api/ai-gateway';
+
+import { enumLabel, enumShort, formText } from '../components/gatewayI18n';
 
 /**
  * 运行态：每个部署的熔断、失败率、容量、冷却，每个账户的并发、余额、排除状态。
@@ -244,7 +261,7 @@ function circuitColor(c: string) {
   return 'red';
 }
 
-const deploymentColumns = [
+const deploymentColumns = computed(() => [
   {
     title: t('aiGateway.deployment'),
     dataIndex: 'deployment_code',
@@ -259,15 +276,15 @@ const deploymentColumns = [
   { title: t('aiGateway.lastOutcome'), dataIndex: 'last_outcome', width: 260 },
   { title: t('aiGateway.updatedAt'), dataIndex: 'updated_at', width: 190 },
   { title: t('common.action'), key: 'operation', width: 140, fixed: 'right' as const },
-];
+]);
 
-const accountColumns = [
+const accountColumns = computed(() => [
   { title: t('aiGateway.account'), dataIndex: 'account_code', width: 240 },
   { title: t('aiGateway.running'), dataIndex: 'running', width: 120 },
   { title: t('aiGateway.balance'), dataIndex: 'balance', width: 220 },
   { title: t('aiGateway.excluded'), dataIndex: 'excluded_until', width: 280 },
   { title: t('common.action'), key: 'operation', width: 100 },
-];
+]);
 
 // ---- 强制动作 ----
 const forceOpen = ref(false);
@@ -326,9 +343,10 @@ function handleProbe(code: string, kind: string) {
     const hide = message.loading(t('aiGateway.probing'), 0);
     try {
       const r = await probeDeployment(code, kind as 'auth' | 'balance' | 'minimal_call');
-      const detail = [r?.outcome_class, r?.check, r?.message].filter(Boolean).join(' · ');
-      if (r?.ok) message.success(`${code} OK ${r.latency_ms ?? '-'}ms ${detail}`);
-      else message.error(`${code} ${detail || 'FAILED'}`);
+      const outcome = r?.outcome_class ? enumLabel(r.outcome_class) : '';
+      const detail = [outcome, r?.check, r?.message].filter(Boolean).join(' · ');
+      if (r?.ok) message.success(`${code} ${enumShort('ok')} ${r.latency_ms ?? '-'}ms ${detail}`);
+      else message.error(`${code} ${detail || formText('probeFailed')}`);
       load();
     } catch {
       /* 拦截器已提示 */

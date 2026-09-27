@@ -28,7 +28,7 @@
           {{ $t('aiGateway.publish') }}
         </a-button>
         <span v-if="validation" class="muted">
-          draft_revision = {{ validation.draft_revision }}
+          {{ fieldLabel('draft_revision') }} = {{ validation.draft_revision }}
         </span>
       </a-space>
 
@@ -53,10 +53,15 @@
         >
           <template #bodyCell="{ column, record }">
             <template v-if="column.dataIndex === 'level'">
-              <a-tag :color="record.level === 'error' ? 'red' : 'orange'">{{ record.level }}</a-tag>
+              <a-tag :color="record.level === 'error' ? 'red' : 'orange'">{{
+                enumShort(record.level)
+              }}</a-tag>
             </template>
-            <template v-if="column.dataIndex === 'path' || column.dataIndex === 'check'">
-              <code>{{ record[column.dataIndex] }}</code>
+            <template v-if="column.dataIndex === 'path'">
+              <code>{{ record.path }}</code>
+            </template>
+            <template v-if="column.dataIndex === 'check'">
+              <span :title="record.check">{{ checkLabel(record.check) }}</span>
             </template>
           </template>
         </a-table>
@@ -143,6 +148,8 @@ import {
   type ConfigVersion,
 } from '@/api/ai-gateway';
 
+import { checkLabel, enumShort, fieldLabel } from '../components/gatewayI18n';
+
 /**
  * 草稿 → 校验 → 发布 → 回滚。
  *
@@ -163,12 +170,12 @@ const issues = computed<IssueRow[]>(() => [
   ...warnings.value.map((i) => ({ level: 'warning' as const, ...i })),
 ]);
 
-const issueColumns = [
+const issueColumns = computed(() => [
   { title: t('aiGateway.level'), dataIndex: 'level', width: 90 },
   { title: t('aiGateway.path'), dataIndex: 'path', width: 320 },
   { title: t('aiGateway.check'), dataIndex: 'check', width: 200 },
   { title: t('aiGateway.message'), dataIndex: 'message' },
-];
+]);
 
 async function handleValidate() {
   validating.value = true;
@@ -183,15 +190,15 @@ async function handleValidate() {
 
 const versions = ref<ConfigVersion[]>([]);
 const versionsLoading = ref(false);
-const versionColumns = [
+const versionColumns = computed(() => [
   { title: t('aiGateway.version'), dataIndex: 'version', width: 140 },
-  { title: 'sha256', dataIndex: 'sha256', width: 140 },
+  { title: fieldLabel('sha256'), dataIndex: 'sha256', width: 140 },
   { title: t('aiGateway.publishedAt'), dataIndex: 'published_at', width: 200 },
   { title: t('aiGateway.publishedBy'), dataIndex: 'published_by', width: 140 },
   { title: t('aiGateway.comment'), dataIndex: 'comment', ellipsis: true },
   { title: t('aiGateway.rolledBackFrom'), dataIndex: 'rolled_back_from', width: 120 },
   { title: t('common.action'), key: 'operation', width: 120 },
-];
+]);
 
 async function loadVersions() {
   versionsLoading.value = true;

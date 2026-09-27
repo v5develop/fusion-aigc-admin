@@ -69,6 +69,9 @@
           <template v-else-if="column.dataIndex === codeField">
             <code class="code-chip">{{ record[codeField] }}</code>
           </template>
+          <template v-else-if="enumColumns.has(column.dataIndex as string)">
+            {{ enumCell(record[column.dataIndex as string]) }}
+          </template>
           <template v-else>
             {{ displayValue(record[column.dataIndex as string]) }}
           </template>
@@ -137,10 +140,12 @@ import {
   type GatewayResource,
 } from '@/api/ai-gateway';
 
+import { enumShort, fieldLabel } from './gatewayI18n';
 import {
   ADAPTER_PARAMS_FLAG,
   buildDefault,
   displayValue,
+  fieldKind,
   listColumnsOf,
   normalize,
   propertiesOf,
@@ -183,13 +188,34 @@ const refCollections = ref<Record<string, GatewayResource[]>>({});
 
 const pageTitle = computed(() => props.title || indexTitle.value || props.resource);
 
+/** 列表里取值为枚举（或枚举数组）的列：单元格显示译文 */
+const enumColumns = computed(() => {
+  const out = new Set<string>();
+  if (!schema.value) return out;
+  const root = schema.value;
+  for (const [key, sub] of propertiesOf(normalize(root, root).schema)) {
+    const kind = fieldKind(normalize(sub, root).schema, root);
+    if (kind === 'enum' || kind === 'enum-list') out.add(key);
+  }
+  return out;
+});
+
+function enumCell(v: unknown) {
+  if (Array.isArray(v)) return v.length ? v.map(enumShort).join(', ') : '-';
+  return v === undefined || v === null || v === '' ? '-' : enumShort(v);
+}
+
 const columns = computed(() => {
-  const cols = schema.value
-    ? listColumnsOf(normalize(schema.value, schema.value).schema, schema.value)
-    : [props.codeField];
+  const root = schema.value;
+  const top = root ? normalize(root, root).schema : null;
+  const cols = root && top ? listColumnsOf(top, root) : [props.codeField];
+  const propSchemas = Object.fromEntries(top ? propertiesOf(top) : []);
   return [
     ...cols.map((key, i) => ({
-      title: key,
+      title: fieldLabel(
+        key,
+        root ? normalize(propSchemas[key] || {}, root).schema.title : undefined,
+      ),
       dataIndex: key,
       width: i === 0 ? 220 : 160,
       ellipsis: true,

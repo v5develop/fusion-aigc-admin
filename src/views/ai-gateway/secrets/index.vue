@@ -3,63 +3,76 @@
     <div class="page-header">
       <h2 class="ph-title">{{ $t('menu.aiGatewaySecrets') }}</h2>
       <a-space>
-        <a-select
-          v-model:value="account"
-          :options="accountOptions"
-          show-search
-          option-filter-prop="label"
-          :placeholder="$t('aiGateway.selectAccount')"
-          style="width: 300px"
-          @change="loadSecrets"
+        <a-input-search
+          v-model:value="keyword"
+          :placeholder="$t('aiGateway.secretSearch')"
+          allow-clear
+          style="width: 260px"
         />
-        <a-button :loading="loading" :disabled="!account" @click="loadSecrets">
-          {{ $t('common.refresh') }}
-        </a-button>
-        <a-button
-          v-permission="'ai_gateway:secret'"
-          type="primary"
-          :disabled="!account"
-          @click="openWrite()"
-        >
-          {{ $t('aiGateway.secretWrite') }}
+        <a-checkbox v-model:checked="onlyMissing">{{
+          $t('aiGateway.secretOnlyMissing')
+        }}</a-checkbox>
+        <a-button :loading="loading" @click="load">{{ $t('common.refresh') }}</a-button>
+        <a-button v-permission="'ai_gateway:secret'" @click="openWrite()">
+          {{ $t('aiGateway.secretWriteOther') }}
         </a-button>
       </a-space>
     </div>
-
-    <a-alert
-      type="warning"
-      show-icon
-      style="margin-bottom: 12px"
-      :message="$t('aiGateway.secretHint')"
-    />
-
+    <a-alert type="info" show-icon style="margin-bottom: 12px">
+      <template #message>
+        {{ $t('aiGateway.secretChecklistHint', { missing: missingCount, total: slots.length }) }}
+      </template>
+      <template #description>{{ $t('aiGateway.secretHint') }}</template>
+    </a-alert>
     <a-card variant="borderless">
       <a-table
         :columns="columns"
-        :data-source="secrets"
+        :data-source="visibleSlots"
         :loading="loading"
         :pagination="false"
-        row-key="name"
+        :row-key="(r: Slot) => `${r.account}/${r.name}`"
         size="middle"
       >
         <template #bodyCell="{ column, record }">
-          <template v-if="column.dataIndex === 'fingerprint'">
-            <code>{{ record.fingerprint }}</code>
+          <template v-if="column.key === 'env'">
+            <code v-if="record.env">{{ record.env }}</code>
+            <span v-else class="muted">-</span>
           </template>
-          <template v-if="column.key === 'operation'">
+          <template v-else-if="column.key === 'account'">
+            <div>{{ record.displayName || record.account }}</div>
+            <div class="muted">
+              {{ record.account }}
+              <template v-if="record.sharedBy">
+                · {{ $t('aiGateway.secretSharedBy', { n: record.sharedBy }) }}
+              </template>
+            </div>
+          </template>
+          <template v-else-if="column.key === 'status'">
+            <a-tag v-if="record.fingerprint" color="green">
+              {{ $t('aiGateway.secretSet') }} <code>{{ record.fingerprint }}</code>
+            </a-tag>
+            <a-tag v-else-if="record.enabled" color="red">{{
+              $t('aiGateway.secretMissing')
+            }}</a-tag>
+            <a-tag v-else>{{ $t('aiGateway.secretOptional') }}</a-tag>
+          </template>
+          <template v-else-if="column.key === 'operation'">
             <a-space :size="4">
               <a-button
                 v-permission="'ai_gateway:secret'"
                 type="link"
                 size="small"
-                @click="openWrite(record.name)"
+                @click="openWrite(record)"
               >
-                {{ $t('aiGateway.secretRotate') }}
+                {{
+                  record.fingerprint ? $t('aiGateway.secretRotate') : $t('aiGateway.secretWrite')
+                }}
               </a-button>
               <a-popconfirm
+                v-if="record.fingerprint"
                 v-permission="'ai_gateway:secret'"
                 :title="$t('aiGateway.secretConfirmDelete')"
-                @confirm="handleDelete(record.name)"
+                @confirm="handleDelete(record)"
               >
                 <a-button type="link" size="small" danger>{{ $t('common.delete') }}</a-button>
               </a-popconfirm>
@@ -77,12 +90,20 @@
       @ok="handleWrite"
     >
       <a-form layout="vertical">
-        <a-form-item :label="$t('aiGateway.secretName')" required>
-          <a-input
-            v-model:value="writeForm.name"
-            :disabled="writeNameLocked"
-            placeholder="api_key"
+        <a-form-item v-if="writeForm.env" :label="$t('aiGateway.secretEnv')">
+          <code>{{ writeForm.env }}</code>
+        </a-form-item>
+        <a-form-item :label="$t('aiGateway.selectAccount')" required>
+          <a-select
+            v-model:value="writeForm.account"
+            :options="accountOptions"
+            :disabled="writeLocked"
+            show-search
+            option-filter-prop="label"
           />
+        </a-form-item>
+        <a-form-item :label="$t('aiGateway.secretName')" required>
+          <a-input v-model:value="writeForm.name" :disabled="writeLocked" placeholder="api_key" />
           <div class="muted">{{ $t('aiGateway.secretNameHint') }}</div>
         </a-form-item>
         <a-form-item :label="$t('aiGateway.secretValue')" required>
@@ -101,26 +122,82 @@ import { useRoute } from 'vue-router';
 
 import {
   deleteSecret,
+  listAllSecrets,
   listResources,
-  listSecrets,
   putSecret,
   type GatewayResource,
   type SecretInfo,
 } from '@/api/ai-gateway';
 
 /**
- * 供应商密钥：只写。网关只回指纹（明文 SHA-256 前 16 位）与主密钥 id，页面也不在任何地方留明文——
- * 写入后立刻清空输入框。密钥不进配置快照，写入即生效，不用发布。
+ * 供应商密钥「待补清单」：每个账户声明的每个密钥位一行（账户的 secret_names），
+ * 标出对应的旧环境变量（账户 labels 的 secret_env.<名称>，种子 SQL 写入）与是否已录。
+ * 沿用别的账户密钥的账户（secrets_from）不单独列行，只在持有账户上显示「另有 N 个账户共用」。
+ *
+ * 密钥只写：网关只回指纹（明文 SHA-256 前 16 位），页面不在任何地方留明文——写入后立刻清空输入框。
+ * 密钥不进配置快照，写入即生效，不用发布。
  */
+
+interface Slot {
+  account: string;
+  displayName: string;
+  name: string;
+  env: string;
+  enabled: boolean;
+  sharedBy: number;
+  fingerprint: string;
+}
+
 const { t } = useI18n();
 const route = useRoute();
 
 const accounts = ref<GatewayResource[]>([]);
-const account = ref<string | undefined>(
-  typeof route.query.account === 'string' ? route.query.account : undefined,
-);
 const secrets = ref<SecretInfo[]>([]);
 const loading = ref(false);
+const keyword = ref(typeof route.query.account === 'string' ? route.query.account : '');
+const onlyMissing = ref(false);
+
+const slots = computed<Slot[]>(() => {
+  const fp = new Map(secrets.value.map((s) => [`${s.account_code}/${s.name}`, s.fingerprint]));
+  const shared = new Map<string, number>();
+  for (const a of accounts.value) {
+    const from = a.secrets_from as string | undefined;
+    if (from) shared.set(from, (shared.get(from) || 0) + 1);
+  }
+  const out: Slot[] = [];
+  for (const a of accounts.value) {
+    if (a.secrets_from) continue;
+    const code = String(a.code);
+    const labels = (a.labels as Record<string, string> | undefined) || {};
+    for (const name of (a.secret_names as string[] | undefined) || []) {
+      out.push({
+        account: code,
+        displayName: String(a.display_name || ''),
+        name,
+        env: labels[`secret_env.${name}`] || '',
+        enabled: a.enabled !== false,
+        sharedBy: shared.get(code) || 0,
+        fingerprint: fp.get(`${code}/${name}`) || '',
+      });
+    }
+  }
+  // 缺的在前（启用的缺 → 停用的缺 → 已录），同组内按变量名
+  const rank = (s: Slot) => (s.fingerprint ? 2 : s.enabled ? 0 : 1);
+  return out.sort(
+    (x, y) => rank(x) - rank(y) || (x.env || x.account).localeCompare(y.env || y.account),
+  );
+});
+
+const missingCount = computed(() => slots.value.filter((s) => !s.fingerprint && s.enabled).length);
+
+const visibleSlots = computed(() => {
+  const kw = keyword.value.trim().toLowerCase();
+  return slots.value.filter(
+    (s) =>
+      (!onlyMissing.value || !s.fingerprint) &&
+      (!kw || [s.env, s.account, s.displayName, s.name].some((v) => v.toLowerCase().includes(kw))),
+  );
+});
 
 const accountOptions = computed(() =>
   accounts.value.map((a) => ({
@@ -130,46 +207,49 @@ const accountOptions = computed(() =>
 );
 
 const columns = [
-  { title: t('aiGateway.secretName'), dataIndex: 'name', width: 200 },
-  { title: t('aiGateway.fingerprint'), dataIndex: 'fingerprint', width: 200 },
-  { title: 'master_key_id', dataIndex: 'master_key_id', width: 160 },
-  { title: t('aiGateway.updatedAt'), dataIndex: 'updated_at', width: 200 },
-  { title: t('aiGateway.updatedBy'), dataIndex: 'updated_by', width: 140 },
-  { title: t('common.action'), key: 'operation', width: 160 },
+  { title: t('aiGateway.secretEnv'), key: 'env', width: 240 },
+  { title: t('aiGateway.account'), key: 'account' },
+  { title: t('aiGateway.secretName'), dataIndex: 'name', width: 160 },
+  { title: t('aiGateway.secretStatus'), key: 'status', width: 240 },
+  { title: t('common.action'), key: 'operation', width: 140 },
 ];
 
-async function loadSecrets() {
-  if (!account.value) return;
+async function load() {
   loading.value = true;
   try {
-    secrets.value = await listSecrets(account.value);
-  } catch {
-    secrets.value = [];
+    const [acc, sec] = await Promise.all([
+      listResources('/accounts').catch(() => []),
+      listAllSecrets().catch(() => []),
+    ]);
+    accounts.value = acc;
+    secrets.value = sec;
   } finally {
     loading.value = false;
   }
 }
 
-onMounted(async () => {
-  accounts.value = await listResources('/accounts').catch(() => []);
-  loadSecrets();
-});
+onMounted(load);
 
 const writeOpen = ref(false);
 const saving = ref(false);
-const writeNameLocked = ref(false);
-const writeForm = reactive({ name: '', value: '' });
+const writeLocked = ref(false);
+const writeForm = reactive({ account: '', name: '', env: '', value: '' });
 
-function openWrite(name?: string) {
-  writeForm.name = name || '';
+function openWrite(slot?: Slot) {
+  writeForm.account = slot?.account || '';
+  writeForm.name = slot?.name || '';
+  writeForm.env = slot?.env || '';
   writeForm.value = '';
-  writeNameLocked.value = !!name;
+  writeLocked.value = !!slot;
   writeOpen.value = true;
 }
 
 async function handleWrite() {
-  if (!account.value) return;
   const name = writeForm.name.trim();
+  if (!writeForm.account) {
+    message.warning(t('aiGateway.selectAccount'));
+    return;
+  }
   if (!/^[a-z0-9_]{1,64}$/.test(name)) {
     message.warning(t('aiGateway.secretNameHint'));
     return;
@@ -180,10 +260,10 @@ async function handleWrite() {
   }
   saving.value = true;
   try {
-    const info = await putSecret(account.value, name, writeForm.value);
+    const info = await putSecret(writeForm.account, name, writeForm.value);
     message.success(t('aiGateway.secretSaved', { fingerprint: info?.fingerprint || '-' }));
     writeOpen.value = false;
-    loadSecrets();
+    load();
   } catch {
     /* 拦截器已提示 */
   } finally {
@@ -192,12 +272,11 @@ async function handleWrite() {
   }
 }
 
-async function handleDelete(name: string) {
-  if (!account.value) return;
+async function handleDelete(slot: Slot) {
   try {
-    await deleteSecret(account.value, name);
+    await deleteSecret(slot.account, slot.name);
     message.success(t('common.deleteSuccess'));
-    loadSecrets();
+    load();
   } catch {
     /* 拦截器已提示 */
   }

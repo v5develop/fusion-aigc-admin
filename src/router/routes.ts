@@ -1210,6 +1210,18 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
+        // 运行参数：DB > 配置文件的运行时可调参数，权限码独立（runtime_settings:view/update）
+        path: 'runtime',
+        name: 'SettingsRuntime',
+        component: () => import('@/views/settings/runtime/index.vue'),
+        meta: {
+          title: 'menu.settingsRuntime',
+          icon: 'ControlOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'runtime_settings:view',
+        },
+      },
+      {
         path: 'user-level',
         name: 'SettingsUserLevel',
         component: () => import('@/views/settings/user-level/index.vue'),

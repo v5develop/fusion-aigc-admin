@@ -5,6 +5,8 @@
  * 只认 schema 的结构；认不出的形状一律退回 JSON 编辑框，而不是丢掉。
  */
 
+import { fieldLabel, formText } from './gatewayI18n';
+
 export type Schema = Record<string, unknown>;
 
 export type FieldKind =
@@ -120,8 +122,9 @@ export function fieldKind(schema: Schema, root: Schema): FieldKind {
   return 'json';
 }
 
+/** 字段标签：词典 → schema title → 字段名 */
 export function titleOf(schema: Schema, key: string) {
-  return (typeof schema.title === 'string' && schema.title) || key;
+  return fieldLabel(key, schema.title);
 }
 
 export function propertiesOf(schema: Schema): [string, Schema][] {
@@ -196,7 +199,7 @@ export function validate(
   if (value === undefined) return errors;
   if (value === null) {
     if (!nullable && schema.type !== 'null' && fieldKind(schema, root) !== 'json') {
-      errors.push({ path: at, message: '不能为空' });
+      errors.push({ path: at, message: formText('notNull') });
     }
     return errors;
   }
@@ -204,25 +207,26 @@ export function validate(
     return adapterParams ? validate(adapterParams, value, adapterParams, path) : errors;
   }
   if (Array.isArray(schema.enum) && !schema.enum.includes(value)) {
-    errors.push({ path: at, message: `取值须为 ${schema.enum.join(' / ')}` });
+    errors.push({ path: at, message: formText('enumOnly', { values: schema.enum.join(' / ') }) });
   }
   const t = schema.type;
   if ((t === 'integer' || t === 'number') && typeof value === 'number') {
-    if (t === 'integer' && !Number.isInteger(value)) errors.push({ path: at, message: '须为整数' });
+    if (t === 'integer' && !Number.isInteger(value))
+      errors.push({ path: at, message: formText('integerOnly') });
     if (typeof schema.minimum === 'number' && value < schema.minimum)
-      errors.push({ path: at, message: `不能小于 ${schema.minimum}` });
+      errors.push({ path: at, message: formText('min', { min: schema.minimum }) });
     if (typeof schema.maximum === 'number' && value > schema.maximum)
-      errors.push({ path: at, message: `不能大于 ${schema.maximum}` });
+      errors.push({ path: at, message: formText('max', { max: schema.maximum }) });
   }
   if (t === 'string' && typeof value === 'string') {
     if (typeof schema.minLength === 'number' && value.length < schema.minLength)
-      errors.push({ path: at, message: `至少 ${schema.minLength} 个字符` });
+      errors.push({ path: at, message: formText('minLength', { n: schema.minLength }) });
     if (typeof schema.maxLength === 'number' && value.length > schema.maxLength)
-      errors.push({ path: at, message: `最多 ${schema.maxLength} 个字符` });
+      errors.push({ path: at, message: formText('maxLength', { n: schema.maxLength }) });
     if (typeof schema.pattern === 'string') {
       try {
         if (!new RegExp(schema.pattern, 'u').test(value))
-          errors.push({ path: at, message: `格式不符（${schema.pattern}）` });
+          errors.push({ path: at, message: formText('pattern', { pattern: schema.pattern }) });
       } catch {
         /* 前端不支持的正则方言交给网关判 */
       }
@@ -230,7 +234,7 @@ export function validate(
   }
   if (t === 'array' && Array.isArray(value)) {
     if (typeof schema.minItems === 'number' && value.length < schema.minItems)
-      errors.push({ path: at, message: `至少 ${schema.minItems} 项` });
+      errors.push({ path: at, message: formText('minItems', { n: schema.minItems }) });
     if (isObj(schema.items)) {
       value.forEach((item, i) =>
         errors.push(...validate(schema.items as Schema, item, root, `${path}/${i}`)),
@@ -241,7 +245,7 @@ export function validate(
     const obj = value as Record<string, unknown>;
     for (const key of requiredOf(schema)) {
       if (obj[key] === undefined || obj[key] === '') {
-        errors.push({ path: `${path}/${key}`, message: '必填' });
+        errors.push({ path: `${path}/${key}`, message: formText('required') });
       }
     }
     for (const [key, s] of propertiesOf(schema)) {

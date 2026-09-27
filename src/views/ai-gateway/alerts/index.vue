@@ -27,10 +27,17 @@
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.dataIndex === 'severity'">
-            <a-tag :color="severityColor(record.severity)">{{ record.severity }}</a-tag>
+            <a-tag :color="severityColor(record.severity)" :title="record.severity">{{
+              enumShort(record.severity)
+            }}</a-tag>
           </template>
           <template v-if="column.dataIndex === 'status'">
-            <a-tag :color="record.status === 'firing' ? 'red' : 'green'">{{ record.status }}</a-tag>
+            <a-tag :color="record.status === 'firing' ? 'red' : 'green'" :title="record.status">{{
+              enumShort(record.status)
+            }}</a-tag>
+          </template>
+          <template v-if="column.dataIndex === 'type'">
+            <span :title="record.type">{{ enumLabel(record.type) }}</span>
           </template>
           <template v-if="column.dataIndex === 'scope'">
             <code>{{ record.scope }}</code>
@@ -50,20 +57,22 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { listAlerts, type GatewayAlert } from '@/api/ai-gateway';
+
+import { enumLabel, enumShort, fieldLabel } from '../components/gatewayI18n';
 
 /** 网关告警只暴露状态与事件；通知渠道由监控栈（Prometheus / Alertmanager）负责，不在这里配 */
 const { t } = useI18n();
 
 const status = ref<string>('firing');
-const statusOptions = [
+const statusOptions = computed(() => [
   { label: t('aiGateway.alertFiring'), value: 'firing' },
   { label: t('aiGateway.alertResolved'), value: 'resolved' },
   { label: t('aiGateway.all'), value: '' },
-];
+]);
 
 const rows = ref<GatewayAlert[]>([]);
 const loading = ref(false);
@@ -105,8 +114,8 @@ function severityColor(s: string) {
   return 'blue';
 }
 
-const columns = [
-  { title: 'id', dataIndex: 'id', width: 80 },
+const columns = computed(() => [
+  { title: fieldLabel('id'), dataIndex: 'id', width: 80 },
   { title: t('aiGateway.alertType'), dataIndex: 'type', width: 180 },
   { title: t('aiGateway.scope'), dataIndex: 'scope', width: 240 },
   { title: t('aiGateway.severity'), dataIndex: 'severity', width: 100 },
@@ -116,7 +125,7 @@ const columns = [
   { title: t('aiGateway.firstAt'), dataIndex: 'first_at', width: 190 },
   { title: t('aiGateway.lastAt'), dataIndex: 'last_at', width: 190 },
   { title: t('aiGateway.resolvedAt'), dataIndex: 'resolved_at', width: 190 },
-];
+]);
 
 onMounted(search);
 </script>

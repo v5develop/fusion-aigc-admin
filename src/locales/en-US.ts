@@ -1,3 +1,5 @@
+import aiGatewayDictEnUS from './ai-gateway/en-US';
+
 export default {
   common: {
     appName: 'Fusion AIGC',
@@ -173,6 +175,11 @@ export default {
     settingsUserLevel: 'Experience Levels',
     settingsCheckIn: 'Daily Check-in',
     settingsNotification: 'Notifications',
+    settingsRuntime: 'Runtime Settings',
+    templateManagement: 'Template Management',
+    templateList: 'Template List',
+    templateCreate: 'Create Template',
+    templateEdit: 'Edit Template',
     templateAssetManagement: 'Template Asset Management',
     templateAssetParent: 'Assets',
     templateAssetList: 'Template Asset List',
@@ -3759,15 +3766,6 @@ export default {
     aiWritingModelLabel: 'AI Writing dedicated model',
     aiWritingModelSelectHint:
       'Only enabled text chat models can be selected; leave empty to skip the dedicated config and fall back to default routing. When writing with images, a non-vision model automatically falls back to the vision profile.',
-    batchPlannerModel: 'Batch Hosting Planner Model',
-    batchPlannerModelHint:
-      'creaft v1 batch hosting runs two steps before generating: selling-point analysis and visual planning, turning one product description into a distinct prompt per image. This sets the model for those two steps. Resolution order is database over config file: clearing it falls back to the config-file default rather than disabling the feature. When the model cannot be resolved, that image type fails as a group but no points are charged (billing happens after planning).',
-    batchPlannerModelLabel: 'Planner model',
-    batchPlannerModelPlaceholder: 'Select a vision-capable text chat model',
-    batchPlannerModelSelectHint:
-      'Only vision-capable models are listed: selling-point analysis always reads the reference images, so a non-vision model makes every image type fail. Leave empty to fall back to the config-file default.',
-    batchPlannerModelFromFile:
-      'Currently using the config-file default ({code}); not yet stored in the database',
     saveSuccess: 'System parameters saved successfully',
   },
 
@@ -3874,6 +3872,7 @@ export default {
   },
 
   aiGateway: {
+    ...aiGatewayDictEnUS,
     create: 'New',
     refreshed: 'Refreshed',
     keywordPlaceholder: 'Filter by code / any field',
@@ -3897,6 +3896,17 @@ export default {
     secretName: 'Name',
     secretNameHint:
       'Lowercase letters, digits and underscores, 1–64 chars; must match the name referenced by adapter params',
+    secretSearch: 'Search variable / account',
+    secretOnlyMissing: 'Missing only',
+    secretWriteOther: 'Write another secret',
+    secretChecklistHint:
+      'Checklist: {missing} secret(s) missing for enabled providers ({total} slots in total). Click "Write" on each row; everything else is already configured.',
+    secretEnv: 'Variable',
+    secretStatus: 'Status',
+    secretSet: 'Set',
+    secretMissing: 'Missing (provider unusable)',
+    secretOptional: 'Missing (provider disabled, optional)',
+    secretSharedBy: 'shared by {n} more account(s)',
     secretValue: 'Value',
     secretValueRequired: 'Enter the secret value',
     secretSaved: 'Saved, fingerprint {fingerprint}',
@@ -5114,5 +5124,38 @@ export default {
     fri: 'Fri',
     sat: 'Sat',
     sun: 'Sun',
+  },
+  runtimeSettings: {
+    title: 'Runtime Settings',
+    refresh: 'Refresh',
+    alertTitle: 'About runtime settings',
+    alertPriority:
+      'Database values take precedence over the config file: the config-file default is used only when no database value exists.',
+    alertPropagation: 'Changes take effect on all instances within seconds, no restart needed.',
+    alertValidation:
+      'Values are validated before saving: model groups must be ready in the AI Gateway and models must exist; invalid values are not saved.',
+    colLabel: 'Setting',
+    colEffective: 'Effective value',
+    colSource: 'Source',
+    colFileValue: 'Config-file default',
+    colUpdatedAt: 'Updated at',
+    sourceDb: 'Database override',
+    sourceFile: 'Config file',
+    ungrouped: 'Ungrouped',
+    empty: '(empty)',
+    on: 'On',
+    off: 'Off',
+    edit: 'Edit',
+    reset: 'Restore default',
+    resetConfirm: 'Delete the database override and restore the config-file default?',
+    editTitle: 'Edit: {label}',
+    newValue: 'New value',
+    modelGroupPlaceholder: 'Select or enter an AI Gateway model group code',
+    modelCodePlaceholder: 'Select a model',
+    fileDefaultHint: 'Config-file default: {value}',
+    blankHint: 'Saving an empty value restores the config-file default.',
+    saveSuccess: 'Saved; all instances pick it up within seconds',
+    resetSuccess: 'Config-file default restored',
+    goToRuntime: 'Go to Runtime Settings',
   },
 };

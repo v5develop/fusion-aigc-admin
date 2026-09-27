@@ -23,14 +23,14 @@
           :disabled="disabled"
           @update:model-value="(v: unknown) => setKey(key, v)"
         />
-        <div v-if="!adapterProps.length" class="muted">该适配器没有参数</div>
+        <div v-if="!adapterProps.length" class="muted">{{ formText('noAdapterParams') }}</div>
       </div>
       <template v-else>
         <a-textarea
           v-model:value="jsonText"
           :rows="4"
           :disabled="disabled"
-          placeholder="先选适配器，或直接填 JSON 对象"
+          :placeholder="formText('adapterJsonPlaceholder')"
           @blur="commitJson"
         />
         <div v-if="jsonError" class="danger-text">{{ jsonError }}</div>
@@ -109,7 +109,7 @@
       :options="kind === 'enum-list' ? itemEnumOptions : refList || []"
       :disabled="disabled"
       style="width: 100%"
-      :placeholder="kind === 'string-list' ? '输入后回车添加' : undefined"
+      :placeholder="kind === 'string-list' ? formText('tagsPlaceholder') : undefined"
       @change="(v: unknown) => emitValue(v)"
     />
 
@@ -119,7 +119,7 @@
         <div class="list-item-head">
           <span class="muted">#{{ index + 1 }}</span>
           <a-button type="link" size="small" danger :disabled="disabled" @click="removeItem(index)">
-            移除
+            {{ formText('remove') }}
           </a-button>
         </div>
         <SchemaField
@@ -137,7 +137,9 @@
           @update:model-value="(v: unknown) => setItemKey(index, key, v)"
         />
       </div>
-      <a-button size="small" :disabled="disabled" @click="addItem">添加一项</a-button>
+      <a-button size="small" :disabled="disabled" @click="addItem">{{
+        formText('addItem')
+      }}</a-button>
     </div>
 
     <!-- 嵌套对象 -->
@@ -168,24 +170,24 @@
       >
         <a-input
           v-model:value="entry.key"
-          placeholder="键"
+          :placeholder="formText('mapKey')"
           style="width: 200px"
           :disabled="disabled"
           @blur="commitMap"
         />
         <a-input
           v-model:value="entry.value"
-          placeholder="值"
+          :placeholder="formText('mapValue')"
           style="width: 260px"
           :disabled="disabled"
           @blur="commitMap"
         />
-        <a-button type="link" danger :disabled="disabled" @click="removeMapEntry(index)"
-          >移除</a-button
-        >
+        <a-button type="link" danger :disabled="disabled" @click="removeMapEntry(index)">{{
+          formText('remove')
+        }}</a-button>
       </a-space>
       <a-button size="small" :disabled="disabled" @click="mapEntries.push({ key: '', value: '' })">
-        添加
+        {{ formText('add') }}
       </a-button>
     </div>
 
@@ -207,6 +209,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 
+import { enumLabel, fieldHelp, formText } from './gatewayI18n';
 import {
   buildDefault,
   fieldKind,
@@ -251,9 +254,9 @@ const emit = defineEmits<{ (e: 'update:modelValue', value: unknown): void }>();
 const norm = computed(() => normalize(props.schema, props.root));
 const kind = computed(() => fieldKind(norm.value.schema, props.root));
 const label = computed(() => titleOf(norm.value.schema, props.name));
+/** 说明：词典 → schema description；标签已翻译时再附上原字段名，便于对照网关文档 */
 const description = computed(() => {
-  const d = norm.value.schema.description;
-  const parts = [typeof d === 'string' ? d : ''];
+  const parts = [fieldHelp(props.name, norm.value.schema.description) || ''];
   if (label.value !== props.name) parts.push(props.name);
   return parts.filter(Boolean).join(' · ') || undefined;
 });
@@ -280,7 +283,7 @@ function emitString(v: string | undefined) {
 // ---- enum / 数字 ----
 const enumOptions = computed<Option[]>(() =>
   ((norm.value.schema.enum as unknown[]) || []).map((v) => ({
-    label: String(v),
+    label: enumLabel(v),
     value: v as string | number | boolean,
   })),
 );
@@ -289,7 +292,7 @@ const itemsSchema = computed(
 );
 const itemEnumOptions = computed<Option[]>(() =>
   ((itemsSchema.value.enum as unknown[]) || []).map((v) => ({
-    label: String(v),
+    label: enumLabel(v),
     value: v as string | number | boolean,
   })),
 );
@@ -414,7 +417,7 @@ function commitJson() {
     emitValue(JSON.parse(text));
     jsonError.value = '';
   } catch {
-    jsonError.value = 'JSON 格式错误，未保存到表单';
+    jsonError.value = formText('jsonInvalid');
   }
 }
 

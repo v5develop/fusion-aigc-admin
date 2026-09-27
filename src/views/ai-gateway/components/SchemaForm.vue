@@ -15,13 +15,14 @@
       :disabled="disabledKeys.includes(key)"
       @update:model-value="(v: unknown) => setKey(key, v)"
     />
-    <a-empty v-if="!topProps.length" description="网关没有下发该资源的表单结构" />
+    <a-empty v-if="!topProps.length" :description="formText('noSchema')" />
   </a-form>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
 
+import { formText } from './gatewayI18n';
 import { normalize, propertiesOf, requiredOf, type FieldError, type Schema } from './schema';
 import SchemaField from './SchemaField.vue';
 

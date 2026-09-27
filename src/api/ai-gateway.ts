@@ -138,6 +138,11 @@ export interface SecretInfo {
   updated_by?: string | null;
 }
 
+/** 全部账户的密钥元数据（只有指纹），供「待补清单」一次拉齐 */
+export function listAllSecrets() {
+  return request.get<unknown>(`${BASE}/secrets`, cfg()).then(itemsOf<SecretInfo>);
+}
+
 export function listSecrets(accountCode: string) {
   return request
     .get<unknown>(`${BASE}/accounts/${enc(accountCode)}/secrets`, cfg())
