@@ -6,6 +6,9 @@
 
     <a-card variant="borderless" style="margin-bottom: 12px">
       <a-form layout="inline" class="filter-form">
+        <a-form-item :label="fieldLabel('call_id')">
+          <a-input v-model:value="filters.callId" allow-clear style="width: 280px" />
+        </a-form-item>
         <a-form-item :label="$t('aiGateway.status')">
           <a-select
             v-model:value="filters.status"
@@ -62,6 +65,7 @@
         :data-source="rows"
         :loading="loading"
         :pagination="false"
+        table-layout="fixed"
         row-key="id"
         size="small"
         :scroll="{ x: 1600 }"
@@ -85,7 +89,9 @@
             <span :title="record.operation">{{ enumShort(record.operation) }}</span>
           </template>
           <template v-if="column.dataIndex === 'labels'">
-            <a-tag v-for="(v, k) in record.labels || {}" :key="k">{{ k }}={{ v }}</a-tag>
+            <div class="labels-cell">
+              <a-tag v-for="(v, k) in record.labels || {}" :key="k">{{ k }}={{ v }}</a-tag>
+            </div>
           </template>
           <template v-if="isTimeField(column.dataIndex)">
             {{ formatDateTime(record[column.dataIndex as string]) }}
@@ -93,10 +99,13 @@
         </template>
       </a-table>
       <div class="pager">
-        <a-button :disabled="!cursorStack.length || loading" @click="prevPage">
+        <a-button
+          :disabled="!!filters.callId.trim() || !cursorStack.length || loading"
+          @click="prevPage"
+        >
           {{ $t('aiGateway.prevPage') }}
         </a-button>
-        <a-button :disabled="!nextCursor || loading" @click="nextPage">
+        <a-button :disabled="!!filters.callId.trim() || !nextCursor || loading" @click="nextPage">
           {{ $t('aiGateway.nextPage') }}
         </a-button>
       </div>
@@ -123,9 +132,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 import {
   CALL_STATUSES,
@@ -142,11 +151,12 @@ import { enumLabel, enumShort, fieldLabel, formText } from '../components/gatewa
 import { isTimeField } from '../components/schema';
 
 /**
- * 网关调用检索。任务详情里的「网关调用」链接带 `?callId=` 进来，直接打开详情抽屉；
+ * 网关调用检索。任务详情里的「网关调用」链接带 `?callId=` 进来，按 ID 精确查询；
  * 也可带 `idempotency_key` / `execution_ref` 预填筛选。
  */
 const { t } = useI18n();
 const route = useRoute();
+const router = useRouter();
 
 const statusOptions = computed(() => CALL_STATUSES.map((s) => ({ label: enumLabel(s), value: s })));
 const operationOptions = computed(() => OPERATIONS.map((s) => ({ label: enumLabel(s), value: s })));
@@ -156,6 +166,7 @@ const moneyOptions = computed(() => [
 ]);
 
 const filters = reactive({
+  callId: typeof route.query.callId === 'string' ? route.query.callId : '',
   status: undefined as string | undefined,
   operation: undefined as string | undefined,
   model_group: '',
@@ -172,6 +183,7 @@ const loading = ref(false);
 const currentCursor = ref<string | undefined>(undefined);
 const nextCursor = ref<string | null>(null);
 const cursorStack = ref<(string | undefined)[]>([]);
+let fetchSequence = 0;
 
 function params(cursor?: string): CallSearchParams {
   return {
@@ -191,25 +203,60 @@ function params(cursor?: string): CallSearchParams {
 }
 
 async function fetchPage(cursor?: string) {
+  const sequence = ++fetchSequence;
   loading.value = true;
   try {
+    const callId = filters.callId.trim();
+    if (callId) {
+      const found = await getCall(callId);
+      if (sequence !== fetchSequence) return;
+      const record = found.record as unknown as CallSummary & {
+        attempts?: { deployment?: string }[];
+        cost?: { amount_cny?: string } | null;
+      };
+      rows.value = [
+        {
+          ...record,
+          attempt_count: record.attempts?.length ?? 0,
+          last_deployment: record.attempts?.at(-1)?.deployment ?? null,
+          cost_amount_cny: record.cost?.amount_cny ?? null,
+        },
+      ];
+      nextCursor.value = null;
+      currentCursor.value = undefined;
+      detailId.value = callId;
+      detail.value = found;
+      detailOpen.value = true;
+      return;
+    }
     const page = await searchCalls(params(cursor));
+    if (sequence !== fetchSequence) return;
     rows.value = page?.items || [];
     nextCursor.value = page?.next_cursor ?? null;
     currentCursor.value = cursor;
   } catch {
+    if (sequence !== fetchSequence) return;
     rows.value = [];
     nextCursor.value = null;
+    if (filters.callId.trim()) {
+      detail.value = null;
+      detailOpen.value = false;
+    }
   } finally {
-    loading.value = false;
+    if (sequence === fetchSequence) loading.value = false;
   }
 }
 
 function search() {
   cursorStack.value = [];
+  const callId = filters.callId.trim();
+  if (route.query.callId !== (callId || undefined)) {
+    void router.replace({ query: { ...route.query, callId: callId || undefined } });
+  }
   fetchPage(undefined);
 }
 function reset() {
+  filters.callId = '';
   filters.status = undefined;
   filters.operation = undefined;
   filters.model_group = '';
@@ -278,10 +325,17 @@ function pretty(v: unknown) {
 
 onMounted(() => {
   search();
-  if (typeof route.query.callId === 'string' && route.query.callId) {
-    openDetail(route.query.callId);
-  }
 });
+
+watch(
+  () => route.query.callId,
+  (value) => {
+    const callId = typeof value === 'string' ? value : '';
+    if (filters.callId === callId) return;
+    filters.callId = callId;
+    search();
+  },
+);
 </script>
 
 <style scoped>
@@ -320,5 +374,18 @@ onMounted(() => {
 }
 .wrap {
   word-break: break-all;
+}
+.labels-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+}
+.labels-cell :deep(.ant-tag) {
+  max-width: 100%;
+  margin-inline-end: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 </style>
