@@ -31,30 +31,34 @@ type RequestFlags = {
   silentError?: boolean;
   noRetry?: boolean;
   noErrorRedirect?: boolean;
-  /**
-   * 响应体不是 CommonResult 信封时原样返回（AI 网关管理透传：Java 把网关的状态码与 JSON 原样回给前端）。
-   * 若恰好是 `{code:number, data}` 信封，仍按信封处理。
-   */
-  rawBody?: boolean;
 };
 
 /**
- * 从错误响应体里取可读原因。兼容两种形状：
- * - Java CommonResult：`{code, msg}`；
- * - AI 网关错误信封：`{error: {code, check, message}}`，带上判据 `check`，便于定位是哪条校验拒的。
+ * 业务失败时 reject 的错误：仍是 `Error`（`message` = 后端 msg，老代码照旧只读 message），
+ * 另外带上 CommonResult 的 `code` 与 `data`，以及 HTTP 状态 `status`（HTTP 非 2xx 时才有）。
+ * 例：AI 网关发布校验失败 → `code=422`，`data` = 网关 error 对象（`{code, check, message, details}`）。
  */
+export type RequestError = Error & { code?: number; data?: unknown; status?: number };
+
+function requestError(msg: string, code?: number, data?: unknown, status?: number): RequestError {
+  const err = new Error(msg) as RequestError;
+  if (code !== undefined) err.code = code;
+  if (data !== undefined && data !== null) err.data = data;
+  if (status !== undefined) err.status = status;
+  return err;
+}
+
+/** 取业务错误携带的 CommonResult.data（没有则 undefined） */
+export function errorDataOf<T = unknown>(e: unknown): T | undefined {
+  return e && typeof e === 'object' && 'data' in e && !('isAxiosError' in e)
+    ? ((e as RequestError).data as T)
+    : undefined;
+}
+
+/** 从错误响应体（CommonResult `{code, msg}`）里取可读原因 */
 export function extractErrorMessage(data: unknown): string | undefined {
   if (!data || typeof data !== 'object') return undefined;
-  const d = data as {
-    msg?: string;
-    message?: string;
-    error?: { code?: string; check?: string; message?: string };
-  };
-  if (d.error && typeof d.error === 'object') {
-    const { check, message: msg, code } = d.error;
-    const text = msg || code;
-    if (text) return check ? `${text}（${check}）` : text;
-  }
+  const d = data as { msg?: string; message?: string };
   return d.msg || d.message || undefined;
 }
 const MAX_RETRY_COUNT = 2;
@@ -119,12 +123,6 @@ service.interceptors.response.use(
 
     const res = response.data;
 
-    if ((response.config as AxiosRequestConfig & RequestFlags).rawBody) {
-      const enveloped =
-        res && typeof res === 'object' && typeof res.code === 'number' && 'data' in res;
-      if (!enveloped) return res;
-    }
-
     if (res.code !== undefined && res.code !== 0) {
       const { code } = res;
       const msg = res.msg || res.message || '';
@@ -136,7 +134,9 @@ service.interceptors.response.use(
       // Auth error: HTTP 标准 401
       if (code === 401) {
         if (!silentError) handleAuthFailure();
-        const authError = new Error(msg || 'Unauthorized') as Error & { isAuthError: boolean };
+        const authError = requestError(msg || 'Unauthorized', code, res.data) as RequestError & {
+          isAuthError: boolean;
+        };
         authError.isAuthError = true;
         return Promise.reject(authError);
       }
@@ -144,37 +144,37 @@ service.interceptors.response.use(
       // Access denied: HTTP 标准 403
       if (code === 403) {
         if (!silentError) message.error(msg || '访问被拒绝');
-        return Promise.reject(new Error(msg || 'Access Denied'));
+        return Promise.reject(requestError(msg || 'Access Denied', code, res.data));
       }
 
       // Bad request: HTTP 标准 400
       if (code === 400) {
         if (!silentError) message.error(msg || '请求参数错误');
-        return Promise.reject(new Error(msg || 'Bad Request'));
+        return Promise.reject(requestError(msg || 'Bad Request', code, res.data));
       }
 
       // Not found: HTTP 标准 404
       if (code === 404) {
         if (!silentError) message.error(msg || '资源不存在');
-        return Promise.reject(new Error(msg || 'Not Found'));
+        return Promise.reject(requestError(msg || 'Not Found', code, res.data));
       }
 
       // Conflict: HTTP 标准 409
       if (code === 409) {
         if (!silentError) message.error(msg || '资源冲突');
-        return Promise.reject(new Error(msg || 'Conflict'));
+        return Promise.reject(requestError(msg || 'Conflict', code, res.data));
       }
 
       // System error: 5xxx 业务错误码
       if (code >= 5000 && code < 6000) {
         if (!silentError) message.error(msg || '服务器内部错误');
-        return Promise.reject(new Error(msg || 'Server Error'));
+        return Promise.reject(requestError(msg || 'Server Error', code, res.data));
       }
 
       // All other business errors (1xxx/2xxx/3xxx/4xxx/6xxx/7xxx/40xxx/46xxx)
       // Display the specific error message from backend
       if (!silentError) message.error(msg || '请求失败');
-      return Promise.reject(new Error(msg || 'Error'));
+      return Promise.reject(requestError(msg || 'Error', code, res.data));
     }
 
     return res.data;
@@ -207,9 +207,12 @@ service.interceptors.response.use(
     if (!originalRequest || error.response?.status !== 401) {
       handleHttpError(error);
       // 透传后端业务 msg，避免上层 catch 只拿到 "Request failed with status code 400"
-      const backendMsg = extractErrorMessage(error.response?.data);
+      const body = error.response?.data as { code?: unknown; data?: unknown } | undefined;
+      const backendMsg = extractErrorMessage(body);
       if (backendMsg) {
-        return Promise.reject(new Error(backendMsg));
+        const status = error.response?.status;
+        const code = typeof body?.code === 'number' ? body.code : status;
+        return Promise.reject(requestError(backendMsg, code, body?.data, status));
       }
       return Promise.reject(error);
     }
@@ -311,6 +314,12 @@ function handleHttpError(error: AxiosError) {
       case 409:
         message.error(errorMsg || '资源冲突');
         break;
+      case 413:
+        message.error(errorMsg || '请求内容过大');
+        break;
+      case 422:
+        message.error(errorMsg || '校验未通过');
+        break;
       case 429:
         message.error(errorMsg || '请求过于频繁，请稍后重试');
         break;
@@ -354,6 +363,10 @@ function getHttpErrorMessage(status: number): string {
       return '方法不允许';
     case 409:
       return '资源冲突';
+    case 413:
+      return '请求内容过大';
+    case 422:
+      return '校验未通过';
     case 429:
       return '请求限流';
     case 500:

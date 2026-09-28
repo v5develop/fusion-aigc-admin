@@ -131,6 +131,7 @@ import { useI18n } from 'vue-i18n';
 
 import {
   deleteResource,
+  gatewayErrorOf,
   getSchema,
   listAdapters,
   listResources,
@@ -389,8 +390,12 @@ async function handleSave() {
     message.success(t('aiGateway.savedToDraft'));
     editorOpen.value = false;
     await loadList();
-  } catch {
-    /* 422 的具体判据由拦截器提示 */
+  } catch (e) {
+    // 拦截器已弹提示；网关拒绝时再把原因与判据留在弹窗里，避免提示一闪而过、改表单时看不到
+    const ge = gatewayErrorOf(e);
+    if (ge) {
+      formErrors.value = [{ path: ge.check || '', message: ge.message || ge.code || '' }];
+    }
   } finally {
     saving.value = false;
   }

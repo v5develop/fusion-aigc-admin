@@ -140,10 +140,12 @@ import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import {
+  gatewayErrorOf,
   listConfigVersions,
   publishConfig,
   rollbackConfig,
   validateConfig,
+  type ConfigIssue,
   type ConfigValidateResult,
   type ConfigVersion,
 } from '@/api/ai-gateway';
@@ -233,9 +235,20 @@ async function handlePublish() {
     publishComment.value = '';
     validation.value = null;
     loadVersions();
-  } catch {
-    // 409 = 校验后草稿又被改过：要求重新校验
-    validation.value = null;
+  } catch (e) {
+    // 422 config.invalid：把网关给的逐条错误（error.details.errors）摆进校验结果表，不必再点一次校验；
+    // 其余（409 = 校验后草稿又被改过等）：要求重新校验
+    const ge = gatewayErrorOf(e);
+    const list = ge?.check === 'config.invalid' ? ge.details?.errors : undefined;
+    validation.value =
+      Array.isArray(list) && validation.value
+        ? {
+            valid: false,
+            draft_revision: validation.value.draft_revision,
+            errors: list as ConfigIssue[],
+          }
+        : null;
+    if (validation.value) publishOpen.value = false;
   } finally {
     publishing.value = false;
   }

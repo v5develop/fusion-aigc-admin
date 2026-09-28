@@ -1,14 +1,16 @@
 import type { AxiosRequestConfig } from 'axios';
 
-import { request } from '@/utils/request';
+import { errorDataOf, request } from '@/utils/request';
 
 /**
  * AI 网关管理（通用透传）。
  *
- * Java 只把 `/api/v1/admin/ai-gateway/**` 原样转到网关 `/admin/v1/**`（加管理密钥签名与操作人
- * `X-Aig-Operator`），状态码与 JSON 体都原样返回，**不包 CommonResult**。所以这里：
- * - 用 `rawBody` 拿原始体；万一被包了 `{code, data}` 信封也照常解开；
- * - 错误体是 `{error: {code, check, message}}`，拦截器会把 `check`（判据）一起提示出来；
+ * Java 把 `/api/v1/admin/ai-gateway/**` 转到网关 `/admin/v1/**`（加管理密钥签名与操作人
+ * `X-Aig-Operator`），应答与其余后台接口一样是 `CommonResult`，拦截器照常解包：
+ * - 成功：拿到的就是网关 JSON（集合接口 `{items: [...]}` 由 `itemsOf` 取出）；
+ * - 失败：`code` = 网关 HTTP 状态，`msg` 已带判据 `(check=…)`，拦截器照常提示；reject 的错误上
+ *   `data` = 网关 error 对象 `{code, check, message, details?}`，页面用 `gatewayErrorOf(e)` 读
+ *   （如发布校验失败的 `details.errors[]`）；
  * - 表单字段一律来自网关下发的 JSON Schema（`schemas/{resource}`、适配器 `params_schema`），
  *   网关新增配置项时前端与 Java 都不用改。这里的类型只声明页面实际要读的字段，其余原样透传。
  */
@@ -16,7 +18,6 @@ import { request } from '@/utils/request';
 const BASE = '/api/v1/admin/ai-gateway';
 
 type Flags = {
-  rawBody?: boolean;
   silentError?: boolean;
   noRetry?: boolean;
   noErrorRedirect?: boolean;
@@ -24,7 +25,7 @@ type Flags = {
 
 function cfg(extra?: Flags & AxiosRequestConfig): AxiosRequestConfig {
   // 网关页面出错只在原地提示，不跳 /500：正在编辑的表单会丢
-  return { rawBody: true, noErrorRedirect: true, ...extra } as AxiosRequestConfig;
+  return { noErrorRedirect: true, ...extra } as AxiosRequestConfig;
 }
 
 /** 写操作不自动重传：发布、强制动作、写密钥都不是幂等的「再来一次无害」 */
@@ -48,6 +49,22 @@ function itemsOf<T>(res: unknown): T[] {
 // ---------------------------------------------------------------------------
 // 通用
 // ---------------------------------------------------------------------------
+
+/** 网关错误对象（失败时 CommonResult.data） */
+export interface GatewayError {
+  code?: string;
+  /** 判据：拒绝请求的那条检查，如 `config.invalid` */
+  check?: string;
+  message?: string;
+  call_id?: string;
+  details?: Record<string, unknown>;
+}
+
+/** 从 reject 的错误里取网关错误对象；不是网关错误（网络失败、Java 侧拒绝）时返回 undefined */
+export function gatewayErrorOf(e: unknown): GatewayError | undefined {
+  const d = errorDataOf<GatewayError>(e);
+  return d && typeof d === 'object' && typeof d.check === 'string' ? d : undefined;
+}
 
 export type JsonSchema = Record<string, unknown>;
 
