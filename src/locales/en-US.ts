@@ -3932,6 +3932,18 @@ export default {
     publishConfirm:
       'Publish draft revision {revision}. If the draft changed after validation the gateway refuses and you must validate again.',
     rollbackConfirm: 'Re-publishes this snapshot as a new version, hot-loaded by all replicas.',
+    deleteVersion: 'Delete',
+    deleteVersionConfirm:
+      'Delete version v{version}? You can no longer roll back to it; version numbers in call records are kept.',
+    batchDeleteVersions: 'Delete selected ({n})',
+    batchDeleteVersionsConfirm:
+      'Delete the {n} selected historical versions? You can no longer roll back to them.',
+    versionsDeleted: 'Deleted {n} historical version(s)',
+    versionProtectedHint: 'The current and the latest versions cannot be deleted',
+    versionsProtected:
+      'These versions are the current or latest one and cannot be deleted; nothing was deleted: {versions}',
+    versionsMissing:
+      'These versions do not exist (maybe already deleted); nothing was deleted: {versions}',
     comment: 'Comment',
     commentRequired: 'Comment is required',
     published: 'Published as v{version}',

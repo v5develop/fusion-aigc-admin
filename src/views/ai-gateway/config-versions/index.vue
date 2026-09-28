@@ -69,11 +69,40 @@
     </a-card>
 
     <a-card :title="$t('aiGateway.versions')" variant="borderless">
+      <template #extra>
+        <a-space v-if="canConfig">
+          <span class="muted">{{ $t('aiGateway.versionProtectedHint') }}</span>
+          <a-popconfirm
+            :title="$t('aiGateway.batchDeleteVersionsConfirm', { n: selectedVersions.length })"
+            :disabled="!selectedVersions.length"
+            @confirm="removeVersions(selectedVersions)"
+          >
+            <a-button
+              danger
+              :loading="deleting"
+              :disabled="
+                !selectedVersions.length || selectedVersions.length > CONFIG_VERSION_DELETE_MAX
+              "
+            >
+              {{ $t('aiGateway.batchDeleteVersions', { n: selectedVersions.length }) }}
+            </a-button>
+          </a-popconfirm>
+        </a-space>
+      </template>
       <a-table
         :columns="versionColumns"
         :data-source="versions"
         :loading="versionsLoading"
         :pagination="{ pageSize: 20 }"
+        :row-selection="
+          canConfig
+            ? {
+                selectedRowKeys: selectedVersions,
+                onChange: (keys: (string | number)[]) => (selectedVersions = keys.map(Number)),
+                getCheckboxProps: (r: ConfigVersion) => ({ disabled: isProtected(r) }),
+              }
+            : undefined
+        "
         row-key="version"
         size="middle"
       >
@@ -94,16 +123,27 @@
             {{ record.rolled_back_from != null ? `v${record.rolled_back_from}` : '-' }}
           </template>
           <template v-if="column.key === 'operation'">
-            <a-button
-              v-if="!record.current"
-              v-permission="'ai_gateway:config'"
-              type="link"
-              size="small"
-              danger
-              @click="openRollback(record.version)"
-            >
-              {{ $t('aiGateway.rollbackTo') }}
-            </a-button>
+            <a-space :size="4">
+              <a-button
+                v-if="!record.current"
+                v-permission="'ai_gateway:config'"
+                type="link"
+                size="small"
+                danger
+                @click="openRollback(record.version)"
+              >
+                {{ $t('aiGateway.rollbackTo') }}
+              </a-button>
+              <a-popconfirm
+                v-if="canConfig && !isProtected(record as ConfigVersion)"
+                :title="$t('aiGateway.deleteVersionConfirm', { version: record.version })"
+                @confirm="removeVersions([record.version])"
+              >
+                <a-button type="link" size="small" danger :disabled="deleting">
+                  {{ $t('aiGateway.deleteVersion') }}
+                </a-button>
+              </a-popconfirm>
+            </a-space>
           </template>
         </template>
       </a-table>
@@ -143,6 +183,8 @@ import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import {
+  CONFIG_VERSION_DELETE_MAX,
+  deleteConfigVersions,
   gatewayErrorOf,
   listConfigVersions,
   publishConfig,
@@ -152,6 +194,7 @@ import {
   type ConfigValidateResult,
   type ConfigVersion,
 } from '@/api/ai-gateway';
+import { usePermission } from '@/composables/usePermission';
 import { formatDateTime } from '@/utils/helpers';
 
 import { checkLabel, enumShort, fieldLabel } from '../components/gatewayI18n';
@@ -204,7 +247,7 @@ const versionColumns = computed(() => [
   { title: t('aiGateway.publishedBy'), dataIndex: 'published_by', width: 140 },
   { title: t('aiGateway.comment'), dataIndex: 'comment', ellipsis: true },
   { title: t('aiGateway.rolledBackFrom'), dataIndex: 'rolled_back_from', width: 120 },
-  { title: t('common.action'), key: 'operation', width: 120 },
+  { title: t('common.action'), key: 'operation', width: 180 },
 ]);
 
 async function loadVersions() {
@@ -256,6 +299,55 @@ async function handlePublish() {
     if (validation.value) publishOpen.value = false;
   } finally {
     publishing.value = false;
+  }
+}
+
+// ---------------------------------------------------------------- 删除历史版本
+// 当前版本与最新版本受保护：前者删了网关无配置可载，后者删了新发布会复用这个版本号（调用记录按版本号追溯）。
+// 网关同样拦（409 details.protected），这里只是不给勾、不给按钮。
+const { can } = usePermission();
+const canConfig = computed(() => can('ai_gateway:config'));
+const selectedVersions = ref<number[]>([]);
+const deleting = ref(false);
+const latestVersion = computed(() => Math.max(0, ...versions.value.map((v) => v.version)));
+
+function isProtected(v: ConfigVersion) {
+  return v.current || v.version === latestVersion.value;
+}
+
+async function removeVersions(list: number[]) {
+  if (!list.length) return;
+  deleting.value = true;
+  try {
+    const res = await deleteConfigVersions(list);
+    message.success(t('aiGateway.versionsDeleted', { n: res?.deleted?.length ?? list.length }));
+    selectedVersions.value = [];
+  } catch (e) {
+    // 全有或全无：把网关点名的版本列出来（拦截器只提示了概要）
+    const details = gatewayErrorOf(e)?.details;
+    const named = (key: string) =>
+      Array.isArray(details?.[key]) && details[key].length
+        ? (details[key] as number[]).map((v) => `v${v}`).join(', ')
+        : '';
+    const protectedList = named('protected');
+    const missing = named('missing');
+    if (protectedList) {
+      message.warning({
+        content: t('aiGateway.versionsProtected', { versions: protectedList }),
+        duration: 8,
+      });
+    } else if (missing) {
+      message.warning({
+        content: t('aiGateway.versionsMissing', { versions: missing }),
+        duration: 8,
+      });
+    }
+  } finally {
+    deleting.value = false;
+    await loadVersions();
+    // 拒收后留下的勾选里可能有已不存在或刚变成受保护的版本，只保留仍可删的
+    const deletable = new Set(versions.value.filter((v) => !isProtected(v)).map((v) => v.version));
+    selectedVersions.value = selectedVersions.value.filter((v) => deletable.has(v));
   }
 }
 

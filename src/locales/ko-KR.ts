@@ -3750,6 +3750,18 @@ export default {
     publishConfirm:
       '초안 리비전 {revision}을 게시합니다. 검증 후 초안이 바뀌었다면 게이트웨이가 거부하므로 다시 검증해야 합니다.',
     rollbackConfirm: '이 버전의 스냅샷을 새 버전으로 다시 게시하며 모든 복제본이 핫 로드합니다.',
+    deleteVersion: '삭제',
+    deleteVersionConfirm:
+      '버전 v{version}을(를) 삭제할까요? 삭제 후에는 이 버전으로 롤백할 수 없으며, 호출 기록의 버전 번호는 유지됩니다.',
+    batchDeleteVersions: '선택 삭제 ({n})',
+    batchDeleteVersionsConfirm:
+      '선택한 {n}개의 이전 버전을 삭제할까요? 삭제 후에는 롤백할 수 없습니다.',
+    versionsDeleted: '이전 버전 {n}개를 삭제했습니다',
+    versionProtectedHint: '현재 버전과 최신 버전은 삭제할 수 없습니다',
+    versionsProtected:
+      '다음 버전은 현재 또는 최신 버전이라 삭제할 수 없으며, 아무것도 삭제하지 않았습니다: {versions}',
+    versionsMissing:
+      '다음 버전이 존재하지 않습니다(이미 삭제되었을 수 있음). 아무것도 삭제하지 않았습니다: {versions}',
     comment: '설명',
     commentRequired: '설명을 입력하세요',
     published: 'v{version}으로 게시했습니다',

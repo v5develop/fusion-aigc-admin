@@ -262,6 +262,21 @@ export function listConfigVersions(limit = 50) {
     .then(itemsOf<ConfigVersion>);
 }
 
+/** 单次批量删除的上限（网关 ConfigVersionDeleteRequest.versions max_length） */
+export const CONFIG_VERSION_DELETE_MAX = 200;
+
+/**
+ * 删除历史版本，一个事务全有或全无。当前版本与最新版本受保护（409，`details.protected`）；
+ * 不存在的版本 404（`details.missing`）；任一出错都不删任何版本。
+ */
+export function deleteConfigVersions(versions: number[]) {
+  return request.post<{ deleted: number[] }>(
+    `${BASE}/config/versions:delete`,
+    { versions },
+    writeCfg(),
+  );
+}
+
 // ---------------------------------------------------------------------------
 // 运行态：健康、熔断、容量、余额；强制动作与探测
 // ---------------------------------------------------------------------------

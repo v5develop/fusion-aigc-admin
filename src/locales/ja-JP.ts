@@ -3769,6 +3769,18 @@ export default {
       '下書きリビジョン {revision} を公開します。検証後に下書きが変更されていた場合、ゲートウェイは拒否するので再検証が必要です。',
     rollbackConfirm:
       'このバージョンのスナップショットを新しいバージョンとして再公開し、全レプリカがホットロードします。',
+    deleteVersion: '削除',
+    deleteVersionConfirm:
+      'バージョン v{version} を削除しますか？削除後はこのバージョンにロールバックできません。呼び出し記録のバージョン番号は残ります。',
+    batchDeleteVersions: '選択を削除（{n}）',
+    batchDeleteVersionsConfirm:
+      '選択した {n} 件の履歴バージョンを削除しますか？削除後はロールバックできません。',
+    versionsDeleted: '{n} 件の履歴バージョンを削除しました',
+    versionProtectedHint: '現在のバージョンと最新バージョンは削除できません',
+    versionsProtected:
+      '次のバージョンは現在または最新のため削除できません。何も削除していません：{versions}',
+    versionsMissing:
+      '次のバージョンは存在しません（削除済みの可能性）。何も削除していません：{versions}',
     comment: '説明',
     commentRequired: '説明を入力してください',
     published: 'v{version} として公開しました',
