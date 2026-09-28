@@ -114,12 +114,25 @@
     <a-drawer v-model:open="detailOpen" :title="detailId" width="880">
       <a-spin :spinning="detailLoading">
         <template v-if="detail">
-          <h4>{{ formText('detailRecord') }}</h4>
-          <pre class="json-viewer">{{ pretty(detail.record) }}</pre>
-          <h4>{{ formText('detailRequest') }}</h4>
-          <pre class="json-viewer">{{ pretty(detail.request) }}</pre>
+          <h4>{{ formText('detailCall') }}</h4>
+          <pre class="json-viewer">{{ pretty(detail.call) }}</pre>
+          <h4>{{ formText('detailInput') }}</h4>
+          <pre class="json-viewer">{{ pretty(detail.input) }}</pre>
+          <h4>{{ formText('detailAttempts') }}</h4>
+          <a-collapse v-if="detail.attempts.length">
+            <a-collapse-panel
+              v-for="attempt in detail.attempts"
+              :key="String(attempt.seq)"
+              :header="`#${attempt.seq} · ${attempt.deployment || attempt.provider} · ${attempt.state}`"
+            >
+              <pre class="json-viewer">{{ pretty(attempt) }}</pre>
+            </a-collapse-panel>
+          </a-collapse>
+          <a-empty v-else />
+          <h4>{{ formText('detailOutcome') }}</h4>
+          <pre class="json-viewer">{{ pretty(detail.outcome) }}</pre>
           <h4>{{ formText('detailEvents') }}</h4>
-          <a-timeline v-if="detail.events && detail.events.length">
+          <a-timeline v-if="detail.events.length">
             <a-timeline-item v-for="(ev, i) in detail.events" :key="i">
               <pre class="json-viewer small">{{ pretty(ev) }}</pre>
             </a-timeline-item>
@@ -210,16 +223,14 @@ async function fetchPage(cursor?: string) {
     if (callId) {
       const found = await getCall(callId);
       if (sequence !== fetchSequence) return;
-      const record = found.record as unknown as CallSummary & {
-        attempts?: { deployment?: string }[];
-        cost?: { amount_cny?: string } | null;
-      };
+      const record = found.call as unknown as CallSummary;
+      const cost = found.outcome.cost as { amount_cny?: string } | undefined;
       rows.value = [
         {
           ...record,
-          attempt_count: record.attempts?.length ?? 0,
-          last_deployment: record.attempts?.at(-1)?.deployment ?? null,
-          cost_amount_cny: record.cost?.amount_cny ?? null,
+          attempt_count: found.attempts.length,
+          last_deployment: String(found.attempts.at(-1)?.deployment || '') || null,
+          cost_amount_cny: cost?.amount_cny ?? null,
         },
       ];
       nextCursor.value = null;

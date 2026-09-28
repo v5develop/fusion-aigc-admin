@@ -435,9 +435,11 @@ export interface CursorPage<T> {
 }
 
 export interface AdminCallDetail {
-  record: Record<string, unknown>;
-  request: Record<string, unknown>;
-  events?: Record<string, unknown>[];
+  call: Record<string, unknown>;
+  input: Record<string, unknown>;
+  attempts: Array<Record<string, unknown> & { media: Record<string, unknown>[] }>;
+  outcome: Record<string, unknown>;
+  events: Record<string, unknown>[];
 }
 
 function cleanParams(params: object) {
