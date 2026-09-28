@@ -514,6 +514,7 @@ export default {
     json_objects: '객체 배열',
     json_schema: 'JSON 스키마',
     json_urls: 'URL 배열',
+    kyc_enterprise_verify: '기업 인증',
     ledger: '원장',
     length: '길이 제한',
     low: '낮음',

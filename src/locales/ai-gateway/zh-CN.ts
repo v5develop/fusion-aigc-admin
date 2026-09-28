@@ -513,6 +513,7 @@ export default {
     json_objects: "对象数组 images=[{'{'}image_url{'}'}]",
     json_schema: 'JSON 结构',
     json_urls: '地址数组 images=[url]',
+    kyc_enterprise_verify: '企业核验',
     ledger: '成本账',
     length: '长度截断',
     low: '低',

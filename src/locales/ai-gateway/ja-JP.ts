@@ -514,6 +514,7 @@ export default {
     json_objects: 'オブジェクト配列',
     json_schema: 'JSON スキーマ',
     json_urls: 'URL 配列',
+    kyc_enterprise_verify: '企業認証',
     ledger: '台帳',
     length: '長さ上限',
     low: '低',

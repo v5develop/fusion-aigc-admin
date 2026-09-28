@@ -379,6 +379,7 @@ export const OPERATIONS = [
   'video.subtitle_erase',
   'asr.transcribe',
   'tts.synthesize',
+  'kyc.enterprise_verify',
   'moderation.text',
   'moderation.image',
 ];

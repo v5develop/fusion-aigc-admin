@@ -518,6 +518,7 @@ export default {
     json_objects: 'Object array',
     json_schema: 'JSON schema',
     json_urls: 'URL array',
+    kyc_enterprise_verify: 'Enterprise verification',
     ledger: 'Ledger',
     length: 'Length',
     low: 'Low',
