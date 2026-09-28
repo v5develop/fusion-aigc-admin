@@ -592,6 +592,7 @@ export default {
     weighted: '重み付け',
   },
   checkCode: {
+    model_group_operation_unserved: 'この操作を提供する有効なメンバーデプロイがありません',
     account_no_secrets: 'アカウントにシークレットがない',
     account_secrets_from_chain: 'シークレット共有は多段不可',
     account_secrets_from_unknown: '共有元アカウントが存在しない',

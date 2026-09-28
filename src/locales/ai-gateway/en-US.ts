@@ -596,6 +596,7 @@ export default {
     weighted: 'Weighted',
   },
   checkCode: {
+    model_group_operation_unserved: 'No enabled member deployment serves the operation',
     account_no_secrets: 'Account has no secrets',
     account_secrets_from_chain: 'secrets_from cannot chain',
     account_secrets_from_unknown: 'secrets_from account not found',

@@ -592,6 +592,7 @@ export default {
     weighted: '가중치',
   },
   checkCode: {
+    model_group_operation_unserved: '이 작업을 제공하는 활성 멤버 배포가 없음',
     account_no_secrets: '계정에 시크릿 없음',
     account_secrets_from_chain: '시크릿 공유는 다단계 불가',
     account_secrets_from_unknown: '공유 원본 계정 없음',

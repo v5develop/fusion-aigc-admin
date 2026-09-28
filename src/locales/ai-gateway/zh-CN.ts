@@ -591,6 +591,7 @@ export default {
     weighted: '按权重',
   },
   checkCode: {
+    model_group_operation_unserved: '该操作没有可用的启用成员部署',
     account_no_secrets: '账户没有密钥',
     account_secrets_from_chain: '沿用密钥不能多级转引',
     account_secrets_from_unknown: '沿用密钥的账户不存在',

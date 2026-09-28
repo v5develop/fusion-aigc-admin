@@ -3,7 +3,7 @@
     <div class="page-header">
       <h2 class="ph-title">{{ $t('menu.aiGatewayAlerts') }}</h2>
       <a-space>
-        <a-segmented v-model:value="status" :options="statusOptions" @change="search" />
+        <a-segmented v-model:value="status" :options="statusOptions" />
         <a-button :loading="loading" @click="search">{{ $t('common.refresh') }}</a-button>
       </a-space>
     </div>
@@ -60,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { listAlerts, type GatewayAlert } from '@/api/ai-gateway';
@@ -85,18 +85,24 @@ const currentCursor = ref<string | undefined>(undefined);
 const nextCursor = ref<string | null>(null);
 const cursorStack = ref<(string | undefined)[]>([]);
 
+// 只认最后一次请求的结果：切换筛选时上一次请求可能晚回来，不能让它覆盖新筛选的列表
+let seq = 0;
+
 async function fetchPage(cursor?: string) {
+  const mine = ++seq;
   loading.value = true;
   try {
     const page = await listAlerts({ status: status.value || undefined, cursor, limit: 50 });
+    if (mine !== seq) return;
     rows.value = page?.items || [];
     nextCursor.value = page?.next_cursor ?? null;
     currentCursor.value = cursor;
   } catch {
+    if (mine !== seq) return;
     rows.value = [];
     nextCursor.value = null;
   } finally {
-    loading.value = false;
+    if (mine === seq) loading.value = false;
   }
 }
 
@@ -131,6 +137,9 @@ const columns = computed(() => [
   { title: t('aiGateway.lastAt'), dataIndex: 'last_at', width: 190 },
   { title: t('aiGateway.resolvedAt'), dataIndex: 'resolved_at', width: 190 },
 ]);
+
+// 筛选值变了再查：不依赖分段控件 change 事件与 v-model 回写的先后
+watch(status, search);
 
 onMounted(search);
 </script>
