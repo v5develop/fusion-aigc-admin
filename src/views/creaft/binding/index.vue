@@ -180,7 +180,7 @@
         </a-descriptions-item>
       </a-descriptions>
 
-      <a-form :model="form" :label-col="{ span: 7 }" :wrapper-col="{ span: 15 }">
+      <a-form :model="form" :label-col="{ span: 6 }" :wrapper-col="{ span: 17 }">
         <a-form-item
           v-if="current?.requiresModelBinding || isAgent(current)"
           :label="isAgent(current) ? 'Agent 执行模型' : '计费模型'"
@@ -223,14 +223,9 @@
             <span v-else class="muted">未登记（由程序维护）</span>
           </a-form-item>
           <a-form-item label="模型角色">
-            <a-space direction="vertical" style="width: 100%">
-              <a-space v-for="row in form.roleRows" :key="row.id" style="width: 100%">
-                <a-input
-                  v-model:value="row.role"
-                  :disabled="row.declared"
-                  placeholder="角色"
-                  style="width: 150px"
-                />
+            <div class="config-rows">
+              <div v-for="row in form.roleRows" :key="row.id" class="config-row">
+                <a-input v-model:value="row.role" :disabled="row.declared" placeholder="角色" />
                 <a-select
                   v-model:value="row.group"
                   :options="groupOptionsFor(row.operation)"
@@ -239,26 +234,21 @@
                   allow-clear
                   option-filter-prop="label"
                   :placeholder="row.operation ? `选择模型组（${row.operation}）` : '选择模型组'"
-                  style="width: 300px"
                 />
                 <a-button v-if="!row.declared" danger @click="removeRoleRow(row.id)">移除</a-button>
                 <a-tag v-else-if="row.required" color="orange">必填</a-tag>
-              </a-space>
+              </div>
               <a-button @click="addRoleRow">添加角色</a-button>
-            </a-space>
+            </div>
             <div class="muted">
               工作流每一步按角色取模型组；模型组的成员（哪些中转站、怎么切换）在「AI 网关 →
               模型组」里配。 启用时服务端会向网关查就绪度，模型组不存在或无可用部署会拒绝启用。
             </div>
           </a-form-item>
           <a-form-item label="视频模型别名">
-            <a-space direction="vertical" style="width: 100%">
-              <a-space v-for="row in form.aliasRows" :key="row.id" style="width: 100%">
-                <a-input
-                  v-model:value="row.alias"
-                  placeholder="端上传的模型别名"
-                  style="width: 150px"
-                />
+            <div class="config-rows">
+              <div v-for="row in form.aliasRows" :key="row.id" class="config-row">
+                <a-input v-model:value="row.alias" placeholder="端上传的模型别名" />
                 <a-select
                   v-model:value="row.group"
                   :options="groupOptionsFor('video.generate')"
@@ -267,12 +257,11 @@
                   allow-clear
                   option-filter-prop="label"
                   placeholder="选择视频模型组"
-                  style="width: 300px"
                 />
                 <a-button danger @click="removeAliasRow(row.id)">移除</a-button>
-              </a-space>
+              </div>
               <a-button @click="addAliasRow">添加别名</a-button>
-            </a-space>
+            </div>
             <div class="muted">只有端上按别名选视频模型的能力需要；其余能力留空。</div>
           </a-form-item>
         </template>
@@ -796,6 +785,35 @@ async function handleDisable(record: CreaftBindingRow) {
 }
 .role-list {
   margin-top: 4px;
+}
+.config-rows {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+.config-row {
+  display: grid;
+  grid-template-columns: minmax(0, 150px) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+.config-row > :first-child,
+.config-row > :nth-child(2) {
+  width: 100%;
+  min-width: 0;
+}
+@media (max-width: 640px) {
+  .config-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .config-row > :first-child {
+    grid-column: 1 / -1;
+  }
 }
 .route-code {
   padding: 2px 6px;
