@@ -3874,6 +3874,12 @@ export default {
   },
 
   aiGateway: {
+    selectedCount: '已选 {count} 项',
+    batchEnable: '批量启用',
+    batchDisable: '批量停用',
+    toggleSavedToDraft: '已将 {count} 项写入草稿，发布后生效',
+    batchMissing: '以下条目在草稿中不存在（可能已被删除），本次未做任何修改：{codes}',
+    goPublish: '去发布',
     ...aiGatewayDictZhCN,
     create: '新建',
     refreshed: '已刷新',

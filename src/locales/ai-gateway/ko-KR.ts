@@ -390,6 +390,8 @@ export default {
     vocabulary_id: '이 계정에 사전 등록된 핫워드 사전',
     weight: '계층 내 트래픽 비율',
     when: '요청 특징이 모두 일치할 때만 적용(예 resolution=1080p). 비우면 항상 적용',
+    labels:
+      '사용자 정의 레이블. secret_env.<시크릿 이름>=<기존 환경 변수> 는 시드가 기록한 시크릿 설명으로, 시크릿 화면의 미입력 목록이 이를 기준으로 만들어집니다. 이름에 <시크릿 이름>, 값에 해당 환경 변수의 값을 입력합니다',
   },
   enum: {
     '1k': '1k',
@@ -613,6 +615,8 @@ export default {
     price_model_unbounded_tier_not_last: '무제한 구간은 마지막이어야 함',
   },
   form: {
+    derivedSecretNames:
+      '입력된 시크릿에서 자동 생성됩니다(읽기 전용). 시크릿은 「AI 게이트웨이 → 시크릿」의 미입력 목록에서 입력하세요',
     adapterJsonPlaceholder: '먼저 어댑터를 선택하거나 JSON 객체를 입력',
     add: '추가',
     addItem: '항목 추가',

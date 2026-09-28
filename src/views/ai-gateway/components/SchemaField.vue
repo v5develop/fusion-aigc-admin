@@ -1,11 +1,14 @@
 <template>
   <a-form-item
-    :label="label"
     :required="required"
     :extra="description"
     :validate-status="errorText ? 'error' : undefined"
     :help="errorText || undefined"
   >
+    <!-- 原字段名放在悬停提示里（对照网关文档用），不再挤在说明行里像是多出来的内容 -->
+    <template #label>
+      <span :title="label !== name ? name : undefined">{{ label }}</span>
+    </template>
     <!-- 适配器参数：换成所选适配器的 params_schema；还没选适配器时用 JSON 编辑 -->
     <template v-if="kind === 'adapter-params'">
       <div v-if="adapterParamsSchema" class="nested">
@@ -20,7 +23,7 @@
           :ref-options="refOptions"
           :errors="errors"
           :path="`${path}/${key}`"
-          :disabled="disabled"
+          :disabled="fieldDisabled"
           @update:model-value="(v: unknown) => setKey(key, v)"
         />
         <div v-if="!adapterProps.length" class="muted">{{ formText('noAdapterParams') }}</div>
@@ -29,7 +32,7 @@
         <a-textarea
           v-model:value="jsonText"
           :rows="4"
-          :disabled="disabled"
+          :disabled="fieldDisabled"
           :placeholder="formText('adapterJsonPlaceholder')"
           @blur="commitJson"
         />
@@ -46,7 +49,7 @@
       :value="modelValue ?? undefined"
       :options="enumOptions"
       :allow-clear="!required || norm.nullable"
-      :disabled="disabled"
+      :disabled="fieldDisabled"
       style="width: 100%"
       @change="(v: unknown) => emitValue(v === undefined ? (norm.nullable ? null : undefined) : v)"
     />
@@ -54,7 +57,7 @@
     <a-switch
       v-else-if="kind === 'boolean'"
       :checked="!!modelValue"
-      :disabled="disabled"
+      :disabled="fieldDisabled"
       @change="(v: unknown) => emitValue(!!v)"
     />
 
@@ -64,7 +67,7 @@
       :min="numMin"
       :max="numMax"
       :precision="kind === 'integer' ? 0 : undefined"
-      :disabled="disabled"
+      :disabled="fieldDisabled"
       style="width: 240px"
       @change="
         (v: unknown) =>
@@ -77,17 +80,29 @@
         v-if="refList"
         :value="(modelValue as string) ?? ''"
         :options="refList"
-        :disabled="disabled"
+        :disabled="fieldDisabled"
         :filter-option="filterOption"
         allow-clear
         style="width: 100%"
         :placeholder="placeholder"
         @change="(v: unknown) => emitString(v as string)"
       />
+      <!-- 时间字段：后台透传统一 yyyy-MM-dd HH:mm:ss（北京时间），Java 转回网关的 ISO UTC -->
+      <a-date-picker
+        v-else-if="norm.schema.format === 'date-time'"
+        :value="(modelValue as string) || undefined"
+        :disabled="fieldDisabled"
+        show-time
+        value-format="YYYY-MM-DD HH:mm:ss"
+        format="YYYY-MM-DD HH:mm:ss"
+        allow-clear
+        style="width: 100%"
+        @update:value="(v: unknown) => emitString((v as string) || '')"
+      />
       <a-input
         v-else
         :value="(modelValue as string) ?? ''"
-        :disabled="disabled"
+        :disabled="fieldDisabled"
         :placeholder="placeholder"
         allow-clear
         @update:value="(v: string) => emitString(v)"
@@ -98,7 +113,7 @@
       v-else-if="kind === 'text'"
       :value="(modelValue as string) ?? ''"
       :rows="3"
-      :disabled="disabled"
+      :disabled="fieldDisabled"
       @update:value="(v: string) => emitString(v)"
     />
 
@@ -107,7 +122,7 @@
       :value="Array.isArray(modelValue) ? modelValue : []"
       :mode="kind === 'enum-list' ? 'multiple' : 'tags'"
       :options="kind === 'enum-list' ? itemEnumOptions : refList || []"
-      :disabled="disabled"
+      :disabled="fieldDisabled"
       style="width: 100%"
       :placeholder="kind === 'string-list' ? formText('tagsPlaceholder') : undefined"
       @change="(v: unknown) => emitValue(v)"
@@ -118,7 +133,13 @@
       <div v-for="(item, index) in listValue" :key="index" class="list-item">
         <div class="list-item-head">
           <span class="muted">#{{ index + 1 }}</span>
-          <a-button type="link" size="small" danger :disabled="disabled" @click="removeItem(index)">
+          <a-button
+            type="link"
+            size="small"
+            danger
+            :disabled="fieldDisabled"
+            @click="removeItem(index)"
+          >
             {{ formText('remove') }}
           </a-button>
         </div>
@@ -133,11 +154,11 @@
           :ref-options="refOptions"
           :errors="errors"
           :path="`${path}/${index}/${key}`"
-          :disabled="disabled"
+          :disabled="fieldDisabled"
           @update:model-value="(v: unknown) => setItemKey(index, key, v)"
         />
       </div>
-      <a-button size="small" :disabled="disabled" @click="addItem">{{
+      <a-button size="small" :disabled="fieldDisabled" @click="addItem">{{
         formText('addItem')
       }}</a-button>
     </div>
@@ -156,7 +177,7 @@
         :ref-options="refOptions"
         :errors="errors"
         :path="`${path}/${key}`"
-        :disabled="disabled"
+        :disabled="fieldDisabled"
         @update:model-value="(v: unknown) => setKey(key, v)"
       />
     </div>
@@ -172,21 +193,25 @@
           v-model:value="entry.key"
           :placeholder="formText('mapKey')"
           style="width: 200px"
-          :disabled="disabled"
+          :disabled="fieldDisabled"
           @blur="commitMap"
         />
         <a-input
           v-model:value="entry.value"
           :placeholder="formText('mapValue')"
           style="width: 260px"
-          :disabled="disabled"
+          :disabled="fieldDisabled"
           @blur="commitMap"
         />
-        <a-button type="link" danger :disabled="disabled" @click="removeMapEntry(index)">{{
+        <a-button type="link" danger :disabled="fieldDisabled" @click="removeMapEntry(index)">{{
           formText('remove')
         }}</a-button>
       </a-space>
-      <a-button size="small" :disabled="disabled" @click="mapEntries.push({ key: '', value: '' })">
+      <a-button
+        size="small"
+        :disabled="fieldDisabled"
+        @click="mapEntries.push({ key: '', value: '' })"
+      >
         {{ formText('add') }}
       </a-button>
     </div>
@@ -196,7 +221,7 @@
       <a-textarea
         v-model:value="jsonText"
         :rows="4"
-        :disabled="disabled"
+        :disabled="fieldDisabled"
         class="json-text"
         placeholder="JSON"
         @blur="commitJson"
@@ -254,11 +279,16 @@ const emit = defineEmits<{ (e: 'update:modelValue', value: unknown): void }>();
 const norm = computed(() => normalize(props.schema, props.root));
 const kind = computed(() => fieldKind(norm.value.schema, props.root));
 const label = computed(() => titleOf(norm.value.schema, props.name));
+/**
+ * 由网关推导、写了也不生效的字段：账户的 secret_names 来自密钥表（录入密钥后自动出现），
+ * 表单里只读展示，免得运维以为要在这里填。
+ */
+const derived = computed(() => props.name === 'secret_names');
+const fieldDisabled = computed(() => props.disabled || derived.value);
 /** 说明：词典 → schema description；标签已翻译时再附上原字段名，便于对照网关文档 */
 const description = computed(() => {
-  const parts = [fieldHelp(props.name, norm.value.schema.description) || ''];
-  if (label.value !== props.name) parts.push(props.name);
-  return parts.filter(Boolean).join(' · ') || undefined;
+  if (derived.value) return formText('derivedSecretNames');
+  return fieldHelp(props.name, norm.value.schema.description) || undefined;
 });
 const placeholder = computed(() => {
   const s = norm.value.schema;

@@ -389,6 +389,8 @@ export default {
     vocabulary_id: '该账户上预先登记的热词表',
     weight: '同层级内按权重分流',
     when: '请求特征全部匹配时才适用，例如 resolution=1080p；为空表示总是适用',
+    labels:
+      '自定义标签。secret_env.<密钥名>=<旧环境变量名> 是种子写入的密钥说明：密钥页据此生成待补清单，录入时「名称」填 <密钥名>，值填该环境变量对应的密钥',
   },
   enum: {
     '1k': '千',
@@ -612,6 +614,8 @@ export default {
     price_model_unbounded_tier_not_last: '无上限阶梯必须放最后',
   },
   form: {
+    derivedSecretNames:
+      '由密钥页录入后自动生成（只读）。录密钥请到「AI 网关 → 密钥」按待补清单录入',
     adapterJsonPlaceholder: '先选适配器，或直接填 JSON 对象',
     add: '添加',
     addItem: '添加一项',

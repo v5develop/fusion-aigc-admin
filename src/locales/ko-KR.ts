@@ -3689,6 +3689,13 @@ export default {
   },
 
   aiGateway: {
+    selectedCount: '{count}개 선택됨',
+    batchEnable: '일괄 활성화',
+    batchDisable: '일괄 비활성화',
+    toggleSavedToDraft: '{count}개 항목을 초안에 저장했습니다. 게시 후 적용됩니다',
+    batchMissing:
+      '초안에 없는 항목이 있습니다(삭제되었을 수 있음). 아무것도 변경하지 않았습니다: {codes}',
+    goPublish: '게시하기',
     ...aiGatewayDictKoKR,
     create: '새로 만들기',
     refreshed: '새로고침됨',

@@ -3706,6 +3706,13 @@ export default {
   },
 
   aiGateway: {
+    selectedCount: '{count} 件選択中',
+    batchEnable: '一括有効化',
+    batchDisable: '一括無効化',
+    toggleSavedToDraft: '{count} 件を下書きに保存しました。公開後に反映されます',
+    batchMissing:
+      '下書きに存在しない項目があります（削除済みの可能性）。何も変更していません：{codes}',
+    goPublish: '公開へ',
     ...aiGatewayDictJaJP,
     create: '新規作成',
     refreshed: '更新しました',

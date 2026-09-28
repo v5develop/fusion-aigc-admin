@@ -42,6 +42,9 @@
           <template v-if="column.dataIndex === 'scope'">
             <code>{{ record.scope }}</code>
           </template>
+          <template v-if="isTimeField(column.dataIndex)">
+            {{ formatDateTime(record[column.dataIndex as string]) }}
+          </template>
         </template>
       </a-table>
       <div class="pager">
@@ -61,8 +64,10 @@ import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { listAlerts, type GatewayAlert } from '@/api/ai-gateway';
+import { formatDateTime } from '@/utils/helpers';
 
 import { enumLabel, enumShort, fieldLabel } from '../components/gatewayI18n';
+import { isTimeField } from '../components/schema';
 
 /** 网关告警只暴露状态与事件；通知渠道由监控栈（Prometheus / Alertmanager）负责，不在这里配 */
 const { t } = useI18n();

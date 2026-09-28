@@ -3872,6 +3872,12 @@ export default {
   },
 
   aiGateway: {
+    selectedCount: '{count} selected',
+    batchEnable: 'Enable selected',
+    batchDisable: 'Disable selected',
+    toggleSavedToDraft: '{count} item(s) saved to draft; publish to apply',
+    batchMissing: 'Not found in the draft (maybe deleted); nothing was changed: {codes}',
+    goPublish: 'Publish',
     ...aiGatewayDictEnUS,
     create: 'New',
     refreshed: 'Refreshed',

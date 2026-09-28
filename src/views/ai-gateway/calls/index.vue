@@ -43,7 +43,7 @@
           />
         </a-form-item>
         <a-form-item :label="$t('aiGateway.timeRange')">
-          <a-range-picker v-model:value="range" show-time value-format="YYYY-MM-DDTHH:mm:ssZ" />
+          <a-range-picker v-model:value="range" show-time value-format="YYYY-MM-DD HH:mm:ss" />
         </a-form-item>
         <a-form-item>
           <a-space>
@@ -86,6 +86,9 @@
           </template>
           <template v-if="column.dataIndex === 'labels'">
             <a-tag v-for="(v, k) in record.labels || {}" :key="k">{{ k }}={{ v }}</a-tag>
+          </template>
+          <template v-if="isTimeField(column.dataIndex)">
+            {{ formatDateTime(record[column.dataIndex as string]) }}
           </template>
         </template>
       </a-table>
@@ -133,8 +136,10 @@ import {
   type CallSearchParams,
   type CallSummary,
 } from '@/api/ai-gateway';
+import { formatDateTime } from '@/utils/helpers';
 
 import { enumLabel, enumShort, fieldLabel, formText } from '../components/gatewayI18n';
+import { isTimeField } from '../components/schema';
 
 /**
  * 网关调用检索。任务详情里的「网关调用」链接带 `?callId=` 进来，直接打开详情抽屉；

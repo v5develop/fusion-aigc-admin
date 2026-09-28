@@ -141,6 +141,41 @@ export function deleteResource(collection: string, code: string) {
   return request.delete(`${BASE}${collectionPath(collection)}/${enc(code)}`, writeCfg());
 }
 
+/**
+ * 原子启停一条草稿实体：网关在行锁内只翻 `enabled`，其余字段以库里最新为准——
+ * 不像整行 PUT 会覆盖别人同时做的修改。同值是 no-op（不升草稿版本、不记审计）。
+ * 返回改后的实体。只有带 `enabled` 的集合支持（providers / accounts / deployments / model-groups）。
+ */
+export function setResourceEnabled(collection: string, code: string, enabled: boolean) {
+  return request.post<GatewayResource>(
+    `${BASE}${collectionPath(collection)}/${enc(code)}:set-enabled`,
+    { enabled },
+    writeCfg(),
+  );
+}
+
+export interface BatchSetEnabledResult {
+  /** 请求的全部实体（改后状态，按 code 排序） */
+  items: GatewayResource[];
+  /** 实际翻转的数量；0 = 全是 no-op */
+  changed: number;
+}
+
+/** 批量启停单次上限（与网关 `BatchSetEnabledRequest.codes` 的 maxItems 一致） */
+export const BATCH_SET_ENABLED_MAX = 500;
+
+/**
+ * 批量原子启停：一个事务，全有或全无。任一 code 不存在 → 404，
+ * 网关错误的 `details.missing` 列出这些 code，什么都不改。
+ */
+export function batchSetResourceEnabled(collection: string, codes: string[], enabled: boolean) {
+  return request.post<BatchSetEnabledResult>(
+    `${BASE}${collectionPath(collection)}:set-enabled`,
+    { codes, enabled },
+    writeCfg(),
+  );
+}
+
 // ---------------------------------------------------------------------------
 // 密钥：只写，列表只有指纹
 // ---------------------------------------------------------------------------

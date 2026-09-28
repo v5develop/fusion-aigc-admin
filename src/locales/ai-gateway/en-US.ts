@@ -394,6 +394,8 @@ export default {
     vocabulary_id: 'Pre-registered hotword vocabulary on this account',
     weight: 'Share of traffic within a tier',
     when: 'Applies only when every request feature matches, e.g. resolution=1080p; empty = always',
+    labels:
+      'Custom labels. secret_env.<secret name>=<legacy env var> is written by the seed: the Secrets page builds its checklist from it; enter the secret under <secret name> with the value of that env var',
   },
   enum: {
     '1k': '1k',
@@ -617,6 +619,8 @@ export default {
     price_model_unbounded_tier_not_last: 'Unbounded tier must be last',
   },
   form: {
+    derivedSecretNames:
+      'Derived from stored secrets (read-only). Enter secrets on AI Gateway → Secrets using the checklist',
     adapterJsonPlaceholder: 'Pick an adapter first, or enter a JSON object',
     add: 'Add',
     addItem: 'Add item',

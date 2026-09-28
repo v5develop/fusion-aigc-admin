@@ -87,6 +87,9 @@
           <template v-if="column.dataIndex === 'sha256'">
             <code>{{ String(record.sha256).slice(0, 12) }}</code>
           </template>
+          <template v-if="isTimeField(column.dataIndex)">
+            {{ formatDateTime(record[column.dataIndex as string]) }}
+          </template>
           <template v-if="column.dataIndex === 'rolled_back_from'">
             {{ record.rolled_back_from != null ? `v${record.rolled_back_from}` : '-' }}
           </template>
@@ -149,8 +152,10 @@ import {
   type ConfigValidateResult,
   type ConfigVersion,
 } from '@/api/ai-gateway';
+import { formatDateTime } from '@/utils/helpers';
 
 import { checkLabel, enumShort, fieldLabel } from '../components/gatewayI18n';
+import { isTimeField } from '../components/schema';
 
 /**
  * 草稿 → 校验 → 发布 → 回滚。

@@ -390,6 +390,8 @@ export default {
     vocabulary_id: 'このアカウントに事前登録したホットワード辞書',
     weight: '階層内での配分比率',
     when: 'リクエスト特徴がすべて一致した時のみ適用（例 resolution=1080p）。空は常に適用',
+    labels:
+      'カスタムラベル。secret_env.<シークレット名>=<旧環境変数名> はシードが書き込むシークレットの説明で、シークレット画面の未入力リストの元になります。名称に <シークレット名>、値にその環境変数の値を入力します',
   },
   enum: {
     '1k': '1k',
@@ -613,6 +615,8 @@ export default {
     price_model_unbounded_tier_not_last: '上限なし段階は最後に',
   },
   form: {
+    derivedSecretNames:
+      '入力済みシークレットから自動生成（読み取り専用）。シークレットは「AI ゲートウェイ → シークレット」の未入力リストから入力してください',
     adapterJsonPlaceholder: '先にアダプターを選ぶか JSON オブジェクトを入力',
     add: '追加',
     addItem: '項目を追加',

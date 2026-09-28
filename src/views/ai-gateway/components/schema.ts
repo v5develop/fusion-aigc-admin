@@ -275,6 +275,11 @@ export function listColumnsOf(schema: Schema, root: Schema, max = 6): string[] {
   return cols;
 }
 
+/** AI 网关的时间字段：`*_at` / `*_until` / `effective_from`（网关一律回 UTC ISO 字符串） */
+export function isTimeField(name: unknown): boolean {
+  return typeof name === 'string' && (/_(at|until)$/.test(name) || name === 'effective_from');
+}
+
 export function displayValue(v: unknown): string {
   if (v === undefined || v === null || v === '') return '-';
   if (Array.isArray(v))

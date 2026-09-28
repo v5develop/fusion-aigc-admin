@@ -1,6 +1,7 @@
 /**
  * Helper utility functions
  */
+import dayjs from 'dayjs';
 
 /**
  * Debounce function
@@ -317,4 +318,15 @@ export function decodeUnicode(text?: string | null): string {
   if (!text) return '';
   if (!text.includes('\\u')) return text;
   return text.replace(/\\u([0-9a-fA-F]{4})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+}
+
+/**
+ * 时间戳 → 本地时间 `YYYY-MM-DD HH:mm:ss`（与后台其余页面同一格式）。
+ * 接受 ISO 字符串（含 `Z` / 时区偏移 / 微秒，如 AI 网关的 `2026-09-28T02:36:16.450000Z`）、Date 与毫秒数；
+ * 空值给 `-`，解析不了的原样返回，不吞信息。
+ */
+export function formatDateTime(v: unknown): string {
+  if (v === undefined || v === null || v === '') return '-';
+  const d = dayjs(v as string | number | Date);
+  return d.isValid() ? d.format('YYYY-MM-DD HH:mm:ss') : String(v);
 }

@@ -130,8 +130,8 @@ import {
 } from '@/api/ai-gateway';
 
 /**
- * 供应商密钥「待补清单」：每个账户声明的每个密钥位一行（账户的 secret_names），
- * 标出对应的旧环境变量（账户 labels 的 secret_env.<名称>，种子 SQL 写入）与是否已录。
+ * 供应商密钥「待补清单」：每个账户的每个密钥位一行。密钥位来自账户 labels 里声明的
+ * secret_env.<名称>=<旧环境变量>（种子 SQL 写入）加上已录入的密钥名，标出对应旧环境变量与是否已录。
  * 沿用别的账户密钥的账户（secrets_from）不单独列行，只在持有账户上显示「另有 N 个账户共用」。
  *
  * 密钥只写：网关只回指纹（明文 SHA-256 前 16 位），页面不在任何地方留明文——写入后立刻清空输入框。
@@ -169,7 +169,13 @@ const slots = computed<Slot[]>(() => {
     if (a.secrets_from) continue;
     const code = String(a.code);
     const labels = (a.labels as Record<string, string> | undefined) || {};
-    for (const name of (a.secret_names as string[] | undefined) || []) {
+    // 密钥位 = 标签里声明的 secret_env.<名称>（种子写入，录入前就有）∪ 已录入的密钥名。
+    // 不能只看 secret_names：网关按密钥表推导它，没录过的账户永远是空，待补清单会一行都不出。
+    const declared = Object.keys(labels)
+      .filter((k) => k.startsWith('secret_env.'))
+      .map((k) => k.slice('secret_env.'.length));
+    const names = Array.from(new Set([...declared, ...((a.secret_names as string[]) || [])]));
+    for (const name of names) {
       out.push({
         account: code,
         displayName: String(a.display_name || ''),

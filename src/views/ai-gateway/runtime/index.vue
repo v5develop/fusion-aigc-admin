@@ -4,7 +4,7 @@
       <h2 class="ph-title">{{ $t('menu.aiGatewayRuntime') }}</h2>
       <a-space>
         <span class="muted" v-if="snapshot"
-          >{{ $t('aiGateway.capturedAt') }} {{ snapshot.captured_at }}</span
+          >{{ $t('aiGateway.capturedAt') }} {{ formatDateTime(snapshot.captured_at) }}</span
         >
         <a-switch v-model:checked="autoRefresh" />
         <span class="muted">{{ $t('aiGateway.autoRefresh') }}</span>
@@ -49,7 +49,7 @@
               :title="record.forced"
             >
               {{ enumShort(record.forced)
-              }}{{ record.forced_until ? ` → ${record.forced_until}` : '' }}
+              }}{{ record.forced_until ? ` → ${formatDateTime(record.forced_until)}` : '' }}
             </a-tag>
           </template>
           <template v-if="column.dataIndex === 'failure_ewma'">
@@ -62,13 +62,14 @@
           </template>
           <template v-if="column.dataIndex === 'gates'">
             <div v-if="record.cooldown_until">
-              {{ formText('gateCooldown') }} → {{ record.cooldown_until }}
+              {{ formText('gateCooldown') }} → {{ formatDateTime(record.cooldown_until) }}
             </div>
             <div v-if="record.rate_limited_until">
-              {{ formText('gateRateLimited') }}（429）→ {{ record.rate_limited_until }}
+              {{ formText('gateRateLimited') }}（429）→
+              {{ formatDateTime(record.rate_limited_until) }}
             </div>
             <div v-if="record.probe_failed_until">
-              {{ formText('gateProbe') }} → {{ record.probe_failed_until }}
+              {{ formText('gateProbe') }} → {{ formatDateTime(record.probe_failed_until) }}
             </div>
             <span
               v-if="
@@ -76,6 +77,9 @@
               "
               >-</span
             >
+          </template>
+          <template v-if="column.dataIndex === 'updated_at'">
+            {{ formatDateTime(record.updated_at) }}
           </template>
           <template v-if="column.dataIndex === 'last_outcome'">
             <a-tag v-if="record.last_outcome" :title="record.last_outcome">{{
@@ -132,12 +136,12 @@
           <template v-if="column.dataIndex === 'balance'">
             {{ record.balance ?? '-' }} {{ record.balance_currency || '' }}
             <div v-if="record.balance_checked_at" class="muted">
-              {{ record.balance_checked_at }}
+              {{ formatDateTime(record.balance_checked_at) }}
             </div>
           </template>
           <template v-if="column.dataIndex === 'excluded_until'">
             <template v-if="record.excluded_until">
-              <a-tag color="red">{{ record.excluded_until }}</a-tag>
+              <a-tag color="red">{{ formatDateTime(record.excluded_until) }}</a-tag>
               <div class="muted">{{ record.exclusion_reason }}</div>
             </template>
             <span v-else>-</span>
@@ -201,6 +205,7 @@ import {
   type DeploymentRuntime,
   type RuntimeSnapshot,
 } from '@/api/ai-gateway';
+import { formatDateTime } from '@/utils/helpers';
 
 import { enumLabel, enumShort, formText } from '../components/gatewayI18n';
 

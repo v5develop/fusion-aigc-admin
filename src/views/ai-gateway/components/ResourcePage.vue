@@ -35,6 +35,29 @@
           style="width: 280px"
         />
         <span class="muted">{{ $t('aiGateway.total', { count: filteredRows.length }) }}</span>
+        <template v-if="hasEnabled && canConfig && selectedKeys.length">
+          <a-divider type="vertical" />
+          <span class="muted">{{
+            $t('aiGateway.selectedCount', { count: selectedKeys.length })
+          }}</span>
+          <a-button
+            size="small"
+            :loading="batching"
+            :disabled="selectedKeys.length > BATCH_SET_ENABLED_MAX"
+            @click="batchSetEnabled(true)"
+          >
+            {{ $t('aiGateway.batchEnable') }}
+          </a-button>
+          <a-button
+            size="small"
+            danger
+            :loading="batching"
+            :disabled="selectedKeys.length > BATCH_SET_ENABLED_MAX"
+            @click="batchSetEnabled(false)"
+          >
+            {{ $t('aiGateway.batchDisable') }}
+          </a-button>
+        </template>
       </div>
       <a-table
         :columns="columns"
@@ -42,6 +65,14 @@
         :loading="loading"
         :pagination="{ pageSize: 20, showSizeChanger: true }"
         :row-key="(r: GatewayResource) => String(r[codeField])"
+        :row-selection="
+          hasEnabled && canConfig
+            ? {
+                selectedRowKeys: selectedKeys,
+                onChange: (keys: (string | number)[]) => (selectedKeys = keys.map(String)),
+              }
+            : undefined
+        "
         size="middle"
         :scroll="{ x: 1100 }"
       >
@@ -62,7 +93,16 @@
             </a-space>
           </template>
           <template v-else-if="column.dataIndex === 'enabled'">
-            <a-tag :color="record.enabled === false ? 'default' : 'green'">
+            <a-switch
+              v-if="canConfig"
+              size="small"
+              :checked="record.enabled !== false"
+              :loading="toggling.has(String(record[codeField]))"
+              :checked-children="$t('common.enabled')"
+              :un-checked-children="$t('common.disabled')"
+              @change="(v: boolean | string | number) => setEnabled(record, !!v)"
+            />
+            <a-tag v-else :color="record.enabled === false ? 'default' : 'green'">
               {{ record.enabled === false ? $t('common.disabled') : $t('common.enabled') }}
             </a-tag>
           </template>
@@ -71,6 +111,9 @@
           </template>
           <template v-else-if="enumColumns.has(column.dataIndex as string)">
             {{ enumCell(record[column.dataIndex as string]) }}
+          </template>
+          <template v-else-if="isTimeField(column.dataIndex)">
+            {{ formatDateTime(record[column.dataIndex as string]) }}
           </template>
           <template v-else>
             {{ displayValue(record[column.dataIndex as string]) }}
@@ -126,8 +169,9 @@
 
 <script setup lang="ts">
 import { message } from 'antdv-next';
-import { computed, onMounted, ref } from 'vue';
+import { computed, h, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
 import {
   deleteResource,
@@ -137,9 +181,14 @@ import {
   listResources,
   listSchemas,
   putResource,
+  batchSetResourceEnabled,
+  BATCH_SET_ENABLED_MAX,
+  setResourceEnabled,
   type AdapterCaps,
   type GatewayResource,
 } from '@/api/ai-gateway';
+import { usePermission } from '@/composables/usePermission';
+import { formatDateTime } from '@/utils/helpers';
 
 import { enumShort, fieldLabel } from './gatewayI18n';
 import {
@@ -147,13 +196,14 @@ import {
   buildDefault,
   displayValue,
   fieldKind,
+  isTimeField,
   listColumnsOf,
   normalize,
   propertiesOf,
   prune,
-  validate,
   type FieldError,
   type Schema,
+  validate,
 } from './schema';
 import SchemaForm from './SchemaForm.vue';
 
@@ -175,6 +225,9 @@ const props = withDefaults(
 );
 
 const { t } = useI18n();
+const router = useRouter();
+const { can } = usePermission();
+const canConfig = computed(() => can('ai_gateway:config'));
 
 const loading = ref(false);
 const loadError = ref('');
@@ -186,6 +239,85 @@ const collection = ref(`/${props.resource}`);
 const adapters = ref<AdapterCaps[]>([]);
 /** 引用字段候选：字段名 → 被引用集合的条目 */
 const refCollections = ref<Record<string, GatewayResource[]>>({});
+
+/** 本资源是否有 enabled 字段（价格模型等没有：不出开关与批量按钮） */
+const hasEnabled = computed(() => {
+  const root = schema.value;
+  if (!root) return false;
+  return propertiesOf(normalize(root, root).schema).some(([key]) => key === 'enabled');
+});
+
+// ---- 快捷启停：走网关原子接口，只翻 enabled ----
+// 不再拿列表里的整条改 enabled 后整行 PUT：那样会把别的管理员在此期间对同一条的修改静默覆盖。
+// 网关在行锁内读最新、只改 enabled，并返回改后的整条，这里用它刷新该行。
+const toggling = ref(new Set<string>());
+const selectedKeys = ref<string[]>([]);
+const batching = ref(false);
+
+function codeOf(r: GatewayResource) {
+  return String(r[props.codeField]);
+}
+
+/** 用网关返回的最新实体替换列表里的同 code 行（其它字段也可能被别人改过，一并刷新） */
+function applyRows(updated: GatewayResource[]) {
+  const byCode = new Map(updated.map((r) => [codeOf(r), r]));
+  rows.value = rows.value.map((r) => byCode.get(codeOf(r)) ?? r);
+}
+
+function notifyDraft(count: number) {
+  message.success({
+    content: () =>
+      h('span', [
+        t('aiGateway.toggleSavedToDraft', { count }),
+        ' ',
+        h(
+          'a',
+          { onClick: () => router.push({ name: 'AiGatewayConfigVersions' }) },
+          t('aiGateway.goPublish'),
+        ),
+      ]),
+    duration: 6,
+  });
+}
+
+async function setEnabled(record: GatewayResource, enabled: boolean) {
+  const code = codeOf(record);
+  toggling.value = new Set(toggling.value).add(code);
+  try {
+    const updated = await setResourceEnabled(collection.value, code, enabled);
+    if (updated && typeof updated === 'object') applyRows([updated]);
+    notifyDraft(1);
+  } catch {
+    /* 拦截器已提示（含网关判据，如 404 该条已被删） */
+  } finally {
+    const next = new Set(toggling.value);
+    next.delete(code);
+    toggling.value = next;
+  }
+}
+
+async function batchSetEnabled(enabled: boolean) {
+  const codes = [...new Set(selectedKeys.value)];
+  if (!codes.length) return;
+  batching.value = true;
+  try {
+    const res = await batchSetResourceEnabled(collection.value, codes, enabled);
+    applyRows(res?.items || []);
+    selectedKeys.value = [];
+    if (res?.changed) notifyDraft(res.changed);
+  } catch (e) {
+    // 全有或全无：有 code 不存在时网关 404 且什么都没改，把缺的列出来（拦截器只提示了概要）
+    const missing = gatewayErrorOf(e)?.details?.missing;
+    if (Array.isArray(missing) && missing.length) {
+      message.warning({
+        content: t('aiGateway.batchMissing', { codes: missing.join(', ') }),
+        duration: 8,
+      });
+    }
+  } finally {
+    batching.value = false;
+  }
+}
 
 const pageTitle = computed(() => props.title || indexTitle.value || props.resource);
 
