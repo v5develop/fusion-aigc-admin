@@ -557,6 +557,7 @@ export default {
     reset_cooldown: '清除冷却',
     resolved: '已恢复',
     review: '待复审',
+    same_region_passthrough: '同地域优先透传',
     second: '秒',
     seedance_2: 'Seedance 2.0',
     seedance_2_5: 'Seedance 2.5',

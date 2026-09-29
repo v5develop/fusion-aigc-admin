@@ -558,6 +558,7 @@ export default {
     reset_cooldown: 'クールダウン解除',
     resolved: '復旧済み',
     review: '要確認',
+    same_region_passthrough: '同一リージョン優先でそのまま渡す',
     second: '秒',
     seedance_2: 'Seedance 2.0',
     seedance_2_5: 'Seedance 2.5',

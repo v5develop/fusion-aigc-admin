@@ -562,6 +562,7 @@ export default {
     reset_cooldown: 'Reset cooldown',
     resolved: 'Resolved',
     review: 'Review',
+    same_region_passthrough: 'Same-region passthrough',
     second: 'Second',
     seedance_2: 'Seedance 2.0',
     seedance_2_5: 'Seedance 2.5',

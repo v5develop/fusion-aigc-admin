@@ -558,6 +558,7 @@ export default {
     reset_cooldown: '쿨다운 해제',
     resolved: '복구됨',
     review: '검토 필요',
+    same_region_passthrough: '동일 리전 우선 원본 URL 전달',
     second: '초',
     seedance_2: 'Seedance 2.0',
     seedance_2_5: 'Seedance 2.5',
