@@ -15,7 +15,7 @@
     />
 
     <a-alert
-      v-if="allLoaded && !allRows.some((row) => row.status === 1)"
+      v-if="facets && !facets.anyEnabled"
       type="warning"
       show-icon
       style="margin-bottom: 12px"
@@ -29,14 +29,14 @@
           placeholder="按名称或音色键过滤"
           allow-clear
           style="width: 220px"
-          @press-enter="loadList"
+          @press-enter="onFilterChange"
           @change="onKeywordChange"
         />
         <a-select
           v-model:value="statusFilter"
           :options="statusFilterOptions"
           style="width: 140px"
-          @change="loadList"
+          @change="onFilterChange"
         />
       </div>
 
@@ -107,6 +107,17 @@
           </template>
         </template>
       </a-table>
+      <div class="pager">
+        <a-pagination
+          v-model:current="page"
+          v-model:page-size="pageSize"
+          :total="total"
+          show-size-changer
+          :page-size-options="['20', '50', '100']"
+          @change="loadList"
+          @show-size-change="onSizeChange"
+        />
+      </div>
     </a-card>
 
     <a-modal
@@ -231,8 +242,10 @@ import {
 import {
   createCreaftVoice,
   deleteCreaftVoice,
+  getCreaftVoiceFacets,
   getCreaftVoices,
   updateCreaftVoice,
+  type CreaftVoiceFacets,
   type CreaftVoiceRow,
 } from '@/api/creaft-compat';
 
@@ -274,9 +287,24 @@ const statusFilterOptions = [
 
 const rows = ref<CreaftVoiceRow[]>([]);
 /** 不带筛选的全量：「一个启用的都没有」要看全部，不能看当前筛选后的结果 */
-const allRows = ref<CreaftVoiceRow[]>([]);
-const allLoaded = ref(false);
+/** 模型、标签、启用概况取自 facets 接口（全量），不能从当前页推导 */
+const facets = ref<CreaftVoiceFacets | null>(null);
 const loading = ref(false);
+const total = ref(0);
+const page = ref(1);
+const pageSize = ref(20);
+
+/** 筛选、搜索变化回到第一页；翻页与改每页条数直接重载 */
+function onFilterChange() {
+  page.value = 1;
+  loadList();
+}
+
+function onSizeChange(_current: number, size: number) {
+  pageSize.value = size;
+  page.value = 1;
+  loadList();
+}
 const keyword = ref('');
 const statusFilter = ref<'' | 1 | 0>('');
 
@@ -298,34 +326,34 @@ loadTtsGroups();
 const modelOptions = computed(() => {
   const options = toModelGroupSelectOptions(ttsGroups.value, 'tts.synthesize');
   const known = new Set(ttsGroups.value.map((g) => g.code));
-  const stale = [...new Set(allRows.value.map((r) => r.model).filter(Boolean))]
+  const stale = (facets.value?.models || [])
     .filter((m) => !known.has(m))
     .map((m) => ({ label: `${m}（网关中不存在）`, value: m, disabled: false }));
   return [...options, ...stale];
 });
-const tagOptions = computed(() =>
-  [...new Set(allRows.value.flatMap((r) => r.tags || []))].map((t) => ({ label: t, value: t })),
-);
+const tagOptions = computed(() => (facets.value?.tags || []).map((t) => ({ label: t, value: t })));
 
 let keywordTimer: ReturnType<typeof setTimeout> | undefined;
 function onKeywordChange() {
   clearTimeout(keywordTimer);
-  keywordTimer = setTimeout(loadList, 300);
+  keywordTimer = setTimeout(onFilterChange, 300);
 }
 
 async function loadList() {
   loading.value = true;
   try {
-    const [filtered, all] = await Promise.all([
+    const [result, facetData] = await Promise.all([
       getCreaftVoices({
         keyword: keyword.value.trim() || undefined,
         status: statusFilter.value === '' ? undefined : statusFilter.value,
+        page: page.value,
+        pageSize: pageSize.value,
       }),
-      getCreaftVoices(),
+      getCreaftVoiceFacets(),
     ]);
-    rows.value = filtered || [];
-    allRows.value = all || [];
-    allLoaded.value = true;
+    rows.value = result?.list || [];
+    total.value = result?.total || 0;
+    facets.value = facetData || null;
   } catch {
     /* 拦截器已提示 */
   } finally {
@@ -572,5 +600,10 @@ async function handleDelete(record: CreaftVoiceRow) {
   align-items: center;
   gap: 8px;
   margin: 4px 0 8px;
+}
+.pager {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 </style>

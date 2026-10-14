@@ -9,7 +9,12 @@
     </div>
 
     <a-spin v-if="loading" />
-    <a-result v-else-if="!detail" status="error" title="技能详情加载失败" sub-title="请返回列表后重试；当前无法保存。">
+    <a-result
+      v-else-if="!detail"
+      status="error"
+      title="技能详情加载失败"
+      sub-title="请返回列表后重试；当前无法保存。"
+    >
       <template #extra>
         <a-button type="primary" @click="load">重试</a-button>
       </template>
@@ -31,7 +36,12 @@
 
       <div class="edit-main">
         <a-card id="sec-basic" title="基本信息" variant="borderless" class="edit-card">
-          <a-form :model="form" :disabled="saving" :label-col="{ span: 4 }" :wrapper-col="{ span: 18 }">
+          <a-form
+            :model="form"
+            :disabled="saving"
+            :label-col="{ span: 4 }"
+            :wrapper-col="{ span: 18 }"
+          >
             <a-form-item label="技能身份">
               <code class="route-code">{{ detail.agentSkillId }}</code>
               <span class="muted" style="margin-left: 8px">与铺货侧共用的 int64，不可改</span>
@@ -60,15 +70,21 @@
             </a-form-item>
             <a-form-item label="排序权重">
               <a-input-number v-model:value="form.weight" :min="0" />
-              <span class="muted" style="margin-left: 8px">同分类内降序：大的在前（与 v1 一致）</span>
+              <span class="muted" style="margin-left: 8px"
+                >同分类内降序：大的在前（与 v1 一致）</span
+              >
             </a-form-item>
             <a-form-item label="技能编码">
               <a-input v-model:value="form.agentSkillCode" />
-              <div class="muted warn">与 v1 对齐身份用的编码。改成别的会让按编码反查的地方找不到，非对齐需要时别动。</div>
+              <div class="muted warn">
+                与 v1 对齐身份用的编码。改成别的会让按编码反查的地方找不到，非对齐需要时别动。
+              </div>
             </a-form-item>
             <a-form-item label="启用">
               <a-switch v-model:checked="enabled" />
-              <span class="muted" style="margin-left: 8px">停用等于该技能在 @技能 列表里不存在</span>
+              <span class="muted" style="margin-left: 8px"
+                >停用等于该技能在 @技能 列表里不存在</span
+              >
             </a-form-item>
           </a-form>
         </a-card>
@@ -80,7 +96,9 @@
             :schema="configSchema"
             :skill-code="form.agentSkillCode"
           />
-          <div class="muted warn">仅在内容有变化时提交配置；清空全部内容（保存 {}）会清空配置。</div>
+          <div class="muted warn">
+            仅在内容有变化时提交配置；清空全部内容（保存 {}）会清空配置。
+          </div>
         </a-card>
 
         <div class="save-bar">
@@ -125,7 +143,7 @@ import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, useRouter } from 'vu
 import {
   getCreaftAgentSkillConfigSchema,
   getCreaftAgentSkillDetail,
-  getCreaftAgentSkills,
+  getCreaftAgentSkillSummary,
   updateCreaftAgentSkill,
   type CreaftAgentSkillDetail,
   type CreaftSkillConfigSchema,
@@ -148,7 +166,9 @@ const detail = ref<CreaftAgentSkillDetail | null>(null);
 const configSchema = ref<CreaftSkillConfigSchema | null>(null);
 const categories = ref<string[]>([]);
 const configText = ref('');
-const editorRef = ref<{ shape: 'react' | 'localLife' | 'overrides'; hasProblems: boolean } | null>(null);
+const editorRef = ref<{ shape: 'react' | 'localLife' | 'overrides'; hasProblems: boolean } | null>(
+  null,
+);
 
 const form = reactive({
   category: undefined as string | undefined,
@@ -184,8 +204,13 @@ const configChanged = computed(() => {
   return parsed === null || canonical(parsed) !== originalConfig.value;
 });
 // 标红的行（键名为空、重名）不在配置文本里，文本看不出改动：也算未保存，离开时要提示
-const dirty = computed(() => !!detail.value
-  && (formSnapshot() !== originalForm.value || configChanged.value || !!editorRef.value?.hasProblems));
+const dirty = computed(
+  () =>
+    !!detail.value &&
+    (formSnapshot() !== originalForm.value ||
+      configChanged.value ||
+      !!editorRef.value?.hasProblems),
+);
 
 async function load() {
   loading.value = true;
@@ -197,7 +222,13 @@ async function load() {
   }
   try {
     const result = await getCreaftAgentSkillDetail(id.value);
-    if (!result || result.id !== id.value || !result.config || typeof result.config !== 'object' || Array.isArray(result.config)) {
+    if (
+      !result ||
+      result.id !== id.value ||
+      !result.config ||
+      typeof result.config !== 'object' ||
+      Array.isArray(result.config)
+    ) {
       message.error('技能详情缺少有效配置，请刷新后重试');
       return;
     }
@@ -224,9 +255,12 @@ async function load() {
 
 onMounted(() => {
   load();
-  getCreaftAgentSkillConfigSchema().then((schema) => (configSchema.value = schema || null), () => undefined);
-  getCreaftAgentSkills().then(
-    (rows) => (categories.value = [...new Set((rows || []).map((r) => r.category).filter((c): c is string => !!c))].sort()),
+  getCreaftAgentSkillConfigSchema().then(
+    (schema) => (configSchema.value = schema || null),
+    () => undefined,
+  );
+  getCreaftAgentSkillSummary().then(
+    (summary) => (categories.value = summary?.categories || []),
     () => undefined,
   );
 });
@@ -241,8 +275,12 @@ const navItems = computed(() => {
   const shape = editorRef.value?.shape;
   if (!schema || !shape) return items;
   if (shape === 'react') {
-    for (const field of schema.promptFields) items.push({ id: `cfg-${field.key}`, label: field.label, child: true });
-    items.push({ id: 'cfg-tags', label: '标签', child: true }, { id: 'cfg-tools', label: '工具', child: true });
+    for (const field of schema.promptFields)
+      items.push({ id: `cfg-${field.key}`, label: field.label, child: true });
+    items.push(
+      { id: 'cfg-tags', label: '标签', child: true },
+      { id: 'cfg-tools', label: '工具', child: true },
+    );
     items.push({ id: 'cfg-overrides', label: '提示词覆盖', child: true });
   } else if (shape === 'localLife') {
     items.push({ id: 'cfg-stage-PIPELINE', label: '出图流水线', child: true });

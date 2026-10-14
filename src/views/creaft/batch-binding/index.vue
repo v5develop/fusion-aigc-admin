@@ -87,7 +87,7 @@
         :columns="columns"
         :data-source="rows"
         :loading="loading"
-        :pagination="false"
+        :pagination="tablePagination"
         :row-selection="rowSelection"
         row-key="agentSkillId"
         size="middle"
@@ -220,6 +220,12 @@ import {
 
 const rows = ref<CreaftBatchBindingRow[]>([]);
 const loading = ref(false);
+/** 这两页的全量数据一次取回（就绪度/绑定态要整批计算，统计数也取自全量），分页只在前端切片 */
+const tablePagination = {
+  pageSize: 20,
+  showSizeChanger: true,
+  pageSizeOptions: ['20', '50', '100'],
+};
 const keyword = ref('');
 const onlyUnbound = ref(false);
 const selectedIds = ref<string[]>([]);

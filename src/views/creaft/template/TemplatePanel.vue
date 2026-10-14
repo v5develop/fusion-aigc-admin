@@ -23,21 +23,21 @@
           v-model:value="categoryFilter"
           :options="categoryFilterOptions"
           style="width: 200px"
-          @change="loadList"
+          @change="onFilterChange"
         />
         <a-input
           v-model:value="keyword"
           placeholder="按标题过滤"
           allow-clear
           style="width: 220px"
-          @press-enter="loadList"
+          @press-enter="onFilterChange"
           @change="onKeywordChange"
         />
         <a-select
           v-model:value="enabledFilter"
           :options="enabledFilterOptions"
           style="width: 140px"
-          @change="loadList"
+          @change="onFilterChange"
         />
       </div>
 
@@ -98,6 +98,17 @@
           </template>
         </template>
       </a-table>
+      <div class="pager">
+        <a-pagination
+          v-model:current="page"
+          v-model:page-size="pageSize"
+          :total="total"
+          show-size-changer
+          :page-size-options="['20', '50', '100']"
+          @change="loadList"
+          @show-size-change="onSizeChange"
+        />
+      </div>
     </a-card>
 
     <a-modal
@@ -229,6 +240,21 @@ const emptyHint = computed(() => COPY[props.kind].empty);
 
 const rows = ref<CreaftTemplateRow[]>([]);
 const loading = ref(false);
+const total = ref(0);
+const page = ref(1);
+const pageSize = ref(20);
+
+/** 筛选、搜索变化回到第一页；翻页与改每页条数直接重载 */
+function onFilterChange() {
+  page.value = 1;
+  loadList();
+}
+
+function onSizeChange(_current: number, size: number) {
+  pageSize.value = size;
+  page.value = 1;
+  loadList();
+}
 const categoryFilter = ref<string>('');
 const enabledFilter = ref<'' | 1 | 0>('');
 const keyword = ref('');
@@ -265,18 +291,21 @@ const columns = computed(() => [
 let keywordTimer: ReturnType<typeof setTimeout> | undefined;
 function onKeywordChange() {
   clearTimeout(keywordTimer);
-  keywordTimer = setTimeout(loadList, 300);
+  keywordTimer = setTimeout(onFilterChange, 300);
 }
 
 async function loadList() {
   loading.value = true;
   try {
-    rows.value =
-      (await getCreaftTemplates(props.kind, {
-        category: categoryFilter.value || undefined,
-        keyword: keyword.value.trim() || undefined,
-        enabled: enabledFilter.value === '' ? undefined : enabledFilter.value,
-      })) || [];
+    const result = await getCreaftTemplates(props.kind, {
+      category: categoryFilter.value || undefined,
+      keyword: keyword.value.trim() || undefined,
+      enabled: enabledFilter.value === '' ? undefined : enabledFilter.value,
+      page: page.value,
+      pageSize: pageSize.value,
+    });
+    rows.value = result?.list || [];
+    total.value = result?.total || 0;
   } catch {
     /* 拦截器已提示 */
   } finally {
@@ -300,6 +329,7 @@ watch(
     categoryFilter.value = '';
     keyword.value = '';
     enabledFilter.value = '';
+    page.value = 1;
     loadList();
     loadOptions();
   },
@@ -493,5 +523,10 @@ async function handleDelete(record: CreaftTemplateRow) {
   font-size: 12px;
   white-space: pre-wrap;
   word-break: break-all;
+}
+.pager {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 </style>

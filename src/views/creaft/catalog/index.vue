@@ -28,14 +28,14 @@
           v-model:value="typeFilter"
           :options="typeFilterOptions"
           style="width: 240px"
-          @change="loadList"
+          @change="onFilterChange"
         />
         <a-input
           v-model:value="keyFilter"
           placeholder="按目录键过滤"
           allow-clear
           style="width: 240px"
-          @press-enter="loadList"
+          @press-enter="onFilterChange"
           @change="onKeyFilterChange"
         />
         <span class="muted">{{ typeHint }}</span>
@@ -98,6 +98,17 @@
           </template>
         </template>
       </a-table>
+      <div class="pager">
+        <a-pagination
+          v-model:current="page"
+          v-model:page-size="pageSize"
+          :total="total"
+          show-size-changer
+          :page-size-options="['20', '50', '100']"
+          @change="loadList"
+          @show-size-change="onSizeChange"
+        />
+      </div>
     </a-card>
 
     <a-modal
@@ -167,6 +178,21 @@ import {
 
 const rows = ref<CreaftCatalogRow[]>([]);
 const loading = ref(false);
+const total = ref(0);
+const page = ref(1);
+const pageSize = ref(20);
+
+/** 筛选、搜索变化回到第一页；翻页与改每页条数直接重载 */
+function onFilterChange() {
+  page.value = 1;
+  loadList();
+}
+
+function onSizeChange(_current: number, size: number) {
+  pageSize.value = size;
+  page.value = 1;
+  loadList();
+}
 /** 默认落在平均耗时：仓库里没有任何迁移种过它，它是最常见的"接口回 4001"来源 */
 const typeFilter = ref<'' | CreaftCatalogType>('AVG_DURATION');
 const keyFilter = ref('');
@@ -207,17 +233,20 @@ const columns = [
 let keyFilterTimer: ReturnType<typeof setTimeout> | undefined;
 function onKeyFilterChange() {
   clearTimeout(keyFilterTimer);
-  keyFilterTimer = setTimeout(loadList, 300);
+  keyFilterTimer = setTimeout(onFilterChange, 300);
 }
 
 async function loadList() {
   loading.value = true;
   try {
-    rows.value =
-      (await getCreaftCatalog({
-        catalogType: typeFilter.value || undefined,
-        catalogKey: keyFilter.value.trim() || undefined,
-      })) || [];
+    const result = await getCreaftCatalog({
+      catalogType: typeFilter.value || undefined,
+      catalogKey: keyFilter.value.trim() || undefined,
+      page: page.value,
+      pageSize: pageSize.value,
+    });
+    rows.value = result?.list || [];
+    total.value = result?.total || 0;
   } catch {
     /* 拦截器已提示 */
   } finally {
@@ -365,5 +394,10 @@ async function handleDelete(record: CreaftCatalogRow) {
   background: var(--color-fill-quaternary, #fafafa);
   color: var(--color-text-primary, #262626);
   font-size: 12px;
+}
+.pager {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 </style>

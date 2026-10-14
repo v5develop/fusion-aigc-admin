@@ -39,21 +39,21 @@
           v-model:value="categoryFilter"
           :options="categoryFilterOptions"
           style="width: 220px"
-          @change="loadList"
+          @change="onFilterChange"
         />
         <a-input
           v-model:value="keyword"
           placeholder="按技能名或编码过滤"
           allow-clear
           style="width: 240px"
-          @press-enter="loadList"
+          @press-enter="onFilterChange"
           @change="onKeywordChange"
         />
         <a-select
           v-model:value="enabledFilter"
           :options="enabledFilterOptions"
           style="width: 140px"
-          @change="loadList"
+          @change="onFilterChange"
         />
         <span v-if="summary" class="muted">
           共 {{ summary.total }} 条 / 启用 {{ summary.enabled }} 条 / 用户可见 {{ visibleCount }} 条
@@ -111,6 +111,17 @@
           </template>
         </template>
       </a-table>
+      <div class="pager">
+        <a-pagination
+          v-model:current="page"
+          v-model:page-size="pageSize"
+          :total="total"
+          show-size-changer
+          :page-size-options="['20', '50', '100']"
+          @change="loadList"
+          @show-size-change="onSizeChange"
+        />
+      </div>
     </a-card>
 
     <a-modal
@@ -166,7 +177,6 @@
         />
       </a-spin>
     </a-modal>
-
   </div>
 </template>
 
@@ -186,11 +196,25 @@ import {
   type CreaftAgentSkillSummary,
 } from '@/api/creaft-compat';
 
-
 const router = useRouter();
 const rows = ref<CreaftAgentSkillRow[]>([]);
 const summary = ref<CreaftAgentSkillSummary | null>(null);
 const loading = ref(false);
+const total = ref(0);
+const page = ref(1);
+const pageSize = ref(20);
+
+/** 筛选、搜索变化回到第一页；翻页与改每页条数直接重载 */
+function onFilterChange() {
+  page.value = 1;
+  loadList();
+}
+
+function onSizeChange(_current: number, size: number) {
+  pageSize.value = size;
+  page.value = 1;
+  loadList();
+}
 const categoryFilter = ref<string>('');
 const enabledFilter = ref<'' | 1 | 0>('');
 const keyword = ref('');
@@ -201,7 +225,7 @@ const enabledFilterOptions = [
   { label: '停用', value: 0 },
 ];
 
-/** 分类候选从当前行里收集：技能目录是几十行的配置，不值得为下拉再开一个接口 */
+/** 分类候选来自体检接口的全量去重（列表分页，不能从当前页收集） */
 const categories = ref<string[]>([]);
 const categoryFilterOptions = computed(() => [
   { label: '全部分类', value: '' },
@@ -209,8 +233,10 @@ const categoryFilterOptions = computed(() => [
   { label: '未分类', value: '__EMPTY__' },
   ...categories.value.map((c) => ({ label: c, value: c })),
 ]);
-const visibleCount = computed(() => rows.value.filter((row) => row.visible).length);
-
+/** 用户可见 = 启用且有分类，与后端 visible 的口径一致；全量数字取自体检，不能从当前页数 */
+const visibleCount = computed(() =>
+  summary.value ? summary.value.enabled - summary.value.uncategorised : 0,
+);
 
 const columns = [
   { title: '技能', dataIndex: 'title', width: 260 },
@@ -224,24 +250,21 @@ const columns = [
 let keywordTimer: ReturnType<typeof setTimeout> | undefined;
 function onKeywordChange() {
   clearTimeout(keywordTimer);
-  keywordTimer = setTimeout(loadList, 300);
+  keywordTimer = setTimeout(onFilterChange, 300);
 }
 
 async function loadList() {
   loading.value = true;
   try {
-    rows.value =
-      (await getCreaftAgentSkills({
-        category: categoryFilter.value || undefined,
-        keyword: keyword.value.trim() || undefined,
-        enabled: enabledFilter.value === '' ? undefined : enabledFilter.value,
-      })) || [];
-    // 只在「不带分类筛选」的那次刷新候选，否则筛了某个分类后候选会塌成一项
-    if (!categoryFilter.value) {
-      categories.value = [
-        ...new Set(rows.value.map((row) => row.category).filter((c): c is string => !!c)),
-      ].sort();
-    }
+    const result = await getCreaftAgentSkills({
+      category: categoryFilter.value || undefined,
+      keyword: keyword.value.trim() || undefined,
+      enabled: enabledFilter.value === '' ? undefined : enabledFilter.value,
+      page: page.value,
+      pageSize: pageSize.value,
+    });
+    rows.value = result?.list || [];
+    total.value = result?.total || 0;
   } catch {
     /* 拦截器已提示 */
   } finally {
@@ -252,6 +275,7 @@ async function loadList() {
 async function loadSummary() {
   try {
     summary.value = await getCreaftAgentSkillSummary();
+    categories.value = summary.value.categories || [];
   } catch {
     /* 体检数字缺失不影响列表 */
   }
@@ -420,5 +444,10 @@ onActivated(() => {
 .category-order-item--ghost {
   opacity: 0.45;
   background: var(--color-primary-bg, #e6f4ff);
+}
+.pager {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 </style>

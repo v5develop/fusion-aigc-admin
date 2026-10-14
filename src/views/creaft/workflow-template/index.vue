@@ -28,21 +28,21 @@
           v-model:value="categoryFilter"
           :options="categoryFilterOptions"
           style="width: 160px"
-          @change="loadList"
+          @change="onFilterChange"
         />
         <a-input
           v-model:value="keyword"
           placeholder="按标题或中文名过滤"
           allow-clear
           style="width: 220px"
-          @press-enter="loadList"
+          @press-enter="onFilterChange"
           @change="onKeywordChange"
         />
         <a-select
           v-model:value="enabledFilter"
           :options="enabledFilterOptions"
           style="width: 140px"
-          @change="loadList"
+          @change="onFilterChange"
         />
       </div>
 
@@ -66,7 +66,9 @@
             <div class="title-cell">{{ record.titleZh }}</div>
             <code class="route-code">{{ record.title }}</code>
             <span class="muted" style="margin-left: 6px">#{{ record.id }}</span>
-            <a-tag v-if="record.payloadJson == null" color="orange" style="margin-left: 6px">未导入</a-tag>
+            <a-tag v-if="record.payloadJson == null" color="orange" style="margin-left: 6px"
+              >未导入</a-tag
+            >
           </template>
 
           <template v-if="column.dataIndex === 'category'">
@@ -77,7 +79,9 @@
 
           <template v-if="column.dataIndex === 'slots'">
             <template v-if="slotSummary(record).length">
-              <div v-for="line in slotSummary(record)" :key="line" class="muted slot-line">{{ line }}</div>
+              <div v-for="line in slotSummary(record)" :key="line" class="muted slot-line">
+                {{ line }}
+              </div>
             </template>
             <span v-else class="muted">无输入槽位</span>
           </template>
@@ -109,6 +113,17 @@
           </template>
         </template>
       </a-table>
+      <div class="pager">
+        <a-pagination
+          v-model:current="page"
+          v-model:page-size="pageSize"
+          :total="total"
+          show-size-changer
+          :page-size-options="['20', '50', '100']"
+          @change="loadList"
+          @show-size-change="onSizeChange"
+        />
+      </div>
     </a-card>
 
     <a-modal
@@ -137,8 +152,8 @@
             placeholder="小写字母、数字和连字符，如 video-product-sell"
           />
           <div class="muted">
-            端侧提交体里的 title，也是工作流历史的分桶键，<strong>建好后不可改</strong>。
-            v1 之外的新标题服务端不认识，按该分类的通用方式处理（例如视频流只按用户原话出片）。
+            端侧提交体里的 title，也是工作流历史的分桶键，<strong>建好后不可改</strong>。 v1
+            之外的新标题服务端不认识，按该分类的通用方式处理（例如视频流只按用户原话出片）。
           </div>
         </a-form-item>
         <a-form-item label="中文名" required>
@@ -156,7 +171,10 @@
 
       <div class="upload-toggle">
         <a-checkbox v-model:checked="uploadEnabled">使用上传</a-checkbox>
-        <span class="muted">默认填地址（与 v1 一致：素材先放到 OSS，再把地址填进来）；勾选后每个地址旁出现上传按钮，文件进系统公有桶。</span>
+        <span class="muted"
+          >默认填地址（与 v1 一致：素材先放到
+          OSS，再把地址填进来）；勾选后每个地址旁出现上传按钮，文件进系统公有桶。</span
+        >
       </div>
       <a-tabs v-model:active-key="payloadTab" @change="onPayloadTabChange">
         <a-tab-pane key="visual" tab="可视化编辑">
@@ -167,13 +185,23 @@
             </div>
             <div v-for="(row, index) in editor.results" :key="row.uid" class="url-row">
               <a-input v-model:value="row.url" placeholder="https://…" />
-              <CatalogMediaUpload v-if="uploadEnabled" :accept="IMAGE_OR_VIDEO" @uploaded="(url) => (row.url = url)" />
+              <CatalogMediaUpload
+                v-if="uploadEnabled"
+                :accept="IMAGE_OR_VIDEO"
+                @uploaded="(url) => (row.url = url)"
+              />
               <MediaThumb :url="row.url" />
               <a-button type="text" danger @click="editor.results.splice(index, 1)">移除</a-button>
             </div>
             <a-space>
-              <a-button type="dashed" size="small" @click="editor.results.push({ uid: uid(), url: '' })">+ 添加示例地址</a-button>
-              <CatalogMediaUpload v-if="uploadEnabled"
+              <a-button
+                type="dashed"
+                size="small"
+                @click="editor.results.push({ uid: uid(), url: '' })"
+                >+ 添加示例地址</a-button
+              >
+              <CatalogMediaUpload
+                v-if="uploadEnabled"
                 :accept="IMAGE_OR_VIDEO"
                 text="上传新示例"
                 @uploaded="(url) => editor.results.push({ uid: uid(), url })"
@@ -198,7 +226,13 @@
               <div class="slot-head">
                 <span class="slot-index">图 {{ index + 1 }}</span>
                 <a-space :size="4">
-                  <a-button type="text" size="small" :disabled="index === 0" @click="move(editor.images, index, -1)">上移</a-button>
+                  <a-button
+                    type="text"
+                    size="small"
+                    :disabled="index === 0"
+                    @click="move(editor.images, index, -1)"
+                    >上移</a-button
+                  >
                   <a-button
                     type="text"
                     size="small"
@@ -207,14 +241,20 @@
                   >
                     下移
                   </a-button>
-                  <a-button type="text" size="small" danger @click="editor.images.splice(index, 1)">移除</a-button>
+                  <a-button type="text" size="small" danger @click="editor.images.splice(index, 1)"
+                    >移除</a-button
+                  >
                 </a-space>
               </div>
               <div class="slot-body">
                 <MediaThumb :url="slot.url" :size="88" />
                 <div class="slot-fields">
                   <a-space wrap>
-                    <a-input v-model:value="slot.title" placeholder="槽位标题，如 模特图" style="width: 200px" />
+                    <a-input
+                      v-model:value="slot.title"
+                      placeholder="槽位标题，如 模特图"
+                      style="width: 200px"
+                    />
                     <a-input-number
                       v-model:value="slot.maxNum"
                       :min="1"
@@ -225,14 +265,19 @@
                   </a-space>
                   <div class="url-row">
                     <a-input v-model:value="slot.url" placeholder="示例图地址 https://…" />
-                    <CatalogMediaUpload v-if="uploadEnabled" @uploaded="(url) => (slot.url = url)" />
+                    <CatalogMediaUpload
+                      v-if="uploadEnabled"
+                      @uploaded="(url) => (slot.url = url)"
+                    />
                   </div>
                   <a-input v-model:value="slot.tips" placeholder="提示（tips，选填）" />
                   <a-input v-model:value="slot.content" placeholder="说明（content，选填）" />
                 </div>
               </div>
             </div>
-            <a-button type="dashed" size="small" @click="editor.images.push(emptySlot())">+ 添加图片槽位</a-button>
+            <a-button type="dashed" size="small" @click="editor.images.push(emptySlot())"
+              >+ 添加图片槽位</a-button
+            >
           </div>
 
           <div class="section">
@@ -243,27 +288,40 @@
             <div v-for="(slot, index) in editor.videos" :key="slot.uid" class="slot-card">
               <div class="slot-head">
                 <span class="slot-index">视频 {{ index + 1 }}</span>
-                <a-button type="text" size="small" danger @click="editor.videos.splice(index, 1)">移除</a-button>
+                <a-button type="text" size="small" danger @click="editor.videos.splice(index, 1)"
+                  >移除</a-button
+                >
               </div>
               <div class="slot-body">
                 <MediaThumb :url="slot.url" :size="88" />
                 <div class="slot-fields">
-                  <a-input v-model:value="slot.title" placeholder="槽位标题，如 参考视频" style="width: 200px" />
+                  <a-input
+                    v-model:value="slot.title"
+                    placeholder="槽位标题，如 参考视频"
+                    style="width: 200px"
+                  />
                   <div class="url-row">
                     <a-input v-model:value="slot.url" placeholder="示例视频地址 https://…" />
-                    <CatalogMediaUpload v-if="uploadEnabled" :accept="VIDEO_ACCEPT" @uploaded="(url) => (slot.url = url)" />
+                    <CatalogMediaUpload
+                      v-if="uploadEnabled"
+                      :accept="VIDEO_ACCEPT"
+                      @uploaded="(url) => (slot.url = url)"
+                    />
                   </div>
                 </div>
               </div>
             </div>
-            <a-button type="dashed" size="small" @click="editor.videos.push(emptySlot())">+ 添加视频槽位</a-button>
+            <a-button type="dashed" size="small" @click="editor.videos.push(emptySlot())"
+              >+ 添加视频槽位</a-button
+            >
           </div>
         </a-tab-pane>
 
         <a-tab-pane key="json" tab="原文 JSON">
           <a-textarea v-model:value="rawJson" :rows="18" class="json-area" />
           <div class="muted">
-            必须是 JSON 对象。可视化编辑没有覆盖的字段在这里改；两边切换时会互相同步，表单不认识的字段原样保留。
+            必须是 JSON
+            对象。可视化编辑没有覆盖的字段在这里改；两边切换时会互相同步，表单不认识的字段原样保留。
           </div>
         </a-tab-pane>
       </a-tabs>
@@ -278,6 +336,7 @@ import { computed, defineComponent, h, reactive, ref } from 'vue';
 import {
   createCreaftWorkflowTemplate,
   deleteCreaftWorkflowTemplate,
+  getCreaftWorkflowTemplateCategoryCoverage,
   getCreaftWorkflowTemplates,
   updateCreaftWorkflowTemplate,
   type CreaftWorkflowCategory,
@@ -285,7 +344,6 @@ import {
 } from '@/api/creaft-compat';
 
 import CatalogMediaUpload from '../components/CatalogMediaUpload.vue';
-
 import {
   emptySlot,
   fromPayloadModel,
@@ -308,9 +366,17 @@ const MediaThumb = defineComponent({
     return () => {
       const style = { width: `${props.size}px`, height: `${props.size}px` };
       const url = (props.url || '').trim();
-      if (!/^https?:\/\//i.test(url)) return h('div', { class: 'thumb thumb-empty', style }, '无预览');
+      if (!/^https?:\/\//i.test(url))
+        return h('div', { class: 'thumb thumb-empty', style }, '无预览');
       if (VIDEO_EXT.test(url)) {
-        return h('video', { class: 'thumb', style, src: url, muted: true, preload: 'metadata', controls: true });
+        return h('video', {
+          class: 'thumb',
+          style,
+          src: url,
+          muted: true,
+          preload: 'metadata',
+          controls: true,
+        });
       }
       return h('a', { href: url, target: '_blank', rel: 'noopener' }, [
         h('img', { class: 'thumb', style, src: url, loading: 'lazy' }),
@@ -359,35 +425,54 @@ const columns = [
 
 const rows = ref<CreaftWorkflowTemplateRow[]>([]);
 /** 不带筛选的全量，用来判断哪些分类会退回旧列表 */
-const allRows = ref<CreaftWorkflowTemplateRow[]>([]);
 const loading = ref(false);
+const total = ref(0);
+const page = ref(1);
+const pageSize = ref(20);
+
+/** 筛选、搜索变化回到第一页；翻页与改每页条数直接重载 */
+function onFilterChange() {
+  page.value = 1;
+  loadList();
+}
+
+function onSizeChange(_current: number, size: number) {
+  pageSize.value = size;
+  page.value = 1;
+  loadList();
+}
 const categoryFilter = ref<string>('');
 const enabledFilter = ref<'' | 1 | 0>('');
 const keyword = ref('');
 
+/** 没有任何启用模板的分类（全量口径，取自 category-coverage，不能从当前页推导） */
+const coveredCategories = ref<string[]>([]);
 const fallbackCategories = computed(() =>
-  CATEGORIES.filter((c) => !allRows.value.some((row) => row.category === c && row.enabled === 1)),
+  CATEGORIES.filter((c) => !coveredCategories.value.includes(c)),
 );
 
 let keywordTimer: ReturnType<typeof setTimeout> | undefined;
 function onKeywordChange() {
   clearTimeout(keywordTimer);
-  keywordTimer = setTimeout(loadList, 300);
+  keywordTimer = setTimeout(onFilterChange, 300);
 }
 
 async function loadList() {
   loading.value = true;
   try {
-    const [filtered, all] = await Promise.all([
+    const [result, covered] = await Promise.all([
       getCreaftWorkflowTemplates({
         category: categoryFilter.value || undefined,
         keyword: keyword.value.trim() || undefined,
         enabled: enabledFilter.value === '' ? undefined : enabledFilter.value,
+        page: page.value,
+        pageSize: pageSize.value,
       }),
-      getCreaftWorkflowTemplates(),
+      getCreaftWorkflowTemplateCategoryCoverage(),
     ]);
-    rows.value = filtered || [];
-    allRows.value = all || [];
+    rows.value = result?.list || [];
+    total.value = result?.total || 0;
+    coveredCategories.value = covered || [];
   } catch {
     /* 拦截器已提示 */
   } finally {
@@ -437,7 +522,10 @@ const fromEditor = fromPayloadModel;
 function validateEditor(model: EditorModel): string | null {
   const badUrl = (u: string) => u.trim() && !/^https:\/\//i.test(u.trim());
   if (model.results.some((r) => badUrl(r.url))) return '示例产物地址必须是 https 地址';
-  for (const [label, list] of [['图片', model.images], ['视频', model.videos]] as const) {
+  for (const [label, list] of [
+    ['图片', model.images],
+    ['视频', model.videos],
+  ] as const) {
     for (const [i, slot] of list.entries()) {
       if (!slot.title.trim()) return `${label}槽位 ${i + 1} 缺标题`;
       if (badUrl(slot.url)) return `${label}槽位 ${i + 1} 的示例地址必须是 https 地址`;
@@ -489,7 +577,8 @@ function onPayloadTabChange(key: string | number) {
   // 从原文切回可视化：原文不合法就留在原文页，免得把没写完的内容静默丢掉
   try {
     const parsed = JSON.parse(rawJson.value || '{}');
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('not object');
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed))
+      throw new Error('not object');
     Object.assign(editor, toEditor(parsed));
   } catch {
     message.warning('原文不是合法的 JSON 对象，先改好再切回可视化');
@@ -698,5 +787,10 @@ async function handleDelete(record: CreaftWorkflowTemplateRow) {
   align-items: center;
   gap: 8px;
   margin: 4px 0 8px;
+}
+.pager {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 </style>

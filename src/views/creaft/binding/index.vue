@@ -57,7 +57,7 @@
         :columns="columns"
         :data-source="filteredRows"
         :loading="loading"
-        :pagination="false"
+        :pagination="tablePagination"
         row-key="creaftV1Route"
         size="middle"
         :scroll="{ x: 1480 }"
@@ -367,6 +367,12 @@ import {
 const rows = ref<CreaftBindingRow[]>([]);
 const v1Capabilities = ref<CreaftV1CapabilityRow[]>([]);
 const loading = ref(false);
+/** 这两页的全量数据一次取回（就绪度/绑定态要整批计算，统计数也取自全量），分页只在前端切片 */
+const tablePagination = {
+  pageSize: 20,
+  showSizeChanger: true,
+  pageSizeOptions: ['20', '50', '100'],
+};
 const stateFilter = ref<'' | CreaftBindingState>('');
 const keyword = ref('');
 

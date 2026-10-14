@@ -197,8 +197,18 @@ export interface CreaftCatalogSaveData {
   status?: number;
 }
 
-export function getCreaftCatalog(params?: { catalogType?: string; catalogKey?: string }) {
-  return request.get<CreaftCatalogRow[]>('/api/v1/admin/creaft/feature-catalog', { params });
+/** 后台列表统一的分页参数：页码从 1 开始，每页 1–100 */
+export interface CreaftPageParams {
+  page?: number;
+  pageSize?: number;
+}
+
+export function getCreaftCatalog(
+  params?: CreaftPageParams & { catalogType?: string; catalogKey?: string },
+) {
+  return request.get<PageResult<CreaftCatalogRow>>('/api/v1/admin/creaft/feature-catalog', {
+    params,
+  });
 }
 
 export function createCreaftCatalog(data: CreaftCatalogSaveData) {
@@ -267,9 +277,9 @@ function templateBase(kind: CreaftTemplateType) {
 
 export function getCreaftTemplates(
   kind: CreaftTemplateType,
-  params?: { category?: string; keyword?: string; enabled?: number },
+  params?: CreaftPageParams & { category?: string; keyword?: string; enabled?: number },
 ) {
-  return request.get<CreaftTemplateRow[]>(templateBase(kind), { params });
+  return request.get<PageResult<CreaftTemplateRow>>(templateBase(kind), { params });
 }
 
 /** 已用过的分类，供下拉。本地生活的 category 要与品牌档案行业分类字面量一致，优先选、别手打 */
@@ -373,14 +383,20 @@ export interface CreaftWorkflowTemplateSaveData {
   enabled?: number;
 }
 
-export function getCreaftWorkflowTemplates(params?: {
-  category?: string;
-  keyword?: string;
-  enabled?: number;
-}) {
-  return request.get<CreaftWorkflowTemplateRow[]>('/api/v1/admin/creaft/workflow-templates', {
-    params,
-  });
+export function getCreaftWorkflowTemplates(
+  params?: CreaftPageParams & { category?: string; keyword?: string; enabled?: number },
+) {
+  return request.get<PageResult<CreaftWorkflowTemplateRow>>(
+    '/api/v1/admin/creaft/workflow-templates',
+    {
+      params,
+    },
+  );
+}
+
+/** 至少有一条启用模板的分类，全量返回（列表顶部的缺口提示用） */
+export function getCreaftWorkflowTemplateCategoryCoverage() {
+  return request.get<string[]>('/api/v1/admin/creaft/workflow-templates/category-coverage');
 }
 
 export function createCreaftWorkflowTemplate(data: CreaftWorkflowTemplateSaveData) {
@@ -428,8 +444,22 @@ export interface CreaftVoiceSaveData {
   status?: number;
 }
 
-export function getCreaftVoices(params?: { keyword?: string; status?: number }) {
-  return request.get<CreaftVoiceRow[]>('/api/v1/admin/creaft/voices', { params });
+export function getCreaftVoices(params?: CreaftPageParams & { keyword?: string; status?: number }) {
+  return request.get<PageResult<CreaftVoiceRow>>('/api/v1/admin/creaft/voices', { params });
+}
+
+export interface CreaftVoiceFacets {
+  /** 已用过的供应商语音模型 */
+  models: string[];
+  /** 已用过的标签 */
+  tags: string[];
+  /** 是否至少有一条启用音色 */
+  anyEnabled: boolean;
+}
+
+/** 下拉候选与启用概况，全量计算（列表本身分页，候选不能从当前页推导） */
+export function getCreaftVoiceFacets() {
+  return request.get<CreaftVoiceFacets>('/api/v1/admin/creaft/voices/facets');
 }
 
 export function createCreaftVoice(data: CreaftVoiceSaveData) {
@@ -483,6 +513,8 @@ export interface CreaftAgentSkillSummary {
   /** 启用但没有分类——不为 0 意味着用户端 @技能 列表不全 */
   uncategorised: number;
   placeholderCode: number;
+  /** 已用过的分类（全量去重）；列表分页，分类下拉只能从这里取 */
+  categories: string[];
 }
 
 export interface CreaftAgentSkillCategoryOrder {
@@ -510,13 +542,17 @@ export interface CreaftAgentSkillSaveData {
   agentSkillCode?: string;
 }
 
-export function getCreaftAgentSkills(params?: {
-  /** 传 __EMPTY__ 只看没分类的那批（NULL 与空串都算） */
-  category?: string;
-  keyword?: string;
-  enabled?: number;
-}) {
-  return request.get<CreaftAgentSkillRow[]>('/api/v1/admin/creaft/agent-skills', { params });
+export function getCreaftAgentSkills(
+  params?: CreaftPageParams & {
+    /** 传 __EMPTY__ 只看没分类的那批（NULL 与空串都算） */
+    category?: string;
+    keyword?: string;
+    enabled?: number;
+  },
+) {
+  return request.get<PageResult<CreaftAgentSkillRow>>('/api/v1/admin/creaft/agent-skills', {
+    params,
+  });
 }
 
 /** 技能执行配置的表单结构（键名取自服务端权威常量，前端不另存一份） */
