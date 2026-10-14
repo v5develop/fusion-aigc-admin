@@ -1,3 +1,5 @@
+import type { PageResult } from '@/types/api';
+
 import { request } from '@/utils/request';
 
 /**
@@ -227,8 +229,12 @@ export interface CreaftTemplateRow {
   title: string;
   category: string | null;
   description: string | null;
+  /** 仅用户自建模板有值：所属用户 id */
+  userId?: number | null;
   /** 已从库里的 {"tags": [...]} 取出，前端按数组用即可 */
   tags: string[];
+  /** 广场模板绑定的智能体技能 id（字符串）；本地生活没有 */
+  agentSkillId?: string | null;
   /** 模板载荷原文（JSON 对象文本）。用户端拿到的版本会摘掉 prompt */
   payloadJson: string | null;
   /** 升序：小的靠前（与 v1 的 weight 语义相反） */
@@ -238,49 +244,82 @@ export interface CreaftTemplateRow {
   updateTime?: string;
 }
 
+/**
+ * 两类公共模板各有一组接口（后端按表拆开）：类型由接口路径决定，入参里不再带 templateType。
+ */
 export interface CreaftTemplateSaveData {
-  templateType: CreaftTemplateType;
   title: string;
   category?: string;
   description?: string;
   tags?: string[];
   payloadJson?: string;
+  /** 仅广场模板：技能 id 用字符串传（19 位雪花 id 超过 JS 安全整数）；空串/不传表示不绑定 */
+  agentSkillId?: string;
   sortOrder?: number;
   enabled?: number;
 }
 
-export function getCreaftTemplates(params?: {
-  templateType?: string;
-  category?: string;
-  keyword?: string;
-  enabled?: number;
-}) {
-  return request.get<CreaftTemplateRow[]>('/api/v1/admin/creaft/templates', { params });
+function templateBase(kind: CreaftTemplateType) {
+  return kind === 'PLAZA'
+    ? '/api/v1/admin/creaft/plaza-templates'
+    : '/api/v1/admin/creaft/local-life-templates';
+}
+
+export function getCreaftTemplates(
+  kind: CreaftTemplateType,
+  params?: { category?: string; keyword?: string; enabled?: number },
+) {
+  return request.get<CreaftTemplateRow[]>(templateBase(kind), { params });
 }
 
 /** 已用过的分类，供下拉。本地生活的 category 要与品牌档案行业分类字面量一致，优先选、别手打 */
-export function getCreaftTemplateCategories(templateType?: string) {
-  return request.get<string[]>('/api/v1/admin/creaft/templates/categories', {
-    params: { templateType },
-  });
+export function getCreaftTemplateCategories(kind: CreaftTemplateType) {
+  return request.get<string[]>(`${templateBase(kind)}/categories`);
 }
 
-/** 已用过的标签，供下拉（不受用户端「只扫前 1000 条」的限制） */
-export function getCreaftTemplateTags() {
-  return request.get<string[]>('/api/v1/admin/creaft/templates/tags');
+/** 已用过的标签，供下拉（只有创意广场有标签维度） */
+export function getCreaftPlazaTemplateTags() {
+  return request.get<string[]>('/api/v1/admin/creaft/plaza-templates/tags');
 }
 
-export function createCreaftTemplate(data: CreaftTemplateSaveData) {
-  return request.post<number>('/api/v1/admin/creaft/templates', data);
+export function createCreaftTemplate(kind: CreaftTemplateType, data: CreaftTemplateSaveData) {
+  return request.post<number>(templateBase(kind), data);
 }
 
 /** 整体替换语义：没带上的值列会被清空 */
-export function updateCreaftTemplate(id: number, data: CreaftTemplateSaveData) {
-  return request.put(`/api/v1/admin/creaft/templates/${id}`, data);
+export function updateCreaftTemplate(
+  kind: CreaftTemplateType,
+  id: number,
+  data: CreaftTemplateSaveData,
+) {
+  return request.put(`${templateBase(kind)}/${id}`, data);
 }
 
-export function deleteCreaftTemplate(id: number) {
-  return request.delete(`/api/v1/admin/creaft/templates/${id}`);
+export function deleteCreaftTemplate(kind: CreaftTemplateType, id: number) {
+  return request.delete(`${templateBase(kind)}/${id}`);
+}
+
+/**
+ * 用户自建本地生活模板（只读）：用户的私有内容，后台不代改、不代删。
+ * 详情会写审计日志。
+ */
+export interface CreaftUserTemplateListParams {
+  userId?: number;
+  keyword?: string;
+  enabled?: number;
+  page?: number;
+  pageSize?: number;
+}
+
+export function getCreaftUserLocalLifeTemplates(params?: CreaftUserTemplateListParams) {
+  return request.get<PageResult<CreaftTemplateRow>>(
+    '/api/v1/admin/creaft/user-local-life-templates',
+    { params },
+  );
+}
+
+export function getCreaftUserLocalLifeTemplate(id: number) {
+  return request.get<CreaftTemplateRow>(`/api/v1/admin/creaft/user-local-life-templates/${id}`);
 }
 
 /**

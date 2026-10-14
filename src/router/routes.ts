@@ -511,8 +511,8 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
       {
         path: 'creaft-templates',
         name: 'CreaftTemplateMoved',
-        redirect: '/creaft/templates',
-        meta: { title: 'menu.creaftTemplate', hidden: true, requiresAuth: true },
+        redirect: '/creaft/plaza-templates',
+        meta: { title: 'menu.creaftPlazaTemplate', hidden: true, requiresAuth: true },
       },
       {
         path: 'creaft-skills',
@@ -574,14 +574,38 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
-        // 创意广场 / 本地生活官方模板。此前没有任何管理入口，铺数据只能直连 SQL——
+        // 创意广场模板：读 /plaza-templates/*（带标签、多标签取并集）。此前没有任何管理入口，铺数据只能直连 SQL——
         // 而没数据时下发接口照样回 200 + 空信封，端上分不清「没铺」和「没通」
-        path: 'templates',
-        name: 'CreaftTemplate',
-        component: () => import('@/views/creaft/template/index.vue'),
+        path: 'plaza-templates',
+        name: 'CreaftPlazaTemplate',
+        component: () => import('@/views/creaft/plaza-template/index.vue'),
         meta: {
-          title: 'menu.creaftTemplate',
+          title: 'menu.creaftPlazaTemplate',
           icon: 'AppstoreOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'creaft_catalog:view',
+        },
+      },
+      {
+        // 用户自建本地生活模板：只读。这是用户的私有内容，后台不代改、不代删；查看详情写审计
+        path: 'user-local-life-templates',
+        name: 'CreaftUserLocalLifeTemplate',
+        component: () => import('@/views/creaft/user-local-life-template/index.vue'),
+        meta: {
+          title: 'menu.creaftUserLocalLifeTemplate',
+          icon: 'UserOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'creaft_catalog:view',
+        },
+      },
+      {
+        // 本地生活官方模板：读 /local-life-templates/*（按分类筛）。与创意广场分表、分菜单管理
+        path: 'local-life-templates',
+        name: 'CreaftLocalLifeTemplate',
+        component: () => import('@/views/creaft/local-life-template/index.vue'),
+        meta: {
+          title: 'menu.creaftLocalLifeTemplate',
+          icon: 'EnvironmentOutlined',
           requiresAuth: true,
           requiredPermissions: 'creaft_catalog:view',
         },

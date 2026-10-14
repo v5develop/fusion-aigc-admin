@@ -1,30 +1,24 @@
 <template>
   <div class="page-container">
     <div class="page-header">
-      <h2 class="ph-title">Creaft 公共模板</h2>
+      <h2 class="ph-title">{{ title }}</h2>
       <a-button v-permission="'creaft_catalog:edit'" type="primary" @click="openCreate">
         新增模板
       </a-button>
     </div>
 
-    <a-alert type="info" show-icon style="margin-bottom: 12px" :message="typeHint" />
+    <a-alert type="info" show-icon style="margin-bottom: 12px" :message="description" />
 
     <a-alert
       v-if="!loading && !rows.length"
       type="warning"
       show-icon
       style="margin-bottom: 12px"
-      message="这一类一条模板都没有：对应的用户端接口会正常回 200 + 空分页信封，调用方分不清「还没铺数据」和「接口没通」。创意广场空着时，端上的「做同款」「热门模板」整块是空白页。"
+      :message="emptyHint"
     />
 
     <a-card variant="borderless">
       <div class="filter-bar">
-        <a-select
-          v-model:value="typeFilter"
-          :options="typeFilterOptions"
-          style="width: 260px"
-          @change="onTypeChange"
-        />
         <a-select
           v-model:value="categoryFilter"
           :options="categoryFilterOptions"
@@ -63,12 +57,6 @@
             <div class="title-cell">{{ record.title }}</div>
             <div v-if="record.description" class="muted">{{ record.description }}</div>
             <code class="route-code">#{{ record.id }}</code>
-          </template>
-
-          <template v-if="column.dataIndex === 'templateType'">
-            <a-tag :color="record.templateType === 'PLAZA' ? 'blue' : 'purple'">
-              {{ record.templateType === 'PLAZA' ? '创意广场' : '本地生活' }}
-            </a-tag>
           </template>
 
           <template v-if="column.dataIndex === 'tags'">
@@ -120,11 +108,6 @@
       @ok="handleSubmit"
     >
       <a-form :model="form" :label-col="{ span: 5 }" :wrapper-col="{ span: 17 }">
-        <a-form-item label="模板类型" required>
-          <a-select v-model:value="form.templateType" :options="typeOptions" />
-          <div class="muted">{{ DESCRIPTIONS[form.templateType] }}</div>
-        </a-form-item>
-
         <a-form-item label="标题" required>
           <a-input v-model:value="form.title" placeholder="展示给用户的标题" />
         </a-form-item>
@@ -139,7 +122,7 @@
             allow-clear
             placeholder="从已有分类里选，或直接输入新分类"
           />
-          <div v-if="form.templateType === 'LOCAL_LIFE'" class="muted warn">
+          <div v-if="kind === 'LOCAL_LIFE'" class="muted warn">
             本地生活的分类要与品牌档案的行业分类<strong>字面量一致</strong>：只是同义不同字面时，
             用户端列表会恒空且不报错。
           </div>
@@ -149,7 +132,7 @@
           <a-input v-model:value="form.description" placeholder="选填" />
         </a-form-item>
 
-        <a-form-item v-if="form.templateType === 'PLAZA'" label="标签">
+        <a-form-item v-if="kind === 'PLAZA'" label="标签">
           <a-select
             v-model:value="form.tags"
             :options="tagOptions"
@@ -162,6 +145,15 @@
           </div>
         </a-form-item>
 
+        <a-form-item v-if="kind === 'PLAZA'" label="绑定技能">
+          <a-input
+            v-model:value="form.agentSkillId"
+            allow-clear
+            placeholder="技能 id（字符串），留空不绑定"
+          />
+          <div class="muted">用户选中这条模板时走的智能体技能，必须是技能目录里存在的 id。</div>
+        </a-form-item>
+
         <a-form-item label="模板载荷">
           <a-textarea
             v-model:value="form.payloadJson"
@@ -169,8 +161,8 @@
             placeholder='必须是 JSON 对象，例如 {"prompt":"…","imageUrls":["https://…"]}'
           />
           <div class="muted">
-            提示词照常写在这里：下发时服务端会<strong>递归摘掉 prompt</strong>（与 v1 一致），
-            提交任务时再按模板 id 从库里取，不会泄漏给端侧。
+            提示词照常写在这里：广场下发时摘掉<strong>顶层 prompt</strong
+            >，本地生活列表递归摘掉（均与 v1 一致）， 提交任务时再按模板 id 从库里取。
           </div>
         </a-form-item>
 
@@ -199,41 +191,50 @@
 
 <script setup lang="ts">
 import { message } from 'antdv-next';
-import { computed, reactive, ref } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 
 import {
   createCreaftTemplate,
   deleteCreaftTemplate,
+  getCreaftPlazaTemplateTags,
   getCreaftTemplateCategories,
-  getCreaftTemplateTags,
   getCreaftTemplates,
   updateCreaftTemplate,
   type CreaftTemplateRow,
   type CreaftTemplateType,
 } from '@/api/creaft-compat';
 
-const DESCRIPTIONS: Record<CreaftTemplateType, string> = {
-  PLAZA:
-    '创意广场模板，被 GET /api/v1/plaza-templates/list 与 /plaza-templates/tags 读。标签多值取并集；列表排序就是这一页的先后。',
-  LOCAL_LIFE:
-    '本地生活官方模板，被 GET /api/v1/local-life-templates/list、/{id}、/categories 读，按分类筛。',
+/** 两个菜单共用这一个面板：kind 决定读哪组接口、显示哪些字段 */
+const props = defineProps<{ kind: CreaftTemplateType }>();
+
+const COPY: Record<CreaftTemplateType, { title: string; description: string; empty: string }> = {
+  PLAZA: {
+    title: 'Creaft 创意广场模板',
+    description:
+      '读自 GET /api/v1/plaza-templates/list 与 /plaza-templates/tags。标签多值取并集；列表排序就是这一页的先后。',
+    empty:
+      '创意广场一条模板都没有：端上的「做同款」「热门模板」整块是空白页。用户端接口会正常回 200 + 空分页信封，调用方分不清「还没铺数据」和「接口没通」。',
+  },
+  LOCAL_LIFE: {
+    title: 'Creaft 本地生活官方模板',
+    description: '读自 GET /api/v1/local-life-templates/list、/{id}、/categories，按分类筛。',
+    empty:
+      '本地生活官方模板一条都没有：用户端接口会正常回 200 + 空分页信封，调用方分不清「还没铺数据」和「接口没通」。',
+  },
 };
+
+const title = computed(() => COPY[props.kind].title);
+const description = computed(() => COPY[props.kind].description);
+const emptyHint = computed(() => COPY[props.kind].empty);
 
 const rows = ref<CreaftTemplateRow[]>([]);
 const loading = ref(false);
-/** 默认落在创意广场：阶段 6 卡的就是它（整站 0 模板 0 标签） */
-const typeFilter = ref<CreaftTemplateType>('PLAZA');
 const categoryFilter = ref<string>('');
 const enabledFilter = ref<'' | 1 | 0>('');
 const keyword = ref('');
 const categories = ref<string[]>([]);
 const tags = ref<string[]>([]);
 
-const typeOptions: { label: string; value: CreaftTemplateType }[] = [
-  { label: '创意广场 PLAZA', value: 'PLAZA' },
-  { label: '本地生活 LOCAL_LIFE', value: 'LOCAL_LIFE' },
-];
-const typeFilterOptions = typeOptions;
 const enabledFilterOptions = [
   { label: '全部状态', value: '' },
   { label: '启用', value: 1 },
@@ -245,22 +246,21 @@ const categoryFilterOptions = computed(() => [
 ]);
 const categoryOptions = computed(() => categories.value.map((c) => ({ label: c, value: c })));
 const tagOptions = computed(() => tags.value.map((t) => ({ label: t, value: t })));
-const typeHint = computed(() => DESCRIPTIONS[typeFilter.value]);
 
 function filterCategoryOption(input: string, option: { value: string }) {
   return option.value.toLowerCase().includes(input.toLowerCase());
 }
 
-const columns = [
+const columns = computed(() => [
   { title: '模板', dataIndex: 'title', width: 300 },
-  { title: '类型', dataIndex: 'templateType', width: 110, align: 'center' as const },
   { title: '分类', dataIndex: 'category', width: 130 },
-  { title: '标签', dataIndex: 'tags', width: 220 },
+  ...(props.kind === 'PLAZA' ? [{ title: '标签', dataIndex: 'tags', width: 220 }] : []),
+  ...(props.kind === 'PLAZA' ? [{ title: '绑定技能', dataIndex: 'agentSkillId', width: 180 }] : []),
   { title: '载荷', dataIndex: 'payloadJson', width: 150 },
   { title: '排序', dataIndex: 'sortOrder', width: 80, align: 'center' as const },
   { title: '状态', dataIndex: 'enabled', width: 90, align: 'center' as const },
   { title: '操作', dataIndex: 'operation', key: 'operation', width: 140, align: 'center' as const },
-];
+]);
 
 let keywordTimer: ReturnType<typeof setTimeout> | undefined;
 function onKeywordChange() {
@@ -268,19 +268,11 @@ function onKeywordChange() {
   keywordTimer = setTimeout(loadList, 300);
 }
 
-function onTypeChange() {
-  // 分类是按类型分的：切类型不清掉旧筛选，会出现「明明有模板却一条不显示」
-  categoryFilter.value = '';
-  loadList();
-  loadOptions();
-}
-
 async function loadList() {
   loading.value = true;
   try {
     rows.value =
-      (await getCreaftTemplates({
-        templateType: typeFilter.value,
+      (await getCreaftTemplates(props.kind, {
         category: categoryFilter.value || undefined,
         keyword: keyword.value.trim() || undefined,
         enabled: enabledFilter.value === '' ? undefined : enabledFilter.value,
@@ -294,12 +286,24 @@ async function loadList() {
 
 async function loadOptions() {
   try {
-    categories.value = (await getCreaftTemplateCategories(typeFilter.value)) || [];
-    tags.value = (await getCreaftTemplateTags()) || [];
+    categories.value = (await getCreaftTemplateCategories(props.kind)) || [];
+    tags.value = props.kind === 'PLAZA' ? (await getCreaftPlazaTemplateTags()) || [] : [];
   } catch {
-    /* 下拉候选缺失不影响录入：两个字段都允许直接输入 */
+    /* 下拉候选缺失不影响录入：字段都允许直接输入 */
   }
 }
+
+/** 切换菜单（同一组件实例复用时）要整体重载，并清掉上一类的筛选 */
+watch(
+  () => props.kind,
+  () => {
+    categoryFilter.value = '';
+    keyword.value = '';
+    enabledFilter.value = '';
+    loadList();
+    loadOptions();
+  },
+);
 
 loadList();
 loadOptions();
@@ -333,12 +337,12 @@ const saving = ref(false);
 const editId = ref<number | null>(null);
 
 const form = reactive({
-  templateType: 'PLAZA' as CreaftTemplateType,
   title: '',
   category: undefined as string | undefined,
   description: '',
   tags: [] as string[],
   payloadJson: '',
+  agentSkillId: '',
   sortOrder: 0,
   enabled: 1,
 });
@@ -348,30 +352,34 @@ const enabled = computed({
   set: (value: boolean) => (form.enabled = value ? 1 : 0),
 });
 
-function openCreate() {
-  editId.value = null;
+function resetForm() {
   Object.assign(form, {
-    templateType: typeFilter.value,
     title: '',
     category: undefined,
     description: '',
     tags: [],
     payloadJson: '',
+    agentSkillId: '',
     sortOrder: 0,
     enabled: 1,
   });
+}
+
+function openCreate() {
+  editId.value = null;
+  resetForm();
   modalVisible.value = true;
 }
 
 function openEdit(record: CreaftTemplateRow) {
   editId.value = record.id;
   Object.assign(form, {
-    templateType: record.templateType,
     title: record.title,
     category: record.category || undefined,
     description: record.description || '',
     tags: [...(record.tags || [])],
     payloadJson: pretty(record.payloadJson),
+    agentSkillId: record.agentSkillId ?? '',
     sortOrder: record.sortOrder ?? 0,
     enabled: record.enabled ?? 1,
   });
@@ -399,18 +407,19 @@ async function handleSubmit() {
   saving.value = true;
   try {
     const payload = {
-      templateType: form.templateType,
       title: form.title.trim(),
       category: form.category || undefined,
       description: form.description || undefined,
-      // 本地生活模板没有标签维度，传空数组而不是当前表单值，免得切类型后带上残留
-      tags: form.templateType === 'PLAZA' ? form.tags : [],
+      // 本地生活没有标签维度，传空数组，免得表单残留值被写进去
+      tags: props.kind === 'PLAZA' ? form.tags : [],
       payloadJson: form.payloadJson.trim() || undefined,
+      // 技能绑定只属于广场模板；留空即不绑定（后端据此清掉旧绑定）
+      ...(props.kind === 'PLAZA' ? { agentSkillId: form.agentSkillId.trim() || undefined } : {}),
       sortOrder: form.sortOrder ?? 0,
       enabled: form.enabled,
     };
-    if (editId.value) await updateCreaftTemplate(editId.value, payload);
-    else await createCreaftTemplate(payload);
+    if (editId.value) await updateCreaftTemplate(props.kind, editId.value, payload);
+    else await createCreaftTemplate(props.kind, payload);
     message.success('已保存');
     modalVisible.value = false;
     loadList();
@@ -424,7 +433,7 @@ async function handleSubmit() {
 
 async function handleDelete(record: CreaftTemplateRow) {
   try {
-    await deleteCreaftTemplate(record.id);
+    await deleteCreaftTemplate(props.kind, record.id);
     message.success('已删除');
     loadList();
   } catch {
