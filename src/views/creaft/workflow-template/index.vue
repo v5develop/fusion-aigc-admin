@@ -472,6 +472,11 @@ async function loadList() {
     ]);
     rows.value = result?.list || [];
     total.value = result?.total || 0;
+    // 删掉末页最后一条后，回退到前一页，避免停在空页上
+    if (!rows.value.length && total.value > 0 && page.value > 1) {
+      page.value = Math.max(1, Math.ceil(total.value / pageSize.value));
+      return loadList();
+    }
     coveredCategories.value = covered || [];
   } catch {
     /* 拦截器已提示 */
