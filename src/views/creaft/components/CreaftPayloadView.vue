@@ -26,15 +26,30 @@
               />
               <img
                 v-else
+                class="pv-zoomable"
                 :src="tile.url"
                 :alt="tile.label"
                 loading="lazy"
+                title="点击放大预览"
+                @click="previewUrl = tile.url"
                 @error="markBroken(tile.url)"
               />
             </div>
             <a class="pv-link" :href="tile.url" target="_blank" rel="noopener noreferrer">原地址</a>
           </div>
         </div>
+        <a-modal
+          :open="previewUrl !== null"
+          :footer="null"
+          width="90vw"
+          :body-style="{ textAlign: 'center' }"
+          @cancel="previewUrl = null"
+        >
+          <img v-if="previewUrl" class="pv-preview" :src="previewUrl" :alt="'预览'" />
+          <div v-if="previewUrl" class="pv-preview-link">
+            <a :href="previewUrl" target="_blank" rel="noopener noreferrer">在新窗口打开原图</a>
+          </div>
+        </a-modal>
         <div class="muted pv-hint">
           图片地址在 v1 的桶（oss.creaft.cn）。打不开时多半是那边的域名或对象失效，不是后台的问题。
         </div>
@@ -93,6 +108,9 @@ const tiles = computed(() =>
     })),
   ),
 );
+
+/** 点击缩略图放大预览；null 表示未打开 */
+const previewUrl = ref<string | null>(null);
 
 /** 加载失败的地址记在本组件实例里，同一地址不反复请求；按 URL 记，换载荷也一样生效 */
 const broken = ref<Set<string>>(new Set());
@@ -158,6 +176,18 @@ function markBroken(url: string) {
 }
 .pv-broken {
   color: var(--color-text-tertiary, #8c8c8c);
+  font-size: 12px;
+}
+.pv-zoomable {
+  cursor: zoom-in;
+}
+.pv-preview {
+  max-width: 100%;
+  max-height: 75vh;
+  object-fit: contain;
+}
+.pv-preview-link {
+  margin-top: 8px;
   font-size: 12px;
 }
 .pv-link {
