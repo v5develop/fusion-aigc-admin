@@ -3,41 +3,36 @@
     <a-alert v-if="model.error" type="error" show-icon :message="model.error" />
 
     <template v-else>
-      <section v-if="model.media.length" class="pv-section">
-        <div class="pv-title">图片与视频</div>
-        <div v-for="group in model.media" :key="group.path" class="pv-group">
-          <div class="pv-group-title">
-            {{ group.label }}
-            <span class="muted">{{ group.items.length }} 个</span>
-          </div>
-          <div class="pv-grid">
-            <div
-              v-for="(item, index) in group.items"
-              :key="`${group.path}-${index}`"
-              class="pv-cell"
-            >
-              <div class="pv-thumb">
-                <div v-if="broken.has(item.url)" class="pv-broken">无法加载</div>
-                <video
-                  v-else-if="group.kind === 'video'"
-                  :src="item.url"
-                  controls
-                  preload="metadata"
-                  @error="markBroken(item.url)"
-                />
-                <img
-                  v-else
-                  :src="item.url"
-                  :alt="group.label"
-                  loading="lazy"
-                  @error="markBroken(item.url)"
-                />
-              </div>
-              <div class="pv-caption">
-                <span class="muted">{{ item.size ?? '' }}</span>
-                <a :href="item.url" target="_blank" rel="noopener noreferrer">原地址</a>
-              </div>
+      <section v-if="tiles.length" class="pv-section">
+        <div class="pv-title">
+          图片与视频 <span class="muted">{{ tiles.length }} 个</span>
+        </div>
+        <div class="pv-grid">
+          <div v-for="tile in tiles" :key="tile.key" class="pv-cell">
+            <div class="pv-cell-head">
+              <span class="pv-cell-label"
+                >{{ tile.label }}{{ tile.index ? ` ${tile.index}` : '' }}</span
+              >
+              <span v-if="tile.size" class="muted">{{ tile.size }}</span>
             </div>
+            <div class="pv-thumb">
+              <div v-if="broken.has(tile.url)" class="pv-broken">无法加载</div>
+              <video
+                v-else-if="tile.kind === 'video'"
+                :src="tile.url"
+                controls
+                preload="metadata"
+                @error="markBroken(tile.url)"
+              />
+              <img
+                v-else
+                :src="tile.url"
+                :alt="tile.label"
+                loading="lazy"
+                @error="markBroken(tile.url)"
+              />
+            </div>
+            <a class="pv-link" :href="tile.url" target="_blank" rel="noopener noreferrer">原地址</a>
           </div>
         </div>
         <div class="muted pv-hint">
@@ -85,6 +80,20 @@ const props = defineProps<{ payloadJson: string | null }>();
 
 const model = computed(() => buildPayloadViewModel(props.payloadJson));
 
+/** 所有素材铺成一张平铺的网格：图种之间不再各占一行，单图的组也不会孤零零地撑出一整行 */
+const tiles = computed(() =>
+  model.value.media.flatMap((group) =>
+    group.items.map((item, index) => ({
+      key: `${group.path}-${index}`,
+      label: group.label,
+      index: group.items.length > 1 ? index + 1 : 0,
+      kind: group.kind,
+      url: item.url,
+      size: item.size,
+    })),
+  ),
+);
+
 /** 加载失败的地址记在本组件实例里，同一地址不反复请求；按 URL 记，换载荷也一样生效 */
 const broken = ref<Set<string>>(new Set());
 function markBroken(url: string) {
@@ -106,23 +115,33 @@ function markBroken(url: string) {
 .pv-title {
   font-weight: 600;
 }
-.pv-group-title {
-  margin: 4px 0;
-  font-size: 13px;
-}
 .pv-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 12px;
 }
 .pv-cell {
+  width: 200px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   min-width: 0;
 }
+.pv-cell-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+}
+.pv-cell-label {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .pv-thumb {
-  height: 120px;
+  height: 140px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -141,10 +160,9 @@ function markBroken(url: string) {
   color: var(--color-text-tertiary, #8c8c8c);
   font-size: 12px;
 }
-.pv-caption {
-  display: flex;
-  justify-content: space-between;
+.pv-link {
   font-size: 12px;
+  align-self: flex-end;
 }
 .pv-hint {
   font-size: 12px;
