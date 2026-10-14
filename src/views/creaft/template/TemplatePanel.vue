@@ -189,13 +189,15 @@
       </a-form>
     </a-modal>
 
-    <a-modal
-      v-model:open="payloadVisible"
-      title="模板载荷（库里原文）"
-      width="720px"
-      :footer="null"
-    >
-      <pre class="payload-view">{{ payloadText }}</pre>
+    <a-modal v-model:open="payloadVisible" title="模板载荷" width="760px" :footer="null">
+      <a-tabs v-model:active-key="payloadTab">
+        <a-tab-pane key="visual" tab="可视化">
+          <CreaftPayloadView :payload-json="payloadRaw" />
+        </a-tab-pane>
+        <a-tab-pane key="json" tab="原文 JSON">
+          <pre class="payload-view">{{ payloadText }}</pre>
+        </a-tab-pane>
+      </a-tabs>
     </a-modal>
   </div>
 </template>
@@ -214,6 +216,8 @@ import {
   type CreaftTemplateRow,
   type CreaftTemplateType,
 } from '@/api/creaft-compat';
+
+import CreaftPayloadView from '../components/CreaftPayloadView.vue';
 
 /** 两个菜单共用这一个面板：kind 决定读哪组接口、显示哪些字段 */
 const props = defineProps<{ kind: CreaftTemplateType }>();
@@ -346,9 +350,13 @@ loadOptions();
 // ---- 载荷查看 ----
 const payloadVisible = ref(false);
 const payloadText = ref('');
+const payloadRaw = ref<string | null>(null);
+const payloadTab = ref<'visual' | 'json'>('visual');
 
 function openPayload(record: CreaftTemplateRow) {
+  payloadRaw.value = record.payloadJson;
   payloadText.value = pretty(record.payloadJson);
+  payloadTab.value = 'visual';
   payloadVisible.value = true;
 }
 

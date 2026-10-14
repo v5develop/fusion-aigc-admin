@@ -92,7 +92,14 @@
       width="720px"
       :footer="null"
     >
-      <pre class="payload-view">{{ payloadText }}</pre>
+      <a-tabs v-model:active-key="payloadTab">
+        <a-tab-pane key="visual" tab="可视化">
+          <CreaftPayloadView :payload-json="payloadRaw" />
+        </a-tab-pane>
+        <a-tab-pane key="json" tab="原文 JSON">
+          <pre class="payload-view">{{ payloadText }}</pre>
+        </a-tab-pane>
+      </a-tabs>
     </a-modal>
   </div>
 </template>
@@ -106,6 +113,8 @@ import {
   getCreaftUserLocalLifeTemplates,
   type CreaftTemplateRow,
 } from '@/api/creaft-compat';
+
+import CreaftPayloadView from '../components/CreaftPayloadView.vue';
 
 const columns = [
   { title: '模板', dataIndex: 'title', width: 300 },
@@ -172,6 +181,8 @@ loadList();
 const payloadVisible = ref(false);
 const payloadText = ref('');
 const payloadTitleId = ref<number | null>(null);
+const payloadRaw = ref<string | null>(null);
+const payloadTab = ref<'visual' | 'json'>('visual');
 const detailLoadingId = ref<number | null>(null);
 
 async function openPayload(record: CreaftTemplateRow) {
@@ -179,7 +190,9 @@ async function openPayload(record: CreaftTemplateRow) {
   try {
     const detail = await getCreaftUserLocalLifeTemplate(record.id);
     payloadTitleId.value = detail.id;
+    payloadRaw.value = detail.payloadJson;
     payloadText.value = pretty(detail.payloadJson);
+    payloadTab.value = 'visual';
     payloadVisible.value = true;
   } catch {
     message.error('读取模板失败');
