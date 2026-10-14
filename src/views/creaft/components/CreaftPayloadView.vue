@@ -41,7 +41,7 @@
         <a-modal
           :open="previewUrl !== null"
           :footer="null"
-          width="90vw"
+          width="min(720px, 92vw)"
           :body-style="{ textAlign: 'center' }"
           @cancel="previewUrl = null"
         >
@@ -182,8 +182,12 @@ function markBroken(url: string) {
   cursor: zoom-in;
 }
 .pv-preview {
+  display: block;
+  width: auto;
+  height: auto;
   max-width: 100%;
-  max-height: 75vh;
+  max-height: 70vh;
+  margin: 0 auto;
   object-fit: contain;
 }
 .pv-preview-link {
