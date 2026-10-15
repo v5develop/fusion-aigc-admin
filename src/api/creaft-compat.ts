@@ -637,11 +637,6 @@ export interface CreaftBatchBindingRow {
   enabled?: number;
   /** 绑定里存的技能名是否与目录一致；不一致时亚马逊判定可能是旧的 */
   skillTitleInSync?: boolean;
-  /**
-   * 这对 (entryCode, modelCode) 提交时会落到的执行 mode。
-   * 可能与模型无关：offer 只有一条 BILLED 收费项时 model_id 被忽略，mode 恒取那一条。
-   */
-  resolvedMode?: number;
   featureCode?: string;
   variantCode?: string;
   /** 为空表示这条绑定现在真能提交；非空是具体缺什么 */
@@ -655,10 +650,8 @@ export interface CreaftBatchBindingEntryOption {
   category?: string;
   featureCode?: string;
   variantCode?: string;
-  /** 为 1 时模型不参与选档——换模型不会改变执行器 */
+  /** 为 1 时模型不参与选档——换模型只影响价格，不改变出图方式 */
   billedComponents?: number;
-  /** 未选模型时为空（mode 取决于模型，给数字会被当成定论） */
-  resolvedMode?: number;
   supportsModel?: boolean;
   selectable: boolean;
   problem?: string;
@@ -695,7 +688,6 @@ export interface CreaftBatchBindingSaveData {
 
 export interface CreaftBatchBindingBulkResult {
   bound: number;
-  resolvedMode?: number;
   skillCodes: string[];
 }
 
@@ -705,7 +697,7 @@ export function getCreaftBatchBindings(params?: { onlyUnbound?: boolean; keyword
   });
 }
 
-/** 传 modelCode 才会给出 resolvedMode——mode 取决于模型 */
+/** 传 modelCode 才会校验该模型在各入口下能否算出计费档 */
 export function getCreaftBatchBindingEntryOptions(modelCode?: string) {
   return request.get<CreaftBatchBindingEntryOption[]>(
     '/api/v1/admin/creaft/batch-skill-bindings/entry-options',

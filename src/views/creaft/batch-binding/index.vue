@@ -55,11 +55,7 @@
       </div>
       <div v-if="selectedEntry" class="muted">
         {{ selectedEntry.name }} · 计费能力 {{ selectedEntry.featureCode || '—' }} · 档位
-        {{ selectedEntry.variantCode || '—' }} ·
-        <template v-if="selectedEntry.resolvedMode != null">
-          提交会走 <strong>mode {{ selectedEntry.resolvedMode }}</strong>
-        </template>
-        <template v-else>未选模型，执行 mode 待定</template>
+        {{ selectedEntry.variantCode || '—' }}
         <span v-if="selectedEntry.billedComponents === 1" class="muted warn">
           　该入口只有一条计费项，模型不参与选档——换模型不会改变出图方式
         </span>
@@ -114,8 +110,8 @@
             </span>
           </template>
 
-          <template v-if="column.dataIndex === 'resolvedMode'">
-            <span v-if="record.resolvedMode != null">mode {{ record.resolvedMode }}</span>
+          <template v-if="column.dataIndex === 'variantCode'">
+            <span v-if="record.variantCode">{{ record.variantCode }}</span>
             <span v-else class="muted">—</span>
           </template>
 
@@ -180,10 +176,6 @@
             option-label-prop="label"
           />
           <div v-if="editEntry" class="muted">
-            <template v-if="editEntry.resolvedMode != null">
-              提交会走 mode {{ editEntry.resolvedMode }}
-            </template>
-            <template v-else>执行 mode 待定</template>
             <span v-if="editEntry.problem" class="muted warn">　{{ editEntry.problem }}</span>
           </div>
         </a-form-item>
@@ -244,7 +236,7 @@ const form = reactive({
 const columns = [
   { title: '技能', dataIndex: 'title', width: 300 },
   { title: '绑定', dataIndex: 'binding', width: 320 },
-  { title: '执行', dataIndex: 'resolvedMode', width: 110 },
+  { title: '计费档', dataIndex: 'variantCode', width: 200 },
   { title: '状态', dataIndex: 'state', width: 240 },
   { title: '操作', dataIndex: 'operation', key: 'operation', width: 140, align: 'center' as const },
 ];
@@ -288,7 +280,7 @@ function toEntryOptions(list: CreaftBatchBindingEntryOption[]) {
     label: `${entry.name ?? entry.entryCode}（${entry.entryCode}）`,
     value: entry.entryCode,
     disabled: !entry.selectable,
-    title: entry.problem ?? `mode ${entry.resolvedMode ?? '待定'}`,
+    title: entry.problem ?? `计费档 ${entry.variantCode ?? '—'}`,
   }));
 }
 const entrySelectOptions = computed(() => toEntryOptions(entries.value));
@@ -367,7 +359,7 @@ async function bulkBind() {
       modelCode: form.modelCode as string,
       taskType: form.taskType.trim() || undefined,
     });
-    message.success(`已绑定 ${result.bound} 条，提交会走 mode ${result.resolvedMode ?? '—'}`);
+    message.success(`已绑定 ${result.bound} 条`);
     selectedIds.value = [];
     loadList();
   } catch {
