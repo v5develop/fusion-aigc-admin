@@ -128,6 +128,7 @@ export default {
     creationTaskList: '크리에이션 작업',
     moderationLog: '콘텐츠 심사 로그',
     creationBackfill: '데이터 백필',
+    creationCoverPending: '커버 대기',
     creationTaskDetail: '작업 상세',
     monitorAlerts: '알람 관리',
     monitorMetrics: '지표 모니터링',

@@ -128,6 +128,7 @@ export default {
     creationTaskList: 'クリエイションタスク',
     moderationLog: 'コンテンツ審査ログ',
     creationBackfill: 'データ補填',
+    creationCoverPending: 'カバー未処理',
     creationTaskDetail: 'タスク詳細',
     monitorAlerts: 'アラーム管理',
     monitorMetrics: '指標の監視',

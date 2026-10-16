@@ -230,6 +230,17 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
+        path: 'cover-pending',
+        name: 'CreationCoverPending',
+        component: () => import('@/views/creation/cover-pending.vue'),
+        meta: {
+          title: 'menu.creationCoverPending',
+          icon: 'PictureOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'task:view',
+        },
+      },
+      {
         path: 'task/detail/:id',
         name: 'CreationTaskDetail',
         component: () => import('@/views/creation/task/detail.vue'),

@@ -120,6 +120,7 @@ export default {
     creationTaskList: '创作任务列表',
     moderationLog: '内容审核日志',
     creationBackfill: '数据回填',
+    creationCoverPending: '视频封面待处理',
     creationTaskDetail: '任务详情',
     userManagement: '用户管理',
     userList: '用户列表',

@@ -116,6 +116,7 @@ export default {
     creationTaskList: 'Creation Tasks',
     moderationLog: 'Moderation Logs',
     creationBackfill: 'Data Backfill',
+    creationCoverPending: 'Pending Covers',
     creationTaskDetail: 'Task Detail',
     userManagement: 'User Management',
     userList: 'User List',
