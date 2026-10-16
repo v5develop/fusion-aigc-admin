@@ -11,7 +11,7 @@
       type="info"
       show-icon
       style="margin-bottom: 12px"
-      message="被 GET /api/v1/voices/list 读：只下发启用的行，按权重降序。端侧提交视频翻译时把「模型」「音色键」原样作为 voice_model / voice_key 带上。「模型」是 AI 网关的 TTS 模型组（在「AI 网关 → 模型组」维护）；音色键不回查，填错只会在调用时被供应商拒。"
+      message="被 GET /api/v1/voices/list 读：只下发启用的行，按权重降序。端侧提交视频翻译时把「模型」「音色键」原样作为 voice_model / voice_key 带上。「模型」是供应商语音模型名（如 qwen3-tts-flash），系统据此映射到 AI 网关的 TTS 模型组；只能从下拉选。音色键不回查，填错只会在调用时被供应商拒。"
     />
 
     <a-alert
@@ -143,11 +143,12 @@
             :loading="groupsLoading"
             show-search
             option-filter-prop="label"
-            placeholder="选择 TTS 模型组，如 tts.qwen3-tts-flash"
+            placeholder="选择供应商语音模型，如 qwen3-tts-flash"
           />
           <div class="muted">
-            下拉来自 AI 网关里能做 tts.synthesize
-            的模型组；列表外的值是存量数据，保存前请改成网关里存在的组。
+            这里填的是供应商语音模型名，不是网关模型组代码：视频翻译据此映射到网关的 TTS 模型组，
+            填成 tts.xxx
+            会在提交时被拒。括号里是映射到的模型组；标「网关未提供」的说明网关里现在没有这个组。
           </div>
         </a-form-item>
         <a-form-item label="标签">
@@ -234,11 +235,7 @@
 import { message } from 'antdv-next';
 import { computed, onBeforeUnmount, reactive, ref } from 'vue';
 
-import {
-  listModelGroupOptions,
-  toModelGroupSelectOptions,
-  type ModelGroupOption,
-} from '@/api/ai-gateway';
+import { listModelGroupOptions, type ModelGroupOption } from '@/api/ai-gateway';
 import {
   createCreaftVoice,
   deleteCreaftVoice,
@@ -316,20 +313,34 @@ async function loadTtsGroups() {
   try {
     ttsGroups.value = await listModelGroupOptions();
   } catch {
-    message.warning('网关模型组加载失败，模型下拉只含已有值');
+    message.warning('网关模型组加载失败，无法确认映射的模型组是否可用');
   } finally {
     groupsLoading.value = false;
   }
 }
 loadTtsGroups();
 
+/**
+ * 下拉选的是供应商语音模型名（音色表 model 的合法值，与视频翻译的映射表一致），括号里给出映射到的网关组，
+ * 并标出网关里是否还有这个组。存量里不受支持的值单独列出来，编辑时可见但标明不能再用。
+ */
 const modelOptions = computed(() => {
-  const options = toModelGroupSelectOptions(ttsGroups.value, 'tts.synthesize');
-  const known = new Set(ttsGroups.value.map((g) => g.code));
+  // 网关列表还没取到（或取失败）时不下结论，只显示映射组，不标「网关未提供」
+  const groupCodes = new Set(ttsGroups.value.map((g) => g.code));
+  const checked = groupCodes.size > 0;
+  const supported = (facets.value?.supportedModels || []).map(({ model, group }) => ({
+    label:
+      checked && !groupCodes.has(group)
+        ? `${model}（${group}，网关未提供）`
+        : `${model}（${group}）`,
+    value: model,
+    disabled: false,
+  }));
+  const supportedValues = new Set(supported.map((o) => o.value));
   const stale = (facets.value?.models || [])
-    .filter((m) => !known.has(m))
-    .map((m) => ({ label: `${m}（网关中不存在）`, value: m, disabled: false }));
-  return [...options, ...stale];
+    .filter((m) => !supportedValues.has(m))
+    .map((m) => ({ label: `${m}（不受支持，请改选）`, value: m, disabled: true }));
+  return [...supported, ...stale];
 });
 const tagOptions = computed(() => (facets.value?.tags || []).map((t) => ({ label: t, value: t })));
 

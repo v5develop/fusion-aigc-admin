@@ -449,12 +449,14 @@ export function getCreaftVoices(params?: CreaftPageParams & { keyword?: string; 
 }
 
 export interface CreaftVoiceFacets {
-  /** 已用过的供应商语音模型 */
+  /** 已用过的供应商语音模型（存量，可能含已不受支持的值） */
   models: string[];
   /** 已用过的标签 */
   tags: string[];
   /** 是否至少有一条启用音色 */
   anyEnabled: boolean;
+  /** 视频翻译支持的供应商语音模型，及其映射的网关 TTS 模型组 */
+  supportedModels: { model: string; group: string }[];
 }
 
 /** 下拉候选与启用概况，全量计算（列表本身分页，候选不能从当前页推导） */
