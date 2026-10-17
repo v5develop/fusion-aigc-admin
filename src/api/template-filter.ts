@@ -151,9 +151,11 @@ export interface ModuleCodeOption {
   moduleName: string;
 }
 
-// 创作模块枚举（来自计费 Offer）
-export function getModuleCodes() {
-  return request.get<ModuleCodeOption[]>('/api/v1/admin/template/filters/module-codes');
+// 模块枚举：ecommerce 来自计费 Offer；localLife 为本地生活投放位模块（海报 / 长图 / 动作迁移 / 口播背景）
+export function getModuleCodes(bizType: string = 'ecommerce') {
+  return request.get<ModuleCodeOption[]>('/api/v1/admin/template/filters/module-codes', {
+    params: { bizType },
+  });
 }
 
 // 页面区块联想（已有模板素材的 distinct slotCode）

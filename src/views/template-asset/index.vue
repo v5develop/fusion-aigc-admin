@@ -490,10 +490,10 @@ const bizTypeOptions = [
 // 创作模块下拉（来自计费 Offer）
 const moduleOptions = ref<{ label: string; value: string }[]>([]);
 const moduleLoading = ref(false);
-async function loadModuleOptions() {
+async function loadModuleOptions(bizType: string = 'ecommerce') {
   moduleLoading.value = true;
   try {
-    const res = await getModuleCodes();
+    const res = await getModuleCodes(bizType);
     moduleOptions.value = (res || []).map((m) => ({
       label: `${m.moduleName} (${m.moduleCode})`,
       value: m.moduleCode,
@@ -831,6 +831,8 @@ async function loadPlacements(materialId: number) {
 async function handleOpenPlacements(record: TemplateMaterial) {
   placementMaterial.value = record;
   placementDrawerVisible.value = true;
+  // 模块下拉跟随素材的业务域：本地生活素材只能落本地生活的投放位模块
+  loadModuleOptions(record.bizType);
   placementAddForm.moduleCode = undefined;
   placementAddForm.slotCode = '';
   placementAddForm.sortOrder = 0;

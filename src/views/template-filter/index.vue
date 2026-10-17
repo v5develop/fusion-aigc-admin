@@ -145,7 +145,7 @@
                 v-model:value="slotQuery.bizType"
                 style="width: 140px"
                 :options="bizTypeOptions"
-                @change="onSlotModuleChange"
+                @change="onSlotBizTypeChange"
               />
             </a-form-item>
             <a-form-item :label="$t('templateFilter.moduleCode')">
@@ -423,10 +423,10 @@ const bizTypeOptions = [
 // 创作模块下拉（来自计费 Offer）
 const moduleOptions = ref<{ label: string; value: string }[]>([]);
 const moduleLoading = ref(false);
-async function loadModuleOptions() {
+async function loadModuleOptions(bizType: string = 'ecommerce') {
   moduleLoading.value = true;
   try {
-    const res = await getModuleCodes();
+    const res = await getModuleCodes(bizType);
     moduleOptions.value = (res || []).map((m) => ({
       label: `${m.moduleName} (${m.moduleCode})`,
       value: m.moduleCode,
@@ -438,7 +438,6 @@ async function loadModuleOptions() {
     moduleLoading.value = false;
   }
 }
-loadModuleOptions();
 
 // 页面区块联想下拉（已有素材的 distinct slotCode，可手输）
 const slotCodeOptions = ref<{ label: string; value: string }[]>([]);
@@ -463,6 +462,13 @@ async function loadSlotCodeOptions() {
 function onSlotModuleChange() {
   slotQuery.slotCode = '';
   loadSlotCodeOptions();
+}
+
+// 切换业务域：模块下拉与区块都要换成该业务域的
+function onSlotBizTypeChange() {
+  slotQuery.moduleCode = '';
+  loadModuleOptions(slotQuery.bizType);
+  onSlotModuleChange();
 }
 
 // auto-complete 联想过滤（按输入文本匹配候选 value）
@@ -777,6 +783,7 @@ const slotQuery = reactive({
   moduleCode: '',
   slotCode: '',
 });
+loadModuleOptions(slotQuery.bizType);
 const slotFilterList = ref<TemplateSlotFilter[]>([]);
 const slotLoading = ref(false);
 
