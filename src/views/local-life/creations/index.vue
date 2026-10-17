@@ -7,7 +7,7 @@
 
     <a-card variant="borderless">
       <a-tabs v-model:active-key="tab" @change="onTabChange">
-        <a-tab-pane key="image" tab="海报 / 长图 / 动作迁移">
+        <a-tab-pane key="image" tab="海报 / 长图">
           <div class="filter-bar">
             <a-input-number
               v-model:value="imageQuery.userId"
@@ -66,6 +66,70 @@
               :page-size-options="['20', '50', '100']"
               @change="loadImages"
               @show-size-change="(_c: number, s: number) => onSize(imageQuery, s, loadImages)"
+            />
+          </div>
+        </a-tab-pane>
+
+        <a-tab-pane key="video-from-image" tab="数字人口播 / 动作迁移">
+          <div class="filter-bar">
+            <a-input-number
+              v-model:value="videoImageQuery.userId"
+              placeholder="用户 ID"
+              :min="1"
+              style="width: 160px"
+              @change="onVideoImageFilter"
+            />
+            <a-select
+              v-model:value="videoImageQuery.kind"
+              :options="videoImageKinds"
+              style="width: 160px"
+              @change="onVideoImageFilter"
+            />
+            <a-select
+              v-model:value="videoImageQuery.status"
+              :options="statusOptions"
+              style="width: 140px"
+              @change="onVideoImageFilter"
+            />
+          </div>
+          <a-table
+            :columns="videoImageColumns"
+            :data-source="videoImageRows"
+            :loading="videoImageLoading"
+            :pagination="false"
+            row-key="id"
+            size="middle"
+          >
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.dataIndex === 'video_url'">
+                <video
+                  v-if="record.video_url"
+                  :src="record.video_url"
+                  controls
+                  preload="metadata"
+                  style="height: 120px"
+                />
+                <span v-else class="muted">-</span>
+              </template>
+              <template v-else-if="column.dataIndex === 'content'">
+                <div class="clamp-2">{{ record.content }}</div>
+              </template>
+              <template v-else-if="column.dataIndex === 'create_time'">{{
+                formatTime(record.create_time)
+              }}</template>
+            </template>
+          </a-table>
+          <div class="pager">
+            <a-pagination
+              v-model:current="videoImageQuery.page"
+              v-model:page-size="videoImageQuery.pageSize"
+              :total="videoImageTotal"
+              show-size-changer
+              :page-size-options="['20', '50', '100']"
+              @change="loadVideoImages"
+              @show-size-change="
+                (_c: number, s: number) => onSize(videoImageQuery, s, loadVideoImages)
+              "
             />
           </div>
         </a-tab-pane>
@@ -140,8 +204,8 @@
 import { ref } from 'vue';
 
 import {
-  type ImageCreationItem,
-  listImageCreations,
+  type CreationItem,
+  listCreations,
   listVideoCreations,
   type VideoCreationItem,
 } from '@/api/local-life-admin';
@@ -149,10 +213,15 @@ import { formatTime } from '@/utils/format';
 
 const tab = ref('image');
 
+// 图片表按媒体类型分两个 tab：海报 / 长图是图片，口播 / 动作迁移的成品是视频（同一张表，见后端 media 过滤）
 const imageKinds = [
   { label: '全部类型', value: '' },
   { label: '海报', value: 'poster' },
   { label: '长图', value: 'longImage' },
+];
+const videoImageKinds = [
+  { label: '全部类型', value: '' },
+  { label: '数字人口播', value: 'voiceover' },
   { label: '动作迁移', value: 'actionTransfer' },
 ];
 const videoKinds = [
@@ -177,9 +246,14 @@ interface Query {
 }
 
 const imageQuery = ref<Query>({ userId: null, kind: '', status: -1, page: 1, pageSize: 20 });
-const imageRows = ref<ImageCreationItem[]>([]);
+const imageRows = ref<CreationItem[]>([]);
 const imageLoading = ref(false);
 const imageTotal = ref(0);
+
+const videoImageQuery = ref<Query>({ userId: null, kind: '', status: -1, page: 1, pageSize: 20 });
+const videoImageRows = ref<CreationItem[]>([]);
+const videoImageLoading = ref(false);
+const videoImageTotal = ref(0);
 
 const videoQuery = ref<Query>({ userId: null, kind: '', status: -1, page: 1, pageSize: 20 });
 const videoRows = ref<VideoCreationItem[]>([]);
@@ -191,6 +265,16 @@ const imageColumns = [
   { title: '类型', dataIndex: 'kind', width: 120 },
   { title: '需求', dataIndex: 'content' },
   { title: '成图', dataIndex: 'image_urls', width: 260 },
+  { title: '状态', dataIndex: 'status', width: 90, align: 'center' as const },
+  { title: '失败原因', dataIndex: 'fail_reason', width: 180, ellipsis: true },
+  { title: '创建时间', dataIndex: 'create_time', width: 170 },
+];
+
+const videoImageColumns = [
+  { title: '用户', dataIndex: 'user_id', width: 90 },
+  { title: '类型', dataIndex: 'kind', width: 120 },
+  { title: '文案 / 需求', dataIndex: 'content' },
+  { title: '视频', dataIndex: 'video_url', width: 240 },
   { title: '状态', dataIndex: 'status', width: 90, align: 'center' as const },
   { title: '失败原因', dataIndex: 'fail_reason', width: 180, ellipsis: true },
   { title: '创建时间', dataIndex: 'create_time', width: 170 },
@@ -221,12 +305,18 @@ function onImageFilter() {
   loadImages();
 }
 
+function onVideoImageFilter() {
+  videoImageQuery.value.page = 1;
+  loadVideoImages();
+}
+
 function onVideoFilter() {
   videoQuery.value.page = 1;
   loadVideos();
 }
 
 function onTabChange(key: string | number) {
+  if (key === 'video-from-image' && !videoImageRows.value.length) loadVideoImages();
   if (key === 'video' && !videoRows.value.length) loadVideos();
 }
 
@@ -234,9 +324,10 @@ async function loadImages() {
   imageLoading.value = true;
   try {
     const q = imageQuery.value;
-    const result = await listImageCreations({
+    const result = await listCreations({
       user_id: q.userId ?? undefined,
       kind: q.kind || undefined,
+      media: 'image',
       status: q.status,
       page: q.page,
       page_size: q.pageSize,
@@ -247,6 +338,27 @@ async function loadImages() {
     /* 已由 API 层提示 */
   } finally {
     imageLoading.value = false;
+  }
+}
+
+async function loadVideoImages() {
+  videoImageLoading.value = true;
+  try {
+    const q = videoImageQuery.value;
+    const result = await listCreations({
+      user_id: q.userId ?? undefined,
+      kind: q.kind || undefined,
+      media: 'video',
+      status: q.status,
+      page: q.page,
+      page_size: q.pageSize,
+    });
+    videoImageRows.value = result?.list || [];
+    videoImageTotal.value = result?.total || 0;
+  } catch {
+    /* 已由 API 层提示 */
+  } finally {
+    videoImageLoading.value = false;
   }
 }
 

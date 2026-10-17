@@ -158,12 +158,15 @@ export interface NoteItem {
   create_time: number;
 }
 
-export interface ImageCreationItem {
+export interface CreationItem {
   id: number;
   user_id: number;
   kind: string;
+  /** 成品媒体类型：image 用 image_urls；video（口播、动作迁移）用 video_url */
+  media: 'image' | 'video';
   content: string;
   image_urls: string[];
+  video_url: string;
   status: number;
   fail_reason: string;
   create_time: number;
@@ -284,10 +287,8 @@ export function listNotes(query: ListQuery) {
   return call<PageList<NoteItem>>(http.get(`${PREFIX}/notes`, { params: query }));
 }
 
-export function listImageCreations(query: ListQuery & { kind?: string }) {
-  return call<PageList<ImageCreationItem>>(
-    http.get(`${PREFIX}/image-creations`, { params: query }),
-  );
+export function listCreations(query: ListQuery & { kind?: string; media?: 'image' | 'video' }) {
+  return call<PageList<CreationItem>>(http.get(`${PREFIX}/creations`, { params: query }));
 }
 
 export function listVideoCreations(query: ListQuery & { kind?: string }) {

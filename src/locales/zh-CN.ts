@@ -151,7 +151,7 @@ export default {
     llCopywriting: '文案管理',
     llDigitalHuman: 'AI 数字人',
     llNote: '图文笔记',
-    llImageGen: '海报 / 长图 / 视频',
+    llCreations: '海报 / 长图 / 视频',
     llGenOptions: '生成配置',
     llTemplates: '模板素材',
     llPosterTypes: '海报类型',

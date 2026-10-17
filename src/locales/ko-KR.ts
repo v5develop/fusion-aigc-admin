@@ -101,7 +101,7 @@ export default {
     llCopywriting: '카피 관리',
     llDigitalHuman: 'AI 디지털 휴먼',
     llNote: '이미지 노트',
-    llImageGen: '포스터 / 영상',
+    llCreations: '포스터 / 영상',
     llGenOptions: '생성 설정',
     llTemplates: '템플릿 소재',
     llPosterTypes: '포스터 유형',

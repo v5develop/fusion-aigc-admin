@@ -101,7 +101,7 @@ export default {
     llCopywriting: '文案管理',
     llDigitalHuman: 'AIデジタルヒューマン',
     llNote: '図文ノート',
-    llImageGen: 'ポスター / 動画',
+    llCreations: 'ポスター / 動画',
     llGenOptions: '生成設定',
     llTemplates: 'テンプレート素材',
     llPosterTypes: 'ポスタータイプ',

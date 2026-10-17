@@ -147,7 +147,7 @@ export default {
     llCopywriting: 'Copywriting',
     llDigitalHuman: 'Digital Human',
     llNote: 'Notes',
-    llImageGen: 'Posters / Videos',
+    llCreations: 'Posters / Videos',
     llGenOptions: 'Generation Options',
     llTemplates: 'Templates',
     llPosterTypes: 'Poster Types',
