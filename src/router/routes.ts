@@ -1328,4 +1328,62 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
       },
     ],
   },
+  {
+    path: '/local-life',
+    name: 'LocalLife',
+    redirect: '/local-life/copywriting',
+    component: () => import('@/components/Layout/AdminLayout.vue'),
+    meta: {
+      title: 'menu.localLifeAdmin',
+      icon: 'AppstoreOutlined',
+      requiresAuth: true,
+      requiredPermissions: 'local_life:view',
+      order: 90,
+    },
+    children: [
+      {
+        path: 'copywriting',
+        name: 'LocalLifeCopywriting',
+        component: () => import('@/views/local-life/copywriting/index.vue'),
+        meta: { title: 'menu.llCopywriting', icon: 'EditOutlined' },
+      },
+      {
+        path: 'digital-human',
+        name: 'LocalLifeDigitalHuman',
+        component: () => import('@/views/local-life/digital-human/index.vue'),
+        meta: { title: 'menu.llDigitalHuman', icon: 'UserOutlined' },
+      },
+      {
+        path: 'note',
+        name: 'LocalLifeNote',
+        component: () => import('@/views/local-life/note/index.vue'),
+        meta: { title: 'menu.llNote', icon: 'FileTextOutlined' },
+      },
+      {
+        path: 'gen-options',
+        name: 'LocalLifeGenOptions',
+        component: () => import('@/views/local-life/gen-options/index.vue'),
+        meta: { title: 'menu.llGenOptions', icon: 'SettingOutlined' },
+      },
+      {
+        // 入口：素材页 / 筛选页，业务域固定为本地生活
+        path: 'templates',
+        name: 'LocalLifeTemplates',
+        redirect: () => ({ path: '/template-asset/list', query: { bizType: 'localLife' } }),
+        meta: { title: 'menu.llTemplates', icon: 'PictureOutlined' },
+      },
+      {
+        path: 'poster-types',
+        name: 'LocalLifePosterTypes',
+        redirect: () => ({ path: '/template-asset/filter', query: { bizType: 'localLife' } }),
+        meta: { title: 'menu.llPosterTypes', icon: 'TagsOutlined' },
+      },
+      {
+        path: 'imagegen',
+        name: 'LocalLifeImageGen',
+        component: () => import('@/views/local-life/imagegen/index.vue'),
+        meta: { title: 'menu.llImageGen', icon: 'PictureOutlined' },
+      },
+    ],
+  },
 ];

@@ -378,6 +378,7 @@
 import { message } from 'antdv-next';
 import { ref, reactive, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRoute } from 'vue-router';
 
 import {
   getTemplateFilterList,
@@ -413,7 +414,11 @@ const uiTypeOptions = [
 ];
 
 // 业务类型下拉（当前仅电商域）
-const bizTypeOptions = [{ label: 'ecommerce', value: 'ecommerce' }];
+// localLife：本地生活海报 / 长图模板（投放位 poster/template、longImage/template，见 fusion_aigc_go 迁移 Go_V1.0.4）
+const bizTypeOptions = [
+  { label: 'ecommerce', value: 'ecommerce' },
+  { label: 'localLife', value: 'localLife' },
+];
 
 // 创作模块下拉（来自计费 Offer）
 const moduleOptions = ref<{ label: string; value: string }[]>([]);
@@ -578,7 +583,7 @@ const filterForm = reactive({
 });
 
 function resetFilterForm() {
-  filterForm.bizType = 'ecommerce';
+  filterForm.bizType = slotQuery.bizType || 'ecommerce';
   filterForm.filterCode = '';
   filterForm.filterName = '';
   filterForm.uiType = 'select';
@@ -766,8 +771,9 @@ async function handleDeleteOption(record: TemplateFilterOption) {
 }
 
 // ---- slot 绑定 ----
+const route = useRoute();
 const slotQuery = reactive({
-  bizType: 'ecommerce',
+  bizType: ((route.query.bizType as string) || 'ecommerce') as string,
   moduleCode: '',
   slotCode: '',
 });

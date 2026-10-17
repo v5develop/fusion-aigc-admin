@@ -1,0 +1,316 @@
+<template>
+  <div class="page-container">
+    <div class="page-header">
+      <h2 class="ph-title">海报 / 长图 / 视频</h2>
+      <span class="muted">只读，用于排查用户侧的生成记录</span>
+    </div>
+
+    <a-card variant="borderless">
+      <a-tabs v-model:active-key="tab" @change="onTabChange">
+        <a-tab-pane key="image" tab="海报 / 长图 / 动作迁移">
+          <div class="filter-bar">
+            <a-input-number
+              v-model:value="imageQuery.userId"
+              placeholder="用户 ID"
+              :min="1"
+              style="width: 160px"
+              @change="onImageFilter"
+            />
+            <a-select
+              v-model:value="imageQuery.kind"
+              :options="imageKinds"
+              style="width: 160px"
+              @change="onImageFilter"
+            />
+            <a-select
+              v-model:value="imageQuery.status"
+              :options="statusOptions"
+              style="width: 140px"
+              @change="onImageFilter"
+            />
+          </div>
+          <a-table
+            :columns="imageColumns"
+            :data-source="imageRows"
+            :loading="imageLoading"
+            :pagination="false"
+            row-key="id"
+            size="middle"
+          >
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.dataIndex === 'image_urls'">
+                <a-image-preview-group>
+                  <img
+                    v-for="(src, i) in record.image_urls"
+                    :key="i"
+                    :src="src"
+                    alt=""
+                    class="thumb"
+                  />
+                </a-image-preview-group>
+              </template>
+              <template v-else-if="column.dataIndex === 'content'">
+                <div class="clamp-2">{{ record.content }}</div>
+              </template>
+              <template v-else-if="column.dataIndex === 'create_time'">{{
+                formatTime(record.create_time)
+              }}</template>
+            </template>
+          </a-table>
+          <div class="pager">
+            <a-pagination
+              v-model:current="imageQuery.page"
+              v-model:page-size="imageQuery.pageSize"
+              :total="imageTotal"
+              show-size-changer
+              :page-size-options="['20', '50', '100']"
+              @change="loadImages"
+              @show-size-change="(_c: number, s: number) => onSize(imageQuery, s, loadImages)"
+            />
+          </div>
+        </a-tab-pane>
+
+        <a-tab-pane key="video" tab="探店视频 / 带货短剧">
+          <div class="filter-bar">
+            <a-input-number
+              v-model:value="videoQuery.userId"
+              placeholder="用户 ID"
+              :min="1"
+              style="width: 160px"
+              @change="onVideoFilter"
+            />
+            <a-select
+              v-model:value="videoQuery.kind"
+              :options="videoKinds"
+              style="width: 160px"
+              @change="onVideoFilter"
+            />
+            <a-select
+              v-model:value="videoQuery.status"
+              :options="statusOptions"
+              style="width: 140px"
+              @change="onVideoFilter"
+            />
+          </div>
+          <a-table
+            :columns="videoColumns"
+            :data-source="videoRows"
+            :loading="videoLoading"
+            :pagination="false"
+            row-key="id"
+            size="middle"
+          >
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.dataIndex === 'video_url'">
+                <video
+                  v-if="record.video_url"
+                  :src="record.video_url"
+                  controls
+                  preload="metadata"
+                  style="height: 120px"
+                />
+                <span v-else class="muted">-</span>
+              </template>
+              <template v-else-if="column.dataIndex === 'user_text'">
+                <div class="clamp-2">{{ record.user_text }}</div>
+              </template>
+              <template v-else-if="column.dataIndex === 'create_time'">{{
+                formatTime(record.create_time)
+              }}</template>
+            </template>
+          </a-table>
+          <div class="pager">
+            <a-pagination
+              v-model:current="videoQuery.page"
+              v-model:page-size="videoQuery.pageSize"
+              :total="videoTotal"
+              show-size-changer
+              :page-size-options="['20', '50', '100']"
+              @change="loadVideos"
+              @show-size-change="(_c: number, s: number) => onSize(videoQuery, s, loadVideos)"
+            />
+          </div>
+        </a-tab-pane>
+      </a-tabs>
+    </a-card>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+
+import {
+  type ImageCreationItem,
+  listImageCreations,
+  listVideoCreations,
+  type VideoCreationItem,
+} from '@/api/local-life-admin';
+import { formatTime } from '@/utils/format';
+
+const tab = ref('image');
+
+const imageKinds = [
+  { label: '全部类型', value: '' },
+  { label: '海报', value: 'poster' },
+  { label: '长图', value: 'longImage' },
+  { label: '动作迁移', value: 'actionTransfer' },
+];
+const videoKinds = [
+  { label: '全部类型', value: '' },
+  { label: '探店视频', value: 'exploreShop' },
+  { label: '带货短剧', value: 'shortDrama' },
+  { label: '视频复刻', value: 'videoRemake' },
+];
+const statusOptions = [
+  { label: '全部状态', value: -1 },
+  { label: '生成中', value: 1 },
+  { label: '已完成', value: 2 },
+  { label: '失败', value: 3 },
+];
+
+interface Query {
+  userId: number | null;
+  kind: string;
+  status: number;
+  page: number;
+  pageSize: number;
+}
+
+const imageQuery = ref<Query>({ userId: null, kind: '', status: -1, page: 1, pageSize: 20 });
+const imageRows = ref<ImageCreationItem[]>([]);
+const imageLoading = ref(false);
+const imageTotal = ref(0);
+
+const videoQuery = ref<Query>({ userId: null, kind: '', status: -1, page: 1, pageSize: 20 });
+const videoRows = ref<VideoCreationItem[]>([]);
+const videoLoading = ref(false);
+const videoTotal = ref(0);
+
+const imageColumns = [
+  { title: '用户', dataIndex: 'user_id', width: 90 },
+  { title: '类型', dataIndex: 'kind', width: 120 },
+  { title: '需求', dataIndex: 'content' },
+  { title: '成图', dataIndex: 'image_urls', width: 260 },
+  { title: '状态', dataIndex: 'status', width: 90, align: 'center' as const },
+  { title: '失败原因', dataIndex: 'fail_reason', width: 180, ellipsis: true },
+  { title: '创建时间', dataIndex: 'create_time', width: 170 },
+];
+
+const videoColumns = [
+  { title: '用户', dataIndex: 'user_id', width: 90 },
+  { title: '类型', dataIndex: 'kind', width: 120 },
+  { title: '用户输入', dataIndex: 'user_text' },
+  { title: '卖点', dataIndex: 'selling_points', width: 200, ellipsis: true },
+  { title: '时长(秒)', dataIndex: 'duration', width: 90, align: 'center' as const },
+  { title: '尺寸', dataIndex: 'size', width: 110 },
+  { title: '模型', dataIndex: 'model', width: 160 },
+  { title: '视频', dataIndex: 'video_url', width: 240 },
+  { title: '状态', dataIndex: 'status', width: 90, align: 'center' as const },
+  { title: '失败原因', dataIndex: 'fail_reason', width: 180, ellipsis: true },
+  { title: '创建时间', dataIndex: 'create_time', width: 170 },
+];
+
+function onSize(q: Query, size: number, reload: () => void) {
+  q.pageSize = size;
+  q.page = 1;
+  reload();
+}
+
+function onImageFilter() {
+  imageQuery.value.page = 1;
+  loadImages();
+}
+
+function onVideoFilter() {
+  videoQuery.value.page = 1;
+  loadVideos();
+}
+
+function onTabChange(key: string | number) {
+  if (key === 'video' && !videoRows.value.length) loadVideos();
+}
+
+async function loadImages() {
+  imageLoading.value = true;
+  try {
+    const q = imageQuery.value;
+    const result = await listImageCreations({
+      user_id: q.userId ?? undefined,
+      kind: q.kind || undefined,
+      status: q.status,
+      page: q.page,
+      page_size: q.pageSize,
+    });
+    imageRows.value = result?.list || [];
+    imageTotal.value = result?.total || 0;
+  } catch {
+    /* 已由 API 层提示 */
+  } finally {
+    imageLoading.value = false;
+  }
+}
+
+async function loadVideos() {
+  videoLoading.value = true;
+  try {
+    const q = videoQuery.value;
+    const result = await listVideoCreations({
+      user_id: q.userId ?? undefined,
+      kind: q.kind || undefined,
+      status: q.status,
+      page: q.page,
+      page_size: q.pageSize,
+    });
+    videoRows.value = result?.list || [];
+    videoTotal.value = result?.total || 0;
+  } catch {
+    /* 已由 API 层提示 */
+  } finally {
+    videoLoading.value = false;
+  }
+}
+
+loadImages();
+</script>
+
+<style scoped>
+.page-container {
+  padding: 0;
+}
+.page-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.ph-title {
+  margin: 0;
+  font-size: 18px;
+}
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.pager {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+.thumb {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-right: 6px;
+}
+.clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-all;
+}
+</style>

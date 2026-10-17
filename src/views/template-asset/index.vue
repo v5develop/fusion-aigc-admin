@@ -453,6 +453,7 @@ import { PlayCircleOutlined } from '@antdv-next/icons';
 import { message } from 'antdv-next';
 import { ref, reactive, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRoute } from 'vue-router';
 
 import {
   getTemplateMaterialList,
@@ -480,7 +481,11 @@ const { t } = useI18n();
 const assetTableRef = ref<InstanceType<typeof ProTable> | null>(null);
 
 // 业务类型下拉（当前仅电商域）
-const bizTypeOptions = [{ label: 'ecommerce', value: 'ecommerce' }];
+// localLife：本地生活海报 / 长图模板（投放位 poster/template、longImage/template，见 fusion_aigc_go 迁移 Go_V1.0.4）
+const bizTypeOptions = [
+  { label: 'ecommerce', value: 'ecommerce' },
+  { label: 'localLife', value: 'localLife' },
+];
 
 // 创作模块下拉（来自计费 Offer）
 const moduleOptions = ref<{ label: string; value: string }[]>([]);
@@ -537,6 +542,18 @@ const assetColumns = [
     align: 'center' as const,
   },
   {
+    title: t('templateAsset.bizType'),
+    dataIndex: 'bizType',
+    search: true,
+    searchType: 'select' as const,
+    searchOptions: [
+      { label: 'ecommerce', value: 'ecommerce' },
+      { label: 'localLife', value: 'localLife' },
+    ],
+    width: 110,
+    align: 'center' as const,
+  },
+  {
     title: t('templateAsset.title'),
     dataIndex: 'title',
     search: true,
@@ -586,8 +603,10 @@ const assetColumns = [
 ];
 
 // 当前列表查询条件（供打标取元数据复用）
+const route = useRoute();
 const currentQuery = reactive({
-  bizType: 'ecommerce' as string,
+  // 业务域：电商 / 本地生活。可由 URL（?bizType=localLife）带入，也可在搜索栏切换
+  bizType: ((route.query.bizType as string) || 'ecommerce') as string,
 });
 
 // 已打标签：materialId -> [{optionId, label, color}]
@@ -657,8 +676,14 @@ async function loadTaggedForAssets(materials: TemplateMaterial[]) {
 }
 
 async function loadAssets(params: Record<string, unknown>) {
+  const bizType = (params.bizType as string) || currentQuery.bizType;
+  if (bizType !== currentQuery.bizType) {
+    currentQuery.bizType = bizType;
+    // 切换业务域后打标字典与素材同步换成该业务域的维度
+    ensureOptionDict();
+  }
   const res = await getTemplateMaterialList({
-    bizType: currentQuery.bizType,
+    bizType,
     keyword: (params.title as string) || undefined,
     type: params.type as TemplateAssetType | undefined,
     page: (params.current as number) || 1,
@@ -691,7 +716,7 @@ const assetForm = reactive({
 });
 
 function resetAssetForm() {
-  assetForm.bizType = 'ecommerce';
+  assetForm.bizType = currentQuery.bizType;
   assetForm.type = 'image';
   assetForm.title = '';
   assetForm.url = '';
