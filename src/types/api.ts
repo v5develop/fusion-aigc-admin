@@ -748,9 +748,9 @@ export interface AiWritingModel {
   supportVision?: boolean | null;
 }
 
-/** 数字人配音（TTS）模型，Go 数字人服务读取 ai_tts_model_id */
+/** AI语音合成模型配置，供所有需要配音的业务共用 */
 export interface AiTtsModel {
-  /** 配音模型 ID（afv_ai_model.id），null=未配置 */
+  /** AI语音合成模型 ID（afv_ai_model.id），null=未配置 */
   modelId: number | null;
   /** 模型名称（只读展示） */
   modelName?: string | null;

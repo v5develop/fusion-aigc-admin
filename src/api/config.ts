@@ -121,7 +121,7 @@ export function saveAiWritingModel(modelId: number | null) {
   return request.put<boolean>('/api/v1/admin/settings/ai-writing-model', { modelId });
 }
 
-/** 数字人配音（TTS）模型，Go 数字人服务读取 ai_tts_model_id */
+/** AI语音合成模型配置，供所有需要配音的业务共用 */
 export function getAiTtsModel() {
   return request.get<AiTtsModel>('/api/v1/admin/settings/ai-tts-model');
 }

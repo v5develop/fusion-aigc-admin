@@ -349,7 +349,7 @@
               <a-form-item :label="$t('settingsSystem.aiTtsModelLabel')">
                 <a-select
                   v-model:value="aiTtsModelId"
-                  :options="ttsModelOptions"
+                  :options="aiTtsModelOptions"
                   :loading="loadingModels"
                   :placeholder="$t('settingsSystem.agentModelPlaceholder')"
                   allow-clear
@@ -478,13 +478,13 @@ const agentProfiles = ref<AgentModelProfile[]>([]);
 const aiWritingModelId = ref<number | null>(null);
 const savingAiWriting = ref(false);
 
-// 数字人配音（TTS）模型：Go 数字人服务读取 ai_tts_model_id；null=未配置
+// AI语音合成模型：供所有需要配音的业务共用；null=未配置
 const AI_MODEL_TYPE_TTS = 4; // 对应后端 AiModelTypeEnum.TTS
 const aiTtsModelId = ref<number | null>(null);
 const savingAiTts = ref(false);
 
 // 配音下拉只列已启用的 TTS 模型（后端保存时同样校验）
-const ttsModelOptions = computed(() =>
+const aiTtsModelOptions = computed(() =>
   models.value
     .filter((m) => m.modelType === AI_MODEL_TYPE_TTS && m.status === 1)
     .map((m) => ({
