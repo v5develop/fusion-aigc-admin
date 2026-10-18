@@ -662,6 +662,7 @@ import {
   getCreationTaskDetail,
   cancelCreationTask,
   retryCreationTask,
+  isRefundedBilling,
   forceCompleteCreationTask,
   blockCreationTask,
   unblockCreationTask,
@@ -1031,7 +1032,7 @@ function handleRetry() {
   if (!task.value) return;
   Modal.confirm({
     title: t('common.warning'),
-    content: t('creationTask.confirmRetry'),
+    content: t(isRefundedBilling(task.value.billingStatus) ? 'creationTask.confirmRetryCharge' : 'creationTask.confirmRetry'),
     onOk: async () => {
       await retryCreationTask(task.value!.taskId);
       message.success(t('creationTask.retrySuccess'));

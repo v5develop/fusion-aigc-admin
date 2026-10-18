@@ -294,6 +294,7 @@ import {
   getCreationTaskList,
   cancelCreationTask,
   retryCreationTask,
+  isRefundedBilling,
   forceCompleteCreationTask,
   forceFailCreationTask,
   blockCreationTask,
@@ -421,6 +422,8 @@ const billingStatusMap: Record<string, string> = {
   CANCELLED: t('creationTask.billingCancelled'),
   SETTLEMENT_FAILED: t('creationTask.billingSettlementFailed'),
   PARTIALLY_REFUNDED: t('creationTask.billingPartiallyRefunded'),
+  NONE: t('creationTask.billingNone'),
+  BILLING_PENDING_REVIEW: t('creationTask.billingPendingReview'),
 };
 
 const billingStatusColorMap: Record<string, string> = {
@@ -430,6 +433,8 @@ const billingStatusColorMap: Record<string, string> = {
   PARTIALLY_REFUNDED: 'warning',
   CANCELLED: 'default',
   SETTLEMENT_FAILED: 'red',
+  NONE: 'default',
+  BILLING_PENDING_REVIEW: 'purple',
 };
 
 // Columns definition
@@ -616,7 +621,7 @@ function handleCancel(record: CreationTask) {
 function handleRetry(record: CreationTask) {
   Modal.confirm({
     title: t('common.warning'),
-    content: t('creationTask.confirmRetry'),
+    content: t(isRefundedBilling(record.billingStatus) ? 'creationTask.confirmRetryCharge' : 'creationTask.confirmRetry'),
     onOk: async () => {
       await retryCreationTask(record.taskId);
       message.success(t('creationTask.retrySuccess'));

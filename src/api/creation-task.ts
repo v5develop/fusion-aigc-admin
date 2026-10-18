@@ -232,6 +232,11 @@ export function retryCreationTask(taskId: string) {
   return request.post(`/api/v1/admin/creation/tasks/${taskId}/retry`);
 }
 
+/** 点数是否已退还：重试会再次冻结并扣减，确认窗须明确提示 */
+export function isRefundedBilling(billingStatus?: string) {
+  return billingStatus === 'REFUNDED' || billingStatus === 'PARTIALLY_REFUNDED';
+}
+
 export function forceCompleteCreationTask(taskId: string, resultUrl?: string) {
   return request.post(`/api/v1/admin/creation/tasks/${taskId}/force-complete`, { resultUrl });
 }

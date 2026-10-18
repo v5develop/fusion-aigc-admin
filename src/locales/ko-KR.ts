@@ -3548,6 +3548,8 @@ export default {
     billingHeld: '선공제됨',
     billingConfirmed: '확인됨',
     billingRefunded: '환불됨',
+    billingNone: '미청구',
+    billingPendingReview: '검토 대기',
     billingCancelled: '취소됨',
     billingSettlementFailed: '정산 실패',
     billingPartiallyRefunded: '부분 환불',
@@ -3559,6 +3561,7 @@ export default {
     batchCancel: '일괄 취소',
     confirmCancel: '해당 작업을 취소하시겠습니까?',
     confirmRetry: '해당 작업을 재시도하시겠습니까?',
+    confirmRetryCharge: '이 작업의 포인트는 이미 환불되었습니다. 재시도하면 포인트가 다시 차감되고 벤더에 다시 제출됩니다. 계속하시겠습니까?',
     confirmForceFail:
       '이 작업을 강제로 실패 처리하시겠습니까? 최종 상태가 되어 재시도할 수 없으며 미정산 예약은 환불됩니다.',
     confirmBatchCancel: '선택한 {count}개의 작업을 취소하시겠습니까?',

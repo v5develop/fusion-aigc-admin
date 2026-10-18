@@ -3565,6 +3565,8 @@ export default {
     billingHeld: '仮確保済',
     billingConfirmed: '確認済',
     billingRefunded: '返金済',
+    billingNone: '未課金',
+    billingPendingReview: '要確認',
     billingCancelled: 'キャンセル済',
     billingSettlementFailed: '精算失敗',
     billingPartiallyRefunded: '一部返金',
@@ -3576,6 +3578,7 @@ export default {
     batchCancel: '一括キャンセル',
     confirmCancel: 'このタスクをキャンセルしますか？',
     confirmRetry: 'このタスクを再試行しますか？',
+    confirmRetryCharge: 'このタスクのポイントは返金済みです。再試行するとポイントを再度凍結・消費し、ベンダーへ再送信します。続行しますか？',
     confirmForceFail:
       'このタスクを強制的に失敗にしますか？終了状態となり再試行できず、未精算の予約は返金されます。',
     confirmBatchCancel: '選択した{count}件のタスクをキャンセルしますか？',

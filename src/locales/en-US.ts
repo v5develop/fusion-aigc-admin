@@ -4142,6 +4142,8 @@ export default {
     billingHeld: 'Held',
     billingConfirmed: 'Confirmed',
     billingRefunded: 'Refunded',
+    billingNone: 'Not billed',
+    billingPendingReview: 'Pending review',
     billingCancelled: 'Cancelled',
     billingSettlementFailed: 'Settlement Failed',
     billingPartiallyRefunded: 'Partially Refunded',
@@ -4151,6 +4153,8 @@ export default {
     batchCancel: 'Batch Cancel',
     confirmCancel: 'Are you sure you want to cancel this task?',
     confirmRetry: 'Are you sure you want to retry this task?',
+    confirmRetryCharge:
+      'The points for this task have already been refunded. Retrying will freeze and deduct points again and resubmit to the vendor. Continue?',
     confirmForceFail:
       'Force this task to failed? It becomes terminal (no more retries) and any unsettled reservation is refunded.',
     confirmBatchCancel: 'Are you sure you want to cancel {count} selected tasks?',
