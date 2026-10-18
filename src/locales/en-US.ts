@@ -3778,6 +3778,12 @@ export default {
     aiWritingModelLabel: 'AI Writing dedicated model',
     aiWritingModelSelectHint:
       'Only enabled text chat models can be selected; leave empty to skip the dedicated config and fall back to default routing. When writing with images, a non-vision model automatically falls back to the vision profile.',
+    aiTtsModel: 'Digital Human Voice Model',
+    aiTtsModelHint:
+      'The TTS model used by digital human narration. The digital human service reads it to synthesize voice-overs. When unset, digital human voice-over fails with "voice model not configured or disabled".',
+    aiTtsModelLabel: 'Digital human voice model',
+    aiTtsModelSelectHint:
+      'Only enabled text-to-speech (TTS) models can be selected; leave empty to disable digital human voice-over.',
     saveSuccess: 'System parameters saved successfully',
   },
 

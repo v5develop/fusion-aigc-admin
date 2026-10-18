@@ -8,6 +8,7 @@ import type {
   SystemStorageConfig,
   AgentModelProfile,
   AiWritingModel,
+  AiTtsModel,
 } from '@/types/api';
 
 import { request } from '@/utils/request';
@@ -118,6 +119,15 @@ export function getAiWritingModel() {
 
 export function saveAiWritingModel(modelId: number | null) {
   return request.put<boolean>('/api/v1/admin/settings/ai-writing-model', { modelId });
+}
+
+/** 数字人配音（TTS）模型，Go 数字人服务读取 ai_tts_model_id */
+export function getAiTtsModel() {
+  return request.get<AiTtsModel>('/api/v1/admin/settings/ai-tts-model');
+}
+
+export function saveAiTtsModel(modelId: number | null) {
+  return request.put<boolean>('/api/v1/admin/settings/ai-tts-model', { modelId });
 }
 
 /** 传空串/ null 即清除，回退配置文件默认值。 */

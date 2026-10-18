@@ -335,6 +335,45 @@
             </a-form>
           </div>
         </a-tab-pane>
+
+        <a-tab-pane key="aiTts" :tab="$t('settingsSystem.aiTtsModel')">
+          <div class="max-w-2xl">
+            <a-alert
+              type="info"
+              show-icon
+              :message="$t('settingsSystem.aiTtsModelHint')"
+              class="agent-model-alert"
+            />
+
+            <a-form layout="vertical" class="agent-profile-block">
+              <a-form-item :label="$t('settingsSystem.aiTtsModelLabel')">
+                <a-select
+                  v-model:value="aiTtsModelId"
+                  :options="ttsModelOptions"
+                  :loading="loadingModels"
+                  :placeholder="$t('settingsSystem.agentModelPlaceholder')"
+                  allow-clear
+                  show-search
+                  option-filter-prop="label"
+                  style="max-width: 360px"
+                />
+                <div class="form-hint">{{ $t('settingsSystem.aiTtsModelSelectHint') }}</div>
+              </a-form-item>
+
+              <a-form-item v-if="aiTtsModelId && metaFor(aiTtsModelId)">
+                <a-tag v-if="metaFor(aiTtsModelId)?.code" color="blue">
+                  {{ metaFor(aiTtsModelId)?.code }}
+                </a-tag>
+              </a-form-item>
+
+              <a-form-item>
+                <a-button type="primary" @click="handleSaveAiTts" :loading="savingAiTts">
+                  {{ $t('common.save') }}
+                </a-button>
+              </a-form-item>
+            </a-form>
+          </div>
+        </a-tab-pane>
       </a-tabs>
     </a-card>
   </div>
@@ -354,6 +393,8 @@ import {
   bindAgentModelProfile,
   getAiWritingModel,
   saveAiWritingModel,
+  getAiTtsModel,
+  saveAiTtsModel,
   getVideoWatermarkEnabled,
   setVideoWatermarkEnabled,
   getBlindWatermarkEnabled,
@@ -437,6 +478,21 @@ const agentProfiles = ref<AgentModelProfile[]>([]);
 const aiWritingModelId = ref<number | null>(null);
 const savingAiWriting = ref(false);
 
+// 数字人配音（TTS）模型：Go 数字人服务读取 ai_tts_model_id；null=未配置
+const AI_MODEL_TYPE_TTS = 4; // 对应后端 AiModelTypeEnum.TTS
+const aiTtsModelId = ref<number | null>(null);
+const savingAiTts = ref(false);
+
+// 配音下拉只列已启用的 TTS 模型（后端保存时同样校验）
+const ttsModelOptions = computed(() =>
+  models.value
+    .filter((m) => m.modelType === AI_MODEL_TYPE_TTS && m.status === 1)
+    .map((m) => ({
+      label: m.code ? `${m.name} (${m.code})` : m.name,
+      value: m.id,
+    })),
+);
+
 // 全部启用模型的下拉项（label 含 code）
 const allModelOptions = computed(() =>
   models.value.map((m) => ({
@@ -475,10 +531,11 @@ function profileHint(profile: string) {
 async function loadAgentModelConfig() {
   loadingModels.value = true;
   try {
-    const [options, profiles, aiWriting] = await Promise.all([
+    const [options, profiles, aiWriting, aiTts] = await Promise.all([
       getModelOptions(),
       getAgentModelProfiles(),
       getAiWritingModel(),
+      getAiTtsModel(),
     ]);
     models.value = options ?? [];
     // 保证 TEXT 在前、VISION 在后的稳定顺序
@@ -487,6 +544,7 @@ async function loadAgentModelConfig() {
       .slice()
       .sort((a, b) => order.indexOf(a.profile) - order.indexOf(b.profile));
     aiWritingModelId.value = aiWriting?.modelId ?? null;
+    aiTtsModelId.value = aiTts?.modelId ?? null;
   } catch {
     // Error handled by interceptor
   } finally {
@@ -503,6 +561,18 @@ async function handleSaveProfile(item: AgentModelProfile) {
     // Error handled by interceptor
   } finally {
     savingProfile.value = null;
+  }
+}
+
+async function handleSaveAiTts() {
+  savingAiTts.value = true;
+  try {
+    await saveAiTtsModel(aiTtsModelId.value ?? null);
+    message.success(t('settingsSystem.saveSuccess'));
+  } catch {
+    // Error handled by interceptor
+  } finally {
+    savingAiTts.value = false;
   }
 }
 

@@ -748,6 +748,16 @@ export interface AiWritingModel {
   supportVision?: boolean | null;
 }
 
+/** 数字人配音（TTS）模型，Go 数字人服务读取 ai_tts_model_id */
+export interface AiTtsModel {
+  /** 配音模型 ID（afv_ai_model.id），null=未配置 */
+  modelId: number | null;
+  /** 模型名称（只读展示） */
+  modelName?: string | null;
+  /** 模型标识 code（只读展示） */
+  modelCode?: string | null;
+}
+
 // Feature Grant Types
 export interface FeatureGrant {
   id: number;

@@ -3783,6 +3783,11 @@ export default {
     aiWritingModelLabel: 'AI 帮写专用模型',
     aiWritingModelSelectHint:
       '仅可选择已启用的文本对话模型；清空表示不单独配置、回退默认档位路由。带图帮写时若所选模型不支持视觉，会自动回退视觉档。',
+    aiTtsModel: '数字人配音模型',
+    aiTtsModelHint:
+      '数字人口播的配音（TTS）模型，供数字人服务合成配音使用。未配置时数字人配音会失败（提示「配音模型未配置或已停用」）。',
+    aiTtsModelLabel: '数字人配音模型',
+    aiTtsModelSelectHint: '仅可选择已启用的语音合成（TTS）模型；清空后数字人配音将不可用。',
     saveSuccess: '系统参数保存成功',
   },
 
