@@ -54,12 +54,38 @@
                 formatTime(record.create_time)
               }}</template>
               <template v-else-if="column.dataIndex === 'operation' && canEdit">
+                <a-button
+                  v-if="record.status === STATUS_GENERATING"
+                  type="link"
+                  size="small"
+                  @click="openResolve(record)"
+                  >人工处理</a-button
+                >
                 <a-popconfirm title="确认删除这条文案？" @confirm="remove(record.id)">
                   <a-button type="link" size="small" danger>删除</a-button>
                 </a-popconfirm>
               </template>
             </template>
           </a-table>
+
+          <a-modal
+            v-model:open="resolveOpen"
+            title="人工处理卡住的文案"
+            ok-text="退回点数并标记失败"
+            :confirm-loading="resolving"
+            @ok="submitResolve"
+          >
+            <p class="muted">
+              仅用于「生成中、点数已扣但结果未落库」的记录。提交后会<b>把已扣的点数全部退回</b>，文案标记为失败，此操作不可撤销，请先核对。
+            </p>
+            <a-textarea
+              v-model:value="resolveNote"
+              :rows="3"
+              :maxlength="200"
+              show-count
+              placeholder="处理说明（必填），如：用户反馈未出结果，已核对预留单"
+            />
+          </a-modal>
 
           <div class="pager">
             <a-pagination
@@ -86,6 +112,7 @@ import {
   type CopywritingItem,
   createCopywritingOption,
   deleteCopywriting,
+  resolveCopywriting,
   deleteCopywritingOption,
   getCopywritingModel,
   listCopywriting,
@@ -129,6 +156,40 @@ const columns = [
 const visibleColumns = computed(() =>
   columns.filter((c) => canEdit.value || c.dataIndex !== 'operation'),
 );
+
+// 与后端 model.StatusGenerating 保持一致
+const STATUS_GENERATING = 0;
+const resolveOpen = ref(false);
+const resolving = ref(false);
+const resolveTarget = ref<CopywritingItem | null>(null);
+const resolveNote = ref('');
+
+function openResolve(record: CopywritingItem) {
+  resolveTarget.value = record;
+  resolveNote.value = '';
+  resolveOpen.value = true;
+}
+
+async function submitResolve() {
+  const target = resolveTarget.value;
+  const note = resolveNote.value.trim();
+  if (!target) return;
+  if (!note) {
+    message.warning('请填写处理说明');
+    return;
+  }
+  resolving.value = true;
+  try {
+    const result = await resolveCopywriting(target.id, note);
+    message.success(`已退回 ${result?.refunded_points ?? 0} 点，文案已标记失败`);
+    resolveOpen.value = false;
+    load();
+  } catch {
+    /* 已由 API 层提示 */
+  } finally {
+    resolving.value = false;
+  }
+}
 
 let keywordTimer: ReturnType<typeof setTimeout> | undefined;
 function onKeywordChange() {

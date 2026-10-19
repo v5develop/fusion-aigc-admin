@@ -231,6 +231,17 @@ export function deleteCopywriting(id: number) {
   return call<unknown>(http.delete(`${PREFIX}/copywriting/${id}`));
 }
 
+export interface ResolveCopywritingResp {
+  reservation_status: string;
+  refunded_points: number;
+}
+
+// 人工处理卡住的文案（生成中且点数已扣）：先退回已扣点数，再标记失败并记录说明；
+// 仅点数已扣（CONFIRMED / PARTIALLY_REFUNDED / 已退回）时可用，其他状态后端会拒绝
+export function resolveCopywriting(id: number, note: string) {
+  return call<ResolveCopywritingResp>(http.post(`${PREFIX}/copywriting/${id}/resolve`, { note }));
+}
+
 // ---------------- AI 数字人 ----------------
 
 export function listDhOptions(optionType?: string) {
