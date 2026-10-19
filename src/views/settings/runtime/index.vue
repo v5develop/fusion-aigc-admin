@@ -111,6 +111,12 @@
               :precision="0"
               style="width: 100%"
             />
+            <a-select
+              v-else-if="editing.options?.length"
+              v-model:value="editSelect"
+              :options="editing.options.map((o) => ({ label: o, value: o }))"
+              style="width: 100%"
+            />
             <a-input v-else v-model:value="editText" allow-clear />
 
             <div class="form-hint">
@@ -274,6 +280,8 @@ function currentValue(s: RuntimeSetting): string {
     case 'MODEL_CODE':
       return modelCodeOptions.value.length ? (editSelect.value ?? '') : editText.value.trim();
     default:
+      // 取值有限的键（如承接路线）从下拉取值，其余按文本
+      if (s.options?.length) return editSelect.value ?? '';
       return (editText.value ?? '').trim();
   }
 }

@@ -22,6 +22,8 @@ export interface RuntimeSetting {
   fileValue: string | null;
   dbValue: string | null;
   updatedAt: string | null;
+  /** 取值有限的键的可选值（后台下拉与写入校验共用）；不限时为 null */
+  options?: string[] | null;
 }
 
 const BASE = '/api/v1/admin/system/runtime-settings';
