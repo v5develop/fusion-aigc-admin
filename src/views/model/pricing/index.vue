@@ -213,6 +213,8 @@ const columns = computed(() => [
   {
     title: t('model.modelCode'),
     dataIndex: 'modelCode',
+    search: true,
+    searchType: 'input' as const,
     width: 150,
   },
   {
@@ -237,6 +239,13 @@ const columns = computed(() => [
   {
     title: t('pricing.resolution'),
     dataIndex: 'resolution',
+    search: true,
+    searchType: 'select' as const,
+    searchOptions: [
+      { label: '1k', value: '1k' },
+      { label: '2k', value: '2k' },
+      { label: '4k', value: '4k' },
+    ],
     width: 110,
     align: 'center' as const,
   },
@@ -335,7 +344,9 @@ async function loadActionTypes() {
 async function loadData(params: Record<string, unknown>) {
   const res = await getPricingList({
     modelId: params.modelId as number | undefined,
+    modelCode: (params.modelCode as string | undefined) || undefined,
     actionType: params.actionType as string | undefined,
+    resolution: (params.resolution as string | undefined) || undefined,
     status: params.status as number | undefined,
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,

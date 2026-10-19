@@ -241,7 +241,11 @@ export interface ModelPricing {
 
 export interface PricingListParams extends ListParams {
   modelId?: number;
+  /** 模型编码，精确匹配 */
+  modelCode?: string;
   actionType?: string;
+  /** 分档分辨率，如 1k / 2k / 4k，精确匹配 */
+  resolution?: string;
   status?: number;
 }
 
