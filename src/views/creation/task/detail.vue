@@ -488,6 +488,189 @@
         </a-table>
       </a-card>
 
+      <!-- 诊断与时间线：默认折叠，首次展开才请求；失败仅在本卡片内提示 -->
+      <a-card style="margin-bottom: 16px">
+        <a-collapse v-model:activeKey="diagActive" ghost @change="onDiagToggle">
+          <a-collapse-panel key="diag" :header="$t('creationTask.diagnosis.title')">
+            <a-spin :spinning="diagLoading">
+              <a-alert
+                v-if="diagError"
+                type="error"
+                show-icon
+                :message="$t('creationTask.diagnosis.loadFail')"
+                :description="diagError"
+              >
+                <template #action>
+                  <a-button size="small" @click="loadDiagnosis">{{
+                    $t('creationTask.diagnosis.retry')
+                  }}</a-button>
+                </template>
+              </a-alert>
+              <template v-else-if="diagnosis">
+                <a-descriptions :column="2" size="small" style="margin-bottom: 12px">
+                  <a-descriptions-item :label="$t('creationTask.diagnosis.statusLabel')">
+                    {{ diagnosis.task?.statusLabel || '-' }}
+                  </a-descriptions-item>
+                  <a-descriptions-item :label="$t('creationTask.diagnosis.failureCode')">
+                    <code v-if="diagnosis.failingStep?.failureCode">{{
+                      diagnosis.failingStep.failureCode
+                    }}</code>
+                    <span v-else>-</span>
+                  </a-descriptions-item>
+                  <a-descriptions-item :label="$t('creationTask.diagnosis.blockedStep')">
+                    <code v-if="diagnosis.failingStep?.stepPath">{{
+                      diagnosis.failingStep.stepPath
+                    }}</code>
+                    <span v-else>-</span>
+                  </a-descriptions-item>
+                  <a-descriptions-item :label="$t('creationTask.diagnosis.gatewayCall')">
+                    <a
+                      v-if="safeLink(diagnosis.failingStep?.gatewayCallLink)"
+                      :href="diagnosis.failingStep?.gatewayCallLink || ''"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {{
+                        diagnosis.failingStep?.gatewayCallId ||
+                        diagnosis.failingStep?.gatewayCallLink
+                      }}
+                    </a>
+                    <span v-else>-</span>
+                  </a-descriptions-item>
+                </a-descriptions>
+
+                <div v-if="diagnosis.hints?.length" class="diag-section">
+                  <div class="diag-title">{{ $t('creationTask.diagnosis.hints') }}</div>
+                  <ul class="diag-hints">
+                    <li v-for="(h, i) in diagnosis.hints" :key="i">
+                      {{ h.text }}
+                      <a-tag v-if="h.manualSection" color="blue" style="margin-left: 8px">{{
+                        $t('creationTask.diagnosis.manual', { section: h.manualSection })
+                      }}</a-tag>
+                    </li>
+                  </ul>
+                </div>
+
+                <div v-if="byStatusEntries.length" class="diag-section">
+                  <div class="diag-title">
+                    {{ $t('creationTask.diagnosis.stepCounts') }} ({{
+                      diagnosis.steps?.total ?? 0
+                    }})
+                  </div>
+                  <a-tag v-for="[k, v] in byStatusEntries" :key="k" :color="diagStatusColor(k)">
+                    {{ k }}: {{ v }}
+                  </a-tag>
+                </div>
+
+                <div class="diag-section">
+                  <div class="diag-title">{{ $t('creationTask.diagnosis.billingDelivery') }}</div>
+                  <a-descriptions :column="2" size="small">
+                    <a-descriptions-item :label="$t('creationTask.diagnosis.billingStatus')">
+                      {{ diagnosis.billing?.billingStatus || diagnosis.task?.billingStatus || '-' }}
+                    </a-descriptions-item>
+                    <a-descriptions-item :label="$t('creationTask.diagnosis.reservationStatus')">
+                      {{ diagnosis.billing?.reservationStatus || '-' }}
+                    </a-descriptions-item>
+                    <template v-if="diagnosis.delivery">
+                      <a-descriptions-item :label="$t('creationTask.diagnosis.hasResult')">
+                        <a-tag :color="diagnosis.delivery.hasResult ? 'green' : 'default'">{{
+                          yesNo(diagnosis.delivery.hasResult)
+                        }}</a-tag>
+                      </a-descriptions-item>
+                      <a-descriptions-item :label="$t('creationTask.diagnosis.resultCount')">
+                        {{ diagnosis.delivery.resultCount ?? '-' }}
+                      </a-descriptions-item>
+                      <a-descriptions-item :label="$t('creationTask.diagnosis.coverPresent')">
+                        <a-tag :color="diagnosis.delivery.coverPresent ? 'green' : 'default'">{{
+                          yesNo(diagnosis.delivery.coverPresent)
+                        }}</a-tag>
+                      </a-descriptions-item>
+                      <a-descriptions-item :label="$t('creationTask.diagnosis.watermarkPresent')">
+                        <a-tag :color="diagnosis.delivery.watermarkPresent ? 'green' : 'default'">{{
+                          yesNo(diagnosis.delivery.watermarkPresent)
+                        }}</a-tag>
+                      </a-descriptions-item>
+                      <a-descriptions-item :label="$t('creationTask.diagnosis.watermarkCount')">
+                        {{ diagnosis.delivery.watermarkCount ?? '-' }}
+                      </a-descriptions-item>
+                      <a-descriptions-item :label="$t('creationTask.diagnosis.watermarkAligned')">
+                        <a-tag
+                          :color="diagnosis.delivery.watermarkAligned === false ? 'red' : 'default'"
+                          >{{ yesNo(diagnosis.delivery.watermarkAligned) }}</a-tag
+                        >
+                      </a-descriptions-item>
+                    </template>
+                  </a-descriptions>
+                </div>
+
+                <div v-if="diagnosis.aigcPush" class="diag-section">
+                  <div class="diag-title">{{ $t('creationTask.diagnosis.aigcPush') }}</div>
+                  <a-descriptions :column="2" size="small">
+                    <a-descriptions-item :label="$t('creationTask.diagnosis.pushStatus')">
+                      {{ diagnosis.aigcPush.statusLabel || '-' }}
+                    </a-descriptions-item>
+                    <a-descriptions-item :label="$t('creationTask.diagnosis.pushAttempts')">
+                      {{ diagnosis.aigcPush.attempts ?? 0 }} /
+                      {{ diagnosis.aigcPush.maxAttempts ?? '-' }}
+                    </a-descriptions-item>
+                    <a-descriptions-item
+                      :label="$t('creationTask.diagnosis.pushLastError')"
+                      :span="2"
+                    >
+                      <span v-if="diagnosis.aigcPush.lastError" class="error-text">{{
+                        diagnosis.aigcPush.lastError
+                      }}</span>
+                      <span v-else>-</span>
+                    </a-descriptions-item>
+                  </a-descriptions>
+                </div>
+
+                <div v-if="diagnosis.mediaOps?.length" class="diag-section">
+                  <div class="diag-title">{{ $t('creationTask.diagnosis.mediaOps') }}</div>
+                  <a-table
+                    :columns="mediaOpColumns"
+                    :data-source="diagnosis.mediaOps"
+                    :pagination="false"
+                    :row-key="(_r: DiagnosisMediaOp, i?: number) => String(i)"
+                    size="small"
+                    :scroll="{ x: 800 }"
+                  />
+                </div>
+
+                <div class="diag-section">
+                  <div class="diag-title">{{ $t('creationTask.diagnosis.timeline') }}</div>
+                  <a-table
+                    :columns="timelineColumns"
+                    :data-source="timelineRows"
+                    :pagination="false"
+                    :row-key="(_r: TimelineEvent, i?: number) => String(_r.id ?? i)"
+                    size="small"
+                    :scroll="{ x: 900 }"
+                  >
+                    <template #bodyCell="{ column, record }">
+                      <template v-if="column.dataIndex === 'status'">
+                        <a-tag v-if="record.status" :color="diagStatusColor(record.status)">{{
+                          record.status
+                        }}</a-tag>
+                        <span v-else>-</span>
+                      </template>
+                    </template>
+                  </a-table>
+                  <div v-if="timelineNextAfterId" style="margin-top: 8px; text-align: center">
+                    <a-button :loading="timelineMoreLoading" @click="loadMoreTimeline">{{
+                      $t('creationTask.diagnosis.loadMore')
+                    }}</a-button>
+                  </div>
+                  <div v-if="timelineMoreError" class="error-text" style="margin-top: 8px">
+                    {{ timelineMoreError }}
+                  </div>
+                </div>
+              </template>
+            </a-spin>
+          </a-collapse-panel>
+        </a-collapse>
+      </a-card>
+
       <!-- Pipeline Steps (交付 B) -->
       <a-card
         v-if="pipelineSteps && pipelineSteps.steps.length > 0"
@@ -649,6 +832,9 @@ import type {
   ApiRequestLog,
   PipelineStepsResponse,
   WorkflowStep,
+  Diagnosis,
+  DiagnosisMediaOp,
+  TimelineEvent,
 } from '@/api/creation-task';
 import type { ModerationLog } from '@/api/moderation-log';
 
@@ -670,6 +856,8 @@ import {
   getCreationTaskApiLogs,
   getPipelineSteps,
   getWorkflowSteps,
+  getTaskDiagnosis,
+  getTaskTimeline,
   fixTaskContentType,
 } from '@/api/creation-task';
 import { getCreationTaskModerationLogs } from '@/api/moderation-log';
@@ -684,6 +872,109 @@ const task = ref<CreationTask | null>(null);
 const costSummary = ref<CompositeCostSummary | null>(null);
 const pipelineSteps = ref<PipelineStepsResponse | null>(null);
 const workflowSteps = ref<WorkflowStep[]>([]);
+
+// ---- 诊断与时间线（折叠卡片，首次展开才请求） ----
+const diagActive = ref<string[]>([]);
+const diagLoading = ref(false);
+const diagError = ref('');
+const diagnosis = ref<Diagnosis | null>(null);
+const timelineRows = ref<TimelineEvent[]>([]);
+const timelineNextAfterId = ref<number | string | null>(null);
+const timelineMoreLoading = ref(false);
+const timelineMoreError = ref('');
+let diagLoaded = false;
+const TIMELINE_PAGE_SIZE = 50;
+
+const byStatusEntries = computed(() => Object.entries(diagnosis.value?.steps?.byStatus || {}));
+
+const mediaOpColumns = [
+  { title: t('creationTask.diagnosis.opName'), dataIndex: 'op', width: 160 },
+  { title: t('creationTask.diagnosis.status'), dataIndex: 'status', width: 110 },
+  { title: t('creationTask.diagnosis.failureClass'), dataIndex: 'failureClass', width: 140 },
+  { title: t('creationTask.diagnosis.failureCode'), dataIndex: 'failureCode', width: 160 },
+  { title: t('creationTask.diagnosis.attempts'), dataIndex: 'attempts', width: 80 },
+  { title: t('creationTask.diagnosis.createTime'), dataIndex: 'createTime', width: 170 },
+];
+
+const timelineColumns = [
+  { title: t('creationTask.diagnosis.ts'), dataIndex: 'ts', width: 170 },
+  { title: t('creationTask.diagnosis.source'), dataIndex: 'source', width: 110 },
+  { title: t('creationTask.diagnosis.kind'), dataIndex: 'kind', width: 140 },
+  { title: t('creationTask.diagnosis.stepPath'), dataIndex: 'stepPath', width: 200 },
+  { title: t('creationTask.diagnosis.status'), dataIndex: 'status', width: 110 },
+  { title: t('creationTask.diagnosis.failureCode'), dataIndex: 'failureCode', width: 160 },
+  { title: t('creationTask.diagnosis.attempt'), dataIndex: 'attempt', width: 80 },
+];
+
+function yesNo(v?: boolean | null) {
+  if (v == null) return '-';
+  return v ? t('creationTask.diagnosis.yes') : t('creationTask.diagnosis.no');
+}
+
+// 用 antdv Tag 预设色，随主题自适应
+function diagStatusColor(status: string) {
+  const s = String(status || '').toUpperCase();
+  if (['SUCCEEDED', 'DONE', 'SUCCESS', 'COMPLETED'].includes(s)) return 'green';
+  if (['FAILED', 'ERROR'].includes(s)) return 'red';
+  if (['RUNNING', 'PROCESSING'].includes(s)) return 'blue';
+  if (['WAITING', 'PENDING', 'UNKNOWN'].includes(s)) return 'orange';
+  return 'default';
+}
+
+// 仅放行 http(s) 与站内相对路径，避免后端异常值变成 javascript: 链接
+function safeLink(link?: string | null) {
+  return !!link && /^(https?:\/\/|\/(?!\/))/i.test(link);
+}
+
+function diagErrMsg(e: unknown) {
+  return (e as { message?: string })?.message || String(e);
+}
+
+async function loadDiagnosis() {
+  const id = task.value?.taskId;
+  if (!id) return;
+  diagLoading.value = true;
+  diagError.value = '';
+  timelineMoreError.value = '';
+  try {
+    const d = await getTaskDiagnosis(id);
+    diagnosis.value = d || null;
+    timelineRows.value = (d?.timeline || []).map((e, i) => ({ ...e, id: `diag-${i}` }));
+    diagLoaded = true;
+    // 诊断里的 timeline 是最近 30 条；游标分页从头取完整事件流，替换之
+    const tl = await getTaskTimeline(id, { limit: TIMELINE_PAGE_SIZE });
+    timelineRows.value = tl?.events || [];
+    timelineNextAfterId.value = tl?.nextAfterId ?? null;
+  } catch (e) {
+    if (!diagnosis.value) diagError.value = diagErrMsg(e);
+    else timelineMoreError.value = diagErrMsg(e);
+  } finally {
+    diagLoading.value = false;
+  }
+}
+
+async function loadMoreTimeline() {
+  const id = task.value?.taskId;
+  if (!id || timelineNextAfterId.value == null) return;
+  timelineMoreLoading.value = true;
+  timelineMoreError.value = '';
+  try {
+    const tl = await getTaskTimeline(id, {
+      afterId: timelineNextAfterId.value,
+      limit: TIMELINE_PAGE_SIZE,
+    });
+    timelineRows.value = [...timelineRows.value, ...(tl?.events || [])];
+    timelineNextAfterId.value = tl?.nextAfterId ?? null;
+  } catch (e) {
+    timelineMoreError.value = diagErrMsg(e);
+  } finally {
+    timelineMoreLoading.value = false;
+  }
+}
+
+function onDiagToggle() {
+  if (diagActive.value.length && !diagLoaded && !diagLoading.value) loadDiagnosis();
+}
 
 const workflowStepStatusColor: Record<string, string> = {
   PENDING: '#d9d9d9',
@@ -1032,7 +1323,11 @@ function handleRetry() {
   if (!task.value) return;
   Modal.confirm({
     title: t('common.warning'),
-    content: t(isRefundedBilling(task.value.billingStatus) ? 'creationTask.confirmRetryCharge' : 'creationTask.confirmRetry'),
+    content: t(
+      isRefundedBilling(task.value.billingStatus)
+        ? 'creationTask.confirmRetryCharge'
+        : 'creationTask.confirmRetry',
+    ),
     onOk: async () => {
       await retryCreationTask(task.value!.taskId);
       message.success(t('creationTask.retrySuccess'));
@@ -1132,6 +1427,17 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.diag-section {
+  margin-top: 12px;
+}
+.diag-title {
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.diag-hints {
+  margin: 0;
+  padding-left: 20px;
+}
 .detail-page-header {
   display: flex;
   align-items: center;

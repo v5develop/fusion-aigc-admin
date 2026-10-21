@@ -355,6 +355,188 @@ export function getWorkflowSteps(taskId: string) {
     .then((res) => (Array.isArray(res) ? res : res?.steps || []));
 }
 
+// ---- 诊断与时间线（只读） ----
+export interface DiagnosisTask {
+  taskId?: string | null;
+  type?: string | null;
+  status?: number | string | null;
+  statusLabel?: string | null;
+  billingStatus?: string | null;
+  errorMsg?: string | null;
+  cancelRequested?: boolean | null;
+  createTime?: string | null;
+  updateTime?: string | null;
+  orchestrationTopology?: string | null;
+  driverEpoch?: number | null;
+  retryCount?: number | null;
+}
+
+export interface DiagnosisWorkflow {
+  workflowName?: string | null;
+  version?: string | number | null;
+  stage?: string | null;
+  plannedSteps?: number | null;
+  deadlineAt?: string | null;
+  /** held 为 null 表示读不到 */
+  driveLock?: { held?: boolean | null; ttlSeconds?: number | null } | null;
+}
+
+export interface DiagnosisFailingStep {
+  stepPath?: string | null;
+  kind?: string | null;
+  status?: string | null;
+  operation?: string | null;
+  modelGroup?: string | null;
+  failureClass?: string | null;
+  failureCode?: string | null;
+  check?: string | null;
+  failureMessage?: string | null;
+  retrySafe?: boolean | null;
+  moneyAtRisk?: boolean | null;
+  attemptCount?: number | null;
+  startedAt?: string | null;
+  completedAt?: string | null;
+  gatewayCallId?: string | null;
+  gatewayCallLink?: string | null;
+}
+
+export interface DiagnosisStepItem {
+  stepPath?: string | null;
+  kind?: string | null;
+  status?: string | null;
+  operation?: string | null;
+  attemptCount?: number | null;
+}
+
+export interface DiagnosisSteps {
+  total?: number | null;
+  byStatus?: Record<string, number> | null;
+  items?: DiagnosisStepItem[] | null;
+}
+
+export interface DiagnosisBilling {
+  billingStatus?: string | null;
+  reservationNo?: string | null;
+  pricePoints?: number | null;
+  reservationStatus?: string | null;
+  bizType?: string | null;
+  attemptNo?: number | null;
+  settled?: boolean | null;
+  confirmedTime?: string | null;
+  refundedTime?: string | null;
+  expireTime?: string | null;
+}
+
+export interface DiagnosisDelivery {
+  hasResult?: boolean | null;
+  resultCount?: number | null;
+  resultRefKind?: string | null;
+  resultRidPrefix?: string | null;
+  coverPresent?: boolean | null;
+  coverRidPrefix?: string | null;
+  watermarkPresent?: boolean | null;
+  watermarkCount?: number | null;
+  watermarkAligned?: boolean | null;
+}
+
+export interface DiagnosisAigcPush {
+  id?: number | string | null;
+  status?: number | string | null;
+  statusLabel?: string | null;
+  bizType?: string | null;
+  attempts?: number | null;
+  maxAttempts?: number | null;
+  nextRetryTime?: string | null;
+  lastError?: string | null;
+  updateTime?: string | null;
+}
+
+export interface DiagnosisTimelineItem {
+  kind?: string | null;
+  source?: string | null;
+  status?: string | null;
+  stepPath?: string | null;
+  ts?: string | null;
+  failureClass?: string | null;
+  failureCode?: string | null;
+}
+
+export interface DiagnosisMediaOp {
+  op?: string | null;
+  status?: string | null;
+  failureClass?: string | null;
+  failureCode?: string | null;
+  attempts?: number | null;
+  createTime?: string | null;
+}
+
+export interface DiagnosisHint {
+  text?: string | null;
+  manualSection?: string | null;
+}
+
+export interface Diagnosis {
+  task?: DiagnosisTask | null;
+  workflow?: DiagnosisWorkflow | null;
+  failingStep?: DiagnosisFailingStep | null;
+  steps?: DiagnosisSteps | null;
+  billing?: DiagnosisBilling | null;
+  delivery?: DiagnosisDelivery | null;
+  aigcPush?: DiagnosisAigcPush | null;
+  tracing?: Record<string, string> | null;
+  timeline?: DiagnosisTimelineItem[] | null;
+  mediaOps?: DiagnosisMediaOp[] | null;
+  hints?: DiagnosisHint[] | null;
+}
+
+export interface TimelineEvent {
+  id: number | string;
+  ts?: string | null;
+  stepPath?: string | null;
+  kind?: string | null;
+  status?: string | null;
+  failureClass?: string | null;
+  failureCode?: string | null;
+  checkCode?: string | null;
+  message?: string | null;
+  attempt?: number | null;
+  runNo?: number | null;
+  externalType?: string | null;
+  externalRef?: string | null;
+  traceId?: string | null;
+  source?: string | null;
+  actor?: string | null;
+}
+
+export interface TimelineResp {
+  events?: TimelineEvent[] | null;
+  /** 为空即末页 */
+  nextAfterId?: number | string | null;
+}
+
+export interface TimelineParams {
+  afterId?: number | string;
+  limit?: number;
+  stepPath?: string;
+  kind?: string;
+  source?: string;
+}
+
+export function getTaskDiagnosis(taskId: string) {
+  return request.get<Diagnosis>(`/api/v1/admin/creation/tasks/${taskId}/diagnosis`, {
+    silentError: true,
+    noErrorRedirect: true,
+  } as AxiosRequestConfig);
+}
+
+export function getTaskTimeline(taskId: string, params?: TimelineParams) {
+  return request.get<TimelineResp>(`/api/v1/admin/creation/tasks/${taskId}/timeline`, {
+    params,
+    silentError: true,
+    noErrorRedirect: true,
+  } as AxiosRequestConfig);
+}
+
 export function getPipelineSteps(taskId: string) {
   return request.get<PipelineStepsResponse>(`/api/v1/admin/creation/tasks/${taskId}/steps`);
 }
