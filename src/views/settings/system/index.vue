@@ -280,6 +280,15 @@
                 <div class="form-hint">{{ $t('settingsSystem.paidViewWatermarkDesc') }}</div>
               </a-form-item>
 
+              <a-form-item :label="$t('settingsSystem.reconcileRetry')">
+                <a-switch
+                  v-model:checked="reconcileRetryEnabled"
+                  :loading="savingReconcileRetry"
+                  @change="handleToggleReconcileRetry"
+                />
+                <div class="form-hint">{{ $t('settingsSystem.reconcileRetryDesc') }}</div>
+              </a-form-item>
+
               <a-form-item :label="$t('settingsSystem.userTier')">
                 <a-switch
                   v-model:checked="userTierEnabled"
@@ -403,6 +412,8 @@ import {
   setDisplayWatermarkEnabled,
   getPaidViewWatermarkEnabled,
   setPaidViewWatermarkEnabled,
+  getReconcileRetryEnabled,
+  setReconcileRetryEnabled,
   getUserTierEnabled,
   setUserTierEnabled,
 } from '@/api/config';
@@ -469,6 +480,8 @@ const displayWatermarkEnabled = ref(false);
 const savingDisplayWatermark = ref(false);
 const paidViewWatermarkEnabled = ref(false);
 const savingPaidViewWatermark = ref(false);
+const reconcileRetryEnabled = ref(false);
+const savingReconcileRetry = ref(false);
 const userTierEnabled = ref(false);
 const savingUserTier = ref(false);
 // 后端返回 TEXT/VISION 两档；modelId 可被 v-model 就地编辑，保存时按档提交
@@ -712,6 +725,28 @@ async function handleTogglePaidViewWatermark(checked: boolean) {
   }
 }
 
+async function loadReconcileRetry() {
+  try {
+    reconcileRetryEnabled.value = await getReconcileRetryEnabled();
+  } catch {
+    /* 错误已由拦截器提示 */
+  }
+}
+
+async function handleToggleReconcileRetry(checked: boolean) {
+  savingReconcileRetry.value = true;
+  try {
+    await setReconcileRetryEnabled(checked);
+    message.success(
+      checked ? t('settingsSystem.reconcileRetryOn') : t('settingsSystem.reconcileRetryOff'),
+    );
+  } catch {
+    reconcileRetryEnabled.value = !checked;
+  } finally {
+    savingReconcileRetry.value = false;
+  }
+}
+
 async function loadUserTier() {
   try {
     userTierEnabled.value = await getUserTierEnabled();
@@ -762,6 +797,7 @@ onMounted(() => {
   loadBlindWatermark();
   loadDisplayWatermark();
   loadPaidViewWatermark();
+  loadReconcileRetry();
   loadUserTier();
 });
 </script>

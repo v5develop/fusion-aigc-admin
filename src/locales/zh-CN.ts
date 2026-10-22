@@ -3762,6 +3762,11 @@ export default {
     paidViewWatermarkDesc: '只管付费档：关掉=付费即无水印，开着=付费仅下载无水印。免费用户不受影响',
     paidViewWatermarkOn: '付费用户查看将带水印',
     paidViewWatermarkOff: '付费用户查看不再带水印',
+    reconcileRetry: '核对后重开',
+    reconcileRetryDesc:
+      '开启后，网关支持核对重开时，运营可对「已核对为未计费」的 UNKNOWN 步骤发起人工重试；关闭时此类重试被拒绝。「已计费」的核对结论与核对单列表不受影响。默认关闭',
+    reconcileRetryOn: '已开启核对后重开',
+    reconcileRetryOff: '已关闭核对后重开，此类人工重试将被拒绝',
     userTier: '免费/付费分层',
     userTierDesc: '判据是「是否曾经收到过付费来源的点数」，不看余额。关掉后所有人按付费档处理',
     userTierOn: '已开启免费/付费分层',

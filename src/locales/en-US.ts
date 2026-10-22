@@ -3754,6 +3754,11 @@ export default {
       'Paid tier only. Off = no watermark at all for paid users; on = watermark on view, clean on download. Free users are unaffected',
     paidViewWatermarkOn: 'Paid users will see watermarks',
     paidViewWatermarkOff: 'Paid users will no longer see watermarks',
+    reconcileRetry: 'Reopen after reconciliation',
+    reconcileRetryDesc:
+      'When on and the gateway supports reopening after reconciliation, operators can manually retry UNKNOWN steps reconciled as not billed; when off, such retries are rejected. Reconciliation results marked as billed and the reconciliation ticket list are unaffected. Off by default',
+    reconcileRetryOn: 'Reopen after reconciliation enabled',
+    reconcileRetryOff: 'Reopen after reconciliation disabled; such manual retries will be rejected',
     userTier: 'Free / paid tiering',
     userTierDesc:
       'Decided by whether the user ever received paid-source points, not by balance. Off means everyone is treated as paid',

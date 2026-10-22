@@ -205,6 +205,17 @@ export function setPaidViewWatermarkEnabled(enabled: boolean) {
   });
 }
 
+/** 核对后重开：网关支持核对重开时，是否允许人工重试已核对为未计费的 UNKNOWN 步骤。 */
+export function getReconcileRetryEnabled() {
+  return request.get<boolean>('/api/v1/admin/settings/reconcile-retry');
+}
+
+export function setReconcileRetryEnabled(enabled: boolean) {
+  return request.put<boolean>('/api/v1/admin/settings/reconcile-retry', undefined, {
+    params: { enabled },
+  });
+}
+
 /**
  * 免费/付费分层总开关。
  *
