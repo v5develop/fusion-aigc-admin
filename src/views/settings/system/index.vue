@@ -280,6 +280,27 @@
                 <div class="form-hint">{{ $t('settingsSystem.paidViewWatermarkDesc') }}</div>
               </a-form-item>
 
+              <a-form-item :label="$t('settingsSystem.freeOriginalCleanup')">
+                <a-switch
+                  v-model:checked="freeOriginalCleanupEnabled"
+                  :loading="savingFreeOriginalCleanup"
+                  @change="handleToggleFreeOriginalCleanup"
+                />
+                <div class="form-hint">{{ $t('settingsSystem.freeOriginalCleanupDesc') }}</div>
+              </a-form-item>
+
+              <a-form-item :label="$t('settingsSystem.freeOriginalRetention')">
+                <a-input-number
+                  v-model:value="freeOriginalRetentionDays"
+                  :min="90"
+                  :precision="0"
+                  :loading="savingFreeOriginalRetention"
+                  style="width: 200px"
+                  @change="handleFreeOriginalRetentionChange"
+                />
+                <div class="form-hint">{{ $t('settingsSystem.freeOriginalRetentionDesc') }}</div>
+              </a-form-item>
+
               <a-form-item :label="$t('settingsSystem.reconcileRetry')">
                 <a-switch
                   v-model:checked="reconcileRetryEnabled"
@@ -412,6 +433,10 @@ import {
   setDisplayWatermarkEnabled,
   getPaidViewWatermarkEnabled,
   setPaidViewWatermarkEnabled,
+  getFreeOriginalCleanupEnabled,
+  setFreeOriginalCleanupEnabled,
+  getFreeOriginalRetentionDays,
+  setFreeOriginalRetentionDays,
   getReconcileRetryEnabled,
   setReconcileRetryEnabled,
   getUserTierEnabled,
@@ -481,6 +506,12 @@ const savingDisplayWatermark = ref(false);
 const paidViewWatermarkEnabled = ref(false);
 const savingPaidViewWatermark = ref(false);
 const reconcileRetryEnabled = ref(false);
+const freeOriginalCleanupEnabled = ref(false);
+const savingFreeOriginalCleanup = ref(false);
+/** 下限 90 天（业务要求），与后端 FREE_ORIGINAL_MIN_RETENTION_DAYS 一致。 */
+const FREE_ORIGINAL_MIN_DAYS = 90;
+const freeOriginalRetentionDays = ref<number>(FREE_ORIGINAL_MIN_DAYS);
+const savingFreeOriginalRetention = ref(false);
 const savingReconcileRetry = ref(false);
 const userTierEnabled = ref(false);
 const savingUserTier = ref(false);
@@ -725,6 +756,46 @@ async function handleTogglePaidViewWatermark(checked: boolean) {
   }
 }
 
+async function loadFreeOriginal() {
+  try {
+    freeOriginalCleanupEnabled.value = await getFreeOriginalCleanupEnabled();
+    freeOriginalRetentionDays.value = await getFreeOriginalRetentionDays();
+  } catch {
+    /* 错误已由拦截器提示 */
+  }
+}
+
+async function handleToggleFreeOriginalCleanup(checked: boolean) {
+  savingFreeOriginalCleanup.value = true;
+  try {
+    await setFreeOriginalCleanupEnabled(checked);
+    message.success(
+      checked
+        ? t('settingsSystem.freeOriginalCleanupOn')
+        : t('settingsSystem.freeOriginalCleanupOff'),
+    );
+  } catch {
+    freeOriginalCleanupEnabled.value = !checked;
+  } finally {
+    savingFreeOriginalCleanup.value = false;
+  }
+}
+
+async function handleFreeOriginalRetentionChange(value: number | string | null) {
+  const days = Math.max(FREE_ORIGINAL_MIN_DAYS, Math.floor(Number(value) || 0));
+  freeOriginalRetentionDays.value = days;
+  savingFreeOriginalRetention.value = true;
+  try {
+    await setFreeOriginalRetentionDays(days);
+    message.success(t('settingsSystem.freeOriginalRetentionSaved', { days }));
+  } catch {
+    /* 低于下限或网络错误：重新读取后端的真实值 */
+    await loadFreeOriginal();
+  } finally {
+    savingFreeOriginalRetention.value = false;
+  }
+}
+
 async function loadReconcileRetry() {
   try {
     reconcileRetryEnabled.value = await getReconcileRetryEnabled();
@@ -798,6 +869,7 @@ onMounted(() => {
   loadDisplayWatermark();
   loadPaidViewWatermark();
   loadReconcileRetry();
+  loadFreeOriginal();
   loadUserTier();
 });
 </script>

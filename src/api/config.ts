@@ -205,6 +205,30 @@ export function setPaidViewWatermarkEnabled(enabled: boolean) {
   });
 }
 
+/**
+ * 免费用户原图到期清理开关。默认关闭；开启后，到期的私有原图会连同任务历史与素材库条目一起删除，不可恢复。
+ */
+export function getFreeOriginalCleanupEnabled() {
+  return request.get<boolean>('/api/v1/admin/settings/free-original-cleanup');
+}
+
+export function setFreeOriginalCleanupEnabled(enabled: boolean) {
+  return request.put<boolean>('/api/v1/admin/settings/free-original-cleanup', undefined, {
+    params: { enabled },
+  });
+}
+
+/** 免费用户原图保留天数。下限 90 天，低于下限后端直接拒绝（400）。 */
+export function getFreeOriginalRetentionDays() {
+  return request.get<number>('/api/v1/admin/settings/free-original-retention-days');
+}
+
+export function setFreeOriginalRetentionDays(days: number) {
+  return request.put<boolean>('/api/v1/admin/settings/free-original-retention-days', undefined, {
+    params: { days },
+  });
+}
+
 /** 核对后重开：网关支持核对重开时，是否允许人工重试已核对为未计费的 UNKNOWN 步骤。 */
 export function getReconcileRetryEnabled() {
   return request.get<boolean>('/api/v1/admin/settings/reconcile-retry');

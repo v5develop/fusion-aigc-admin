@@ -241,6 +241,17 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
+        path: 'free-video-pending',
+        name: 'CreationFreeVideoPending',
+        component: () => import('@/views/creation/free-video-pending.vue'),
+        meta: {
+          title: 'menu.creationFreeVideoPending',
+          icon: 'PictureOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'task:view',
+        },
+      },
+      {
         path: 'task/detail/:id',
         name: 'CreationTaskDetail',
         component: () => import('@/views/creation/task/detail.vue'),

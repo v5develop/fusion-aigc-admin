@@ -548,3 +548,27 @@ export function getTaskTimeline(taskId: string, params?: TimelineParams) {
 export function getPipelineSteps(taskId: string) {
   return request.get<PipelineStepsResponse>(`/api/v1/admin/creation/tasks/${taskId}/steps`);
 }
+
+// ======================== 免费视频待水印（中间态，需要收尾或重跑） ========================
+
+/** 免费视频水印未就绪的任务（后端只返回这五个字段） */
+export interface FreeVideoPendingTask {
+  taskId: string;
+  userId: number;
+  status: number;
+  createTime: string;
+  updateTime: string;
+}
+
+export function getFreeVideoPendingTasks(limit = 50) {
+  return request.get<FreeVideoPendingTask[]>('/api/v1/admin/creation/tasks/free-video-pending', {
+    params: { limit },
+  });
+}
+
+/** 重跑免费视频的水印收尾（只补未就绪的产物，已交付的不重做）；入队后异步执行 */
+export function retryFreeVideoFinalize(taskId: string) {
+  return request.post<boolean>(
+    `/api/v1/admin/creation/tasks/${encodeURIComponent(taskId)}/free-video/retry`,
+  );
+}
