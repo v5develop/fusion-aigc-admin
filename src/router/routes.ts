@@ -472,6 +472,17 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
+        path: 'reconcile',
+        name: 'BillingReconcile',
+        component: () => import('@/views/billing/reconcile/index.vue'),
+        meta: {
+          title: 'menu.billingReconcile',
+          icon: 'AuditOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'reconciliation:handle',
+        },
+      },
+      {
         path: 'action-type',
         name: 'BillingActionType',
         component: () => import('@/views/billing/action-type/index.vue'),

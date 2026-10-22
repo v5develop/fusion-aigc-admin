@@ -203,6 +203,7 @@ export default {
     billingPointsLog: '포인트 내역',
     billingPointsAdjust: '포인트 조정',
     billingException: '예외 작업',
+    billingReconcile: '대사 건',
     billingActionType: '액션 타입',
     reconciliationManagement: '대조 관리',
     reconciliationSummary: '대조 요약',
@@ -3480,6 +3481,55 @@ export default {
       '{side} scanned {scanned} / generated {generated} / failed {failed} / cross-fixed {crossFixed}',
   },
 
+  reconcile: {
+    title: '과금 대사 건',
+    empty: '대사 건이 없습니다',
+    total: '총 {total}건',
+    loadMore: '더 보기',
+    retry: '재시도',
+    retryAfterReview: '대사 후 재시도',
+    taskNotFound: '작업을 찾을 수 없습니다. 삭제되었을 수 있습니다',
+    retrySuccess: '미과금으로 선언하고 작업을 다시 제출했습니다',
+    billedSuccess: '플랫폼 원가로 기록했습니다. 작업은 실패 상태로 유지됩니다',
+    status: { pending: '대사 대기', billed: '과금됨', notBilled: '미과금' },
+    risk: { yes: '예', no: '아니오' },
+    col: {
+      reconcileNo: '대사 번호',
+      taskId: '작업 ID',
+      stepPath: '단계 경로',
+      gatewayRunNo: '게이트웨이 회차',
+      stepStatus: '단계 상태',
+      moneyAtRisk: '자금 위험',
+      estimatedPoints: '예상 포인트',
+      status: '상태',
+      createTime: '생성 시간',
+      retryRequested: '재시도 요청자/시간',
+    },
+    dialog: {
+      title: '과금 결과 선언',
+      tip: '작업 {taskId}에 결과 불명(UNKNOWN) 단계가 있습니다. 공급사에 과금 여부를 확인한 뒤 결과를 선언하세요.',
+      outcome: '과금 결과',
+      outcomeRequired: '과금 결과를 선택하세요',
+      billed: '대사 완료: 공급사 과금됨',
+      billedDesc:
+        '건만 종결합니다. 플랫폼 원가로 기록하며 작업은 실패 상태로 유지되고 재시도하지 않습니다.',
+      notBilled: '대사 완료: 공급사 미과금, 재차감 후 재시도',
+      notBilledDesc:
+        '포인트를 다시 차감하고 단계를 재제출합니다. 공급사가 과금하지 않았음을 확인한 경우에만 선택하세요.',
+      note: '대사 메모',
+      notePlaceholder: '확인 근거를 입력하세요(링크·자격 증명 금지)',
+      noteRequired: '메모를 입력하세요',
+      noteTooLong: '메모는 {max}자를 넘을 수 없습니다',
+      noteNoLink: '메모에 링크나 자격 증명을 포함할 수 없습니다',
+    },
+    confirm: {
+      billedTitle: '과금됨으로 확정할까요?',
+      billedContent: '플랫폼 원가로 기록되며 작업은 실패 상태로 유지됩니다. 되돌릴 수 없습니다.',
+      notBilledTitle: '재차감 후 재시도할까요?',
+      notBilledContent:
+        '포인트를 다시 차감하고 단계를 재제출합니다. 공급사가 실제로 과금했다면 비용이 중복됩니다.',
+    },
+  },
   creationTask: {
     diagnosis: {
       title: '진단 및 타임라인',

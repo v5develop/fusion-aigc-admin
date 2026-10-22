@@ -14,6 +14,9 @@
         <a-button v-if="task && task.canRetry" @click="handleRetry">
           {{ $t('creationTask.retry') }}
         </a-button>
+        <a-button v-if="showReconcileRetry" type="primary" ghost @click="reconcileVisible = true">
+          {{ $t('reconcile.retryAfterReview') }}
+        </a-button>
         <a-button v-if="task && task.canForceComplete" type="primary" @click="handleForceComplete">
           {{ $t('creationTask.forceComplete') }}
         </a-button>
@@ -822,6 +825,12 @@
         </a-form-item>
       </a-form>
     </a-modal>
+    <ReconcileRetryModal
+      v-if="task"
+      v-model:open="reconcileVisible"
+      :task-id="task.taskId"
+      @success="onReconcileRetried"
+    />
   </div>
 </template>
 
@@ -861,6 +870,8 @@ import {
   fixTaskContentType,
 } from '@/api/creation-task';
 import { getCreationTaskModerationLogs } from '@/api/moderation-log';
+import ReconcileRetryModal from '@/components/Billing/ReconcileRetryModal.vue';
+import { usePermission } from '@/composables/usePermission';
 import { decodeUnicode } from '@/utils/helpers';
 
 const { t } = useI18n();
@@ -884,6 +895,36 @@ const timelineMoreLoading = ref(false);
 const timelineMoreError = ref('');
 let diagLoaded = false;
 const TIMELINE_PAGE_SIZE = 50;
+
+// ---- 核对后重试：存在 UNKNOWN 步骤且有 reconciliation:handle 权限才显示 ----
+const { can } = usePermission();
+const reconcileVisible = ref(false);
+// 诊断卡片默认折叠不请求，这里静默取一份仅用于判断 UNKNOWN 步骤
+const hintDiagnosis = ref<Diagnosis | null>(null);
+
+const hasUnknownStep = computed(() => {
+  const d = diagnosis.value ?? hintDiagnosis.value;
+  return d?.failingStep?.status === 'UNKNOWN' || (d?.steps?.byStatus?.UNKNOWN ?? 0) > 0;
+});
+const showReconcileRetry = computed(
+  () => !!task.value && can('reconciliation:handle') && hasUnknownStep.value,
+);
+
+async function loadHintDiagnosis(taskId: string) {
+  hintDiagnosis.value = null;
+  if (!can('reconciliation:handle')) return;
+  try {
+    hintDiagnosis.value = (await getTaskDiagnosis(taskId)) || null;
+  } catch {
+    hintDiagnosis.value = null;
+  }
+}
+
+function onReconcileRetried() {
+  diagLoaded = false;
+  diagnosis.value = null;
+  loadTask();
+}
 
 const byStatusEntries = computed(() => Object.entries(diagnosis.value?.steps?.byStatus || {}));
 
@@ -1266,6 +1307,7 @@ async function loadTask() {
   loading.value = true;
   try {
     task.value = await getCreationTaskDetail(id);
+    if (task.value?.taskId) void loadHintDiagnosis(task.value.taskId);
     // 内容审核日志（所有任务：命中/免审/未过审都可能有记录）
     try {
       moderationLogs.value = (await getCreationTaskModerationLogs(id)) ?? [];

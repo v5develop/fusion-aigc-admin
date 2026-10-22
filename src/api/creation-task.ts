@@ -228,8 +228,16 @@ export function cancelCreationTask(taskId: string) {
   return request.post(`/api/v1/admin/creation/tasks/${taskId}/cancel`);
 }
 
-export function retryCreationTask(taskId: string) {
-  return request.post(`/api/v1/admin/creation/tasks/${taskId}/retry`);
+/** UNKNOWN 步骤重试时必须携带的计费结论声明 */
+export interface RetryBillingDeclaration {
+  billingOutcome: 'BILLED' | 'NOT_BILLED';
+  note: string;
+}
+
+export function retryCreationTask(taskId: string, declaration?: RetryBillingDeclaration) {
+  return declaration
+    ? request.post(`/api/v1/admin/creation/tasks/${taskId}/retry`, declaration)
+    : request.post(`/api/v1/admin/creation/tasks/${taskId}/retry`);
 }
 
 /** 点数是否已退还：重试会再次冻结并扣减，确认窗须明确提示 */

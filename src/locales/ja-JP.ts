@@ -203,6 +203,7 @@ export default {
     billingPointsLog: 'ポイント流水',
     billingPointsAdjust: 'ポイント調整',
     billingException: '例外タスク',
+    billingReconcile: '照合チケット',
     billingActionType: 'アクションタイプ',
     reconciliationManagement: '対帳管理',
     reconciliationSummary: '対帳汇总',
@@ -3497,6 +3498,55 @@ export default {
       '{side} scanned {scanned} / generated {generated} / failed {failed} / cross-fixed {crossFixed}',
   },
 
+  reconcile: {
+    title: '課金照合チケット',
+    empty: '照合チケットはありません',
+    total: '全 {total} 件',
+    loadMore: 'さらに読み込む',
+    retry: '再試行',
+    retryAfterReview: '照合後に再試行',
+    taskNotFound: 'タスクが見つかりません。削除された可能性があります',
+    retrySuccess: '未課金として宣言し、タスクを再送信しました',
+    billedSuccess: 'プラットフォーム原価として記録しました。タスクは失敗のままです',
+    status: { pending: '照合待ち', billed: '課金済み', notBilled: '未課金' },
+    risk: { yes: 'はい', no: 'いいえ' },
+    col: {
+      reconcileNo: '照合番号',
+      taskId: 'タスクID',
+      stepPath: 'ステップパス',
+      gatewayRunNo: 'ゲートウェイ回次',
+      stepStatus: 'ステップ状態',
+      moneyAtRisk: '資金リスク',
+      estimatedPoints: '推定ポイント',
+      status: '状態',
+      createTime: '作成日時',
+      retryRequested: '再試行の発起人/日時',
+    },
+    dialog: {
+      title: '課金結果の宣言',
+      tip: 'タスク {taskId} に結果不明（UNKNOWN）のステップがあります。ベンダーに課金有無を確認してから結果を宣言してください。',
+      outcome: '課金結果',
+      outcomeRequired: '課金結果を選択してください',
+      billed: '照合済み：ベンダーは課金済み',
+      billedDesc:
+        'チケットを閉じるのみ。プラットフォーム原価として記録し、タスクは失敗のまま再試行しません。',
+      notBilled: '照合済み：ベンダー未課金、再引当して再試行',
+      notBilledDesc:
+        'ポイントを再引当し、ステップを再送信します。ベンダーが課金していないと確認できた場合のみ選択してください。',
+      note: '照合メモ',
+      notePlaceholder: '確認の根拠を入力してください（リンクや認証情報は不可）',
+      noteRequired: 'メモを入力してください',
+      noteTooLong: 'メモは {max} 文字以内で入力してください',
+      noteNoLink: 'メモにリンクや認証情報を含めないでください',
+    },
+    confirm: {
+      billedTitle: '課金済みとして確定しますか？',
+      billedContent: 'プラットフォーム原価として記録され、タスクは失敗のままです。取り消せません。',
+      notBilledTitle: '再引当して再試行しますか？',
+      notBilledContent:
+        'ポイントを再引当してステップを再送信します。ベンダーが実際に課金済みの場合、コストが重複します。',
+    },
+  },
   creationTask: {
     diagnosis: {
       title: '診断とタイムライン',

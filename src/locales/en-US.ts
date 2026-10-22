@@ -138,6 +138,7 @@ export default {
     billingPointsLog: 'Points Log',
     billingPointsAdjust: 'Points Adjustment',
     billingException: 'Exception Tasks',
+    billingReconcile: 'Reconciliations',
     billingActionType: 'Action Type',
     billingOffer: 'Billing Scenes',
     billingRule: 'Pricing Rules',
@@ -4048,6 +4049,56 @@ export default {
     },
   },
 
+  reconcile: {
+    title: 'Billing Reconciliations',
+    empty: 'No reconciliations',
+    total: '{total} in total',
+    loadMore: 'Load more',
+    retry: 'Retry',
+    retryAfterReview: 'Retry after review',
+    taskNotFound: 'Task not found; it may have been deleted',
+    retrySuccess: 'Declared not billed; the task has been resubmitted',
+    billedSuccess: 'Recorded as platform cost; the task stays failed',
+    status: { pending: 'Pending review', billed: 'Billed', notBilled: 'Not billed' },
+    risk: { yes: 'Yes', no: 'No' },
+    col: {
+      reconcileNo: 'Reconcile No',
+      taskId: 'Task ID',
+      stepPath: 'Step path',
+      gatewayRunNo: 'Gateway run',
+      stepStatus: 'Step status',
+      moneyAtRisk: 'Money at risk',
+      estimatedPoints: 'Est. points',
+      status: 'Status',
+      createTime: 'Created at',
+      retryRequested: 'Retry requested by / at',
+    },
+    dialog: {
+      title: 'Declare billing outcome',
+      tip: 'Task {taskId} has a step with an unknown outcome (UNKNOWN). Verify with the vendor whether it was billed, then declare the result.',
+      outcome: 'Billing outcome',
+      outcomeRequired: 'Please choose a billing outcome',
+      billed: 'Verified: vendor billed',
+      billedDesc:
+        'Only closes the ticket; recorded as platform cost, the task stays failed and is not retried.',
+      notBilled: 'Verified: vendor did not bill; re-reserve and retry',
+      notBilledDesc:
+        'Points will be re-reserved and the step resubmitted. Choose this only if you are sure the vendor did not charge.',
+      note: 'Review note',
+      notePlaceholder: 'Describe the basis of your check (no links or credentials)',
+      noteRequired: 'Please enter a note',
+      noteTooLong: 'Note must not exceed {max} characters',
+      noteNoLink: 'Note must not contain links or credentials',
+    },
+    confirm: {
+      billedTitle: 'Confirm as billed?',
+      billedContent:
+        'It will be recorded as platform cost and the task stays failed. This cannot be undone.',
+      notBilledTitle: 'Confirm re-reserve and retry?',
+      notBilledContent:
+        'Points will be re-reserved and the step resubmitted. If the vendor actually charged, this duplicates the cost.',
+    },
+  },
   creationTask: {
     diagnosis: {
       title: 'Diagnosis & Timeline',
