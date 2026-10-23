@@ -3760,7 +3760,8 @@ export default {
     displayWatermarkOn: '已开启图片展示水印',
     displayWatermarkOff: '已关闭图片展示水印，已生成的副本不再被取用',
     paidViewWatermark: '付费用户查看带水印',
-    paidViewWatermarkDesc: '只管付费档：关掉=付费即无水印，开着=付费仅下载无水印。免费用户不受影响',
+    paidViewWatermarkDesc:
+      '只管付费档：关掉=付费即无水印；开着=付费查看的图片在读取时加水印（需运营配置 app.watermark.oss-style，未配置则不生效），付费下载恒无水印。视频不加，免费用户不受影响',
     paidViewWatermarkOn: '付费用户查看将带水印',
     paidViewWatermarkOff: '付费用户查看不再带水印',
     reconcileRetry: '核对后重开',

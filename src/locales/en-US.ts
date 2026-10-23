@@ -3752,7 +3752,7 @@ export default {
     displayWatermarkOff: 'Visible image watermark disabled; existing copies are no longer served',
     paidViewWatermark: 'Watermark paid users on view',
     paidViewWatermarkDesc:
-      'Paid tier only. Off = no watermark at all for paid users; on = watermark on view, clean on download. Free users are unaffected',
+      'Paid tier only. Off = no watermark for paid users. On = images viewed by paid users get a read-time watermark (requires app.watermark.oss-style to be configured, otherwise no effect); downloads are always clean. Videos are not watermarked; free users are unaffected',
     paidViewWatermarkOn: 'Paid users will see watermarks',
     paidViewWatermarkOff: 'Paid users will no longer see watermarks',
     reconcileRetry: 'Reopen after reconciliation',
