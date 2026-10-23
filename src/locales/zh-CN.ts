@@ -3778,6 +3778,12 @@ export default {
     freeOriginalRetentionDesc:
       '免费用户生成的原图在私有桶中保留的天数，下限 90 天；付费后可在保留期内转存为公有原图',
     freeOriginalRetentionSaved: '已将原图保留天数设为 {days} 天',
+    processingPlaceholders: '免费用户等待水印占位',
+    processingPlaceholdersDesc:
+      '免费用户的产物水印副本未就绪时，下发此处配置的默认图片/视频；视频未配时回落图片占位（视频位加载失败）。地址须为 http(s) 公网地址；清空则回落配置文件的默认值。页面显示的是当前有效值。修改约 60 秒后生效。',
+    processingImagePlaceholder: '默认处理中图片地址（https://…）',
+    processingVideoPlaceholder: '默认处理中视频地址（https://…）',
+    processingPlaceholdersSaved: '已保存默认处理中占位地址',
     userTier: '免费/付费分层',
     userTierDesc: '判据是「是否曾经收到过付费来源的点数」，不看余额。关掉后所有人按付费档处理',
     userTierOn: '已开启免费/付费分层',

@@ -3769,6 +3769,12 @@ export default {
     freeOriginalRetentionDesc:
       'How long free-tier originals are kept in the private bucket; minimum 90 days. After upgrading, originals within the retention period can be promoted to public',
     freeOriginalRetentionSaved: 'Original retention set to {days} days',
+    processingPlaceholders: 'Waiting-for-watermark placeholders',
+    processingPlaceholdersDesc:
+      'For free users whose watermarked copy is not ready, these default image/video URLs are returned instead. If no video placeholder is set, the image is used and the video slot will fail to load. URLs must be public http(s); clearing a field falls back to the config-file default. The page shows the effective value. Takes effect within about 60 seconds.',
+    processingImagePlaceholder: 'Default processing image URL (https://…)',
+    processingVideoPlaceholder: 'Default processing video URL (https://…)',
+    processingPlaceholdersSaved: 'Default processing placeholders saved',
     userTier: 'Free / paid tiering',
     userTierDesc:
       'Decided by whether the user ever received paid-source points, not by balance. Off means everyone is treated as paid',

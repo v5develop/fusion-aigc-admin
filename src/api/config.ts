@@ -229,6 +229,22 @@ export function setFreeOriginalRetentionDays(days: number) {
   });
 }
 
+/** 免费用户等待水印产物的默认占位地址（图片 / 视频）。空串表示未配置；修改后后端约 60 秒内生效。 */
+export interface ProcessingPlaceholders {
+  imageUrl: string;
+  videoUrl: string;
+}
+
+export function getProcessingPlaceholders() {
+  return request.get<ProcessingPlaceholders>('/api/v1/admin/settings/processing-placeholders');
+}
+
+export function setProcessingPlaceholders(placeholders: ProcessingPlaceholders) {
+  return request.put<boolean>('/api/v1/admin/settings/processing-placeholders', undefined, {
+    params: placeholders,
+  });
+}
+
 /** 核对后重开：网关支持核对重开时，是否允许人工重试已核对为未计费的 UNKNOWN 步骤。 */
 export function getReconcileRetryEnabled() {
   return request.get<boolean>('/api/v1/admin/settings/reconcile-retry');

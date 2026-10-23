@@ -301,6 +301,36 @@
                 <div class="form-hint">{{ $t('settingsSystem.freeOriginalRetentionDesc') }}</div>
               </a-form-item>
 
+              <a-form-item :label="$t('settingsSystem.processingPlaceholders')">
+                <div
+                  style="
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                    width: 100%;
+                    max-width: 640px;
+                  "
+                >
+                  <a-input
+                    v-model:value="processingImageUrl"
+                    :placeholder="$t('settingsSystem.processingImagePlaceholder')"
+                  />
+                  <a-input
+                    v-model:value="processingVideoUrl"
+                    :placeholder="$t('settingsSystem.processingVideoPlaceholder')"
+                  />
+                  <a-button
+                    type="primary"
+                    :loading="savingProcessingPlaceholders"
+                    style="align-self: flex-start"
+                    @click="handleSaveProcessingPlaceholders"
+                  >
+                    {{ $t('common.save') }}
+                  </a-button>
+                </div>
+                <div class="form-hint">{{ $t('settingsSystem.processingPlaceholdersDesc') }}</div>
+              </a-form-item>
+
               <a-form-item :label="$t('settingsSystem.reconcileRetry')">
                 <a-switch
                   v-model:checked="reconcileRetryEnabled"
@@ -437,6 +467,8 @@ import {
   setFreeOriginalCleanupEnabled,
   getFreeOriginalRetentionDays,
   setFreeOriginalRetentionDays,
+  getProcessingPlaceholders,
+  setProcessingPlaceholders,
   getReconcileRetryEnabled,
   setReconcileRetryEnabled,
   getUserTierEnabled,
@@ -512,6 +544,9 @@ const savingFreeOriginalCleanup = ref(false);
 const FREE_ORIGINAL_MIN_DAYS = 90;
 const freeOriginalRetentionDays = ref<number>(FREE_ORIGINAL_MIN_DAYS);
 const savingFreeOriginalRetention = ref(false);
+const processingImageUrl = ref('');
+const processingVideoUrl = ref('');
+const savingProcessingPlaceholders = ref(false);
 const savingReconcileRetry = ref(false);
 const userTierEnabled = ref(false);
 const savingUserTier = ref(false);
@@ -765,6 +800,32 @@ async function loadFreeOriginal() {
   }
 }
 
+async function loadProcessingPlaceholders() {
+  try {
+    const value = await getProcessingPlaceholders();
+    processingImageUrl.value = value.imageUrl ?? '';
+    processingVideoUrl.value = value.videoUrl ?? '';
+  } catch {
+    /* 错误已由拦截器提示 */
+  }
+}
+
+async function handleSaveProcessingPlaceholders() {
+  savingProcessingPlaceholders.value = true;
+  try {
+    await setProcessingPlaceholders({
+      imageUrl: processingImageUrl.value.trim(),
+      videoUrl: processingVideoUrl.value.trim(),
+    });
+    message.success(t('settingsSystem.processingPlaceholdersSaved'));
+  } catch {
+    /* 地址格式错误或网络错误：重新读取后端的真实值 */
+    await loadProcessingPlaceholders();
+  } finally {
+    savingProcessingPlaceholders.value = false;
+  }
+}
+
 async function handleToggleFreeOriginalCleanup(checked: boolean) {
   savingFreeOriginalCleanup.value = true;
   try {
@@ -870,6 +931,7 @@ onMounted(() => {
   loadPaidViewWatermark();
   loadReconcileRetry();
   loadFreeOriginal();
+  loadProcessingPlaceholders();
   loadUserTier();
 });
 </script>
