@@ -4356,6 +4356,12 @@ export default {
       '屏蔽后用户端将看不到该任务的内容和素材（素材库下架）。勾选永久屏蔽则不可取消。',
     unblockConfirm: '确认取消屏蔽？将恢复用户端展示并把素材重新上架。',
     blockSuccess: '已屏蔽',
+    deleteTask: '删除任务',
+    deleteConfirmTitle: '确认删除该任务？',
+    deleteConfirmContent:
+      '删除后该任务记录将从列表中移除，用户端任务中心与创作历史中也会一并消失；已入素材库的产物不受影响；此操作会记录审计日志。',
+    deleteSuccess: '任务已删除',
+    deleteFailed: '删除失败',
     unblockSuccess: '已取消屏蔽',
     batchCancelSuccess: '批量取消成功',
     selectTaskFirst: '请先选择任务',

@@ -228,6 +228,33 @@ export function cancelCreationTask(taskId: string) {
   return request.post(`/api/v1/admin/creation/tasks/${taskId}/cancel`);
 }
 
+/** 删除拒绝时后端 msg 里带的判据码（形如 "(check=creation.delete_state_changed)"） */
+export const DELETE_CHECK_STATE_CHANGED = 'creation.delete_state_changed';
+export const DELETE_CHECK_BILLING_UNSETTLED = 'creation.delete_billing_unsettled';
+
+/** 任务终态（完成/失败/取消/部分成功）才允许手动删除：2/3/4/5 */
+export function canDeleteTask(status?: number | null): boolean {
+  return status === 2 || status === 3 || status === 4 || status === 5;
+}
+
+/** 从后端拒绝消息里取出判据码；没有则返回 undefined */
+export function extractCheckCode(msg?: string | null): string | undefined {
+  const m = /\(check=([\w.-]+)\)/.exec(msg ?? '');
+  return m ? m[1] : undefined;
+}
+
+/**
+ * 手动删除历史任务（删除任务行及其 creaft 历史记录，不动素材库与媒体；后端记审计）。
+ * 静默：拒绝消息由页面原样提示；不自动重传，避免一次点击发出两次删除。
+ */
+export function deleteCreationTask(taskId: string) {
+  return request.delete<boolean>(`/api/v1/admin/creation/tasks/${encodeURIComponent(taskId)}`, {
+    silentError: true,
+    noRetry: true,
+    noErrorRedirect: true,
+  } as AxiosRequestConfig);
+}
+
 /** UNKNOWN 步骤重试时必须携带的计费结论声明 */
 export interface RetryBillingDeclaration {
   billingOutcome: 'BILLED' | 'NOT_BILLED';

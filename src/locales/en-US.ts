@@ -4361,6 +4361,12 @@ export default {
       'After blocking, users cannot see this task content or assets (assets delisted). Permanent block cannot be undone.',
     unblockConfirm: 'Unblock this task? Display and assets will be restored.',
     blockSuccess: 'Blocked',
+    deleteTask: 'Delete task',
+    deleteConfirmTitle: 'Delete this task?',
+    deleteConfirmContent:
+      'The task record will be removed from the list, and also from the user task center and creation history. Outputs already in the asset library are not affected. This action is recorded in the audit log.',
+    deleteSuccess: 'Task deleted',
+    deleteFailed: 'Delete failed',
     unblockSuccess: 'Unblocked',
     batchCancelSuccess: 'Batch cancelled successfully',
     selectTaskFirst: 'Please select tasks first',

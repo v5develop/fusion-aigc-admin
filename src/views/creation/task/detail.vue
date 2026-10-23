@@ -26,6 +26,15 @@
         <a-button v-if="task && task.blockStatus === 1" @click="handleUnblock">
           {{ $t('creationTask.unblock') }}
         </a-button>
+        <a-button
+          v-if="task && canDeleteTask(task.status)"
+          danger
+          :loading="deleting"
+          :disabled="deleting"
+          @click="handleDelete"
+        >
+          {{ $t('creationTask.deleteTask') }}
+        </a-button>
         <a-tag v-if="task && task.blockStatus === 2" color="red">
           {{ $t('creationTask.blockedPermanent') }}
         </a-tag>
@@ -1003,6 +1012,10 @@ import {
   getTaskTimeline,
   getTaskTrace,
   fixTaskContentType,
+  deleteCreationTask,
+  canDeleteTask,
+  extractCheckCode,
+  DELETE_CHECK_STATE_CHANGED,
 } from '@/api/creation-task';
 import { getCreationTaskModerationLogs } from '@/api/moderation-log';
 import ReconcileRetryModal from '@/components/Billing/ReconcileRetryModal.vue';
@@ -1713,6 +1726,34 @@ function handleRetry() {
       await retryCreationTask(task.value!.taskId);
       message.success(t('creationTask.retrySuccess'));
       loadTask();
+    },
+  });
+}
+
+// Delete（仅终态；只删任务行，素材库与媒体不动；后端记审计）
+const deleting = ref(false);
+
+function handleDelete() {
+  if (!task.value || deleting.value) return;
+  const taskId = task.value.taskId;
+  Modal.confirm({
+    title: t('creationTask.deleteConfirmTitle'),
+    content: t('creationTask.deleteConfirmContent'),
+    okText: t('creationTask.deleteTask'),
+    okButtonProps: { danger: true },
+    onOk: async () => {
+      deleting.value = true;
+      try {
+        await deleteCreationTask(taskId);
+        message.success(t('creationTask.deleteSuccess'));
+        handleBack();
+      } catch (error) {
+        const msg = (error as Error)?.message || t('creationTask.deleteFailed');
+        message.error(msg);
+        if (extractCheckCode(msg) === DELETE_CHECK_STATE_CHANGED) loadTask();
+      } finally {
+        deleting.value = false;
+      }
     },
   });
 }
