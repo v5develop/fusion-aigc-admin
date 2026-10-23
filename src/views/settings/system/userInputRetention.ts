@@ -1,5 +1,5 @@
-/** 用户输入图片保留策略的纯判断逻辑（与后端 1..3650 的取值范围一致）。 */
-export const USER_INPUT_RETENTION_MIN_DAYS = 1;
+/** 用户输入图片保留策略的纯判断逻辑（与后端 365..3650 的取值范围一致，最少保留 1 年）。 */
+export const USER_INPUT_RETENTION_MIN_DAYS = 365;
 export const USER_INPUT_RETENTION_MAX_DAYS = 3650;
 
 export interface RetentionState {
@@ -7,7 +7,7 @@ export interface RetentionState {
   retentionDays: number;
 }
 
-/** 合法天数返回整数，否则返回 null（非数字、非整数、越界都算非法）。 */
+/** 合法天数（365..3650 的整数）原样返回，否则返回 null（非数字、非整数、低于 365 或高于 3650 都算非法）。 */
 export function normalizeRetentionDays(value: unknown): number | null {
   if (value === null || value === undefined || value === '') return null;
   const n = typeof value === 'number' ? value : Number(value);

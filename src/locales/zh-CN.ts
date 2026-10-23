@@ -3786,8 +3786,8 @@ export default {
       '默认开启：用户上传的输入图片永不删除，可随时用于重新生成。关闭后，超过保留天数的输入图片会被删除（有 7 天宽限期，期间可恢复），之后不可再用于重新生成',
     userInputRetentionDays: '用户输入图片保留天数',
     userInputRetentionDaysDesc:
-      '取值 1 到 3650 天，仅在关闭永久保留时生效；修改后需点击保存。调低天数会让更多输入图片被删除，保存前会再次确认',
-    userInputRetentionDaysInvalid: '保留天数须为 {min} 到 {max} 之间的整数',
+      '取值 365（最少 1 年）到 3650 天，仅在关闭永久保留时生效；修改后需点击保存。调低天数会让更多输入图片被删除，保存前会再次确认',
+    userInputRetentionDaysInvalid: '保留天数须为 {min}（最少 1 年）到 {max} 之间的整数',
     userInputRetentionConfirmTitle: '确认删除过期的用户输入图片？',
     userInputRetentionConfirm:
       '开启后，超过 {days} 天的用户输入图片会被删除（有 7 天宽限期，期间可恢复），之后不可再用于重新生成。',

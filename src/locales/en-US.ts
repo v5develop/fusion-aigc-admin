@@ -3777,8 +3777,9 @@ export default {
       'On by default: user-uploaded input images are never deleted and can always be reused for regeneration. When off, input images older than the retention period are deleted (with a 7-day grace period during which they can be restored) and can no longer be used for regeneration',
     userInputRetentionDays: 'User input retention (days)',
     userInputRetentionDaysDesc:
-      '1 to 3650 days; only applies when keep-forever is off. Click Save to apply. Lowering the value deletes more input images, so you will be asked to confirm',
-    userInputRetentionDaysInvalid: 'Retention must be an integer between {min} and {max}',
+      '365 days (1 year) minimum, up to 3650 days; only applies when keep-forever is off. Click Save to apply. Lowering the value deletes more input images, so you will be asked to confirm',
+    userInputRetentionDaysInvalid:
+      'Retention must be an integer between {min} (1 year minimum) and {max} days',
     userInputRetentionConfirmTitle: 'Delete expired user input images?',
     userInputRetentionConfirm:
       'Once applied, user input images older than {days} days will be deleted (with a 7-day grace period during which they can be restored) and can no longer be used for regeneration.',
