@@ -104,6 +104,132 @@
         </a-descriptions>
       </a-card>
 
+      <!-- 任务全链路：Java 任务 → 网关调用 → 媒体阶段，一眼看出卡在哪 -->
+      <a-card
+        v-if="task?.taskId"
+        :title="$t('creationTask.trace.title')"
+        style="margin-bottom: 16px"
+      >
+        <template #extra>
+          <a-space>
+            <span v-if="trace?.traceId" class="trace-meta">
+              {{ $t('creationTask.trace.traceId') }}: <code>{{ trace.traceId }}</code>
+            </span>
+            <span v-if="trace?.generatedAt" class="trace-meta">
+              {{ $t('creationTask.trace.generatedAt') }}: {{ trace.generatedAt }}
+            </span>
+            <a-tag v-if="tracePolling" color="processing">{{
+              $t('creationTask.trace.autoRefresh', { sec: Math.round(traceDelayMs / 1000) })
+            }}</a-tag>
+            <a-button size="small" :loading="traceLoading" @click="retryTrace">{{
+              $t('creationTask.trace.refresh')
+            }}</a-button>
+          </a-space>
+        </template>
+        <a-alert
+          v-if="tracePollState === 'unavailable'"
+          type="warning"
+          show-icon
+          style="margin-bottom: 8px"
+          :message="$t('creationTask.trace.unavailable')"
+        >
+          <template #action>
+            <a-button size="small" :loading="traceLoading" @click="retryTrace">{{
+              $t('creationTask.trace.retry')
+            }}</a-button>
+          </template>
+        </a-alert>
+        <a-alert
+          v-else-if="tracePollState === 'failed'"
+          type="error"
+          show-icon
+          style="margin-bottom: 8px"
+          :message="
+            $t('creationTask.trace.stoppedAfterFailures', { n: TRACE_MAX_CONSECUTIVE_FAILURES })
+          "
+          :description="traceError"
+        >
+          <template #action>
+            <a-button size="small" :loading="traceLoading" @click="retryTrace">{{
+              $t('creationTask.trace.retry')
+            }}</a-button>
+          </template>
+        </a-alert>
+        <div v-else-if="traceError" class="error-text" style="margin-bottom: 8px">
+          {{ $t('creationTask.trace.loadFail') }}: {{ traceError }}
+        </div>
+        <template v-if="trace">
+          <a-alert
+            v-if="trace.stuckAt"
+            type="warning"
+            show-icon
+            style="margin-bottom: 12px"
+            :message="
+              $t('creationTask.trace.stuckBanner', {
+                name: stuckName,
+                source: sourceLabel(trace.stuckAt.source),
+                elapsed: formatDuration(trace.stuckAt.elapsedMs),
+                reason: trace.stuckAt.reason || '-',
+              })
+            "
+          />
+          <a-alert
+            v-else-if="traceComplete"
+            type="success"
+            show-icon
+            style="margin-bottom: 12px"
+            :message="$t('creationTask.trace.complete')"
+          />
+          <a-empty v-if="!traceStages.length" :description="$t('creationTask.trace.empty')" />
+          <ol v-else class="trace-list">
+            <li
+              v-for="(stage, i) in traceStages"
+              :key="`${stage.key}-${i}`"
+              class="trace-row"
+              :class="[`trace-row--${stage.status}`, { 'trace-row--stuck': i === stuckRowIndex }]"
+            >
+              <span class="trace-row__icon">
+                <CheckCircleFilled v-if="stage.status === 'done'" style="color: #52c41a" />
+                <LoadingOutlined v-else-if="stage.status === 'running'" style="color: #1677ff" />
+                <CloseCircleFilled v-else-if="stage.status === 'failed'" style="color: #ff4d4f" />
+                <MinusCircleOutlined
+                  v-else-if="stage.status === 'skipped'"
+                  style="color: var(--color-text-tertiary, #bfbfbf)"
+                />
+                <ClockCircleOutlined v-else style="color: var(--color-text-tertiary, #bfbfbf)" />
+              </span>
+              <div class="trace-row__body">
+                <div class="trace-row__head">
+                  <a-tag :color="sourceColor(stage.source)">{{ sourceLabel(stage.source) }}</a-tag>
+                  <span class="trace-row__name">{{ stage.name || stage.key }}</span>
+                  <code class="trace-row__key">{{ stage.key }}</code>
+                  <a-tag :color="stageColor(stage.status)">{{
+                    $t(`creationTask.trace.status.${stage.status}`)
+                  }}</a-tag>
+                  <a-tag v-if="i === stuckRowIndex" color="orange">{{
+                    $t('creationTask.trace.stuckHere')
+                  }}</a-tag>
+                  <span class="trace-row__duration">
+                    {{ stage.elapsedText }}
+                    <span v-if="stage.ongoing && stage.elapsedText !== '-'">{{
+                      $t('creationTask.trace.ongoing')
+                    }}</span>
+                  </span>
+                </div>
+                <div v-if="stage.status === 'failed' && stage.check" class="trace-row__check">
+                  {{ $t('creationTask.trace.check') }}: <code>{{ stage.check }}</code>
+                </div>
+                <div v-if="stage.detail" class="trace-row__detail">{{ stage.detail }}</div>
+                <div v-if="stage.startedAt || stage.endedAt" class="trace-row__time">
+                  {{ stage.startedAt || '-' }} → {{ stage.endedAt || '-' }}
+                </div>
+              </div>
+            </li>
+          </ol>
+        </template>
+        <a-skeleton v-else-if="traceLoading" active :paragraph="{ rows: 3 }" />
+      </a-card>
+
       <!-- Billing Info -->
       <a-card :title="$t('creationTask.billingInfo')" style="margin-bottom: 16px">
         <a-descriptions :column="{ xs: 1, sm: 2, md: 3 }">
@@ -844,12 +970,20 @@ import type {
   Diagnosis,
   DiagnosisMediaOp,
   TimelineEvent,
+  TaskTrace,
 } from '@/api/creation-task';
 import type { ModerationLog } from '@/api/moderation-log';
 
-import { ArrowLeftOutlined } from '@antdv-next/icons';
+import {
+  ArrowLeftOutlined,
+  CheckCircleFilled,
+  ClockCircleOutlined,
+  CloseCircleFilled,
+  LoadingOutlined,
+  MinusCircleOutlined,
+} from '@antdv-next/icons';
 import { message, Modal } from 'antdv-next';
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onActivated, onBeforeUnmount, onDeactivated, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter, useRoute } from 'vue-router';
 
@@ -867,12 +1001,31 @@ import {
   getWorkflowSteps,
   getTaskDiagnosis,
   getTaskTimeline,
+  getTaskTrace,
   fixTaskContentType,
 } from '@/api/creation-task';
 import { getCreationTaskModerationLogs } from '@/api/moderation-log';
 import ReconcileRetryModal from '@/components/Billing/ReconcileRetryModal.vue';
 import { usePermission } from '@/composables/usePermission';
 import { decodeUnicode } from '@/utils/helpers';
+
+import {
+  formatDuration,
+  isChainComplete,
+  isTraceEndpointMissing,
+  nextPollDelayMs,
+  nextUnchangedPolls,
+  normalizeSource,
+  normalizeStageStatus,
+  pickStuckRow,
+  shouldStopPolling,
+  sourceColor,
+  stageColor,
+  stageElapsed,
+  TRACE_MAX_CONSECUTIVE_FAILURES,
+  TRACE_POLL_BASE_MS,
+  traceFingerprint,
+} from './traceHelpers';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -895,6 +1048,191 @@ const timelineMoreLoading = ref(false);
 const timelineMoreError = ref('');
 let diagLoaded = false;
 const TIMELINE_PAGE_SIZE = 50;
+
+// ---- 任务全链路（Java → 网关 → 媒体）----
+// 轮询状态机（决策函数见 traceHelpers，均为纯函数）：
+//   idle        未轮询（尚无任务，或打开页面时任务已终态：只拉一次）
+//   polling     自动轮询：上一次响应落定后才 setTimeout 排下一次（绝不并发），
+//               默认 5s，链路连续 3 次无变化放慢到 15s，有变化回到 5s；
+//               页面隐藏 / KeepAlive 切走时只撤定时器，回到可见/激活时立即补拉一次
+//   settled     trace 显示链路已静止（无卡点、无 running/pending）→ 停
+//   failed      连续 3 次请求失败 → 停，显示错误与「重试」
+//   unavailable 接口返回 404（后端未上线 trace 接口）→ 立即停，提示「trace 接口未就绪」
+// 「刷新/重试」按钮：清零失败与退避计数，回到 polling 立刻拉一次（由响应决定是否继续）。
+type TracePollState = 'idle' | 'polling' | 'settled' | 'failed' | 'unavailable';
+const trace = ref<TaskTrace | null>(null);
+const traceLoading = ref(false);
+const traceError = ref('');
+const tracePollState = ref<TracePollState>('idle');
+const tracePolling = computed(() => tracePollState.value === 'polling');
+const traceDelayMs = ref(TRACE_POLL_BASE_MS);
+let traceTimer: ReturnType<typeof setTimeout> | null = null;
+/** 每次切换任务/重新开始 +1；过期会话的响应直接丢弃 */
+let traceSession = 0;
+/** 在途请求所属会话；与当前会话相同时不再发新请求 */
+let traceInFlight: number | null = null;
+let traceFailures = 0;
+let traceUnchanged = 0;
+let traceLastFingerprint = '';
+/** 组件处于激活态（未被 KeepAlive 切走、未卸载） */
+let traceActive = true;
+
+const traceStages = computed(() =>
+  (trace.value?.stages || [])
+    .filter((s) => !!s)
+    .map((s) => {
+      const { ms, ongoing } = stageElapsed(s, trace.value?.generatedAt);
+      return {
+        ...s,
+        status: normalizeStageStatus(s.status),
+        source: normalizeSource(s.source),
+        elapsedText: formatDuration(ms),
+        ongoing,
+      };
+    }),
+);
+const stuckRowIndex = computed(() => pickStuckRow(trace.value));
+const traceComplete = computed(() => isChainComplete(trace.value));
+const stuckName = computed(() => {
+  const stuck = trace.value?.stuckAt;
+  if (!stuck) return '';
+  const row = traceStages.value[stuckRowIndex.value];
+  return row?.name || stuck.stage || '-';
+});
+
+function sourceLabel(source: unknown) {
+  return t(`creationTask.trace.source.${normalizeSource(source)}`);
+}
+
+/** 任务终态（完成/失败/取消）；仅用于打开页面时决定是否开启自动轮询 */
+function isTaskTerminal() {
+  const st = task.value?.status;
+  return st !== 0 && st !== 1;
+}
+
+function pageVisible() {
+  return typeof document === 'undefined' || document.visibilityState !== 'hidden';
+}
+
+function clearTraceTimer() {
+  if (traceTimer) clearTimeout(traceTimer);
+  traceTimer = null;
+}
+
+/** 仅在轮询态、组件激活且页面可见时排下一次 */
+function scheduleTrace(delayMs: number) {
+  clearTraceTimer();
+  if (tracePollState.value !== 'polling' || !traceActive || !pageVisible()) return;
+  traceDelayMs.value = delayMs;
+  traceTimer = setTimeout(() => {
+    traceTimer = null;
+    void loadTrace();
+  }, delayMs);
+}
+
+async function loadTrace() {
+  const taskId = task.value?.taskId;
+  if (!taskId) return;
+  const session = traceSession;
+  if (traceInFlight === session) return; // 在途请求未落定，不叠加
+  traceInFlight = session;
+  clearTraceTimer();
+  traceLoading.value = true;
+  let changed = false;
+  try {
+    const data = (await getTaskTrace(taskId)) || null;
+    if (session !== traceSession) return;
+    const fp = traceFingerprint(data);
+    changed = fp !== traceLastFingerprint;
+    traceLastFingerprint = fp;
+    trace.value = data;
+    traceError.value = '';
+    traceFailures = 0;
+    traceUnchanged = nextUnchangedPolls(traceUnchanged, changed);
+  } catch (e) {
+    if (session !== traceSession) return;
+    if (isTraceEndpointMissing(e)) {
+      traceError.value = t('creationTask.trace.unavailable');
+      tracePollState.value = 'unavailable';
+      return;
+    }
+    traceFailures++;
+    traceError.value = (e as Error)?.message || String(e);
+  } finally {
+    if (traceInFlight === session) traceInFlight = null;
+    if (session === traceSession) traceLoading.value = false;
+  }
+  if (tracePollState.value !== 'polling') return;
+  const stop = shouldStopPolling(trace.value, traceFailures);
+  if (stop) {
+    tracePollState.value = stop === 'failures' ? 'failed' : 'settled';
+    clearTraceTimer();
+    return;
+  }
+  scheduleTrace(nextPollDelayMs(traceUnchanged, changed, traceFailures));
+}
+
+function resetTracePacing() {
+  traceFailures = 0;
+  traceUnchanged = 0;
+  traceDelayMs.value = TRACE_POLL_BASE_MS;
+}
+
+function stopTracePolling() {
+  clearTraceTimer();
+}
+
+/** 刷新 / 重试：清零计数，回到轮询态并立即拉一次 */
+function retryTrace() {
+  if (!task.value?.taskId) return;
+  resetTracePacing();
+  tracePollState.value = 'polling';
+  void loadTrace();
+}
+
+function startTrace() {
+  clearTraceTimer();
+  traceSession++;
+  traceInFlight = null;
+  trace.value = null;
+  traceError.value = '';
+  traceLastFingerprint = '';
+  resetTracePacing();
+  tracePollState.value = 'idle';
+  if (!task.value?.taskId) return;
+  // 打开时任务已终态：只拉一次；否则进入轮询，由 trace 响应决定何时停
+  if (!isTaskTerminal()) tracePollState.value = 'polling';
+  void loadTrace();
+}
+
+/** 轮询态下恢复：没有在途请求也没有排队定时器时立即补拉一次 */
+function resumeTrace() {
+  if (tracePollState.value !== 'polling' || !traceActive || !pageVisible()) return;
+  if (traceInFlight === traceSession || traceTimer) return;
+  void loadTrace();
+}
+
+function onTraceVisibilityChange() {
+  if (pageVisible()) resumeTrace();
+  else clearTraceTimer();
+}
+
+onMounted(() => document.addEventListener('visibilitychange', onTraceVisibilityChange));
+onBeforeUnmount(() => {
+  traceActive = false;
+  traceSession++; // 卸载后在途响应作废
+  stopTracePolling();
+  document.removeEventListener('visibilitychange', onTraceVisibilityChange);
+});
+// 多标签 KeepAlive：切走时撤定时器，切回且仍在轮询态时立即补拉
+onDeactivated(() => {
+  traceActive = false;
+  stopTracePolling();
+});
+onActivated(() => {
+  traceActive = true;
+  resumeTrace();
+});
 
 // ---- 核对后重试：存在 UNKNOWN 步骤且有 reconciliation:handle 权限才显示 ----
 const { can } = usePermission();
@@ -1308,6 +1646,7 @@ async function loadTask() {
   try {
     task.value = await getCreationTaskDetail(id);
     if (task.value?.taskId) void loadHintDiagnosis(task.value.taskId);
+    startTrace();
     // 内容审核日志（所有任务：命中/免审/未过审都可能有记录）
     try {
       moderationLogs.value = (await getCreationTaskModerationLogs(id)) ?? [];
@@ -1469,6 +1808,82 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.trace-meta {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+.trace-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.trace-row {
+  position: relative;
+  display: flex;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+}
+.trace-row:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 17px;
+  top: 30px;
+  bottom: -8px;
+  border-left: 1px dashed var(--color-border, #d9d9d9);
+}
+.trace-row--stuck {
+  background: rgba(250, 173, 20, 0.12);
+  border-color: #faad14;
+}
+.trace-row--failed {
+  background: rgba(255, 77, 79, 0.06);
+}
+.trace-row__icon {
+  flex: none;
+  width: 16px;
+  line-height: 22px;
+}
+.trace-row__body {
+  flex: 1;
+  min-width: 0;
+}
+.trace-row__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.trace-row__head :deep(.ant-tag) {
+  margin-inline-end: 0;
+}
+.trace-row__name {
+  font-weight: 600;
+}
+.trace-row__key {
+  color: var(--color-text-tertiary, #8c8c8c);
+  font-size: 12px;
+}
+.trace-row__duration {
+  margin-left: auto;
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.trace-row__check {
+  margin-top: 4px;
+  color: #ff4d4f;
+}
+.trace-row__detail {
+  margin-top: 4px;
+  color: var(--color-text-secondary);
+  word-break: break-word;
+}
+.trace-row__time {
+  margin-top: 2px;
+  color: var(--color-text-tertiary, #8c8c8c);
+  font-size: 12px;
+}
 .diag-section {
   margin-top: 12px;
 }

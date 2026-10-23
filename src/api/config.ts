@@ -229,6 +229,29 @@ export function setFreeOriginalRetentionDays(days: number) {
   });
 }
 
+/**
+ * 用户输入图片保留策略。keepForever=true（默认）时永不删除；
+ * 为 false 时超过 retentionDays（1..3650）的用户输入会在保留期后被清理。
+ */
+export interface UserInputRetention {
+  keepForever: boolean;
+  retentionDays: number;
+}
+
+export function getUserInputRetention() {
+  return request.get<UserInputRetention>('/api/v1/admin/settings/user-input-retention');
+}
+
+/** retentionDays 即使 keepForever=true 也必须带上；越界由后端以 CommonResult 错误拒绝。 */
+export function setUserInputRetention(retention: UserInputRetention) {
+  return request.put<boolean>('/api/v1/admin/settings/user-input-retention', undefined, {
+    params: {
+      keepForever: retention.keepForever,
+      retentionDays: retention.retentionDays,
+    },
+  });
+}
+
 /** 免费用户等待水印产物的默认占位地址（图片 / 视频）。空串表示未配置；修改后后端约 60 秒内生效。 */
 export interface ProcessingPlaceholders {
   imageUrl: string;

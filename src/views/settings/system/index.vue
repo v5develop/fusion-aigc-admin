@@ -301,6 +301,51 @@
                 <div class="form-hint">{{ $t('settingsSystem.freeOriginalRetentionDesc') }}</div>
               </a-form-item>
 
+              <!-- 用户输入图片保留：关掉永久保留或调低天数会删用户数据，两者都要先确认再保存 -->
+              <a-form-item :label="$t('settingsSystem.userInputRetention')">
+                <a-tag v-if="savedUserInputRetention.keepForever" color="green">
+                  {{ $t('settingsSystem.userInputRetentionTagForever') }}
+                </a-tag>
+                <a-tag v-else color="orange">
+                  {{
+                    $t('settingsSystem.userInputRetentionTagDays', {
+                      days: savedUserInputRetention.retentionDays,
+                    })
+                  }}
+                </a-tag>
+              </a-form-item>
+
+              <a-form-item :label="$t('settingsSystem.userInputKeepForever')">
+                <a-switch
+                  :checked="userInputKeepForever"
+                  :loading="savingUserInputRetention"
+                  @change="handleToggleUserInputKeepForever"
+                />
+                <div class="form-hint">{{ $t('settingsSystem.userInputKeepForeverDesc') }}</div>
+              </a-form-item>
+
+              <a-form-item :label="$t('settingsSystem.userInputRetentionDays')">
+                <div style="display: flex; gap: 8px; align-items: center">
+                  <a-input-number
+                    v-model:value="userInputRetentionDays"
+                    :min="USER_INPUT_RETENTION_MIN_DAYS"
+                    :max="USER_INPUT_RETENTION_MAX_DAYS"
+                    :precision="0"
+                    :disabled="userInputKeepForever"
+                    style="width: 200px"
+                  />
+                  <a-button
+                    type="primary"
+                    :loading="savingUserInputRetention"
+                    :disabled="userInputKeepForever || !userInputDaysDirty"
+                    @click="handleSaveUserInputRetentionDays"
+                  >
+                    {{ $t('common.save') }}
+                  </a-button>
+                </div>
+                <div class="form-hint">{{ $t('settingsSystem.userInputRetentionDaysDesc') }}</div>
+              </a-form-item>
+
               <a-form-item :label="$t('settingsSystem.processingPlaceholders')">
                 <div
                   style="
@@ -442,7 +487,7 @@
 <script setup lang="ts">
 import type { AIModel, AgentModelProfile } from '@/types/api';
 
-import { message } from 'antdv-next';
+import { message, Modal } from 'antdv-next';
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -467,6 +512,8 @@ import {
   setFreeOriginalCleanupEnabled,
   getFreeOriginalRetentionDays,
   setFreeOriginalRetentionDays,
+  getUserInputRetention,
+  setUserInputRetention,
   getProcessingPlaceholders,
   setProcessingPlaceholders,
   getReconcileRetryEnabled,
@@ -475,6 +522,14 @@ import {
   setUserTierEnabled,
 } from '@/api/config';
 import { getModelOptions } from '@/api/model';
+
+import {
+  USER_INPUT_RETENTION_MAX_DAYS,
+  USER_INPUT_RETENTION_MIN_DAYS,
+  isDestructiveRetentionChange,
+  normalizeRetentionDays,
+  type RetentionState,
+} from './userInputRetention';
 
 const { t } = useI18n();
 
@@ -544,6 +599,14 @@ const savingFreeOriginalCleanup = ref(false);
 const FREE_ORIGINAL_MIN_DAYS = 90;
 const freeOriginalRetentionDays = ref<number>(FREE_ORIGINAL_MIN_DAYS);
 const savingFreeOriginalRetention = ref(false);
+/** 后端最后一次确认的生效值（标签按它显示）；表单值未保存前不影响它。默认与现状一致：永久保留。 */
+const savedUserInputRetention = ref<RetentionState>({ keepForever: true, retentionDays: 365 });
+const userInputKeepForever = ref(true);
+const userInputRetentionDays = ref<number | null>(365);
+const savingUserInputRetention = ref(false);
+const userInputDaysDirty = computed(
+  () => userInputRetentionDays.value !== savedUserInputRetention.value.retentionDays,
+);
 const processingImageUrl = ref('');
 const processingVideoUrl = ref('');
 const savingProcessingPlaceholders = ref(false);
@@ -800,6 +863,85 @@ async function loadFreeOriginal() {
   }
 }
 
+function applyUserInputRetention(value: RetentionState) {
+  savedUserInputRetention.value = { ...value };
+  userInputKeepForever.value = value.keepForever;
+  userInputRetentionDays.value = value.retentionDays;
+}
+
+async function loadUserInputRetention() {
+  try {
+    const value = await getUserInputRetention();
+    applyUserInputRetention({
+      keepForever: value.keepForever !== false,
+      retentionDays: normalizeRetentionDays(value.retentionDays) ?? 365,
+    });
+  } catch {
+    /* 错误已由拦截器提示 */
+  }
+}
+
+/** 先确认（若是删除性变更）再保存；取消或失败都回到后端生效值。 */
+function commitUserInputRetention(next: RetentionState) {
+  const prev = savedUserInputRetention.value;
+  const save = async () => {
+    savingUserInputRetention.value = true;
+    try {
+      await setUserInputRetention(next);
+      applyUserInputRetention(next);
+      message.success(
+        next.keepForever
+          ? t('settingsSystem.userInputRetentionSavedForever')
+          : t('settingsSystem.userInputRetentionSavedDays', { days: next.retentionDays }),
+      );
+    } catch {
+      /* 越界或网络错误：消息已由拦截器提示，回到后端真实值 */
+      await loadUserInputRetention();
+    } finally {
+      savingUserInputRetention.value = false;
+    }
+  };
+  if (!isDestructiveRetentionChange(prev, next)) {
+    void save();
+    return;
+  }
+  Modal.confirm({
+    title: t('settingsSystem.userInputRetentionConfirmTitle'),
+    content: t('settingsSystem.userInputRetentionConfirm', { days: next.retentionDays }),
+    okText: t('common.ok'),
+    okType: 'danger',
+    cancelText: t('common.cancel'),
+    onOk: save,
+    onCancel: () => applyUserInputRetention(prev),
+  });
+}
+
+function handleToggleUserInputKeepForever(checked: boolean | string | number) {
+  const keepForever = checked === true;
+  userInputKeepForever.value = keepForever;
+  // 天数字段可能被改过但未保存：关永久保留时用当前合法输入，否则沿用已生效值
+  const retentionDays = keepForever
+    ? savedUserInputRetention.value.retentionDays
+    : (normalizeRetentionDays(userInputRetentionDays.value) ??
+      savedUserInputRetention.value.retentionDays);
+  userInputRetentionDays.value = retentionDays;
+  commitUserInputRetention({ keepForever, retentionDays });
+}
+
+function handleSaveUserInputRetentionDays() {
+  const days = normalizeRetentionDays(userInputRetentionDays.value);
+  if (days === null) {
+    message.error(
+      t('settingsSystem.userInputRetentionDaysInvalid', {
+        min: USER_INPUT_RETENTION_MIN_DAYS,
+        max: USER_INPUT_RETENTION_MAX_DAYS,
+      }),
+    );
+    return;
+  }
+  commitUserInputRetention({ keepForever: userInputKeepForever.value, retentionDays: days });
+}
+
 async function loadProcessingPlaceholders() {
   try {
     const value = await getProcessingPlaceholders();
@@ -931,6 +1073,7 @@ onMounted(() => {
   loadPaidViewWatermark();
   loadReconcileRetry();
   loadFreeOriginal();
+  loadUserInputRetention();
   loadProcessingPlaceholders();
   loadUserTier();
 });

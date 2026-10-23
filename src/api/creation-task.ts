@@ -545,6 +545,66 @@ export function getTaskTimeline(taskId: string, params?: TimelineParams) {
   } as AxiosRequestConfig);
 }
 
+// ======================== 任务全链路追踪（Java 任务 → 网关调用 → 媒体阶段） ========================
+
+/** 链路阶段来源；未知值在渲染层按 java 兜底 */
+export type TaskTraceSource = 'java' | 'gateway' | 'media';
+/** 链路阶段状态；未知值在渲染层按 pending 兜底 */
+export type TaskTraceStageStatus = 'done' | 'running' | 'failed' | 'pending' | 'skipped';
+
+export interface TaskTraceStuckAt {
+  /** 卡住的阶段 key，对应 stages[].key */
+  stage: string;
+  source: TaskTraceSource;
+  /** 该阶段开始时间（ISO） */
+  since: string;
+  elapsedMs: number;
+  /** 后端给出的简短中文原因，原样展示 */
+  reason: string;
+}
+
+export interface TaskTraceStage {
+  /** 如 task.submit / gateway.call.created / gateway.rehost / media.copy / task.settle */
+  key: string;
+  source: TaskTraceSource;
+  /** 中文名 */
+  name: string;
+  status: TaskTraceStageStatus;
+  startedAt: string | null;
+  endedAt: string | null;
+  durationMs: number | null;
+  /** 失败时命中的判据码，如 rehost.mediasvc_not_configured */
+  check: string | null;
+  /** 简短说明（不含密钥） */
+  detail: string | null;
+}
+
+export interface TaskTrace {
+  taskId: string;
+  /** 链路追踪号：后端直接填任务号（等于 taskId），可用于在 Java / 网关 / 媒体日志里检索 */
+  traceId: string;
+  /** 生成时间（ISO） */
+  generatedAt: string;
+  /** 链路完成或没有运行中的阶段时为 null */
+  stuckAt: TaskTraceStuckAt | null;
+  stages: TaskTraceStage[];
+  /**
+   * 创作任务是否已处于终态（后端按任务 status 判定，增量字段）。
+   * true 时前端停止轮询；旧后端不返回该字段时前端退回「链路静止」规则。
+   */
+  terminal?: boolean;
+}
+
+export function getTaskTrace(taskId: string) {
+  return request.get<TaskTrace>(
+    `/api/v1/admin/creation/tasks/${encodeURIComponent(taskId)}/trace`,
+    {
+      silentError: true,
+      noErrorRedirect: true,
+    } as AxiosRequestConfig,
+  );
+}
+
 export function getPipelineSteps(taskId: string) {
   return request.get<PipelineStepsResponse>(`/api/v1/admin/creation/tasks/${taskId}/steps`);
 }

@@ -3778,6 +3778,21 @@ export default {
     freeOriginalRetentionDesc:
       '免费用户生成的原图在私有桶中保留的天数，下限 90 天；付费后可在保留期内转存为公有原图',
     freeOriginalRetentionSaved: '已将原图保留天数设为 {days} 天',
+    userInputRetention: '用户输入图片保留策略',
+    userInputRetentionTagForever: '永久保留',
+    userInputRetentionTagDays: '保留 {days} 天后清理',
+    userInputKeepForever: '永久保留（允许长期复用）',
+    userInputKeepForeverDesc:
+      '默认开启：用户上传的输入图片永不删除，可随时用于重新生成。关闭后，超过保留天数的输入图片会被删除（有 7 天宽限期，期间可恢复），之后不可再用于重新生成',
+    userInputRetentionDays: '用户输入图片保留天数',
+    userInputRetentionDaysDesc:
+      '取值 1 到 3650 天，仅在关闭永久保留时生效；修改后需点击保存。调低天数会让更多输入图片被删除，保存前会再次确认',
+    userInputRetentionDaysInvalid: '保留天数须为 {min} 到 {max} 之间的整数',
+    userInputRetentionConfirmTitle: '确认删除过期的用户输入图片？',
+    userInputRetentionConfirm:
+      '开启后，超过 {days} 天的用户输入图片会被删除（有 7 天宽限期，期间可恢复），之后不可再用于重新生成。',
+    userInputRetentionSavedForever: '已改为永久保留，不会删除任何用户输入图片',
+    userInputRetentionSavedDays: '已设置：用户输入图片保留 {days} 天后清理',
     processingPlaceholders: '免费用户等待水印占位',
     processingPlaceholdersDesc:
       '免费用户的产物水印副本未就绪时，下发此处配置的默认图片/视频；视频未配时回落图片占位（视频位加载失败）。地址须为 http(s) 公网地址；清空则回落配置文件的默认值。页面显示的是当前有效值。修改约 60 秒后生效。',
@@ -3935,6 +3950,8 @@ export default {
   },
 
   aiGateway: {
+    viewTaskTrace: '查看任务链路',
+    taskTraceNotFound: '未找到该创作任务，可能已被删除',
     selectedCount: '已选 {count} 项',
     batchEnable: '批量启用',
     batchDisable: '批量停用',
@@ -4129,6 +4146,35 @@ export default {
     },
   },
   creationTask: {
+    trace: {
+      title: '任务链路',
+      traceId: '链路 ID',
+      generatedAt: '生成时间',
+      refresh: '刷新',
+      autoRefresh: '每 {sec} 秒自动刷新',
+      loadFail: '链路加载失败',
+      unavailable: 'trace 接口未就绪',
+      stoppedAfterFailures: '连续 {n} 次加载失败，已停止自动刷新',
+      retry: '重试',
+      empty: '暂无链路阶段',
+      complete: '链路完成',
+      stuckBanner: '卡在：{name}（{source}），已等待 {elapsed}，原因：{reason}',
+      stuckHere: '卡在这里',
+      ongoing: '（进行中）',
+      check: '失败判据',
+      source: {
+        java: 'Java',
+        gateway: '网关',
+        media: '媒体',
+      },
+      status: {
+        done: '完成',
+        running: '进行中',
+        failed: '失败',
+        pending: '等待',
+        skipped: '已跳过',
+      },
+    },
     diagnosis: {
       title: '诊断与时间线',
       loadFail: '诊断信息加载失败',

@@ -3769,6 +3769,21 @@ export default {
     freeOriginalRetentionDesc:
       'How long free-tier originals are kept in the private bucket; minimum 90 days. After upgrading, originals within the retention period can be promoted to public',
     freeOriginalRetentionSaved: 'Original retention set to {days} days',
+    userInputRetention: 'User input image retention',
+    userInputRetentionTagForever: 'Kept forever',
+    userInputRetentionTagDays: 'Cleaned up after {days} days',
+    userInputKeepForever: 'Keep forever (allow long-term reuse)',
+    userInputKeepForeverDesc:
+      'On by default: user-uploaded input images are never deleted and can always be reused for regeneration. When off, input images older than the retention period are deleted (with a 7-day grace period during which they can be restored) and can no longer be used for regeneration',
+    userInputRetentionDays: 'User input retention (days)',
+    userInputRetentionDaysDesc:
+      '1 to 3650 days; only applies when keep-forever is off. Click Save to apply. Lowering the value deletes more input images, so you will be asked to confirm',
+    userInputRetentionDaysInvalid: 'Retention must be an integer between {min} and {max}',
+    userInputRetentionConfirmTitle: 'Delete expired user input images?',
+    userInputRetentionConfirm:
+      'Once applied, user input images older than {days} days will be deleted (with a 7-day grace period during which they can be restored) and can no longer be used for regeneration.',
+    userInputRetentionSavedForever: 'Set to keep forever; no user input images will be deleted',
+    userInputRetentionSavedDays: 'Saved: user input images are cleaned up after {days} days',
     processingPlaceholders: 'Waiting-for-watermark placeholders',
     processingPlaceholdersDesc:
       'For free users whose watermarked copy is not ready, these default image/video URLs are returned instead. If no video placeholder is set, the image is used and the video slot will fail to load. URLs must be public http(s); clearing a field falls back to the config-file default. The page shows the effective value. Takes effect within about 60 seconds.',
@@ -3933,6 +3948,8 @@ export default {
   },
 
   aiGateway: {
+    viewTaskTrace: 'View task trace',
+    taskTraceNotFound: 'Creation task not found; it may have been deleted',
     selectedCount: '{count} selected',
     batchEnable: 'Enable selected',
     batchDisable: 'Disable selected',
@@ -4142,6 +4159,35 @@ export default {
     },
   },
   creationTask: {
+    trace: {
+      title: 'Task Trace',
+      traceId: 'Trace ID',
+      generatedAt: 'Generated at',
+      refresh: 'Refresh',
+      autoRefresh: 'Auto-refresh every {sec}s',
+      loadFail: 'Failed to load trace',
+      unavailable: 'Trace endpoint is not available yet',
+      stoppedAfterFailures: 'Failed {n} times in a row; auto-refresh stopped',
+      retry: 'Retry',
+      empty: 'No trace stages',
+      complete: 'Chain complete',
+      stuckBanner: 'Stuck at: {name} ({source}), waiting {elapsed}, reason: {reason}',
+      stuckHere: 'Stuck here',
+      ongoing: '(ongoing)',
+      check: 'Failed check',
+      source: {
+        java: 'Java',
+        gateway: 'Gateway',
+        media: 'Media',
+      },
+      status: {
+        done: 'Done',
+        running: 'Running',
+        failed: 'Failed',
+        pending: 'Pending',
+        skipped: 'Skipped',
+      },
+    },
     diagnosis: {
       title: 'Diagnosis & Timeline',
       loadFail: 'Failed to load diagnosis',

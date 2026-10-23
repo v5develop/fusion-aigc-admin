@@ -91,6 +91,11 @@
           <template v-if="column.dataIndex === 'labels'">
             <div class="labels-cell">
               <a-tag v-for="(v, k) in record.labels || {}" :key="k">{{ k }}={{ v }}</a-tag>
+              <a
+                v-if="creationTaskIdFromLabels(record.labels)"
+                @click="goTaskTrace(creationTaskIdFromLabels(record.labels)!)"
+                >{{ $t('aiGateway.viewTaskTrace') }}</a
+              >
             </div>
           </template>
           <template v-if="isTimeField(column.dataIndex)">
@@ -114,6 +119,10 @@
     <a-drawer v-model:open="detailOpen" :title="detailId" width="880">
       <a-spin :spinning="detailLoading">
         <template v-if="detail">
+          <div v-if="detailTaskId" style="margin-bottom: 8px">
+            <a @click="goTaskTrace(detailTaskId)">{{ $t('aiGateway.viewTaskTrace') }}</a>
+            <code style="margin-left: 8px">{{ detailTaskId }}</code>
+          </div>
           <h4>{{ formText('detailCall') }}</h4>
           <pre class="json-viewer">{{ pretty(detail.call) }}</pre>
           <h4>{{ formText('detailInput') }}</h4>
@@ -145,6 +154,7 @@
 </template>
 
 <script setup lang="ts">
+import { message } from 'antdv-next';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
@@ -158,7 +168,9 @@ import {
   type CallSearchParams,
   type CallSummary,
 } from '@/api/ai-gateway';
+import { getCreationTaskList } from '@/api/creation-task';
 import { formatDateTime } from '@/utils/helpers';
+import { creationTaskIdFromLabels } from '@/views/creation/task/traceHelpers';
 
 import { enumLabel, enumShort, fieldLabel, formText } from '../components/gatewayI18n';
 import { isTimeField } from '../components/schema';
@@ -327,6 +339,25 @@ async function openDetail(id: string) {
     detail.value = null;
   } finally {
     detailLoading.value = false;
+  }
+}
+
+const detailTaskId = computed(() =>
+  creationTaskIdFromLabels(detail.value?.call?.labels as Record<string, unknown> | undefined),
+);
+
+// 任务详情路由用数字主键，labels.job 只带 taskId，先按 taskId 检索出主键（同核对单页做法）
+async function goTaskTrace(taskId: string) {
+  try {
+    const res = await getCreationTaskList({ keyword: taskId, page: 1, pageSize: 5 });
+    const hit = (res.list || []).find((r) => r.taskId === taskId);
+    if (!hit) {
+      message.warning(t('aiGateway.taskTraceNotFound'));
+      return;
+    }
+    void router.push({ name: 'CreationTaskDetail', params: { id: String(hit.id) } });
+  } catch (e) {
+    console.error('Failed to resolve task:', e);
   }
 }
 
