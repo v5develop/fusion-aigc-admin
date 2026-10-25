@@ -231,10 +231,23 @@ export function cancelCreationTask(taskId: string) {
 /** 删除拒绝时后端 msg 里带的判据码（形如 "(check=creation.delete_state_changed)"） */
 export const DELETE_CHECK_STATE_CHANGED = 'creation.delete_state_changed';
 export const DELETE_CHECK_BILLING_UNSETTLED = 'creation.delete_billing_unsettled';
+/** 任务已被删除（并发删除或重复点击）：回列表刷新，不再提示过期的错误 */
+export const DELETE_CHECK_NOT_FOUND = 'creation.delete_not_found';
 
 /** 任务终态（完成/失败/取消/部分成功）才允许手动删除：2/3/4/5 */
 export function canDeleteTask(status?: number | null): boolean {
   return status === 2 || status === 3 || status === 4 || status === 5;
+}
+
+/**
+ * 详情页是否显示删除按钮：终态且不是子任务。
+ * 子任务（带 parentTaskId）后端一律拒绝单独删除（creation.delete_child_task），须删其父任务，故不提供入口。
+ */
+export function canShowDeleteTask(
+  task?: Pick<CreationTask, 'status' | 'parentTaskId'> | null,
+): boolean {
+  if (!task) return false;
+  return canDeleteTask(task.status) && !task.parentTaskId;
 }
 
 /** 从后端拒绝消息里取出判据码；没有则返回 undefined */
@@ -244,7 +257,8 @@ export function extractCheckCode(msg?: string | null): string | undefined {
 }
 
 /**
- * 手动删除历史任务（删除任务行及其 creaft 历史记录，不动素材库与媒体；后端记审计）。
+ * 手动删除历史任务：同一事务内删除该任务、其非分组子任务、分组成员，以及它们的 creaft v1 历史记录；
+ * 已入素材库的产物与媒体对象不受影响；后端记审计。子任务不能单独删除，须删其父任务。
  * 静默：拒绝消息由页面原样提示；不自动重传，避免一次点击发出两次删除。
  */
 export function deleteCreationTask(taskId: string) {

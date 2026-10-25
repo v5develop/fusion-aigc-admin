@@ -27,7 +27,7 @@
           {{ $t('creationTask.unblock') }}
         </a-button>
         <a-button
-          v-if="task && canDeleteTask(task.status)"
+          v-if="canShowDeleteTask(task)"
           danger
           :loading="deleting"
           :disabled="deleting"
@@ -1013,8 +1013,9 @@ import {
   getTaskTrace,
   fixTaskContentType,
   deleteCreationTask,
-  canDeleteTask,
+  canShowDeleteTask,
   extractCheckCode,
+  DELETE_CHECK_NOT_FOUND,
   DELETE_CHECK_STATE_CHANGED,
 } from '@/api/creation-task';
 import { getCreationTaskModerationLogs } from '@/api/moderation-log';
@@ -1730,7 +1731,7 @@ function handleRetry() {
   });
 }
 
-// Delete（仅终态；只删任务行，素材库与媒体不动；后端记审计）
+// Delete（仅终态且非子任务；删除任务及其子任务、分组成员与 creaft v1 历史，素材库与媒体不动；后端记审计）
 const deleting = ref(false);
 
 function handleDelete() {
@@ -1749,8 +1750,16 @@ function handleDelete() {
         handleBack();
       } catch (error) {
         const msg = (error as Error)?.message || t('creationTask.deleteFailed');
+        const check = extractCheckCode(msg);
+        if (check === DELETE_CHECK_NOT_FOUND) {
+          // 已被删除：回列表（列表激活时会重查），不再提示过期的错误
+          message.info(t('creationTask.deleteSuccess'));
+          handleBack();
+          return;
+        }
+        // 其余拒绝原样提示后端消息，后端已写明原因
         message.error(msg);
-        if (extractCheckCode(msg) === DELETE_CHECK_STATE_CHANGED) loadTask();
+        if (check === DELETE_CHECK_STATE_CHANGED) loadTask();
       } finally {
         deleting.value = false;
       }

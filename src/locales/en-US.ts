@@ -4364,7 +4364,7 @@ export default {
     deleteTask: 'Delete task',
     deleteConfirmTitle: 'Delete this task?',
     deleteConfirmContent:
-      'The task record will be removed from the list, and also from the user task center and creation history. Outputs already in the asset library are not affected. This action is recorded in the audit log.',
+      'The task and its child tasks will be removed from the list, and also from the user task center and creation history (including the history of grouped members). Outputs already in the asset library are not affected. This action is recorded in the audit log.',
     deleteSuccess: 'Task deleted',
     deleteFailed: 'Delete failed',
     unblockSuccess: 'Unblocked',

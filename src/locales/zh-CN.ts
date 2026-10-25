@@ -4359,7 +4359,7 @@ export default {
     deleteTask: '删除任务',
     deleteConfirmTitle: '确认删除该任务？',
     deleteConfirmContent:
-      '删除后该任务记录将从列表中移除，用户端任务中心与创作历史中也会一并消失；已入素材库的产物不受影响；此操作会记录审计日志。',
+      '删除后该任务及其子任务将从列表中移除，并从用户端任务中心与创作历史中一并消失（含分组成员的创作历史）；已入素材库的产物不受影响；此操作会记录审计日志。',
     deleteSuccess: '任务已删除',
     deleteFailed: '删除失败',
     unblockSuccess: '已取消屏蔽',
