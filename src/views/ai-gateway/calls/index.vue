@@ -355,7 +355,12 @@ async function goTaskTrace(taskId: string) {
       message.warning(t('aiGateway.taskTraceNotFound'));
       return;
     }
-    void router.push({ name: 'CreationTaskDetail', params: { id: String(hit.id) } });
+    // trace=1：详情页直接展开任务链路卡片（见 detail.vue 的 autoExpandTrace）
+    void router.push({
+      name: 'CreationTaskDetail',
+      params: { id: String(hit.id) },
+      query: { trace: '1' },
+    });
   } catch (e) {
     console.error('Failed to resolve task:', e);
   }

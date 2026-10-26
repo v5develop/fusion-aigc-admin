@@ -116,7 +116,7 @@
       <!-- 任务全链路：Java 任务 → 网关调用 → 媒体阶段，一眼看出卡在哪。
            默认折叠不请求；展开才拉取/恢复轮询，折叠即停轮询（决策见 traceHelpers.traceToggleAction） -->
       <a-card v-if="task?.taskId" style="margin-bottom: 16px">
-        <a-collapse v-model:activeKey="traceActiveKey" ghost @change="onTraceToggle">
+        <a-collapse :activeKey="traceActiveKey" ghost @change="onTraceChange">
           <a-collapse-panel key="trace" :header="$t('creationTask.trace.title')">
             <template #extra>
               <a-space v-if="traceOpen" @click.stop @keypress.stop>
@@ -643,7 +643,7 @@
 
       <!-- 诊断与时间线：默认折叠，首次展开才请求；失败仅在本卡片内提示 -->
       <a-card style="margin-bottom: 16px">
-        <a-collapse v-model:activeKey="diagActive" ghost @change="onDiagToggle">
+        <a-collapse :activeKey="diagActive" ghost @change="onDiagChange">
           <a-collapse-panel key="diag" :header="$t('creationTask.diagnosis.title')">
             <a-spin :spinning="diagLoading">
               <a-alert
@@ -1077,7 +1077,19 @@ const timelineNextAfterId = ref<number | string | null>(null);
 const timelineMoreLoading = ref(false);
 const timelineMoreError = ref('');
 let diagLoaded = false;
+/** 每次换任务 / 重新加载诊断 +1；过期会话（旧任务）的响应直接丢弃 */
+let diagSession = 0;
 const TIMELINE_PAGE_SIZE = 50;
+
+/**
+ * antdv-next 的 Collapse 只 emit('change', keys)（不 emit update:activeKey，v-model 不回写），
+ * keys 为 string[]（@v-c/collapse 经 getActiveKeysArray 归一，accordion 也是 [] / [key]）；
+ * 这里再兜底一次，并拷贝出普通数组，避免把组件内部的响应式数组存进来。
+ */
+function normalizeCollapseKeys(keys: unknown): string[] {
+  if (Array.isArray(keys)) return keys.map((k) => String(k));
+  return typeof keys === 'string' || typeof keys === 'number' ? [String(keys)] : [];
+}
 
 // ---- 任务全链路（Java → 网关 → 媒体）----
 // 轮询状态机（决策函数见 traceHelpers，均为纯函数）：
@@ -1109,6 +1121,8 @@ let traceActive = true;
 /** 链路卡片折叠面板：默认折叠，折叠时不请求、不轮询 */
 const traceActiveKey = ref<string[]>([]);
 const traceOpen = computed(() => traceActiveKey.value.includes('trace'));
+/** 从调用检索（?trace=1）进入时自动展开一次；记下任务号，之后用户收起不会被再次展开 */
+let autoExpandTraceFor: number | null = null;
 /** 当前任务是否已在展开时拉过一次 trace（换任务 / 重新加载任务时清零） */
 let traceStarted = false;
 
@@ -1249,11 +1263,19 @@ function resumeTrace() {
   void loadTrace();
 }
 
-/** 链路卡片展开/折叠：展开才首拉或恢复轮询，折叠即撤定时器 */
+/** 链路卡片头部点击：受控回写 activeKey（唯一来源），再按新状态启停 */
+function onTraceChange(keys: unknown) {
+  traceActiveKey.value = normalizeCollapseKeys(keys);
+  onTraceToggle();
+}
+
+/** 链路卡片展开/折叠：每次展开都发一次请求（轮询中则立即补拉，否则重新开始），折叠即撤定时器 */
 function onTraceToggle() {
   switch (traceToggleAction(traceOpen.value, traceStarted, tracePollState.value)) {
     case 'start':
       traceStarted = true;
+      // 同一会话的请求还在途（收起又展开）：不再叠加，等它落定即可
+      if (traceInFlight === traceSession) break;
       startTrace();
       break;
     case 'resume':
@@ -1269,6 +1291,9 @@ function onTraceToggle() {
 function resetTraceForTask() {
   traceStarted = false;
   if (traceOpen.value) {
+    // 重新加载的是新的任务状态：旧会话的在途响应作废，否则下面的在途守卫会把这次拉取跳过
+    traceSession++;
+    traceInFlight = null;
     onTraceToggle();
     return;
   }
@@ -1371,32 +1396,42 @@ function diagErrMsg(e: unknown) {
   return (e as { message?: string })?.message || String(e);
 }
 
+/** 响应仍属于当前会话且任务未切换时才落地 */
+function diagCurrent(session: number, id: string) {
+  return session === diagSession && task.value?.taskId === id;
+}
+
 async function loadDiagnosis() {
   const id = task.value?.taskId;
   if (!id) return;
+  const session = ++diagSession; // 最新一次加载为准，之前在途的响应作废
   diagLoading.value = true;
   diagError.value = '';
   timelineMoreError.value = '';
   try {
     const d = await getTaskDiagnosis(id);
+    if (!diagCurrent(session, id)) return;
     diagnosis.value = d || null;
     timelineRows.value = (d?.timeline || []).map((e, i) => ({ ...e, id: `diag-${i}` }));
     diagLoaded = true;
     // 诊断里的 timeline 是最近 30 条；游标分页从头取完整事件流，替换之
     const tl = await getTaskTimeline(id, { limit: TIMELINE_PAGE_SIZE });
+    if (!diagCurrent(session, id)) return;
     timelineRows.value = tl?.events || [];
     timelineNextAfterId.value = tl?.nextAfterId ?? null;
   } catch (e) {
+    if (!diagCurrent(session, id)) return;
     if (!diagnosis.value) diagError.value = diagErrMsg(e);
     else timelineMoreError.value = diagErrMsg(e);
   } finally {
-    diagLoading.value = false;
+    if (session === diagSession) diagLoading.value = false;
   }
 }
 
 async function loadMoreTimeline() {
   const id = task.value?.taskId;
   if (!id || timelineNextAfterId.value == null) return;
+  const session = diagSession;
   timelineMoreLoading.value = true;
   timelineMoreError.value = '';
   try {
@@ -1404,17 +1439,39 @@ async function loadMoreTimeline() {
       afterId: timelineNextAfterId.value,
       limit: TIMELINE_PAGE_SIZE,
     });
+    if (!diagCurrent(session, id)) return;
     timelineRows.value = [...timelineRows.value, ...(tl?.events || [])];
     timelineNextAfterId.value = tl?.nextAfterId ?? null;
   } catch (e) {
+    if (!diagCurrent(session, id)) return;
     timelineMoreError.value = diagErrMsg(e);
   } finally {
-    timelineMoreLoading.value = false;
+    if (session === diagSession) timelineMoreLoading.value = false;
   }
 }
 
 function onDiagToggle() {
   if (diagActive.value.length && !diagLoaded && !diagLoading.value) loadDiagnosis();
+}
+
+/** 诊断卡片头部点击：受控回写 activeKey（唯一来源），展开且未加载才请求 */
+function onDiagChange(keys: unknown) {
+  diagActive.value = normalizeCollapseKeys(keys);
+  onDiagToggle();
+}
+
+/** 加载（或重新加载）任务时调用：清掉上一个任务的诊断，旧会话在途响应作废；卡片展开则立即为新任务重拉 */
+function resetDiagnosisForTask() {
+  diagSession++;
+  diagLoaded = false;
+  diagnosis.value = null;
+  diagError.value = '';
+  diagLoading.value = false;
+  timelineRows.value = [];
+  timelineNextAfterId.value = null;
+  timelineMoreLoading.value = false;
+  timelineMoreError.value = '';
+  onDiagToggle();
 }
 
 const workflowStepStatusColor: Record<string, string> = {
@@ -1707,8 +1764,14 @@ async function loadTask() {
   loading.value = true;
   try {
     task.value = await getCreationTaskDetail(id);
+    // 从调用检索跳转（trace=1）：直接展开链路卡片（只自动展开一次，之后由用户自己收起）
+    if (route.query.trace === '1' && autoExpandTraceFor !== id) {
+      autoExpandTraceFor = id;
+      traceActiveKey.value = ['trace'];
+    }
     // 诊断 / 链路均为折叠卡片，打开页面不请求，展开才拉取
     resetTraceForTask();
+    resetDiagnosisForTask();
     // 内容审核日志（所有任务：命中/免审/未过审都可能有记录）
     try {
       moderationLogs.value = (await getCreationTaskModerationLogs(id)) ?? [];

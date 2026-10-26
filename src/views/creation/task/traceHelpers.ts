@@ -241,15 +241,14 @@ export function nextPollDelayMs(prev: number, changed: boolean, failures: number
   return prev >= TRACE_UNCHANGED_POLLS_BEFORE_BACKOFF ? TRACE_POLL_SLOW_MS : TRACE_POLL_BASE_MS;
 }
 
-export type TraceToggleAction = 'start' | 'resume' | 'pause' | 'none';
+export type TraceToggleAction = 'start' | 'resume' | 'pause';
 
 /**
- * 链路卡片展开/折叠时该做什么（卡片默认折叠，打开详情页不请求 trace）：
+ * 链路卡片展开/折叠时该做什么（卡片默认折叠，打开详情页不请求 trace）。每次展开都必须发一次请求：
  * - 折叠 → 'pause'：撤掉定时器，折叠期间不再发请求（已在途的那一个落定后也不再排下一次）；
- * - 展开且本任务还没拉过 → 'start'（等同原先打开页面时的 startTrace，每个任务只走一次）；
- * - 展开且已拉过、仍处于轮询态 → 'resume'（立即补拉一次并按原节奏继续轮询）；
- * - 展开且已拉过、轮询已停（settled / failed / unavailable / 打开时已终态的 idle）→ 'none'，
- *   保持原状态与提示，需要时由「刷新 / 重试」按钮手动拉取。
+ * - 展开且仍处于轮询态 → 'resume'（立即补拉一次并按原节奏继续轮询；已有在途请求时不叠加）；
+ * - 展开且本任务还没拉过，或轮询已停（settled / failed / unavailable / 打开时已终态的 idle）
+ *   → 'start'：重新开始一次链路拉取（终态任务只拉一次，非终态进入轮询）。
  */
 export function traceToggleAction(
   open: boolean,
@@ -257,8 +256,7 @@ export function traceToggleAction(
   pollState: string,
 ): TraceToggleAction {
   if (!open) return 'pause';
-  if (!started) return 'start';
-  return pollState === 'polling' ? 'resume' : 'none';
+  return started && pollState === 'polling' ? 'resume' : 'start';
 }
 
 export type TraceStopReason = 'terminal' | 'settled' | 'failures';
