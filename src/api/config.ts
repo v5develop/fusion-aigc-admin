@@ -279,6 +279,17 @@ export function setReconcileRetryEnabled(enabled: boolean) {
   });
 }
 
+/** 成品直入素材库（网关 media_purpose）：DB 优先、未配置回退 yaml；只影响此后新建的网关调用。 */
+export function getMediaPurposeEnabled() {
+  return request.get<boolean>('/api/v1/admin/settings/media-purpose');
+}
+
+export function setMediaPurposeEnabled(enabled: boolean) {
+  return request.put<boolean>('/api/v1/admin/settings/media-purpose', undefined, {
+    params: { enabled },
+  });
+}
+
 /**
  * 免费/付费分层总开关。
  *

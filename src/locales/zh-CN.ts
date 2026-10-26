@@ -3769,6 +3769,11 @@ export default {
       '开启后，网关支持核对重开时，运营可对「已核对为未计费」的 UNKNOWN 步骤发起人工重试；关闭时此类重试被拒绝。「已计费」的核对结论与核对单列表不受影响。默认关闭',
     reconcileRetryOn: '已开启核对后重开',
     reconcileRetryOff: '已关闭核对后重开，此类人工重试将被拒绝',
+    mediaPurpose: '成品直入素材库',
+    mediaPurposeDesc: '开启后成品网关调用带 media_purpose，由网关直接落素材库',
+    mediaPurposeWarning: '仅对此后新建的调用生效；开启前请确认网关已支持 media_purpose',
+    mediaPurposeOn: '已开启成品直入素材库，新建的调用生效',
+    mediaPurposeOff: '已关闭成品直入素材库，新建的调用不再带 media_purpose',
     freeOriginalCleanup: '免费用户原图到期清理',
     freeOriginalCleanupDesc:
       '默认关闭。开启后，到期的免费用户原图会连同任务历史与素材库条目一起删除，不可恢复。开启前请确认保留天数',

@@ -385,6 +385,20 @@
                 <div class="form-hint">{{ $t('settingsSystem.reconcileRetryDesc') }}</div>
               </a-form-item>
 
+              <a-form-item :label="$t('settingsSystem.mediaPurpose')">
+                <a-switch
+                  v-model:checked="mediaPurposeEnabled"
+                  :loading="savingMediaPurpose"
+                  @change="handleToggleMediaPurpose"
+                />
+                <div class="form-hint">{{ $t('settingsSystem.mediaPurposeDesc') }}</div>
+                <a-alert
+                  type="warning"
+                  show-icon
+                  :message="$t('settingsSystem.mediaPurposeWarning')"
+                />
+              </a-form-item>
+
               <a-form-item :label="$t('settingsSystem.userTier')">
                 <a-switch
                   v-model:checked="userTierEnabled"
@@ -518,6 +532,8 @@ import {
   setProcessingPlaceholders,
   getReconcileRetryEnabled,
   setReconcileRetryEnabled,
+  getMediaPurposeEnabled,
+  setMediaPurposeEnabled,
   getUserTierEnabled,
   setUserTierEnabled,
 } from '@/api/config';
@@ -611,6 +627,9 @@ const processingImageUrl = ref('');
 const processingVideoUrl = ref('');
 const savingProcessingPlaceholders = ref(false);
 const savingReconcileRetry = ref(false);
+/** 成品直入素材库（网关 media_purpose）开关：DB 优先、未配置回退 yaml 后的实际生效值。 */
+const mediaPurposeEnabled = ref(false);
+const savingMediaPurpose = ref(false);
 const userTierEnabled = ref(false);
 const savingUserTier = ref(false);
 // 后端返回 TEXT/VISION 两档；modelId 可被 v-model 就地编辑，保存时按档提交
@@ -1021,6 +1040,28 @@ async function handleToggleReconcileRetry(checked: boolean) {
   }
 }
 
+async function loadMediaPurpose() {
+  try {
+    mediaPurposeEnabled.value = await getMediaPurposeEnabled();
+  } catch {
+    /* 错误已由拦截器提示 */
+  }
+}
+
+async function handleToggleMediaPurpose(checked: boolean) {
+  savingMediaPurpose.value = true;
+  try {
+    await setMediaPurposeEnabled(checked);
+    message.success(
+      checked ? t('settingsSystem.mediaPurposeOn') : t('settingsSystem.mediaPurposeOff'),
+    );
+  } catch {
+    mediaPurposeEnabled.value = !checked;
+  } finally {
+    savingMediaPurpose.value = false;
+  }
+}
+
 async function loadUserTier() {
   try {
     userTierEnabled.value = await getUserTierEnabled();
@@ -1072,6 +1113,7 @@ onMounted(() => {
   loadDisplayWatermark();
   loadPaidViewWatermark();
   loadReconcileRetry();
+  loadMediaPurpose();
   loadFreeOriginal();
   loadUserInputRetention();
   loadProcessingPlaceholders();
