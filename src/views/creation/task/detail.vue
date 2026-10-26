@@ -113,130 +113,145 @@
         </a-descriptions>
       </a-card>
 
-      <!-- 任务全链路：Java 任务 → 网关调用 → 媒体阶段，一眼看出卡在哪 -->
-      <a-card
-        v-if="task?.taskId"
-        :title="$t('creationTask.trace.title')"
-        style="margin-bottom: 16px"
-      >
-        <template #extra>
-          <a-space>
-            <span v-if="trace?.traceId" class="trace-meta">
-              {{ $t('creationTask.trace.traceId') }}: <code>{{ trace.traceId }}</code>
-            </span>
-            <span v-if="trace?.generatedAt" class="trace-meta">
-              {{ $t('creationTask.trace.generatedAt') }}: {{ trace.generatedAt }}
-            </span>
-            <a-tag v-if="tracePolling" color="processing">{{
-              $t('creationTask.trace.autoRefresh', { sec: Math.round(traceDelayMs / 1000) })
-            }}</a-tag>
-            <a-button size="small" :loading="traceLoading" @click="retryTrace">{{
-              $t('creationTask.trace.refresh')
-            }}</a-button>
-          </a-space>
-        </template>
-        <a-alert
-          v-if="tracePollState === 'unavailable'"
-          type="warning"
-          show-icon
-          style="margin-bottom: 8px"
-          :message="$t('creationTask.trace.unavailable')"
-        >
-          <template #action>
-            <a-button size="small" :loading="traceLoading" @click="retryTrace">{{
-              $t('creationTask.trace.retry')
-            }}</a-button>
-          </template>
-        </a-alert>
-        <a-alert
-          v-else-if="tracePollState === 'failed'"
-          type="error"
-          show-icon
-          style="margin-bottom: 8px"
-          :message="
-            $t('creationTask.trace.stoppedAfterFailures', { n: TRACE_MAX_CONSECUTIVE_FAILURES })
-          "
-          :description="traceError"
-        >
-          <template #action>
-            <a-button size="small" :loading="traceLoading" @click="retryTrace">{{
-              $t('creationTask.trace.retry')
-            }}</a-button>
-          </template>
-        </a-alert>
-        <div v-else-if="traceError" class="error-text" style="margin-bottom: 8px">
-          {{ $t('creationTask.trace.loadFail') }}: {{ traceError }}
-        </div>
-        <template v-if="trace">
-          <a-alert
-            v-if="trace.stuckAt"
-            type="warning"
-            show-icon
-            style="margin-bottom: 12px"
-            :message="
-              $t('creationTask.trace.stuckBanner', {
-                name: stuckName,
-                source: sourceLabel(trace.stuckAt.source),
-                elapsed: formatDuration(trace.stuckAt.elapsedMs),
-                reason: trace.stuckAt.reason || '-',
-              })
-            "
-          />
-          <a-alert
-            v-else-if="traceComplete"
-            type="success"
-            show-icon
-            style="margin-bottom: 12px"
-            :message="$t('creationTask.trace.complete')"
-          />
-          <a-empty v-if="!traceStages.length" :description="$t('creationTask.trace.empty')" />
-          <ol v-else class="trace-list">
-            <li
-              v-for="(stage, i) in traceStages"
-              :key="`${stage.key}-${i}`"
-              class="trace-row"
-              :class="[`trace-row--${stage.status}`, { 'trace-row--stuck': i === stuckRowIndex }]"
+      <!-- 任务全链路：Java 任务 → 网关调用 → 媒体阶段，一眼看出卡在哪。
+           默认折叠不请求；展开才拉取/恢复轮询，折叠即停轮询（决策见 traceHelpers.traceToggleAction） -->
+      <a-card v-if="task?.taskId" style="margin-bottom: 16px">
+        <a-collapse v-model:activeKey="traceActiveKey" ghost @change="onTraceToggle">
+          <a-collapse-panel key="trace" :header="$t('creationTask.trace.title')">
+            <template #extra>
+              <a-space v-if="traceOpen" @click.stop @keypress.stop>
+                <span v-if="trace?.traceId" class="trace-meta">
+                  {{ $t('creationTask.trace.traceId') }}: <code>{{ trace.traceId }}</code>
+                </span>
+                <span v-if="trace?.generatedAt" class="trace-meta">
+                  {{ $t('creationTask.trace.generatedAt') }}: {{ trace.generatedAt }}
+                </span>
+                <a-tag v-if="tracePolling" color="processing">{{
+                  $t('creationTask.trace.autoRefresh', { sec: Math.round(traceDelayMs / 1000) })
+                }}</a-tag>
+                <a-button size="small" :loading="traceLoading" @click="retryTrace">{{
+                  $t('creationTask.trace.refresh')
+                }}</a-button>
+              </a-space>
+            </template>
+            <a-alert
+              v-if="tracePollState === 'unavailable'"
+              type="warning"
+              show-icon
+              style="margin-bottom: 8px"
+              :message="$t('creationTask.trace.unavailable')"
             >
-              <span class="trace-row__icon">
-                <CheckCircleFilled v-if="stage.status === 'done'" style="color: #52c41a" />
-                <LoadingOutlined v-else-if="stage.status === 'running'" style="color: #1677ff" />
-                <CloseCircleFilled v-else-if="stage.status === 'failed'" style="color: #ff4d4f" />
-                <MinusCircleOutlined
-                  v-else-if="stage.status === 'skipped'"
-                  style="color: var(--color-text-tertiary, #bfbfbf)"
-                />
-                <ClockCircleOutlined v-else style="color: var(--color-text-tertiary, #bfbfbf)" />
-              </span>
-              <div class="trace-row__body">
-                <div class="trace-row__head">
-                  <a-tag :color="sourceColor(stage.source)">{{ sourceLabel(stage.source) }}</a-tag>
-                  <span class="trace-row__name">{{ stage.name || stage.key }}</span>
-                  <code class="trace-row__key">{{ stage.key }}</code>
-                  <a-tag :color="stageColor(stage.status)">{{
-                    $t(`creationTask.trace.status.${stage.status}`)
-                  }}</a-tag>
-                  <a-tag v-if="i === stuckRowIndex" color="orange">{{
-                    $t('creationTask.trace.stuckHere')
-                  }}</a-tag>
-                  <span class="trace-row__duration">
-                    {{ stage.elapsedText }}
-                    <span v-if="stage.ongoing && stage.elapsedText !== '-'">{{
-                      $t('creationTask.trace.ongoing')
-                    }}</span>
+              <template #action>
+                <a-button size="small" :loading="traceLoading" @click="retryTrace">{{
+                  $t('creationTask.trace.retry')
+                }}</a-button>
+              </template>
+            </a-alert>
+            <a-alert
+              v-else-if="tracePollState === 'failed'"
+              type="error"
+              show-icon
+              style="margin-bottom: 8px"
+              :message="
+                $t('creationTask.trace.stoppedAfterFailures', { n: TRACE_MAX_CONSECUTIVE_FAILURES })
+              "
+              :description="traceError"
+            >
+              <template #action>
+                <a-button size="small" :loading="traceLoading" @click="retryTrace">{{
+                  $t('creationTask.trace.retry')
+                }}</a-button>
+              </template>
+            </a-alert>
+            <div v-else-if="traceError" class="error-text" style="margin-bottom: 8px">
+              {{ $t('creationTask.trace.loadFail') }}: {{ traceError }}
+            </div>
+            <template v-if="trace">
+              <a-alert
+                v-if="trace.stuckAt"
+                type="warning"
+                show-icon
+                style="margin-bottom: 12px"
+                :message="
+                  $t('creationTask.trace.stuckBanner', {
+                    name: stuckName,
+                    source: sourceLabel(trace.stuckAt.source),
+                    elapsed: formatDuration(trace.stuckAt.elapsedMs),
+                    reason: trace.stuckAt.reason || '-',
+                  })
+                "
+              />
+              <a-alert
+                v-else-if="traceComplete"
+                type="success"
+                show-icon
+                style="margin-bottom: 12px"
+                :message="$t('creationTask.trace.complete')"
+              />
+              <a-empty v-if="!traceStages.length" :description="$t('creationTask.trace.empty')" />
+              <ol v-else class="trace-list">
+                <li
+                  v-for="(stage, i) in traceStages"
+                  :key="`${stage.key}-${i}`"
+                  class="trace-row"
+                  :class="[
+                    `trace-row--${stage.status}`,
+                    { 'trace-row--stuck': i === stuckRowIndex },
+                  ]"
+                >
+                  <span class="trace-row__icon">
+                    <CheckCircleFilled v-if="stage.status === 'done'" style="color: #52c41a" />
+                    <LoadingOutlined
+                      v-else-if="stage.status === 'running'"
+                      style="color: #1677ff"
+                    />
+                    <CloseCircleFilled
+                      v-else-if="stage.status === 'failed'"
+                      style="color: #ff4d4f"
+                    />
+                    <MinusCircleOutlined
+                      v-else-if="stage.status === 'skipped'"
+                      style="color: var(--color-text-tertiary, #bfbfbf)"
+                    />
+                    <ClockCircleOutlined
+                      v-else
+                      style="color: var(--color-text-tertiary, #bfbfbf)"
+                    />
                   </span>
-                </div>
-                <div v-if="stage.status === 'failed' && stage.check" class="trace-row__check">
-                  {{ $t('creationTask.trace.check') }}: <code>{{ stage.check }}</code>
-                </div>
-                <div v-if="stage.detail" class="trace-row__detail">{{ stage.detail }}</div>
-                <div v-if="stage.startedAt || stage.endedAt" class="trace-row__time">
-                  {{ stage.startedAt || '-' }} → {{ stage.endedAt || '-' }}
-                </div>
-              </div>
-            </li>
-          </ol>
-        </template>
-        <a-skeleton v-else-if="traceLoading" active :paragraph="{ rows: 3 }" />
+                  <div class="trace-row__body">
+                    <div class="trace-row__head">
+                      <a-tag :color="sourceColor(stage.source)">{{
+                        sourceLabel(stage.source)
+                      }}</a-tag>
+                      <span class="trace-row__name">{{ stage.name || stage.key }}</span>
+                      <code class="trace-row__key">{{ stage.key }}</code>
+                      <a-tag :color="stageColor(stage.status)">{{
+                        $t(`creationTask.trace.status.${stage.status}`)
+                      }}</a-tag>
+                      <a-tag v-if="i === stuckRowIndex" color="orange">{{
+                        $t('creationTask.trace.stuckHere')
+                      }}</a-tag>
+                      <span class="trace-row__duration">
+                        {{ stage.elapsedText }}
+                        <span v-if="stage.ongoing && stage.elapsedText !== '-'">{{
+                          $t('creationTask.trace.ongoing')
+                        }}</span>
+                      </span>
+                    </div>
+                    <div v-if="stage.status === 'failed' && stage.check" class="trace-row__check">
+                      {{ $t('creationTask.trace.check') }}: <code>{{ stage.check }}</code>
+                    </div>
+                    <div v-if="stage.detail" class="trace-row__detail">{{ stage.detail }}</div>
+                    <div v-if="stage.startedAt || stage.endedAt" class="trace-row__time">
+                      {{ stage.startedAt || '-' }} → {{ stage.endedAt || '-' }}
+                    </div>
+                  </div>
+                </li>
+              </ol>
+            </template>
+            <a-skeleton v-else-if="traceLoading" active :paragraph="{ rows: 3 }" />
+          </a-collapse-panel>
+        </a-collapse>
       </a-card>
 
       <!-- Billing Info -->
@@ -1039,6 +1054,7 @@ import {
   TRACE_MAX_CONSECUTIVE_FAILURES,
   TRACE_POLL_BASE_MS,
   traceFingerprint,
+  traceToggleAction,
 } from './traceHelpers';
 
 const { t } = useI18n();
@@ -1090,6 +1106,11 @@ let traceUnchanged = 0;
 let traceLastFingerprint = '';
 /** 组件处于激活态（未被 KeepAlive 切走、未卸载） */
 let traceActive = true;
+/** 链路卡片折叠面板：默认折叠，折叠时不请求、不轮询 */
+const traceActiveKey = ref<string[]>([]);
+const traceOpen = computed(() => traceActiveKey.value.includes('trace'));
+/** 当前任务是否已在展开时拉过一次 trace（换任务 / 重新加载任务时清零） */
+let traceStarted = false;
 
 const traceStages = computed(() =>
   (trace.value?.stages || [])
@@ -1133,10 +1154,11 @@ function clearTraceTimer() {
   traceTimer = null;
 }
 
-/** 仅在轮询态、组件激活且页面可见时排下一次 */
+/** 仅在轮询态、卡片展开、组件激活且页面可见时排下一次 */
 function scheduleTrace(delayMs: number) {
   clearTraceTimer();
-  if (tracePollState.value !== 'polling' || !traceActive || !pageVisible()) return;
+  if (tracePollState.value !== 'polling' || !traceOpen.value || !traceActive || !pageVisible())
+    return;
   traceDelayMs.value = delayMs;
   traceTimer = setTimeout(() => {
     traceTimer = null;
@@ -1221,9 +1243,44 @@ function startTrace() {
 
 /** 轮询态下恢复：没有在途请求也没有排队定时器时立即补拉一次 */
 function resumeTrace() {
-  if (tracePollState.value !== 'polling' || !traceActive || !pageVisible()) return;
+  if (tracePollState.value !== 'polling' || !traceOpen.value || !traceActive || !pageVisible())
+    return;
   if (traceInFlight === traceSession || traceTimer) return;
   void loadTrace();
+}
+
+/** 链路卡片展开/折叠：展开才首拉或恢复轮询，折叠即撤定时器 */
+function onTraceToggle() {
+  switch (traceToggleAction(traceOpen.value, traceStarted, tracePollState.value)) {
+    case 'start':
+      traceStarted = true;
+      startTrace();
+      break;
+    case 'resume':
+      resumeTrace();
+      break;
+    case 'pause':
+      clearTraceTimer();
+      break;
+  }
+}
+
+/** 加载（或重新加载）任务时调用：卡片展开则立即重拉，折叠则只清空旧任务的链路，待展开再拉 */
+function resetTraceForTask() {
+  traceStarted = false;
+  if (traceOpen.value) {
+    onTraceToggle();
+    return;
+  }
+  clearTraceTimer();
+  traceSession++; // 旧任务的在途响应作废
+  traceInFlight = null;
+  trace.value = null;
+  traceError.value = '';
+  traceLoading.value = false;
+  traceLastFingerprint = '';
+  resetTracePacing();
+  tracePollState.value = 'idle';
 }
 
 function onTraceVisibilityChange() {
@@ -1251,31 +1308,22 @@ onActivated(() => {
 // ---- 核对后重试：存在 UNKNOWN 步骤且有 reconciliation:handle 权限才显示 ----
 const { can } = usePermission();
 const reconcileVisible = ref(false);
-// 诊断卡片默认折叠不请求，这里静默取一份仅用于判断 UNKNOWN 步骤
-const hintDiagnosis = ref<Diagnosis | null>(null);
-
+// 诊断卡片默认折叠不请求；打开页面不再静默预取诊断，UNKNOWN 步骤判断只用诊断卡片展开时拉到的那份，
+// 所以「核对后重试」在展开「诊断与时间线」后才可能出现（权限判断不变）。
 const hasUnknownStep = computed(() => {
-  const d = diagnosis.value ?? hintDiagnosis.value;
+  const d = diagnosis.value;
   return d?.failingStep?.status === 'UNKNOWN' || (d?.steps?.byStatus?.UNKNOWN ?? 0) > 0;
 });
 const showReconcileRetry = computed(
   () => !!task.value && can('reconciliation:handle') && hasUnknownStep.value,
 );
 
-async function loadHintDiagnosis(taskId: string) {
-  hintDiagnosis.value = null;
-  if (!can('reconciliation:handle')) return;
-  try {
-    hintDiagnosis.value = (await getTaskDiagnosis(taskId)) || null;
-  } catch {
-    hintDiagnosis.value = null;
-  }
-}
-
-function onReconcileRetried() {
+async function onReconcileRetried() {
   diagLoaded = false;
   diagnosis.value = null;
-  loadTask();
+  await loadTask();
+  // 诊断卡片仍展开时重拉一份，保持展开即有内容（折叠时等下次展开再拉）
+  onDiagToggle();
 }
 
 const byStatusEntries = computed(() => Object.entries(diagnosis.value?.steps?.byStatus || {}));
@@ -1659,8 +1707,8 @@ async function loadTask() {
   loading.value = true;
   try {
     task.value = await getCreationTaskDetail(id);
-    if (task.value?.taskId) void loadHintDiagnosis(task.value.taskId);
-    startTrace();
+    // 诊断 / 链路均为折叠卡片，打开页面不请求，展开才拉取
+    resetTraceForTask();
     // 内容审核日志（所有任务：命中/免审/未过审都可能有记录）
     try {
       moderationLogs.value = (await getCreationTaskModerationLogs(id)) ?? [];

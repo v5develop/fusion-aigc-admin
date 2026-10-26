@@ -25,12 +25,23 @@ import type {
  *   gateway.attempt.accepted
  *   gateway.rehost.output.<i>    （<i> 为产物序号，0 起）
  *   gateway.call.read
- *   media.<stage>                （媒体服务阶段，如 media.copy）
+ *   media.<stage>                （媒体服务阶段，如 media.copy；source=media，name「媒体服务 <stage>（第 n 张）」）
+ *   gateway.<stage>              （转存产物时网关侧的分段计时，如 gateway.mediasvc_http / gateway.persist /
+ *                                 gateway.sign / gateway.digest / gateway.decode_b64 / gateway.upload_body /
+ *                                 gateway.mediasvc_retry_wait；source=gateway，name「网关 <stage>（第 n 张）」，
+ *                                 status 恒为 done、startedAt/endedAt 为 null、只有 durationMs；
+ *                                 失败只体现在父阶段 gateway.rehost.output.<i> 上）
  *   task.settle
  *   task.asset_sync
  * 后缀：
  *   @<步骤路径>   多步骤工作流里网关类 key 追加所属步骤路径（形如 <key>@<步骤路径>）
- *   #n           同一 key 重复出现时追加序号（形如 <key>#n）
+ *   #n           同一 key 重复出现时追加序号（形如 <key>#n）：首次出现不带后缀，重复依列表顺序为 #2、#3…
+ * 唯一性：同一条链路内 key（含后缀）唯一，数组顺序即展示顺序，前端不排序、不按基础 key 合并行。
+ *   基础 key = 先去掉 #n 再去掉 @<步骤路径>；本面板目前不需要基础 key，卡点匹配也用完整 key。
+ * 来源样式只看 source、不看 key 前缀：source=gateway（含上面的网关分段计时）一律按网关标签/颜色渲染，
+ *   source=media 按媒体渲染。本面板不按 key 前缀推导任何「预期耗时 / 时间预算」，只展示后端给的 durationMs；
+ *   以后若要加预算，须按完整的阶段族匹配（如 media. / gateway.call. / gateway.rehost.），
+ *   不能用宽泛的 gateway. 前缀，否则网关分段计时会套用到网关调用阶段的预算。
  * 本面板不依赖这份清单完整：任何未知 key / 后缀照常渲染（name 兜底为 key），
  * 卡点匹配只做 key 全等比较，轮询决策不看具体 key。后端新增/改名 key 时可顺手更新这里。
  */
@@ -228,6 +239,26 @@ export function nextPollDelayMs(prev: number, changed: boolean, failures: number
   if (failures > 0) return TRACE_POLL_BASE_MS;
   if (changed) return TRACE_POLL_BASE_MS;
   return prev >= TRACE_UNCHANGED_POLLS_BEFORE_BACKOFF ? TRACE_POLL_SLOW_MS : TRACE_POLL_BASE_MS;
+}
+
+export type TraceToggleAction = 'start' | 'resume' | 'pause' | 'none';
+
+/**
+ * 链路卡片展开/折叠时该做什么（卡片默认折叠，打开详情页不请求 trace）：
+ * - 折叠 → 'pause'：撤掉定时器，折叠期间不再发请求（已在途的那一个落定后也不再排下一次）；
+ * - 展开且本任务还没拉过 → 'start'（等同原先打开页面时的 startTrace，每个任务只走一次）；
+ * - 展开且已拉过、仍处于轮询态 → 'resume'（立即补拉一次并按原节奏继续轮询）；
+ * - 展开且已拉过、轮询已停（settled / failed / unavailable / 打开时已终态的 idle）→ 'none'，
+ *   保持原状态与提示，需要时由「刷新 / 重试」按钮手动拉取。
+ */
+export function traceToggleAction(
+  open: boolean,
+  started: boolean,
+  pollState: string,
+): TraceToggleAction {
+  if (!open) return 'pause';
+  if (!started) return 'start';
+  return pollState === 'polling' ? 'resume' : 'none';
 }
 
 export type TraceStopReason = 'terminal' | 'settled' | 'failures';
