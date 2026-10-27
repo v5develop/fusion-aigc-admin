@@ -14,6 +14,7 @@ export default {
     aig_key: 'Gateway object key',
     allowed_deployments: 'Allowed deployments',
     ambiguous_policy: 'Ambiguous policy',
+    ambiguous_risk_ack: 'Ambiguous-outcome risk acknowledgement',
     amount: 'Amount',
     amount_cny: 'Amount (CNY)',
     aspect_ratios: 'Aspect ratios',
@@ -321,6 +322,7 @@ export default {
     adapter_params: "Validated against the selected adapter's params schema",
     ambiguous_policy:
       'What to do when a request may have been sent but no clear response came back',
+    ambiguous_risk_ack: 'Optional. For a tolerate deployment without an authoritative lookup, state why the duplicate-charge risk is accepted; publishing then stops warning.',
     asset_base_url: 'Asset library API root (default https://console.atlascloud.ai/api/v1)',
     balance_alert_threshold: 'Balance below this fires a balance_low alert',
     billing_semantics: 'When the vendor charges',
