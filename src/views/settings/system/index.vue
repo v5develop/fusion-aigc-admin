@@ -254,6 +254,24 @@
                 <div class="form-hint">{{ $t('settingsSystem.blindWatermarkDesc') }}</div>
               </a-form-item>
 
+              <a-form-item :label="$t('settingsSystem.definitionRoutingDoubao')">
+                <a-switch
+                  v-model:checked="definitionRoutingDoubao"
+                  :loading="savingDefinitionRoutingDoubao"
+                  @change="(checked: boolean) => handleToggleDefinitionRouting('hitvideo-doubao', checked)"
+                />
+                <div class="form-hint">{{ $t('settingsSystem.definitionRoutingDoubaoDesc') }}</div>
+              </a-form-item>
+
+              <a-form-item :label="$t('settingsSystem.definitionRoutingLocal')">
+                <a-switch
+                  v-model:checked="definitionRoutingLocal"
+                  :loading="savingDefinitionRoutingLocal"
+                  @change="(checked: boolean) => handleToggleDefinitionRouting('hitvideo-local', checked)"
+                />
+                <div class="form-hint">{{ $t('settingsSystem.definitionRoutingLocalDesc') }}</div>
+              </a-form-item>
+
               <a-divider />
 
               <!-- 可见水印总开关。与上面的盲水印是两回事：盲水印不可见、用于溯源，
@@ -518,6 +536,9 @@ import {
   setVideoWatermarkEnabled,
   getBlindWatermarkEnabled,
   setBlindWatermarkEnabled,
+  getDefinitionRoutingEnabled,
+  setDefinitionRoutingEnabled,
+  type DefinitionRoutingTarget,
   getDisplayWatermarkEnabled,
   setDisplayWatermarkEnabled,
   getPaidViewWatermarkEnabled,
@@ -604,6 +625,10 @@ const savingVideoWatermark = ref(false);
 /** 图片盲水印开关。同样是 DB 优先后的实际生效值。 */
 const blindWatermarkEnabled = ref(false);
 const savingBlindWatermark = ref(false);
+const definitionRoutingDoubao = ref(false);
+const savingDefinitionRoutingDoubao = ref(false);
+const definitionRoutingLocal = ref(false);
+const savingDefinitionRoutingLocal = ref(false);
 const displayWatermarkEnabled = ref(false);
 const savingDisplayWatermark = ref(false);
 const paidViewWatermarkEnabled = ref(false);
@@ -1105,8 +1130,35 @@ async function handleToggleBlindWatermark(checked: boolean) {
   }
 }
 
+async function loadDefinitionRouting() {
+  try {
+    definitionRoutingDoubao.value = await getDefinitionRoutingEnabled('hitvideo-doubao');
+    definitionRoutingLocal.value = await getDefinitionRoutingEnabled('hitvideo-local');
+  } catch {
+    /* 错误已由拦截器提示 */
+  }
+}
+
+/** 定义路由开关：保存失败拨回原值，避免界面显示已开、实际未开；提交时读取，只影响此后的新任务。 */
+async function handleToggleDefinitionRouting(target: DefinitionRoutingTarget, checked: boolean) {
+  const saving = target === 'hitvideo-doubao' ? savingDefinitionRoutingDoubao : savingDefinitionRoutingLocal;
+  const value = target === 'hitvideo-doubao' ? definitionRoutingDoubao : definitionRoutingLocal;
+  saving.value = true;
+  try {
+    await setDefinitionRoutingEnabled(target, checked);
+    message.success(
+      checked ? t('settingsSystem.definitionRoutingOn') : t('settingsSystem.definitionRoutingOff'),
+    );
+  } catch {
+    value.value = !checked;
+  } finally {
+    saving.value = false;
+  }
+}
+
 onMounted(() => {
   loadConfig();
+  loadDefinitionRouting();
   loadAgentModelConfig();
   loadVideoWatermark();
   loadBlindWatermark();

@@ -3746,6 +3746,12 @@ export default {
     blindWatermarkOn:
       'Image blind watermark enabled; newly generated images will carry tracing info',
     blindWatermarkOff: 'Image blind watermark disabled; already-embedded images remain extractable',
+    definitionRoutingDoubao: 'hitVideo Doubao path via workflow definition',
+    definitionRoutingDoubaoDesc: 'When on, new Doubao (standard and fast) submissions run through the definition workflow. Requires a published definition and the Volcengine gateway deployment.',
+    definitionRoutingLocal: 'Local hitVideo via workflow definition',
+    definitionRoutingLocalDesc: 'When on, new local hitVideo (xiaoqi-video-1.0-lite only) submissions run through the definition workflow.',
+    definitionRoutingOn: 'Workflow definition routing enabled; new matching hitVideo submissions will use the definition workflow',
+    definitionRoutingOff: 'Workflow definition routing disabled; new submissions return to the legacy path (already submitted tasks are unaffected)',
     displayWatermark: 'Visible image watermark',
     displayWatermarkDesc:
       'Master switch. Free users get watermarks on view, download and asset library; off means nobody does',

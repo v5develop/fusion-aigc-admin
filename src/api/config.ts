@@ -169,6 +169,19 @@ export function setBlindWatermarkEnabled(enabled: boolean) {
   });
 }
 
+/** 定义路由开关：hitVideo 改走数据驱动工作流（定义任务）。数据库优先，未配置回退 yaml。 */
+export type DefinitionRoutingTarget = 'hitvideo-doubao' | 'hitvideo-local';
+
+export function getDefinitionRoutingEnabled(target: DefinitionRoutingTarget) {
+  return request.get<boolean>(`/api/v1/admin/settings/definition-routing/${target}`);
+}
+
+export function setDefinitionRoutingEnabled(target: DefinitionRoutingTarget, enabled: boolean) {
+  return request.put<boolean>(`/api/v1/admin/settings/definition-routing/${target}`, undefined, {
+    params: { enabled },
+  });
+}
+
 /**
  * 图片展示水印总开关（可见水印，**不是**盲水印）。
  *
