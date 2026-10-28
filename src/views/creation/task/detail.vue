@@ -801,10 +801,22 @@
                     :scroll="{ x: 900 }"
                   >
                     <template #bodyCell="{ column, record }">
+                      <template v-if="column.dataIndex === 'kind'">
+                        <template v-if="eventKindLabel(record)">
+                          <a-tag :title="record.kind">{{ eventKindLabel(record) }}</a-tag>
+                          <span v-if="eventDurationMs(record) != null">{{
+                            $t('creationTask.diagnosis.duration', { ms: eventDurationMs(record) })
+                          }}</span>
+                        </template>
+                        <span v-else>{{ record.kind }}</span>
+                      </template>
                       <template v-if="column.dataIndex === 'status'">
-                        <a-tag v-if="record.status" :color="diagStatusColor(record.status)">{{
-                          record.status
-                        }}</a-tag>
+                        <a-tag
+                          v-if="record.status"
+                          :color="diagStatusColor(record.status)"
+                          :title="record.status"
+                          >{{ eventStatusLabel(record.status) }}</a-tag
+                        >
                         <span v-else>-</span>
                       </template>
                     </template>
@@ -1385,6 +1397,45 @@ function diagStatusColor(status: string) {
   if (['RUNNING', 'PROCESSING'].includes(s)) return 'blue';
   if (['WAITING', 'PENDING', 'UNKNOWN'].includes(s)) return 'orange';
   return 'default';
+}
+
+// 时间线事件的显示名：只认新增的这几类，其余 kind 原样显示。
+// 后端口径：late_success_delivery 的 status = acked / not_deliverable；cancel_restore_failed 是 settlement 的 status
+const EVENT_KIND_LABELED = new Set([
+  'late_success_delivery',
+  'late_success_not_deliverable',
+  'cancel_restore_failed',
+  'acked',
+  'deliver_ingest',
+  'settle_publish',
+  'settle_tx',
+]);
+const EVENT_TIMING_KINDS = new Set(['deliver_ingest', 'settle_publish', 'settle_tx']);
+
+function eventKindKey(ev: TimelineEvent): string | undefined {
+  const kind = ev.kind || '';
+  if (ev.status === 'cancel_restore_failed') return 'cancel_restore_failed';
+  if (kind === 'late_success_delivery' && ev.status === 'not_deliverable') {
+    return 'late_success_not_deliverable';
+  }
+  return EVENT_KIND_LABELED.has(kind) ? kind : undefined;
+}
+
+function eventKindLabel(ev: TimelineEvent) {
+  const key = eventKindKey(ev);
+  return key ? t(`creationTask.diagnosis.eventKind.${key}`) : '';
+}
+
+// 状态只给 acked 换显示名，其余原样
+function eventStatusLabel(status: string) {
+  return status === 'acked' ? t('creationTask.diagnosis.eventKind.acked') : status;
+}
+
+// 计时事件 message = durationMs=<毫秒>；读不出不编造
+function eventDurationMs(ev: TimelineEvent): number | undefined {
+  if (!EVENT_TIMING_KINDS.has(ev.kind || '')) return undefined;
+  const m = /^durationMs=(\d{1,15})$/.exec((ev.message || '').trim());
+  return m ? Number(m[1]) : undefined;
 }
 
 // 仅放行 http(s) 与站内相对路径，避免后端异常值变成 javascript: 链接

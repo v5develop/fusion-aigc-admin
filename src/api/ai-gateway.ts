@@ -459,6 +459,27 @@ export function getCall(callId: string) {
   return request.get<AdminCallDetail>(`${BASE}/calls/${enc(callId)}`, cfg());
 }
 
+/** 转存重试结果：`outcome=persisted` 时结果已落在调用的 `late_result`（`late_success=true`） */
+export interface CallRehostRetryResult {
+  call_id: string;
+  attempt_seq: number;
+  outcome: 'persisted' | 'failed' | string;
+  outputs_persisted?: number;
+  /** 失败判据，如 `rehost.vendor_result_expired` */
+  check?: string | null;
+  /** 仅当失败在重试预算用完时仍是暂时性的（媒体服务繁忙） */
+  retryable?: boolean;
+}
+
+/** 只重跑已计费尝试保留结果的转存：不调用供应商、不扣费、不改调用状态 */
+export function rehostRetryCall(callId: string) {
+  return request.post<CallRehostRetryResult>(
+    `${BASE}/calls/${enc(callId)}:rehost-retry`,
+    {},
+    writeCfg({ timeout: 120000 }),
+  );
+}
+
 // ---------------------------------------------------------------------------
 // 告警（只暴露状态与事件，通知渠道由监控栈负责）
 // ---------------------------------------------------------------------------

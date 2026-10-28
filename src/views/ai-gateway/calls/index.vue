@@ -123,6 +123,25 @@
             <a @click="goTaskTrace(detailTaskId)">{{ $t('aiGateway.viewTaskTrace') }}</a>
             <code style="margin-left: 8px">{{ detailTaskId }}</code>
           </div>
+          <div v-if="lateInfo.success" style="margin-bottom: 8px">
+            <a-tag color="green">{{ $t('aiGateway.lateSuccess') }}</a-tag>
+            <span>{{ formatDateTime(lateInfo.successAt) }}</span>
+            <template v-if="lateInfo.deliveredAt">
+              <a-tag color="blue" style="margin-left: 12px">{{
+                $t('aiGateway.lateDelivered')
+              }}</a-tag>
+              <span>{{ formatDateTime(lateInfo.deliveredAt) }}</span>
+            </template>
+          </div>
+          <div v-if="canRehostRetry" style="margin-bottom: 8px">
+            <a-button danger :loading="rehosting" @click="handleRehostRetry">{{
+              $t('aiGateway.rehostRetry')
+            }}</a-button>
+          </div>
+          <template v-if="rehostResult">
+            <h4>{{ $t('aiGateway.rehostRetryResult') }}</h4>
+            <pre class="json-viewer small">{{ pretty(rehostResult) }}</pre>
+          </template>
           <h4>{{ formText('detailCall') }}</h4>
           <pre class="json-viewer">{{ pretty(detail.call) }}</pre>
           <h4>{{ formText('detailInput') }}</h4>
@@ -140,6 +159,10 @@
           <a-empty v-else />
           <h4>{{ formText('detailOutcome') }}</h4>
           <pre class="json-viewer">{{ pretty(detail.outcome) }}</pre>
+          <template v-if="lateInfo.success">
+            <h4>{{ $t('aiGateway.lateResult') }}</h4>
+            <pre class="json-viewer">{{ pretty(detail.outcome.late_result) }}</pre>
+          </template>
           <h4>{{ formText('detailEvents') }}</h4>
           <a-timeline v-if="detail.events.length">
             <a-timeline-item v-for="(ev, i) in detail.events" :key="i">
@@ -154,7 +177,7 @@
 </template>
 
 <script setup lang="ts">
-import { message } from 'antdv-next';
+import { Modal, message } from 'antdv-next';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
@@ -163,8 +186,10 @@ import {
   CALL_STATUSES,
   OPERATIONS,
   getCall,
+  rehostRetryCall,
   searchCalls,
   type AdminCallDetail,
+  type CallRehostRetryResult,
   type CallSearchParams,
   type CallSummary,
 } from '@/api/ai-gateway';
@@ -249,6 +274,7 @@ async function fetchPage(cursor?: string) {
       currentCursor.value = undefined;
       detailId.value = callId;
       detail.value = found;
+      rehostResult.value = null;
       detailOpen.value = true;
       return;
     }
@@ -331,6 +357,7 @@ const detail = ref<AdminCallDetail | null>(null);
 async function openDetail(id: string) {
   detailId.value = id;
   detail.value = null;
+  rehostResult.value = null;
   detailOpen.value = true;
   detailLoading.value = true;
   try {
@@ -340,6 +367,60 @@ async function openDetail(id: string) {
   } finally {
     detailLoading.value = false;
   }
+}
+
+// 迟到成功：网关把 late_* 放在 outcome 里（与 result 同组），调用终态不变
+const lateInfo = computed(() => {
+  const o = detail.value?.outcome || {};
+  return {
+    success: o.late_success === true,
+    successAt: o.late_success_at,
+    deliveredAt: o.late_delivered_at,
+  };
+});
+
+// 转存重试：仅 FAILED 终态、有已计费尝试、尚无迟到成功时可用；其余拒绝由网关判（409 带判据，拦截器提示）
+const canRehostRetry = computed(
+  () =>
+    detail.value?.call?.status === 'FAILED' &&
+    !lateInfo.value.success &&
+    detail.value.attempts.some((a) => a.charged === 'CHARGED'),
+);
+const rehosting = ref(false);
+const rehostResult = ref<CallRehostRetryResult | null>(null);
+
+function handleRehostRetry() {
+  const id = detailId.value;
+  Modal.confirm({
+    title: t('aiGateway.rehostRetry'),
+    content: t('aiGateway.rehostRetryConfirm'),
+    onOk: async () => {
+      rehosting.value = true;
+      try {
+        const r = await rehostRetryCall(id);
+        rehostResult.value = r;
+        if (r?.outcome === 'persisted') {
+          message.success(t('aiGateway.rehostRetryPersisted', { n: r.outputs_persisted ?? 0 }));
+        } else {
+          const check = r?.check || '-';
+          message.error(
+            r?.retryable
+              ? `${t('aiGateway.rehostRetryFailed', { check })} · ${t('aiGateway.rehostRetryRetryable')}`
+              : t('aiGateway.rehostRetryFailed', { check }),
+          );
+        }
+        if (detailId.value === id) {
+          const kept = rehostResult.value;
+          await openDetail(id);
+          rehostResult.value = kept;
+        }
+      } catch {
+        /* 拦截器已提示网关错误（含判据） */
+      } finally {
+        rehosting.value = false;
+      }
+    },
+  });
 }
 
 const detailTaskId = computed(() =>
