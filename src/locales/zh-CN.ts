@@ -5424,6 +5424,7 @@ export default {
     stepKindsHint: 'steps[].kind 必须取下列之一，点击可复制',
     copied: '已复制',
     structureHint: '结构：schema 固定为 workflow-definition/v1；steps[] 每项含 id、kind、params，可选 after（依赖）、when（条件）；outputs 声明最终输出。bind 只能引用输入或祖先步骤输出。',
+    contractHint: '约定：billing 计费声明（entryCode、featureCode、modelId、actionType、quantity、legacyMode）发布前必须配置且与 offer 一致，缺失则不可提交；输入类型以 ? 结尾为可选（如 number?）；绑定写 {"bind":"…","optional":true} 时缺失即省略该参数；bind 用 | 分隔取第一个有值的候选；config.<name> 从系统配置 workflow.definition.<code>.config.<name> 读取，提交时冻结，缺失即拒收；媒体输入按 kind 审核，音频拒收。',
     loadFailed: '加载失败',
   },
 };

@@ -5457,6 +5457,7 @@ export default {
     stepKindsHint: 'steps[].kind must be one of these; click to copy',
     copied: 'Copied',
     structureHint: 'Structure: schema is fixed to workflow-definition/v1; each steps[] item has id, kind, params, optional after (dependencies) and when (condition); outputs declares the final output. bind may only reference inputs or ancestor step outputs.',
+    contractHint: 'Contract: billing (entryCode, featureCode, modelId, actionType, quantity, legacyMode) must be set and match the offer before publishing, otherwise the definition cannot be submitted. An input type ending with ? is optional (e.g. number?). A bind with "optional": true is omitted when missing. Separate bind candidates with | and take the first present one. config.<name> is read from the system config workflow.definition.<code>.config.<name> at submit time and frozen; a missing value is rejected. Media inputs are moderated by kind; audio is rejected.',
     loadFailed: 'Load failed',
   },
 };

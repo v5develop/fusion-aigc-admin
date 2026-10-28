@@ -126,6 +126,10 @@
           <div class="muted" style="font-size: 12px; line-height: 1.7">
             {{ $t('workflowDefinition.structureHint') }}
           </div>
+          <a-divider style="margin: 12px 0" />
+          <div class="muted" style="font-size: 12px; line-height: 1.7">
+            {{ $t('workflowDefinition.contractHint') }}
+          </div>
         </a-card>
       </a-col>
     </a-row>

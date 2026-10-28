@@ -4026,6 +4026,7 @@ export default {
     stepKindsHint: 'steps[].kind 는 아래 중 하나여야 합니다. 클릭하면 복사됩니다',
     copied: '복사했습니다',
     structureHint: '구조: schema 는 workflow-definition/v1 고정. steps[] 항목은 id, kind, params 와 선택적 after(의존), when(조건)을 가집니다. outputs 는 최종 출력. bind 는 입력 또는 조상 단계의 출력만 참조할 수 있습니다.',
+    contractHint: '약속: billing(entryCode, featureCode, modelId, actionType, quantity, legacyMode)은 발행 전에 설정하고 offer 와 일치해야 하며, 없으면 제출할 수 없습니다. 타입이 ? 로 끝나면 선택 입력입니다(예: number?). "optional": true 인 bind 는 값이 없으면 해당 파라미터를 생략합니다. bind 는 | 로 후보를 나열해 첫 번째 값을 씁니다. config.<name> 은 제출 시 시스템 설정 workflow.definition.<code>.config.<name> 에서 읽어 고정하며, 없으면 거절됩니다. 미디어 입력은 kind 로 심사하고 오디오는 거절합니다.',
     loadFailed: '불러오기 실패',
   },
 };

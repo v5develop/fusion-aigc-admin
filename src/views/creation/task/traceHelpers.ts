@@ -185,13 +185,16 @@ export function sourceColor(source: unknown): string {
   }
 }
 
-/** 网关调用 labels.job 是否为创作任务号（与后端 GatewayCostAttribution.TASK_PREFIX 一致） */
-export const CREATION_TASK_ID_PREFIX = 'AiCreation_';
+/** 创作任务号前缀：新任务统一 AiTask_，历史工作流任务为 AiCreation_（与后端 GatewayCostAttribution.TASK_PREFIXES 一致） */
+export const CREATION_TASK_ID_PREFIXES = ['AiTask_', 'AiCreation_'] as const;
+/** 网关调用 labels.job 是否为创作任务号 */
 export function creationTaskIdFromLabels(
   labels: Record<string, unknown> | null | undefined,
 ): string | null {
   const job = labels?.job;
-  return typeof job === 'string' && job.startsWith(CREATION_TASK_ID_PREFIX) ? job : null;
+  return typeof job === 'string' && CREATION_TASK_ID_PREFIXES.some((p) => job.startsWith(p))
+    ? job
+    : null;
 }
 
 // ======================== 轮询决策（纯函数，detail.vue 的链路轮询据此决定间隔与何时停） ========================

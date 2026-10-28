@@ -4048,6 +4048,7 @@ export default {
     stepKindsHint: 'steps[].kind は以下のいずれか。クリックでコピー',
     copied: 'コピーしました',
     structureHint: '構造：schema は workflow-definition/v1 固定。steps[] の各項目は id、kind、params を持ち、after（依存）と when（条件）は任意。outputs は最終出力。bind は入力または先祖ステップの出力のみ参照できます。',
+    contractHint: '約定：billing（entryCode、featureCode、modelId、actionType、quantity、legacyMode）は公開前に設定し offer と一致させる必要があり、欠けると提出できません。型末尾の ? は任意入力（例 number?）。"optional": true の bind は欠けるとパラメータを省略します。bind は | で候補を並べ、最初に値があるものを使います。config.<name> は提出時にシステム設定 workflow.definition.<code>.config.<name> から読み込んで固定し、欠けると拒否します。メディア入力は kind で審査し、音声は拒否します。',
     loadFailed: '読み込みに失敗しました',
   },
 };
