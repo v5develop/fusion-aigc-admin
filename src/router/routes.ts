@@ -835,6 +835,28 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
           requiredPermissions: 'ai_gateway:view',
         },
       },
+      {
+        path: 'workflow-definitions',
+        name: 'WorkflowDefinitions',
+        component: () => import('@/views/workflow-definition/index.vue'),
+        meta: {
+          title: 'menu.workflowDefinition',
+          icon: 'ApartmentOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'ai_gateway:view',
+        },
+      },
+      {
+        path: 'workflow-definitions/:id',
+        name: 'WorkflowDefinitionDetail',
+        component: () => import('@/views/workflow-definition/detail.vue'),
+        meta: {
+          title: 'menu.workflowDefinition',
+          requiresAuth: true,
+          hidden: true,
+          requiredPermissions: 'ai_gateway:view',
+        },
+      },
     ],
   },
   {
