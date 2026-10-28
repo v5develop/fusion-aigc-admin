@@ -20,7 +20,9 @@
             <template #renderItem="{ item }">
               <a-list-item
                 style="cursor: pointer"
-                :style="viewingVersion === item.version ? { background: 'rgba(22,119,255,0.08)' } : {}"
+                :style="
+                  viewingVersion === item.version ? { background: 'rgba(22,119,255,0.08)' } : {}
+                "
                 @click="viewVersion(item.version)"
               >
                 <div>
@@ -89,11 +91,7 @@
           />
 
           <div v-if="resultMsg" style="margin-top: 12px">
-            <a-alert
-              :type="resultOk ? 'success' : 'error'"
-              show-icon
-              :message="resultMsg"
-            />
+            <a-alert :type="resultOk ? 'success' : 'error'" show-icon :message="resultMsg" />
             <div v-if="errors.length" style="margin-top: 8px">
               <div style="font-weight: 500; margin-bottom: 4px">
                 {{ $t('workflowDefinition.errorList') }}
@@ -140,7 +138,6 @@ import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
-import ProCodeEditor from '@/components/Pro/ProCodeEditor/index.vue';
 import {
   formatValidationError,
   getWorkflowDefinition,
@@ -154,6 +151,7 @@ import {
   type WorkflowDefinitionVersion,
   type WorkflowValidationError,
 } from '@/api/workflow-definition';
+import ProCodeEditor from '@/components/Pro/ProCodeEditor/index.vue';
 import { formatDateTime } from '@/utils/helpers';
 
 const { t } = useI18n();
@@ -181,7 +179,9 @@ const resultMsg = ref('');
 const resultOk = ref(false);
 const errors = ref<WorkflowValidationError[]>([]);
 
-const canPublish = computed(() => validatedText.value !== null && validatedText.value === text.value);
+const canPublish = computed(
+  () => validatedText.value !== null && validatedText.value === text.value,
+);
 
 function pretty(v: unknown): string {
   if (v === null || v === undefined) return pretty(JSON.parse(TEMPLATE));
@@ -300,7 +300,10 @@ async function copy(k: string) {
 }
 
 async function refreshMeta() {
-  const [d, vs] = await Promise.all([getWorkflowDefinition(id), listWorkflowDefinitionVersions(id)]);
+  const [d, vs] = await Promise.all([
+    getWorkflowDefinition(id),
+    listWorkflowDefinitionVersions(id),
+  ]);
   detail.value = d;
   versions.value = [...vs].sort((a, b) => b.version - a.version);
 }
