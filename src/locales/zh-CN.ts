@@ -177,6 +177,7 @@ export default {
     aiGatewayModelGroups: '模型组',
     aiGatewayPricing: '价格模型',
     aiGatewayConfigVersions: '配置发布',
+    aiGatewayInputSources: '输入来源白名单',
     aiGatewayRuntime: '运行态',
     aiGatewayCalls: '调用检索',
     aiGatewayAlerts: '告警',

@@ -661,4 +661,17 @@ export default {
     required: '必填',
     tagsPlaceholder: '输入后回车添加',
   },
+  inputSources: {
+    title: '输入来源白名单',
+    hint: '允许供应商直接通过 https 读取的输入媒体主机名（如 xx-shop-img.oss-cn-hangzhou.aliyuncs.com）。保存只写草稿，发布后生效。未在草稿中设置时，使用网关启动环境变量 AIG_INPUT_SOURCE_HOSTS。',
+    statusConfigured: '草稿中已设置，发布后生效。',
+    statusFallback: '草稿中未设置，当前显示的是启动环境变量 AIG_INPUT_SOURCE_HOSTS 的值。保存一次即可改为在管理端维护。',
+    hostsLabel: '主机名',
+    hostPlaceholder: '输入主机名后回车或逗号分隔，如 xx-shop-img.oss-cn-hangzhou.aliyuncs.com',
+    invalidHost: '不是合法的主机名（不能含协议、路径、端口）',
+    save: '保存到草稿',
+    saved: '已写入草稿（{count} 个主机），发布后生效。',
+    loadFailed: '读取输入来源白名单失败',
+    saveFailed: '保存输入来源白名单失败',
+  },
 };

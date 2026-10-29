@@ -555,3 +555,20 @@ export function toModelGroupSelectOptions(
       disabled: g.enabled === false,
     }));
 }
+
+/**
+ * 输入媒体 https 来源白名单（主机名列表）。保存只写草稿，发布后生效。
+ * configured=false 表示草稿里从未设置，此时 hosts 是启动环境变量 AIG_INPUT_SOURCE_HOSTS 的只读值。
+ */
+export interface InputSourceHosts {
+  hosts: string[];
+  configured?: boolean;
+}
+
+export function getInputSourceHosts() {
+  return request.get<InputSourceHosts>(`${BASE}/settings/input-source-hosts`, cfg());
+}
+
+export function putInputSourceHosts(hosts: string[]) {
+  return request.put<InputSourceHosts>(`${BASE}/settings/input-source-hosts`, { hosts }, writeCfg());
+}

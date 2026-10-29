@@ -648,4 +648,17 @@ export default {
     required: '필수',
     tagsPlaceholder: '입력 후 Enter로 추가',
   },
+  inputSources: {
+    title: '입력 소스 허용 목록',
+    hint: '공급자가 https로 입력 미디어를 가져올 수 있는 호스트 이름(예: xx-shop-img.oss-cn-hangzhou.aliyuncs.com)입니다. 저장은 초안에만 기록되며 게시 후 적용됩니다. 초안에 설정하지 않으면 게이트웨이 시작 환경 변수 AIG_INPUT_SOURCE_HOSTS를 사용합니다.',
+    statusConfigured: '초안에 설정되어 있으며 게시 후 적용됩니다.',
+    statusFallback: '초안에 설정되지 않았습니다. 표시된 값은 시작 환경 변수 AIG_INPUT_SOURCE_HOSTS의 값입니다. 한 번 저장하면 여기서 관리할 수 있습니다.',
+    hostsLabel: '호스트 이름',
+    hostPlaceholder: '호스트 이름을 입력하고 Enter 또는 쉼표로 구분(예: xx-shop-img.oss-cn-hangzhou.aliyuncs.com)',
+    invalidHost: '올바르지 않은 호스트 이름입니다(스킴, 경로, 포트 제외)',
+    save: '초안에 저장',
+    saved: '초안에 저장했습니다({count}개 호스트). 게시 후 적용됩니다.',
+    loadFailed: '입력 소스 허용 목록을 불러오지 못했습니다',
+    saveFailed: '입력 소스 허용 목록 저장에 실패했습니다',
+  },
 };

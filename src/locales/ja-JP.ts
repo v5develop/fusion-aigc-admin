@@ -121,6 +121,7 @@ export default {
     aiGatewayModelGroups: 'モデルグループ',
     aiGatewayPricing: '価格モデル',
     aiGatewayConfigVersions: '設定公開',
+    aiGatewayInputSources: '入力元ホワイトリスト',
     aiGatewayRuntime: 'ランタイム',
     aiGatewayCalls: '呼び出し検索',
     aiGatewayAlerts: 'アラート',

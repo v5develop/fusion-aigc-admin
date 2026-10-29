@@ -173,6 +173,7 @@ export default {
     aiGatewayModelGroups: 'Model Groups',
     aiGatewayPricing: 'Price Models',
     aiGatewayConfigVersions: 'Config Publishing',
+    aiGatewayInputSources: 'Input Sources',
     aiGatewayRuntime: 'Runtime',
     aiGatewayCalls: 'Calls',
     aiGatewayAlerts: 'Alerts',

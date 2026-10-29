@@ -666,4 +666,17 @@ export default {
     required: 'Required',
     tagsPlaceholder: 'Type and press Enter to add',
   },
+  inputSources: {
+    title: 'Input source allowlist',
+    hint: 'Hostnames that vendors may fetch input media from over https (e.g. xx-shop-img.oss-cn-hangzhou.aliyuncs.com). Saving only writes the draft; it takes effect after publishing. When not set in the draft, the gateway startup environment variable AIG_INPUT_SOURCE_HOSTS is used.',
+    statusConfigured: 'Set in the draft; takes effect after publishing.',
+    statusFallback: 'Not set in the draft; the value shown is from the AIG_INPUT_SOURCE_HOSTS startup environment variable. Save once to maintain it here.',
+    hostsLabel: 'Hostnames',
+    hostPlaceholder: 'Type a hostname and press Enter or comma, e.g. xx-shop-img.oss-cn-hangzhou.aliyuncs.com',
+    invalidHost: 'Not a valid hostname (no scheme, path or port)',
+    save: 'Save to draft',
+    saved: 'Saved to the draft ({count} hosts); takes effect after publishing.',
+    loadFailed: 'Failed to load the input source allowlist',
+    saveFailed: 'Failed to save the input source allowlist',
+  },
 };

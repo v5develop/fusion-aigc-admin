@@ -121,6 +121,7 @@ export default {
     aiGatewayModelGroups: '모델 그룹',
     aiGatewayPricing: '가격 모델',
     aiGatewayConfigVersions: '설정 게시',
+    aiGatewayInputSources: '입력 소스 허용 목록',
     aiGatewayRuntime: '런타임',
     aiGatewayCalls: '호출 검색',
     aiGatewayAlerts: '알림',

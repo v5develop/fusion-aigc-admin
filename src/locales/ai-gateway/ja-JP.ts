@@ -648,4 +648,17 @@ export default {
     required: '必須',
     tagsPlaceholder: '入力して Enter で追加',
   },
+  inputSources: {
+    title: '入力元ホワイトリスト',
+    hint: 'ベンダーが https で入力メディアを取得できるホスト名（例：xx-shop-img.oss-cn-hangzhou.aliyuncs.com）。保存は下書きのみで、公開後に反映されます。下書きで未設定の場合は、ゲートウェイ起動時の環境変数 AIG_INPUT_SOURCE_HOSTS を使います。',
+    statusConfigured: '下書きに設定済み。公開後に反映されます。',
+    statusFallback: '下書きで未設定。表示しているのは起動時の環境変数 AIG_INPUT_SOURCE_HOSTS の値です。一度保存すると、ここで管理できます。',
+    hostsLabel: 'ホスト名',
+    hostPlaceholder: 'ホスト名を入力して Enter またはカンマで区切ります（例：xx-shop-img.oss-cn-hangzhou.aliyuncs.com）',
+    invalidHost: '不正なホスト名です（スキーム・パス・ポートは含めません）',
+    save: '下書きに保存',
+    saved: '下書きに保存しました（{count} 件のホスト）。公開後に反映されます。',
+    loadFailed: '入力元ホワイトリストの読み込みに失敗しました',
+    saveFailed: '入力元ホワイトリストの保存に失敗しました',
+  },
 };

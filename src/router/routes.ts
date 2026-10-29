@@ -804,6 +804,18 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
+        // 输入来源白名单：管理端写草稿，发布后生效（替代原先只能设环境变量的 AIG_INPUT_SOURCE_HOSTS）
+        path: 'input-sources',
+        name: 'AiGatewayInputSources',
+        component: () => import('@/views/ai-gateway/input-sources/index.vue'),
+        meta: {
+          title: 'menu.aiGatewayInputSources',
+          icon: 'LinkOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'ai_gateway:view',
+        },
+      },
+      {
         path: 'config-versions',
         name: 'AiGatewayConfigVersions',
         component: () => import('@/views/ai-gateway/config-versions/index.vue'),
