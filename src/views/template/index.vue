@@ -169,15 +169,15 @@ async function loadData(params: Record<string, unknown>) {
 }
 
 function handleCreate() {
-  router.push('/template/create');
+  router.push('/content/templates/create');
 }
 
 function handleEdit(record: TemplateRecord) {
-  router.push(`/template/edit/${record.id}`);
+  router.push(`/content/templates/edit/${record.id}`);
 }
 
 function handleCopy(record: TemplateRecord) {
-  router.push(`/template/create?copyFrom=${record.id}`);
+  router.push(`/content/templates/create?copyFrom=${record.id}`);
 }
 
 async function handleDelete(record: TemplateRecord) {

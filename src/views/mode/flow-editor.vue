@@ -15,7 +15,7 @@
         >
           {{ vStatusLabel(version?.status) }}
         </a-tag>
-        <a-tag v-if="!isDraft" color="orange">只读（非草稿）</a-tag>
+        <a-tag color="orange">只读</a-tag>
       </a-space>
       <a-space>
         <span class="muted">结算</span>
@@ -26,19 +26,16 @@
           style="width: 170px"
           :disabled="!isDraft"
         />
-        <a-input
-          v-model:value="changelog"
-          size="small"
-          placeholder="变更说明"
-          style="width: 180px"
-          :disabled="!isDraft"
-        />
-        <a-button :loading="saving" :disabled="!isDraft" @click="save(false)">保存草稿</a-button>
-        <a-button type="primary" :loading="saving" :disabled="!isDraft" @click="save(true)"
-          >保存并发布</a-button
-        >
       </a-space>
     </div>
+
+    <a-alert type="info" show-icon class="frozen-alert" :message="t('modeRouting.legacyFrozen')">
+      <template #action>
+        <a-button size="small" type="link" @click="router.push('/workflow/definitions')">
+          {{ t('modeRouting.goDefinitions') }}
+        </a-button>
+      </template>
+    </a-alert>
 
     <div class="fe-body">
       <!-- 节点面板 -->
@@ -50,7 +47,7 @@
           :key="m.id"
           class="palette-node"
           :style="{ borderColor: kindColorHex(m.kind) }"
-          draggable="true"
+          :draggable="isDraft"
           @dragstart="onDragStart($event, m)"
         >
           <a-tag :color="kindColor(m.kind)" size="small" :title="m.kind">{{
@@ -73,6 +70,9 @@
           :default-viewport="{ zoom: 0.9 }"
           :min-zoom="0.2"
           :max-zoom="2"
+          :nodes-draggable="isDraft"
+          :nodes-connectable="isDraft"
+          :edges-updatable="isDraft"
           fit-view-on-init
         >
           <Background :gap="16" />
@@ -184,6 +184,7 @@ import { Controls } from '@vue-flow/controls';
 import { VueFlow, useVueFlow, type Node, type Edge } from '@vue-flow/core';
 import { message } from 'antdv-next';
 import { ref, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import '@vue-flow/core/dist/style.css';
 import '@vue-flow/core/dist/theme-default.css';
@@ -191,41 +192,28 @@ import '@vue-flow/controls/dist/style.css';
 import {
   getFlowDetail,
   listEnabledModes,
-  updateFlowDraft,
-  publishFlowVersion,
   type Mode,
   type ModeFlowVersion,
 } from '@/api/mode';
 import { getModelOptions } from '@/api/model';
 import { stepKindLabel } from '@/utils/terms';
 
+const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const flowId = Number(route.params.flowId);
 const versionId = Number(route.query.versionId);
 const flowKey = `flow-${flowId}-${versionId}`;
 
-const {
-  onConnect,
-  addEdges,
-  addNodes,
-  screenToFlowCoordinate,
-  toObject,
-  setNodes,
-  setEdges,
-  findNode,
-  removeNodes,
-  onNodeClick,
-  getNodes,
-} = useVueFlow(flowKey);
+const { addNodes, screenToFlowCoordinate, setNodes, setEdges, findNode, removeNodes, onNodeClick } =
+  useVueFlow(flowKey);
 
 const flowName = ref('');
 const flowCode = ref('');
 const version = ref<ModeFlowVersion | null>(null);
-const isDraft = computed(() => version.value?.status === 'draft');
+// 旧 Mode 流已冻结为只读：任何版本都不可编辑/保存，编辑统一到工作流定义页
+const isDraft = computed(() => false);
 const settlementType = ref('ALL_OR_NOTHING');
-const changelog = ref('');
-const saving = ref(false);
 const settlementOptions = [
   { label: 'ALL_OR_NOTHING（整单）', value: 'ALL_OR_NOTHING' },
   { label: 'PER_CHILD（逐子）', value: 'PER_CHILD' },
@@ -269,7 +257,6 @@ function nid() {
   return `n${Date.now()}_${idc++}`;
 }
 
-onConnect((params) => addEdges([{ ...params, id: `e${Date.now()}_${idc++}` }]));
 onNodeClick(({ node }) => (selectedNodeId.value = node.id));
 
 function onDragStart(ev: DragEvent, m: Mode) {
@@ -308,94 +295,8 @@ function removeSelected() {
   }
 }
 
-// 装配 graph → OrchestrationPlan 兼容 plan
-function assemble() {
-  const obj = toObject();
-  const ns = obj.nodes as Node[];
-  const es = obj.edges as Edge[];
-  const inDeg: Record<string, number> = {};
-  const out: Record<string, string[]> = {};
-  ns.forEach((n) => {
-    inDeg[n.id] = 0;
-    out[n.id] = [];
-  });
-  es.forEach((e) => {
-    if (out[e.source]) out[e.source].push(e.target);
-    if (inDeg[e.target] != null) inDeg[e.target]++;
-  });
-  const branching =
-    ns.some((n) => (out[n.id] || []).length > 1) || Object.values(inDeg).some((d) => d > 1);
-  // Kahn 拓扑排序（线性主链）
-  const indeg = { ...inDeg };
-  const q = ns.filter((n) => indeg[n.id] === 0).map((n) => n.id);
-  const order: string[] = [];
-  while (q.length) {
-    const id = q.shift() as string;
-    order.push(id);
-    (out[id] || []).forEach((t) => {
-      indeg[t]--;
-      if (indeg[t] === 0) q.push(t);
-    });
-  }
-  // 环检测：Kahn 排不完即有环（循环依赖）→ 拒绝。原「兜底补齐」会产出错误线性 plan 且仍可发布。
-  if (order.length < ns.length) {
-    throw new Error('流程存在环（循环依赖），请修正节点连线后再保存');
-  }
-  const byId = Object.fromEntries(ns.map((n) => [n.id, n]));
-  const steps = order.map((id) => {
-    const d = (byId[id] as Node).data as Record<string, unknown>;
-    return {
-      code: d.code,
-      kind: d.kind,
-      handler: d.handler || undefined,
-      mode: d.mode ?? undefined,
-      modelId: d.modelId ?? undefined,
-      variantGroup: (d.variantGroup as string) || undefined, // 可变模型步：非空=按提交模型选档
-      promptCode: (d.promptCode as string) || undefined, // LOCAL 步：非空=按步指定提示词 code（叠加目标模型维度）
-      // costType 不在此——计费随计费场景，真实用户提交时由计费场景回填
-    };
-  });
-  const topology = branching ? 'FAN_OUT' : 'PIPELINE';
-  const planJson = { type: flowCode.value, topology, settlementType: settlementType.value, steps };
-  return { graphJson: obj, planJson, topology };
-}
-
-async function save(publish: boolean) {
-  if (!isDraft.value) return;
-  if (getNodes.value.length === 0) {
-    message.warning('画布为空，先拖入节点');
-    return;
-  }
-  let assembled: ReturnType<typeof assemble>;
-  try {
-    assembled = assemble();
-  } catch (e) {
-    // 结构性错误（如有环）：本地校验，单独提示，不进入保存
-    message.error((e as Error)?.message || '流程结构非法，无法保存');
-    return;
-  }
-  const { graphJson, planJson, topology } = assembled;
-  saving.value = true;
-  try {
-    await updateFlowDraft(versionId, {
-      graphJson,
-      planJson,
-      topology,
-      settlementType: settlementType.value,
-      changelog: changelog.value || undefined,
-    });
-    if (publish) await publishFlowVersion(versionId);
-    message.success(publish ? '已保存并发布' : '已保存草稿');
-    if (publish) goBack();
-  } catch {
-    /* 拦截器已提示 */
-  } finally {
-    saving.value = false;
-  }
-}
-
 function goBack() {
-  router.push(`/mode/flows/${flowId}/versions`);
+  router.push(`/workflow/modes/flows/${flowId}/versions`);
 }
 
 async function load() {
@@ -433,6 +334,9 @@ onMounted(load);
 </script>
 
 <style scoped>
+.frozen-alert {
+  margin: 0 16px 8px;
+}
 .flow-editor {
   display: flex;
   flex-direction: column;

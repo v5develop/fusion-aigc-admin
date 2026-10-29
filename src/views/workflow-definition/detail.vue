@@ -6,7 +6,7 @@
         <code v-if="detail" style="margin-left: 8px; font-size: 13px">{{ detail.code }}</code>
       </h2>
       <a-space>
-        <a-button @click="router.push('/ai-gateway/workflow-definitions')">
+        <a-button @click="router.push('/workflow/definitions')">
           {{ $t('common.back') }}
         </a-button>
       </a-space>
@@ -39,6 +39,35 @@
       </a-col>
 
       <a-col :xs="24" :lg="13">
+        <a-card :title="$t('workflowDefinition.graph')" variant="borderless" size="small" style="margin-bottom: 16px">
+          <a-alert
+            v-if="!graphResult.ok"
+            type="warning"
+            show-icon
+            :message="graphErrorText"
+            style="margin-bottom: 12px"
+          />
+          <div v-else class="graph-legend">
+            <span><i class="legend-line solid"></i>{{ $t('workflowDefinition.graphLegendAfter') }}</span>
+            <span><i class="legend-line dashed"></i>{{ $t('workflowDefinition.graphLegendData') }}</span>
+          </div>
+          <div class="graph-canvas">
+            <VueFlow
+              v-if="graphResult.ok"
+              :nodes="flowNodes"
+              :edges="flowEdges"
+              :nodes-draggable="false"
+              :nodes-connectable="false"
+              :elements-selectable="false"
+              :zoom-on-double-click="false"
+              fit-view-on-init
+            >
+              <Background />
+              <Controls :show-interactive="false" />
+            </VueFlow>
+          </div>
+        </a-card>
+
         <a-card :title="$t('workflowDefinition.editor')" variant="borderless" size="small">
           <template #extra>
             <a-space>
@@ -156,6 +185,12 @@ import {
   type WorkflowValidationError,
 } from '@/api/workflow-definition';
 import ProCodeEditor from '@/components/Pro/ProCodeEditor/index.vue';
+import { Background } from '@vue-flow/background';
+import { Controls } from '@vue-flow/controls';
+import { VueFlow, type Edge, type Node } from '@vue-flow/core';
+import '@vue-flow/core/dist/style.css';
+import '@vue-flow/controls/dist/style.css';
+import { buildWorkflowGraph, LAYER_GAP_X } from '@/views/workflow-definition/graph';
 import { formatDateTime } from '@/utils/helpers';
 
 const { t } = useI18n();
@@ -186,6 +221,47 @@ const errors = ref<WorkflowValidationError[]>([]);
 const canPublish = computed(
   () => validatedText.value !== null && validatedText.value === text.value,
 );
+
+// 流程图：读的是当前显示的文本（编辑中读编辑框，查看版本时读该版本）；只读，不回写定义
+const graphResult = computed(() =>
+  buildWorkflowGraph(isReadonly.value ? readonlyText.value : text.value),
+);
+const graphErrorText = computed(() => {
+  if (graphResult.value.ok) return '';
+  return t(`workflowDefinition.graphError.${graphResult.value.error}`);
+});
+const flowNodes = computed<Node[]>(() => {
+  if (!graphResult.value.ok) return [];
+  return graphResult.value.graph.nodes.map((n) => ({
+    id: n.id,
+    position: { x: n.x, y: n.y },
+    data: {
+      label: [
+        `${n.id}${n.hasCondition ? ' ·' + t('workflowDefinition.graphCondition') : ''}`,
+        n.kind,
+        n.sources.length ? `← ${n.sources.join(', ')}` : '',
+      ]
+        .filter(Boolean)
+        .join('\n'),
+    },
+    style: {
+      whiteSpace: 'pre-line',
+      width: `${LAYER_GAP_X - 40}px`,
+      fontSize: '12px',
+      textAlign: 'left',
+      borderStyle: n.hasCondition ? 'dashed' : 'solid',
+    },
+  }));
+});
+const flowEdges = computed<Edge[]>(() => {
+  if (!graphResult.value.ok) return [];
+  return graphResult.value.graph.edges.map((e) => ({
+    id: e.id,
+    source: e.source,
+    target: e.target,
+    style: e.type === 'data' ? { strokeDasharray: '6 4' } : undefined,
+  }));
+});
 
 function pretty(v: unknown): string {
   if (v === null || v === undefined) return pretty(JSON.parse(TEMPLATE));
@@ -322,3 +398,30 @@ onMounted(async () => {
   }
 });
 </script>
+
+<style scoped>
+.graph-canvas {
+  height: 360px;
+  border: 1px solid var(--color-border, #d9d9d9);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.graph-legend {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--color-text-secondary, #6b7280);
+}
+.legend-line {
+  display: inline-block;
+  width: 24px;
+  border-top: 2px solid currentColor;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+.legend-line.dashed {
+  border-top-style: dashed;
+}
+</style>
+

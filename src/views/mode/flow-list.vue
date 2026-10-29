@@ -1,10 +1,14 @@
 <template>
   <div class="page-container">
-    <ProTable ref="tableRef" :columns="columns" :request="loadData" :search="{}" row-key="id">
-      <template #emptyText><a-empty description="暂无 Mode 流，点「新建流程」创建" /></template>
-      <template #toolbar>
-        <a-button type="primary" @click="openCreate">新建流程</a-button>
+    <a-alert type="info" show-icon class="frozen-alert" :message="t('modeRouting.legacyFrozen')">
+      <template #action>
+        <a-button size="small" type="link" @click="router.push('/workflow/definitions')">
+          {{ t('modeRouting.goDefinitions') }}
+        </a-button>
       </template>
+    </a-alert>
+    <ProTable :columns="columns" :request="loadData" :search="{}" row-key="id">
+      <template #emptyText><a-empty description="暂无 Mode 流" /></template>
       <template #bodyCell="{ column, record }">
         <template v-if="column.dataIndex === 'targetModelCode'">
           <a-tag v-if="record.targetModelCode" color="geekblue">{{ record.targetModelCode }}</a-tag>
@@ -19,71 +23,121 @@
             record.status === 1 ? '启用' : '停用'
           }}</a-tag>
         </template>
+        <template v-if="column.key === 'routing'">
+          <template v-if="routingOf(record)">
+            <div class="routing-cell">
+              <div>
+                <a-tag v-if="routingOf(record)!.switchOn" color="green">{{
+                  t('modeRouting.on')
+                }}</a-tag>
+                <a-tag v-else>{{ t('modeRouting.off') }}</a-tag>
+                <a-tooltip v-if="!routingOf(record)!.globalOn" :title="t('modeRouting.globalOffHint')">
+                  <a-tag color="orange">{{ t('modeRouting.globalOff') }}</a-tag>
+                </a-tooltip>
+              </div>
+              <div class="muted">
+                <code>{{ routingOf(record)!.definitionCode }}</code>
+                <span v-if="routingOf(record)!.versionNo != null">
+                  · {{ t('modeRouting.sourceVersion', { version: routingOf(record)!.versionNo }) }}
+                </span>
+              </div>
+              <div>
+                <a-tag v-if="routingOf(record)!.convertible" color="green">{{
+                  t('modeRouting.convertOk')
+                }}</a-tag>
+                <a-popover v-else :title="t('modeRouting.errorsTitle')" placement="left">
+                  <template #content>
+                    <ul class="error-list">
+                      <li v-for="(e, i) in modeRoutingErrors(routingOf(record)!)" :key="i">
+                        {{ e }}
+                      </li>
+                    </ul>
+                  </template>
+                  <a-tag color="red" class="clickable">{{
+                    t('modeRouting.convertFail', {
+                      count: modeRoutingErrors(routingOf(record)!).length,
+                    })
+                  }}</a-tag>
+                </a-popover>
+              </div>
+            </div>
+          </template>
+          <span v-else-if="routingLoading[String(record.code)]" class="muted">…</span>
+          <span v-else class="muted">-</span>
+        </template>
         <template v-if="column.key === 'op'">
-          <a-space :size="4">
-            <a-button type="link" size="small" @click="openVersions(record)">版本/编排</a-button>
-            <a-popconfirm title="删除该流程（含全部版本）？" @confirm="handleDelete(record)">
-              <a-button type="link" size="small" danger>删除</a-button>
-            </a-popconfirm>
+          <a-space :size="4" wrap>
+            <a-button type="link" size="small" @click="openVersions(record)">{{
+              t('modeRouting.viewVersions')
+            }}</a-button>
+            <a-button
+              type="link"
+              size="small"
+              :loading="!!routingLoading[String(record.code)]"
+              @click="recheck(record)"
+              >{{ t('modeRouting.recheck') }}</a-button
+            >
+            <span v-permission="'mode:publish'">
+              <a-tooltip :title="switchDisabled(record) ? t('modeRouting.needConvertible') : ''">
+                <a-switch
+                  size="small"
+                  :checked="!!routingOf(record)?.switchOn"
+                  :disabled="switchDisabled(record)"
+                  :loading="!!switching[String(record.code)]"
+                  @change="(v: unknown) => toggle(record, !!v)"
+                />
+              </a-tooltip>
+            </span>
           </a-space>
         </template>
       </template>
     </ProTable>
-
-    <!-- 新建流程元数据 -->
-    <a-modal v-model:open="metaOpen" title="新建流程" :confirm-loading="saving" @ok="submitMeta">
-      <a-form layout="vertical">
-        <a-form-item label="编码 Code" required>
-          <a-input v-model:value="meta.code" placeholder="如 local_video_hitVideo" />
-        </a-form-item>
-        <a-form-item label="名称" required><a-input v-model:value="meta.name" /></a-form-item>
-        <a-form-item label="关联目标生成模型（如 local-image/local-video，空=通用）">
-          <a-select
-            v-model:value="meta.targetModelCode"
-            :options="modelCodeOptions"
-            allow-clear
-            show-search
-            option-filter-prop="label"
-            placeholder="选择目标模型 code"
-          />
-        </a-form-item>
-        <a-form-item label="细分入口 EntryCode（可空 = 通用）">
-          <a-select
-            v-model:value="meta.entryCode"
-            :options="entryCodeOptions"
-            allow-clear
-            show-search
-            option-filter-prop="label"
-            placeholder="选择计费场景 entryCode（来自已配置计费 offer）"
-          />
-        </a-form-item>
-        <a-form-item label="描述"
-          ><a-textarea v-model:value="meta.description" :rows="2"
-        /></a-form-item>
-      </a-form>
+    <a-modal
+      v-model:open="previewOpen"
+      :title="t('modeRouting.previewTitle')"
+      width="800px"
+      destroy-on-close
+    >
+      <div class="muted preview-code">
+        <code>{{ previewCode }}</code>
+      </div>
+      <ProCodeEditor :model-value="previewJson" language="json" readonly :height="480" />
+      <template #footer>
+        <a-button @click="previewOpen = false">{{ t('modeRouting.previewClose') }}</a-button>
+      </template>
     </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { message } from 'antdv-next';
-import { ref, reactive, onMounted } from 'vue';
+import { message, Modal } from 'antdv-next';
+import { reactive, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
+import { pageFlows, type ModeFlow } from '@/api/mode';
 import {
-  pageFlows,
-  createFlow,
-  deleteFlow,
-  getModeMeta,
-  type ModeFlow,
-  type FlowSaveReq,
-} from '@/api/mode';
-import { getModelOptions } from '@/api/model';
+  convertModeRouting,
+  getModeRouting,
+  modeRoutingErrors,
+  setModeRouting,
+  type ModeRoutingStatus,
+} from '@/api/mode-routing';
+import ProCodeEditor from '@/components/Pro/ProCodeEditor/index.vue';
 import ProTable from '@/components/Pro/ProTable/index.vue';
 
+const { t } = useI18n();
 const router = useRouter();
-const tableRef = ref<InstanceType<typeof ProTable>>();
-const modelCodeOptions = ref<{ label: string; value: string }[]>([]);
+
+/** 按流编码存切换状态；取不到的行显示「-」，不阻塞表格 */
+const routing = reactive<Record<string, ModeRoutingStatus | undefined>>({});
+const routingLoading = reactive<Record<string, boolean>>({});
+const switching = reactive<Record<string, boolean>>({});
+
+/** 干跑后的只读定义预览：转换出的定义不落库，这里只看不存 */
+const previewOpen = ref(false);
+const previewJson = ref('');
+const previewCode = ref('');
 
 const columns = [
   {
@@ -105,17 +159,40 @@ const columns = [
   },
   { title: '入口', dataIndex: 'entryCode', width: 140, ellipsis: true },
   { title: '生效状态', dataIndex: 'activeVersionId', width: 110, align: 'center' as const },
+  { title: t('modeRouting.column'), dataIndex: 'routing', key: 'routing', width: 260 },
   { title: '启用', dataIndex: 'status', width: 90, align: 'center' as const },
   { title: '更新时间', dataIndex: 'updateTime', width: 170 },
   {
     title: '操作',
     dataIndex: 'op',
     key: 'op',
-    width: 160,
+    width: 220,
     align: 'center' as const,
     fixed: 'right' as const,
   },
 ];
+
+function routingOf(record: ModeFlow): ModeRoutingStatus | undefined {
+  return routing[String(record.code)];
+}
+
+/** 不可转换时禁止开启；已开启的始终允许关闭（关闭是应急手段） */
+function switchDisabled(record: ModeFlow): boolean {
+  const s = routingOf(record);
+  if (!s) return true;
+  return !s.switchOn && !s.convertible;
+}
+
+async function loadRouting(code: string) {
+  routingLoading[code] = true;
+  try {
+    routing[code] = await getModeRouting(code);
+  } catch {
+    routing[code] = undefined;
+  } finally {
+    routingLoading[code] = false;
+  }
+}
 
 async function loadData(params: Record<string, unknown>) {
   const res = await pageFlows({
@@ -124,98 +201,84 @@ async function loadData(params: Record<string, unknown>) {
     page: (params.current as number) || 1,
     pageSize: (params.pageSize as number) || 10,
   });
-  return { data: res.list || [], total: res.total || 0, success: true };
-}
-
-// 版本/编排 → 独立页面
-function openVersions(record: ModeFlow) {
-  router.push(`/mode/flows/${record.id}/versions`);
-}
-
-async function handleDelete(record: ModeFlow) {
-  try {
-    await deleteFlow(record.id);
-    message.success('已删除');
-    tableRef.value?.refresh();
-  } catch {
-    /* */
-  }
-}
-
-async function loadModelCodes() {
-  try {
-    const list = await getModelOptions();
-    modelCodeOptions.value = (list || [])
-      .filter((m: { code?: string }) => !!m.code)
-      .map((m: { name: string; code?: string }) => ({
-        label: `${m.name} (${m.code})`,
-        value: m.code as string,
-      }));
-  } catch {
-    /* 忽略 */
-  }
-}
-
-// entryCode = 计费场景（来自已配置 offer），下拉选择免手填
-const entryCodeOptions = ref<{ label: string; value: string }[]>([]);
-async function loadEntryCodes() {
-  try {
-    const m = await getModeMeta();
-    entryCodeOptions.value = (m.entryCodes || []).map((c) => ({ label: c, value: c }));
-  } catch {
-    /* 忽略；空则手填 */
-  }
-}
-
-// 新建流程
-const metaOpen = ref(false);
-const saving = ref(false);
-const meta = reactive<FlowSaveReq>({
-  code: '',
-  name: '',
-  targetModelCode: '',
-  entryCode: '',
-  description: '',
-  status: 1,
-});
-function openCreate() {
-  Object.assign(meta, {
-    code: '',
-    name: '',
-    targetModelCode: '',
-    entryCode: '',
-    description: '',
-    status: 1,
+  const list = res.list || [];
+  list.forEach((f) => {
+    if (f.code) void loadRouting(String(f.code));
   });
-  metaOpen.value = true;
+  return { data: list, total: res.total || 0, success: true };
 }
-async function submitMeta() {
-  if (!meta.code?.trim() || !meta.name?.trim()) {
-    message.warning('请填写编码与名称');
-    return;
-  }
-  saving.value = true;
+
+function openVersions(record: ModeFlow) {
+  router.push(`/workflow/modes/flows/${record.id}/versions`);
+}
+
+/** 干跑转换 + 校验，不落库；转换成功则弹出只读预览（转换失败的原因已在该格显示） */
+async function recheck(record: ModeFlow) {
+  const code = String(record.code);
+  routingLoading[code] = true;
   try {
-    await createFlow(meta);
-    message.success('已保存');
-    metaOpen.value = false;
-    tableRef.value?.refresh();
+    const { definitionJson, ...status } = await convertModeRouting(code);
+    routing[code] = status;
+    if (definitionJson) {
+      previewJson.value = definitionJson;
+      previewCode.value = status.definitionCode;
+      previewOpen.value = true;
+    }
   } catch {
     /* 拦截器已提示 */
   } finally {
-    saving.value = false;
+    routingLoading[code] = false;
   }
 }
 
-onMounted(() => {
-  loadModelCodes();
-  loadEntryCodes();
-});
+function toggle(record: ModeFlow, enabled: boolean) {
+  const code = String(record.code);
+  const s = routing[code];
+  if (!s) return;
+  Modal.confirm({
+    title: t(enabled ? 'modeRouting.confirmOn' : 'modeRouting.confirmOff', {
+      modeCode: code,
+      definitionCode: s.definitionCode,
+    }),
+    onOk: async () => {
+      switching[code] = true;
+      try {
+        routing[code] = await setModeRouting(code, enabled);
+        message.success(t('modeRouting.saved'));
+      } catch {
+        /* 拦截器已提示原因；开关由 routing 驱动，保持原值 */
+        await loadRouting(code);
+      } finally {
+        switching[code] = false;
+      }
+    },
+  });
+}
 </script>
 
 <style scoped>
 .page-container {
   padding: 24px;
+}
+.frozen-alert {
+  margin-bottom: 16px;
+}
+.routing-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+}
+.error-list {
+  max-width: 420px;
+  margin: 0;
+  padding-left: 18px;
+}
+.clickable {
+  cursor: pointer;
+}
+.preview-code {
+  margin-bottom: 8px;
 }
 .muted {
   color: var(--color-text-tertiary, #999);

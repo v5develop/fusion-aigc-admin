@@ -1115,7 +1115,7 @@ async function handleSave(): Promise<void> {
       await createPrompt(payload);
     }
     message.success($t('common.saveSuccess'));
-    router.push('/prompt/list');
+    router.push('/content/prompts');
   } catch {
     message.error($t('common.saveFailed'));
   } finally {
@@ -1124,7 +1124,7 @@ async function handleSave(): Promise<void> {
 }
 
 function handleBack(): void {
-  router.push('/prompt/list');
+  router.push('/content/prompts');
 }
 
 onMounted(async () => {

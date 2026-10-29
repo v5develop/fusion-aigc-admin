@@ -258,9 +258,11 @@
                 <a-switch
                   v-model:checked="definitionRoutingDoubao"
                   :loading="savingDefinitionRoutingDoubao"
+                  :disabled="!definitionRoutingDoubao"
                   @change="(checked: boolean) => handleToggleDefinitionRouting('hitvideo-doubao', checked)"
                 />
                 <div class="form-hint">{{ $t('settingsSystem.definitionRoutingDoubaoDesc') }}</div>
+                <div class="form-hint">{{ $t('settingsSystem.definitionRoutingDoubaoModeFlowHint') }}</div>
               </a-form-item>
 
               <a-form-item :label="$t('settingsSystem.definitionRoutingLocal')">

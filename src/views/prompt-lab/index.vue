@@ -160,11 +160,11 @@ async function loadData(params: Record<string, unknown>) {
 }
 
 function goCreate() {
-  router.push('/prompt-lab/create');
+  router.push('/content/prompt-lab/create');
 }
 
 function goDetail(record: Prompt) {
-  router.push(`/prompt-lab/detail/${record.id}`);
+  router.push(`/content/prompt-lab/detail/${record.id}`);
 }
 
 async function handleDelete(record: Prompt) {

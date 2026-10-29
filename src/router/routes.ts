@@ -532,7 +532,7 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
       {
         path: 'creaft-bindings',
         name: 'CreaftBindingMoved',
-        redirect: '/creaft/bindings',
+        redirect: '/workflow/bindings',
         meta: { title: 'menu.creaftBinding', hidden: true, requiresAuth: true },
       },
       {
@@ -573,7 +573,7 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
     // 目录/模板/技能是运营内容配置，放在计费里既不好找，也会让人以为改它们会动钱。
     path: '/creaft',
     name: 'Creaft',
-    redirect: '/creaft/bindings',
+    redirect: '/creaft/catalog',
     component: () => import('@/components/Layout/AdminLayout.vue'),
     meta: {
       title: 'menu.creaftManagement',
@@ -582,19 +582,6 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
       order: 55,
     },
     children: [
-      {
-        // 配的是"这条路由用哪个模型按哪条价计费、卖不卖"——这一页仍与计费强相关，
-        // 所以权限是独立的 creaft_binding:*，与下面三页的 creaft_catalog:* 分开
-        path: 'bindings',
-        name: 'CreaftBinding',
-        component: () => import('@/views/creaft/binding/index.vue'),
-        meta: {
-          title: 'menu.creaftBinding',
-          icon: 'ApiOutlined',
-          requiresAuth: true,
-          requiredPermissions: 'creaft_binding:view',
-        },
-      },
       {
         // 只读：列出工具各档的网关就绪状态与原因，回答「用户为什么读不到某一档」
         path: 'tool-readiness',
@@ -669,19 +656,6 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
-        // /workflows/templates/{category} 的数据源。某分类一条都没启用时下发接口退回旧列表，
-        // 所以「端上只有一条 video」多半是这页没导入 / 没启用
-        path: 'workflow-templates',
-        name: 'CreaftWorkflowTemplate',
-        component: () => import('@/views/creaft/workflow-template/index.vue'),
-        meta: {
-          title: 'menu.creaftWorkflowTemplate',
-          icon: 'PartitionOutlined',
-          requiresAuth: true,
-          requiredPermissions: 'creaft_catalog:view',
-        },
-      },
-      {
         // /voices/list 的数据源：没有启用的音色时，视频翻译选不了音色
         path: 'voices',
         name: 'CreaftVoice',
@@ -717,6 +691,110 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
           requiresAuth: true,
           requiredPermissions: 'creaft_catalog:view',
         },
+      },
+    ],
+  },
+  {
+    path: '/workflow',
+    name: 'Workflow',
+    redirect: '/workflow/definitions',
+    component: () => import('@/components/Layout/AdminLayout.vue'),
+    meta: {
+      title: 'menu.workflowManagement',
+      icon: 'ApartmentOutlined',
+      requiresAuth: true,
+      order: 26,
+    },
+    children: [
+      {
+        path: 'definitions',
+        name: 'WorkflowDefinitions',
+        component: () => import('@/views/workflow-definition/index.vue'),
+        meta: {
+          title: 'menu.workflowDefinition',
+          icon: 'ApartmentOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'mode:view',
+        },
+      },
+      {
+        path: 'definitions/:id',
+        name: 'WorkflowDefinitionDetail',
+        component: () => import('@/views/workflow-definition/detail.vue'),
+        meta: {
+          title: 'menu.workflowDefinition',
+          requiresAuth: true,
+          hidden: true,
+          requiredPermissions: 'mode:view',
+        },
+      },
+      {
+        // 配的是"这条路由用哪个模型按哪条价计费、卖不卖"——这一页仍与计费强相关，
+        // 所以权限是独立的 creaft_binding:*，与下面三页的 creaft_catalog:* 分开
+        path: 'bindings',
+        name: 'CreaftBinding',
+        component: () => import('@/views/creaft/binding/index.vue'),
+        meta: {
+          title: 'menu.creaftBinding',
+          icon: 'ApiOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'creaft_binding:view',
+        },
+      },
+      {
+        // /workflows/templates/{category} 的数据源。某分类一条都没启用时下发接口退回旧列表，
+        // 所以「端上只有一条 video」多半是这页没导入 / 没启用
+        path: 'workflow-templates',
+        name: 'CreaftWorkflowTemplate',
+        component: () => import('@/views/creaft/workflow-template/index.vue'),
+        meta: {
+          title: 'menu.creaftWorkflowTemplate',
+          icon: 'PartitionOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'creaft_catalog:view',
+        },
+      },
+      {
+        path: 'modes/flows',
+        name: 'ModeFlows',
+        component: () => import('@/views/mode/flow-list.vue'),
+        meta: {
+          title: 'menu.modeFlows',
+          icon: 'PartitionOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'mode:view',
+        },
+      },
+      {
+        path: 'modes/flows/:flowId/versions',
+        name: 'ModeFlowVersions',
+        component: () => import('@/views/mode/flow-versions.vue'),
+        meta: {
+          title: 'menu.modeFlowVersions',
+          requiresAuth: true,
+          hidden: true,
+          activeMenu: '/workflow/modes/flows',
+          requiredPermissions: 'mode:view',
+        },
+      },
+      {
+        path: 'modes/flow-editor/:flowId',
+        name: 'ModeFlowEditor',
+        component: () => import('@/views/mode/flow-editor.vue'),
+        meta: {
+          title: 'menu.modeFlowEditor',
+          requiresAuth: true,
+          hidden: true,
+          activeMenu: '/workflow/modes/flows',
+          requiredPermissions: 'mode:view',
+        },
+      },
+      {
+        // Mode 节点页已下线（旧编辑器的积木，不是可切换单位），旧链接转到 Mode 流列表
+        path: 'modes/list',
+        name: 'ModeList',
+        redirect: '/workflow/modes/flows',
+        meta: { title: 'menu.modeList', hidden: true, requiresAuth: true },
       },
     ],
   },
@@ -859,28 +937,6 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
           requiredPermissions: 'ai_gateway:view',
         },
       },
-      {
-        path: 'workflow-definitions',
-        name: 'WorkflowDefinitions',
-        component: () => import('@/views/workflow-definition/index.vue'),
-        meta: {
-          title: 'menu.workflowDefinition',
-          icon: 'ApartmentOutlined',
-          requiresAuth: true,
-          requiredPermissions: 'ai_gateway:view',
-        },
-      },
-      {
-        path: 'workflow-definitions/:id',
-        name: 'WorkflowDefinitionDetail',
-        component: () => import('@/views/workflow-definition/detail.vue'),
-        meta: {
-          title: 'menu.workflowDefinition',
-          requiresAuth: true,
-          hidden: true,
-          requiredPermissions: 'ai_gateway:view',
-        },
-      },
     ],
   },
   {
@@ -920,19 +976,19 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
     ],
   },
   {
-    path: '/template',
-    name: 'Template',
-    redirect: '/template/list',
+    path: '/content',
+    name: 'Content',
+    redirect: '/content/templates',
     component: () => import('@/components/Layout/AdminLayout.vue'),
     meta: {
-      title: 'menu.templateManagement',
-      icon: 'FormOutlined',
+      title: 'menu.groupContent',
+      icon: 'FileTextOutlined',
       requiresAuth: true,
       order: 80,
     },
     children: [
       {
-        path: 'list',
+        path: 'templates',
         name: 'TemplateList',
         component: () => import('@/views/template/index.vue'),
         meta: {
@@ -943,27 +999,131 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
-        path: 'create',
+        path: 'templates/create',
         name: 'TemplateCreate',
         component: () => import('@/views/template/TemplateEditor.vue'),
         meta: {
           title: 'menu.templateCreate',
           requiresAuth: true,
           hidden: true,
-          activeMenu: '/template/list',
+          activeMenu: '/content/templates',
           requiredPermissions: 'template:create',
         },
       },
       {
-        path: 'edit/:id',
+        path: 'templates/edit/:id',
         name: 'TemplateEdit',
         component: () => import('@/views/template/TemplateEditor.vue'),
         meta: {
           title: 'menu.templateEdit',
           requiresAuth: true,
           hidden: true,
-          activeMenu: '/template/list',
+          activeMenu: '/content/templates',
           requiredPermissions: 'template:edit',
+        },
+      },
+      {
+        path: 'prompts',
+        name: 'PromptList',
+        component: () => import('@/views/prompt/index.vue'),
+        meta: {
+          title: 'menu.promptList',
+          icon: 'UnorderedListOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'prompt:view',
+        },
+      },
+      {
+        path: 'prompts/create',
+        name: 'PromptCreate',
+        component: () => import('@/views/prompt/PromptEditor.vue'),
+        meta: {
+          title: 'menu.promptCreate',
+          requiresAuth: true,
+          hidden: true,
+          activeMenu: '/content/prompts',
+          requiredPermissions: 'prompt:create',
+        },
+      },
+      {
+        path: 'prompts/edit/:id',
+        name: 'PromptEdit',
+        component: () => import('@/views/prompt/PromptEditor.vue'),
+        meta: {
+          title: 'menu.promptEdit',
+          requiresAuth: true,
+          hidden: true,
+          activeMenu: '/content/prompts',
+          requiredPermissions: 'prompt:edit',
+        },
+      },
+      {
+        path: 'prompt-lab/list',
+        name: 'PromptLabList',
+        component: () => import('@/views/prompt-lab/index.vue'),
+        meta: {
+          title: 'menu.promptLabList',
+          icon: 'UnorderedListOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'prompt_lab:view',
+        },
+      },
+      {
+        path: 'prompt-lab/create',
+        name: 'PromptLabCreate',
+        component: () => import('@/views/prompt-lab/create.vue'),
+        meta: {
+          title: 'menu.promptLabCreate',
+          requiresAuth: true,
+          hidden: true,
+          activeMenu: '/content/prompt-lab/list',
+          requiredPermissions: 'prompt_lab:create',
+        },
+      },
+      {
+        path: 'prompt-lab/test',
+        name: 'PromptLabTest',
+        component: () => import('@/views/prompt-lab/test-console.vue'),
+        meta: {
+          title: 'menu.promptLabTest',
+          icon: 'ExperimentOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'prompt_lab:test',
+        },
+      },
+      {
+        path: 'prompt-lab/meta',
+        name: 'PromptLabMeta',
+        component: () => import('@/views/prompt-lab/meta.vue'),
+        meta: {
+          title: 'menu.promptLabMeta',
+          icon: 'TagsOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'prompt_lab:view',
+        },
+      },
+      {
+        path: 'prompt-lab/detail/:id',
+        name: 'PromptLabDetail',
+        component: () => import('@/views/prompt-lab/detail.vue'),
+        meta: {
+          title: 'menu.promptLabDetail',
+          requiresAuth: true,
+          hidden: true,
+          activeMenu: '/content/prompt-lab/list',
+          requiredPermissions: 'prompt_lab:view',
+        },
+      },
+      {
+        path: 'prompt-lab/editor/:promptId',
+        name: 'PromptLabEditor',
+        component: () => import('@/views/prompt-lab/editor.vue'),
+        meta: {
+          title: 'menu.promptLabEditor',
+          requiresAuth: true,
+          hidden: true,
+          activeMenu: '/content/prompt-lab/list',
+          requiredPermissions: 'prompt_lab:edit',
         },
       },
     ],
@@ -1060,198 +1220,6 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
           title: 'menu.userAssetList',
           requiresAuth: true,
           requiredPermissions: 'user_asset:view',
-        },
-      },
-    ],
-  },
-  {
-    path: '/prompt',
-    name: 'Prompt',
-    redirect: '/prompt/list',
-    component: () => import('@/components/Layout/AdminLayout.vue'),
-    meta: {
-      title: 'menu.promptManagement',
-      icon: 'EditOutlined',
-      requiresAuth: true,
-      order: 81,
-    },
-    children: [
-      {
-        path: 'list',
-        name: 'PromptList',
-        component: () => import('@/views/prompt/index.vue'),
-        meta: {
-          title: 'menu.promptList',
-          icon: 'UnorderedListOutlined',
-          requiresAuth: true,
-          requiredPermissions: 'prompt:view',
-        },
-      },
-      {
-        path: 'create',
-        name: 'PromptCreate',
-        component: () => import('@/views/prompt/PromptEditor.vue'),
-        meta: {
-          title: 'menu.promptCreate',
-          requiresAuth: true,
-          hidden: true,
-          activeMenu: '/prompt/list',
-          requiredPermissions: 'prompt:create',
-        },
-      },
-      {
-        path: 'edit/:id',
-        name: 'PromptEdit',
-        component: () => import('@/views/prompt/PromptEditor.vue'),
-        meta: {
-          title: 'menu.promptEdit',
-          requiresAuth: true,
-          hidden: true,
-          activeMenu: '/prompt/list',
-          requiredPermissions: 'prompt:edit',
-        },
-      },
-    ],
-  },
-  {
-    path: '/prompt-lab',
-    name: 'PromptLab',
-    redirect: '/prompt-lab/list',
-    component: () => import('@/components/Layout/AdminLayout.vue'),
-    meta: {
-      title: 'menu.promptLab',
-      icon: 'ExperimentOutlined',
-      requiresAuth: true,
-      order: 82,
-    },
-    children: [
-      {
-        path: 'list',
-        name: 'PromptLabList',
-        component: () => import('@/views/prompt-lab/index.vue'),
-        meta: {
-          title: 'menu.promptLabList',
-          icon: 'UnorderedListOutlined',
-          requiresAuth: true,
-          requiredPermissions: 'prompt_lab:view',
-        },
-      },
-      {
-        path: 'create',
-        name: 'PromptLabCreate',
-        component: () => import('@/views/prompt-lab/create.vue'),
-        meta: {
-          title: 'menu.promptLabCreate',
-          requiresAuth: true,
-          hidden: true,
-          activeMenu: '/prompt-lab/list',
-          requiredPermissions: 'prompt_lab:create',
-        },
-      },
-      {
-        path: 'test',
-        name: 'PromptLabTest',
-        component: () => import('@/views/prompt-lab/test-console.vue'),
-        meta: {
-          title: 'menu.promptLabTest',
-          icon: 'ExperimentOutlined',
-          requiresAuth: true,
-          requiredPermissions: 'prompt_lab:test',
-        },
-      },
-      {
-        path: 'meta',
-        name: 'PromptLabMeta',
-        component: () => import('@/views/prompt-lab/meta.vue'),
-        meta: {
-          title: 'menu.promptLabMeta',
-          icon: 'TagsOutlined',
-          requiresAuth: true,
-          requiredPermissions: 'prompt_lab:view',
-        },
-      },
-      {
-        path: 'detail/:id',
-        name: 'PromptLabDetail',
-        component: () => import('@/views/prompt-lab/detail.vue'),
-        meta: {
-          title: 'menu.promptLabDetail',
-          requiresAuth: true,
-          hidden: true,
-          activeMenu: '/prompt-lab/list',
-          requiredPermissions: 'prompt_lab:view',
-        },
-      },
-      {
-        path: 'editor/:promptId',
-        name: 'PromptLabEditor',
-        component: () => import('@/views/prompt-lab/editor.vue'),
-        meta: {
-          title: 'menu.promptLabEditor',
-          requiresAuth: true,
-          hidden: true,
-          activeMenu: '/prompt-lab/list',
-          requiredPermissions: 'prompt_lab:edit',
-        },
-      },
-    ],
-  },
-  {
-    path: '/mode',
-    name: 'Mode',
-    redirect: '/mode/list',
-    component: () => import('@/components/Layout/AdminLayout.vue'),
-    meta: {
-      title: 'menu.modeManagement',
-      icon: 'PartitionOutlined',
-      requiresAuth: true,
-      order: 83,
-    },
-    children: [
-      {
-        path: 'flows',
-        name: 'ModeFlows',
-        component: () => import('@/views/mode/flow-list.vue'),
-        meta: {
-          title: 'menu.modeFlows',
-          icon: 'PartitionOutlined',
-          requiresAuth: true,
-          requiredPermissions: 'mode:view',
-        },
-      },
-      {
-        path: 'flows/:flowId/versions',
-        name: 'ModeFlowVersions',
-        component: () => import('@/views/mode/flow-versions.vue'),
-        meta: {
-          title: 'menu.modeFlowVersions',
-          requiresAuth: true,
-          hidden: true,
-          activeMenu: '/mode/flows',
-          requiredPermissions: 'mode:view',
-        },
-      },
-      {
-        path: 'flow-editor/:flowId',
-        name: 'ModeFlowEditor',
-        component: () => import('@/views/mode/flow-editor.vue'),
-        meta: {
-          title: 'menu.modeFlowEditor',
-          requiresAuth: true,
-          hidden: true,
-          activeMenu: '/mode/flows',
-          requiredPermissions: 'mode:edit',
-        },
-      },
-      {
-        path: 'list',
-        name: 'ModeList',
-        component: () => import('@/views/mode/index.vue'),
-        meta: {
-          title: 'menu.modeList',
-          icon: 'ApartmentOutlined',
-          requiresAuth: true,
-          requiredPermissions: 'mode:view',
         },
       },
     ],
@@ -1453,5 +1421,65 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         meta: { title: 'menu.llCreations', icon: 'PictureOutlined' },
       },
     ],
+  },
+  {
+    path: '/template/list',
+    redirect: '/content/templates',
+    meta: { title: 'menu.templateManagement', hidden: true, requiresAuth: true },
+  },
+  {
+    path: '/template/create',
+    redirect: '/content/templates/create',
+    meta: { title: 'menu.templateManagement', hidden: true, requiresAuth: true },
+  },
+  {
+    path: '/template/edit/:id',
+    redirect: (to) => ({ path: `/content/templates/edit/${to.params.id}` }),
+    meta: { title: 'menu.templateManagement', hidden: true, requiresAuth: true },
+  },
+  {
+    path: '/prompt/list',
+    redirect: '/content/prompts',
+    meta: { title: 'menu.promptManagement', hidden: true, requiresAuth: true },
+  },
+  {
+    path: '/prompt/create',
+    redirect: '/content/prompts/create',
+    meta: { title: 'menu.promptManagement', hidden: true, requiresAuth: true },
+  },
+  {
+    path: '/prompt/edit/:id',
+    redirect: (to) => ({ path: `/content/prompts/edit/${to.params.id}` }),
+    meta: { title: 'menu.promptManagement', hidden: true, requiresAuth: true },
+  },
+  {
+    path: '/prompt-lab/list',
+    redirect: '/content/prompt-lab/list',
+    meta: { title: 'menu.promptLab', hidden: true, requiresAuth: true },
+  },
+  {
+    path: '/prompt-lab/create',
+    redirect: '/content/prompt-lab/create',
+    meta: { title: 'menu.promptLab', hidden: true, requiresAuth: true },
+  },
+  {
+    path: '/prompt-lab/test',
+    redirect: '/content/prompt-lab/test',
+    meta: { title: 'menu.promptLab', hidden: true, requiresAuth: true },
+  },
+  {
+    path: '/prompt-lab/meta',
+    redirect: '/content/prompt-lab/meta',
+    meta: { title: 'menu.promptLab', hidden: true, requiresAuth: true },
+  },
+  {
+    path: '/prompt-lab/detail/:id',
+    redirect: (to) => ({ path: `/content/prompt-lab/detail/${to.params.id}` }),
+    meta: { title: 'menu.promptLab', hidden: true, requiresAuth: true },
+  },
+  {
+    path: '/prompt-lab/editor/:promptId',
+    redirect: (to) => ({ path: `/content/prompt-lab/editor/${to.params.promptId}` }),
+    meta: { title: 'menu.promptLab', hidden: true, requiresAuth: true },
   },
 ];

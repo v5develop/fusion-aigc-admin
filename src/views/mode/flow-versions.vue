@@ -9,13 +9,15 @@
         <a-divider type="vertical" />
         <span class="fv-name">版本 · {{ currentFlow?.name || '' }}</span>
       </div>
-      <a-space>
-        <a-button size="small" :disabled="!currentFlow" @click="editMeta">编辑元数据</a-button>
-        <a-button type="primary" size="small" :disabled="!currentFlow" @click="newDraft">
-          新建草稿
-        </a-button>
-      </a-space>
     </div>
+
+    <a-alert type="info" show-icon class="frozen-alert" :message="t('modeRouting.legacyFrozen')">
+      <template #action>
+        <a-button size="small" type="link" @click="router.push('/workflow/definitions')">
+          {{ t('modeRouting.goDefinitions') }}
+        </a-button>
+      </template>
+    </a-alert>
 
     <a-descriptions
       v-if="currentFlow"
@@ -64,71 +66,14 @@
         </template>
         <template v-if="column.key === 'op'">
           <a-space :size="2" wrap>
-            <a-button
-              v-if="record.status === 'draft'"
-              type="link"
-              size="small"
-              @click="openEditor(record)"
-              >可视化编排</a-button
-            >
-            <a-button v-else type="link" size="small" @click="openEditor(record)">查看</a-button>
+            <a-button type="link" size="small" @click="openEditor(record)">查看</a-button>
             <a-button type="link" size="small" :loading="previewing" @click="previewPlan(record)"
               >预览计划</a-button
             >
-            <a-button type="link" size="small" @click="cloneDraft(record)">克隆</a-button>
-            <a-popconfirm
-              v-if="record.id !== currentFlow?.activeVersionId"
-              :title="record.status === 'draft' ? '发布该版本？' : '回滚：发布该历史版本？'"
-              @confirm="setActive(record)"
-            >
-              <a-button type="link" size="small">{{
-                record.status === 'draft' ? '发布' : '回滚'
-              }}</a-button>
-            </a-popconfirm>
-            <a-popconfirm
-              v-if="record.status === 'draft' && record.id !== currentFlow?.activeVersionId"
-              title="删除草稿？"
-              @confirm="removeDraft(record)"
-            >
-              <a-button type="link" size="small" danger>删除</a-button>
-            </a-popconfirm>
           </a-space>
         </template>
       </template>
     </a-table>
-
-    <!-- 编辑元数据 -->
-    <a-modal v-model:open="metaOpen" title="编辑流程" :confirm-loading="saving" @ok="submitMeta">
-      <a-form layout="vertical">
-        <a-form-item label="编码 Code" required>
-          <a-input v-model:value="meta.code" disabled placeholder="如 local_video_hitVideo" />
-        </a-form-item>
-        <a-form-item label="名称" required><a-input v-model:value="meta.name" /></a-form-item>
-        <a-form-item label="关联目标生成模型（如 local-image/local-video，空=通用）">
-          <a-select
-            v-model:value="meta.targetModelCode"
-            :options="modelCodeOptions"
-            allow-clear
-            show-search
-            option-filter-prop="label"
-            placeholder="选择目标模型 code"
-          />
-        </a-form-item>
-        <a-form-item label="细分入口 EntryCode（可空 = 通用）">
-          <a-select
-            v-model:value="meta.entryCode"
-            :options="entryCodeOptions"
-            allow-clear
-            show-search
-            option-filter-prop="label"
-            placeholder="选择计费场景 entryCode（来自已配置计费 offer）"
-          />
-        </a-form-item>
-        <a-form-item label="描述"
-          ><a-textarea v-model:value="meta.description" :rows="2"
-        /></a-form-item>
-      </a-form>
-    </a-modal>
 
     <!-- 干跑预览：该版本组装后的可执行 plan（不执行/不计费） -->
     <a-modal
@@ -160,35 +105,26 @@
 
 <script setup lang="ts">
 import { ArrowLeftOutlined } from '@antdv-next/icons';
-import { message } from 'antdv-next';
-import { ref, reactive, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
 import {
-  updateFlow,
   getFlowDetail,
-  createFlowDraft,
-  deleteFlowDraft,
-  publishFlowVersion,
-  rollbackFlowVersion,
   previewFlowVersion,
-  getModeMeta,
   type ModeFlow,
   type ModeFlowVersion,
-  type FlowSaveReq,
   type ModePlanPreview,
 } from '@/api/mode';
-import { getModelOptions } from '@/api/model';
 
+// 旧 Mode 流已冻结为只读：只留「查看」「预览计划」，编辑统一到工作流定义页
+const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const flowId = Number(route.params.flowId);
 
-const modelCodeOptions = ref<{ label: string; value: string }[]>([]);
-const entryCodeOptions = ref<{ label: string; value: string }[]>([]);
-
 function goBack() {
-  router.push('/mode/flows');
+  router.push('/workflow/modes/flows');
 }
 
 // 干跑预览
@@ -226,7 +162,7 @@ const versionColumns = [
   { title: '变更', dataIndex: 'changelog', width: 200, ellipsis: true },
   { title: '创建人', dataIndex: 'createdBy', width: 120, ellipsis: true },
   { title: '发布时间', dataIndex: 'publishedAt', width: 180 },
-  { title: '操作', key: 'op', minWidth: 260, fixed: 'right' as const },
+  { title: '操作', key: 'op', minWidth: 160, fixed: 'right' as const },
 ];
 function vStatusLabel(s?: string) {
   return s === 'published' ? '已发布' : s === 'archived' ? '已归档' : '草稿';
@@ -248,115 +184,10 @@ async function reloadVersions() {
   }
 }
 function openEditor(v: ModeFlowVersion) {
-  router.push(`/mode/flow-editor/${flowId}?versionId=${v.id}`);
+  router.push(`/workflow/modes/flow-editor/${flowId}?versionId=${v.id}`);
 }
-async function newDraft() {
-  try {
-    const vid = await createFlowDraft(flowId, {});
-    message.success('已建草稿');
-    await reloadVersions();
-    router.push(`/mode/flow-editor/${flowId}?versionId=${vid}`);
-  } catch {
-    /* */
-  }
-}
-async function cloneDraft(v: ModeFlowVersion) {
-  try {
-    const vid = await createFlowDraft(flowId, { cloneFromVersionId: v.id });
-    message.success('已克隆为新草稿');
-    await reloadVersions();
-    router.push(`/mode/flow-editor/${flowId}?versionId=${vid}`);
-  } catch {
-    /* */
-  }
-}
-async function setActive(v: ModeFlowVersion) {
-  try {
-    if (v.status === 'draft') await publishFlowVersion(v.id);
-    else await rollbackFlowVersion(flowId, v.id);
-    message.success('已设为生效');
-    await reloadVersions();
-  } catch {
-    /* */
-  }
-}
-async function removeDraft(v: ModeFlowVersion) {
-  try {
-    await deleteFlowDraft(v.id);
-    message.success('已删除');
-    reloadVersions();
-  } catch {
-    /* */
-  }
-}
-
-// 编辑元数据
-const metaOpen = ref(false);
-const saving = ref(false);
-const meta = reactive<FlowSaveReq>({
-  code: '',
-  name: '',
-  targetModelCode: '',
-  entryCode: '',
-  description: '',
-  status: 1,
-});
-function editMeta() {
-  if (!currentFlow.value) return;
-  Object.assign(meta, {
-    code: currentFlow.value.code,
-    name: currentFlow.value.name,
-    targetModelCode: currentFlow.value.targetModelCode || '',
-    entryCode: currentFlow.value.entryCode || '',
-    description: currentFlow.value.description || '',
-    status: currentFlow.value.status,
-  });
-  metaOpen.value = true;
-}
-async function submitMeta() {
-  if (!meta.name?.trim()) {
-    message.warning('请填写名称');
-    return;
-  }
-  saving.value = true;
-  try {
-    await updateFlow(flowId, meta);
-    message.success('已保存');
-    metaOpen.value = false;
-    reloadVersions();
-  } catch {
-    /* 拦截器已提示 */
-  } finally {
-    saving.value = false;
-  }
-}
-
-async function loadModelCodes() {
-  try {
-    const list = await getModelOptions();
-    modelCodeOptions.value = (list || [])
-      .filter((m: { code?: string }) => !!m.code)
-      .map((m: { name: string; code?: string }) => ({
-        label: `${m.name} (${m.code})`,
-        value: m.code as string,
-      }));
-  } catch {
-    /* 忽略 */
-  }
-}
-async function loadEntryCodes() {
-  try {
-    const m = await getModeMeta();
-    entryCodeOptions.value = (m.entryCodes || []).map((c) => ({ label: c, value: c }));
-  } catch {
-    /* 忽略；空则手填 */
-  }
-}
-
 onMounted(() => {
   reloadVersions();
-  loadModelCodes();
-  loadEntryCodes();
 });
 </script>
 
@@ -381,6 +212,9 @@ onMounted(() => {
 .fv-name {
   font-size: 16px;
   font-weight: 600;
+}
+.frozen-alert {
+  margin-bottom: 16px;
 }
 .fv-desc {
   margin-bottom: 16px;

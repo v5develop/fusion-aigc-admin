@@ -52,33 +52,6 @@ export interface ModeFlowDetail {
   versions: ModeFlowVersion[];
 }
 
-export interface ModeSaveReq {
-  mode?: number | null;
-  code?: string;
-  name?: string;
-  kind?: string;
-  handler?: string;
-  formSchema?: unknown;
-  description?: string;
-  sortOrder?: number;
-  status?: number;
-}
-export interface FlowSaveReq {
-  code?: string;
-  name?: string;
-  targetModelCode?: string;
-  entryCode?: string;
-  description?: string;
-  status?: number;
-}
-export interface FlowVersionSaveReq {
-  graphJson?: unknown;
-  planJson?: unknown;
-  topology?: string;
-  settlementType?: string;
-  changelog?: string;
-  cloneFromVersionId?: number;
-}
 
 const MODE = '/api/v1/admin/modes';
 const FLOW = '/api/v1/admin/mode-flows';
@@ -98,15 +71,6 @@ export function listEnabledModes() {
 }
 export function getMode(id: number | string) {
   return request.get<Mode>(`${MODE}/${id}`);
-}
-export function createMode(data: ModeSaveReq) {
-  return request.post<number>(MODE, data);
-}
-export function updateMode(id: number | string, data: ModeSaveReq) {
-  return request.put(`${MODE}/${id}`, data);
-}
-export function deleteMode(id: number | string) {
-  return request.delete(`${MODE}/${id}`);
 }
 export interface ModeMeta {
   /** 已注册 LOCAL handler 编码 */
@@ -134,35 +98,11 @@ export function pageFlows(params: {
 export function getFlowDetail(id: number | string) {
   return request.get<ModeFlowDetail>(`${FLOW}/${id}`);
 }
-export function createFlow(data: FlowSaveReq) {
-  return request.post<number>(FLOW, data);
-}
-export function updateFlow(id: number | string, data: FlowSaveReq) {
-  return request.put(`${FLOW}/${id}`, data);
-}
-export function deleteFlow(id: number | string) {
-  return request.delete(`${FLOW}/${id}`);
-}
 export function listFlowVersions(id: number | string) {
   return request.get<ModeFlowVersion[]>(`${FLOW}/${id}/versions`);
 }
 export function getFlowVersion(versionId: number | string) {
   return request.get<ModeFlowVersion>(`${FLOW}/versions/${versionId}`);
-}
-export function createFlowDraft(id: number | string, data: FlowVersionSaveReq) {
-  return request.post<number>(`${FLOW}/${id}/versions`, data);
-}
-export function updateFlowDraft(versionId: number | string, data: FlowVersionSaveReq) {
-  return request.put(`${FLOW}/versions/${versionId}`, data);
-}
-export function deleteFlowDraft(versionId: number | string) {
-  return request.delete(`${FLOW}/versions/${versionId}`);
-}
-export function publishFlowVersion(versionId: number | string) {
-  return request.post(`${FLOW}/versions/${versionId}/publish`);
-}
-export function rollbackFlowVersion(id: number | string, versionId: number | string) {
-  return request.post(`${FLOW}/${id}/rollback/${versionId}`);
 }
 
 export interface ModePlanPreview {

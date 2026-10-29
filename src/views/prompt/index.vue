@@ -204,15 +204,15 @@ async function loadData(params: Record<string, unknown>) {
 }
 
 function handleCreate() {
-  router.push('/prompt/create');
+  router.push('/content/prompts/create');
 }
 
 function handleEdit(record: PromptRecord) {
-  router.push(`/prompt/edit/${record.id}`);
+  router.push(`/content/prompts/edit/${record.id}`);
 }
 
 function handleCopy(record: PromptRecord) {
-  router.push(`/prompt/create?copyFrom=${record.id}`);
+  router.push(`/content/prompts/create?copyFrom=${record.id}`);
 }
 
 async function handleDelete(record: PromptRecord) {

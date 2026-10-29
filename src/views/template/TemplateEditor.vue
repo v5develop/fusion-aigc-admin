@@ -285,7 +285,7 @@ async function doSave(publish = false) {
     } else {
       await createTemplate(d);
       message.success($t('common.success'));
-      router.push('/template/list');
+      router.push('/content/templates');
     }
   } catch {
     message.error($t('common.error'));
@@ -304,7 +304,7 @@ function handlePreview() {
   previewVisible.value = true;
 }
 function handleBack() {
-  router.push('/template/list');
+  router.push('/content/templates');
 }
 onMounted(() => {
   if (isEdit) {

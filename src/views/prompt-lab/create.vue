@@ -405,7 +405,7 @@ async function handleSave(publish: boolean) {
       }
     }
     message.success(publish ? '已保存并发布' : '已保存草稿');
-    router.push(`/prompt-lab/detail/${id}`);
+    router.push(`/content/prompt-lab/detail/${id}`);
   } catch {
     /* 拦截器已提示 */
   } finally {
@@ -414,7 +414,7 @@ async function handleSave(publish: boolean) {
 }
 
 function goBack() {
-  router.push('/prompt-lab/list');
+  router.push('/content/prompt-lab/list');
 }
 
 onMounted(loadOptions);

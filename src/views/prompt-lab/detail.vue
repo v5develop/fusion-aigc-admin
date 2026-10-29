@@ -401,20 +401,20 @@ async function loadRelatedFlows() {
   }
 }
 function goFlows() {
-  router.push('/mode/flows');
+  router.push('/workflow/modes/flows');
 }
 
 function goBack() {
-  router.push('/prompt-lab/list');
+  router.push('/content/prompt-lab/list');
 }
 function goNewDraft() {
-  router.push(`/prompt-lab/editor/${promptId}`);
+  router.push(`/content/prompt-lab/editor/${promptId}`);
 }
 function editDraft(record: PromptVersion) {
-  router.push(`/prompt-lab/editor/${promptId}?versionId=${record.id}`);
+  router.push(`/content/prompt-lab/editor/${promptId}?versionId=${record.id}`);
 }
 function cloneDraft(record: PromptVersion) {
-  router.push(`/prompt-lab/editor/${promptId}?cloneFrom=${record.id}`);
+  router.push(`/content/prompt-lab/editor/${promptId}?cloneFrom=${record.id}`);
 }
 
 async function setActive(record: PromptVersion) {

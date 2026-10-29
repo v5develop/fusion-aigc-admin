@@ -120,7 +120,7 @@ async function load() {
 }
 
 function openDetail(record: WorkflowDefinitionItem) {
-  router.push(`/ai-gateway/workflow-definitions/${record.id}`);
+  router.push(`/workflow/definitions/${record.id}`);
 }
 
 const createOpen = ref(false);
@@ -146,7 +146,7 @@ async function submitCreate() {
     message.success(t('workflowDefinition.created'));
     createOpen.value = false;
     if (id !== undefined && id !== null && id !== '') {
-      router.push(`/ai-gateway/workflow-definitions/${id}`);
+      router.push(`/workflow/definitions/${id}`);
     } else {
       await load();
     }

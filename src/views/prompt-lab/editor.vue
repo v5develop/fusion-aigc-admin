@@ -295,7 +295,7 @@ async function handleSave() {
 }
 
 function goBack() {
-  router.push(`/prompt-lab/detail/${promptId}`);
+  router.push(`/content/prompt-lab/detail/${promptId}`);
 }
 
 onMounted(() => {
