@@ -266,16 +266,15 @@ function applyRows(updated: GatewayResource[]) {
 
 function notifyDraft(count: number) {
   message.success({
-    content: () =>
-      h('span', [
-        t('aiGateway.toggleSavedToDraft', { count }),
-        ' ',
-        h(
-          'a',
-          { onClick: () => router.push({ name: 'AiGatewayConfigVersions' }) },
-          t('aiGateway.goPublish'),
-        ),
-      ]),
+    content: h('span', [
+      t('aiGateway.toggleSavedToDraft', { count }),
+      ' ',
+      h(
+        'a',
+        { onClick: () => router.push({ name: 'AiGatewayConfigVersions' }) },
+        t('aiGateway.goPublish'),
+      ),
+    ]),
     duration: 6,
   });
 }
