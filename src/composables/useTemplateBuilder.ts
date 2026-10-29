@@ -177,7 +177,7 @@ export function useTemplateBuilder() {
 
   const activeWidget = computed<WidgetConfig | null>(() => {
     for (const section of config.value.sections) {
-      const w = section.widgets.find((w) => w.key === activeWidgetKey.value);
+      const w = section.widgets.find((item) => item.key === activeWidgetKey.value);
       if (w) return w;
     }
     return null;

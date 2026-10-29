@@ -12,6 +12,6 @@ export function adjustPoints(data: PointsAdjustParams) {
     headers['Idempotency-Key'] = data.idempotencyKey;
   }
   // 移除 idempotencyKey 避免发到 body 里
-  const { idempotencyKey, ...body } = data;
+  const { idempotencyKey: _idempotencyKey, ...body } = data;
   return request.post('/api/v1/admin/points/adjust', body, { headers });
 }

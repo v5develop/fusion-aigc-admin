@@ -56,6 +56,7 @@
 
 <script setup lang="ts">
 import type {
+  TemplateConfig,
   TemplateSection,
   LayoutMode,
   WidgetConfig,
@@ -170,7 +171,7 @@ async function loadTemplate() {
           role: 'primary',
           sort: 0,
           widgets: res.formSchema.map(
-            (f: any) =>
+            (f: { key: string; label: string; type?: string; required?: boolean }) =>
               ({
                 key: f.key,
                 label: f.label,
@@ -181,19 +182,19 @@ async function loadTemplate() {
         },
       ];
     let mode: LayoutMode = 'stacked';
-    if (raw.layout && typeof raw.layout === 'object') mode = (raw.layout as any).mode || 'stacked';
+    if (raw.layout && typeof raw.layout === 'object') mode = (raw.layout as { mode?: LayoutMode }).mode || 'stacked';
     else if (res.uiConfig?.layout === 'tabs') mode = 'sidebar-right';
     loadFromConfig({
       id: res.id,
       name: res.name,
-      category: (res.category as any) || 'image',
-      mode: (res.mode as any) || 'image',
+      category: (res.category as TemplateConfig['category']) || 'image',
+      mode: (res.mode as TemplateConfig['mode']) || 'image',
       description: res.description,
       coverUrl: res.coverUrl,
       iconUrl: res.iconUrl,
       layout: {
         mode,
-        theme: (res.uiConfig?.theme as any) || 'default',
+        theme: (res.uiConfig?.theme as TemplateConfig['layout']['theme']) || 'default',
         maxWidth: 1200,
         showTitle: true,
         showDescription: !!res.description,
@@ -306,7 +307,11 @@ function handleBack() {
   router.push('/template/list');
 }
 onMounted(() => {
-  isEdit ? loadTemplate() : initNew();
+  if (isEdit) {
+    loadTemplate();
+  } else {
+    initNew();
+  }
 });
 </script>
 

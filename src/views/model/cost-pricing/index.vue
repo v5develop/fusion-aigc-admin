@@ -410,7 +410,7 @@ function handleDelete(record: ModelCostPricing) {
   });
 }
 
-function filterModelOption(input: string, option: any) {
+function filterModelOption(input: string, option: { value?: string | number }) {
   const model = modelList.value.find((m) => m.id === option.value);
   if (!model) return false;
   return model.name.toLowerCase().includes(input.toLowerCase());

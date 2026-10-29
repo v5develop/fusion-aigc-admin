@@ -162,7 +162,7 @@ async function handleSave() {
   }
 }
 
-function filterFeatureOption(input: string, option: any) {
+function filterFeatureOption(input: string, option: { value?: string | number }) {
   const feature = featureList.value.find((f) => f.id === option.value);
   if (!feature) return false;
   const name = feature.featureName?.[currentLocale.value] || feature.featureName?.['zh-CN'] || '';

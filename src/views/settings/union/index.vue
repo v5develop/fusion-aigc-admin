@@ -359,7 +359,7 @@ function isSignatureRequired(): boolean {
 const rules = {
   baseUrl: [
     {
-      validator: (_rule: any, _value: any, callback: any) => {
+      validator: (_rule: unknown, _value: unknown, callback: (error?: Error) => void) => {
         if (isSignatureRequired() && !formData.baseUrl) {
           callback(new Error(t('openPlatformUnion.baseUrl') + t('common.required')));
         } else {
@@ -371,7 +371,7 @@ const rules = {
   ],
   appKey: [
     {
-      validator: (_rule: any, _value: any, callback: any) => {
+      validator: (_rule: unknown, _value: unknown, callback: (error?: Error) => void) => {
         if (isSignatureRequired() && !formData.appKey) {
           callback(new Error(t('openPlatformUnion.appKey') + t('common.required')));
         } else {
@@ -383,7 +383,7 @@ const rules = {
   ],
   appSecret: [
     {
-      validator: (_rule: any, _value: any, callback: any) => {
+      validator: (_rule: unknown, _value: unknown, callback: (error?: Error) => void) => {
         if (isSignatureRequired() && !formData.appSecret) {
           callback(new Error(t('openPlatformUnion.appSecret') + t('common.required')));
         } else {
@@ -395,7 +395,7 @@ const rules = {
   ],
   tokenUrl: [
     {
-      validator: (_rule: any, _value: any, callback: any) => {
+      validator: (_rule: unknown, _value: unknown, callback: (error?: Error) => void) => {
         if (isSignatureRequired() && !formData.tokenUrl) {
           callback(new Error(t('openPlatformUnion.tokenUrl') + t('common.required')));
         } else {
@@ -407,7 +407,7 @@ const rules = {
   ],
   callbackUrl: [
     {
-      validator: (_rule: any, _value: any, callback: any) => {
+      validator: (_rule: unknown, _value: unknown, callback: (error?: Error) => void) => {
         if (isSignatureRequired() && !formData.callbackUrl) {
           callback(new Error(t('openPlatformUnion.callbackUrl') + t('common.required')));
         } else {
@@ -419,7 +419,7 @@ const rules = {
   ],
   whitelistIps: [
     {
-      validator: (_rule: any, _value: any, callback: any) => {
+      validator: (_rule: unknown, _value: unknown, callback: (error?: Error) => void) => {
         if (formData.whitelistEnabled) {
           if (!formData.whitelistIps || formData.whitelistIps.length === 0) {
             callback(new Error(t('openPlatformUnion.whitelistIps') + t('common.required')));
@@ -438,7 +438,7 @@ const rules = {
   ],
   trustedProxies: [
     {
-      validator: (_rule: any, _value: any, callback: any) => {
+      validator: (_rule: unknown, _value: unknown, callback: (error?: Error) => void) => {
         if (formData.trustedProxies && formData.trustedProxies.length > 0) {
           const invalidIp = formData.trustedProxies.find((ip) => !isValidIpOrCidr(ip));
           if (invalidIp) {

@@ -1,5 +1,5 @@
 import { message } from 'antdv-next';
-import axios, { type AxiosResponse } from 'axios';
+import { create, type AxiosResponse } from 'axios';
 
 import router from '@/router';
 import { clearTokens, getToken } from '@/utils/storage';
@@ -13,7 +13,7 @@ import { clearTokens, getToken } from '@/utils/storage';
  */
 const PREFIX = '/api/v1/local-life/admin';
 
-const http = axios.create({
+const http = create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   timeout: 15000,
   headers: { 'Content-Type': 'application/json' },

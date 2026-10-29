@@ -10,8 +10,8 @@ export function loginWithPassword(username: string, password: string) {
   } as AxiosRequestConfig & { silentError: boolean });
 }
 
-export function refreshToken(refreshToken: string) {
-  return request.post<LoginResult>('/api/v1/admin/auth/refresh', { refreshToken });
+export function refreshToken(token: string) {
+  return request.post<LoginResult>('/api/v1/admin/auth/refresh', { refreshToken: token });
 }
 
 export function logout() {

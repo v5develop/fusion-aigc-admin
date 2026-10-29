@@ -36,9 +36,10 @@ async function load() {
       timeout: 10000,
     });
     data.value = res || [];
-  } catch (err: any) {
-    if (err?.name === 'AbortError' || err?.code === 'ERR_CANCELED') return;
-    error.value = err?.message || '加载子任务失败';
+  } catch (err) {
+    const e = err as { name?: string; code?: string; message?: string } | undefined;
+    if (e?.name === 'AbortError' || e?.code === 'ERR_CANCELED') return;
+    error.value = e?.message || '加载子任务失败';
   } finally {
     loading.value = false;
   }

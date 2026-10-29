@@ -454,7 +454,7 @@ async function handleSubmit() {
   }
 }
 
-function handleDelete(record: any) {
+function handleDelete(record: { id: Parameters<typeof deletePricing>[0] }) {
   Modal.confirm({
     title: t('common.warning'),
     content: t('pricing.confirmDeletePricing'),
@@ -466,7 +466,7 @@ function handleDelete(record: any) {
   });
 }
 
-function filterModelOption(input: string, option: any) {
+function filterModelOption(input: string, option: { value?: string | number }) {
   const model = modelList.value.find((m) => m.id === option.value);
   if (!model) return false;
   return model.name.toLowerCase().includes(input.toLowerCase());

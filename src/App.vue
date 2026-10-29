@@ -47,7 +47,7 @@ const datePickerConfig = computed(
   () => appDefaultSettings.datePicker as unknown as Record<string, unknown>,
 );
 
-const LOCALE_MAP: Record<string, any> = {
+const LOCALE_MAP: Record<string, typeof zhCN> = {
   'zh-CN': zhCN,
   'en-US': enUS,
   'ja-JP': jaJP,

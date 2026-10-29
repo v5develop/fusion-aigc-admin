@@ -704,7 +704,7 @@ export default defineMock([
     url: '/api/v1/union/user-points-transactions',
     method: 'GET',
     body: (req) => {
-      const { user_id, page = 1, page_size = 20 } = req.query || {};
+      const { page = 1, page_size = 20 } = req.query || {};
       const start = (Number(page) - 1) * Number(page_size);
       const end = start + Number(page_size);
       return {

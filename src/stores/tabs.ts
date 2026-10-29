@@ -251,8 +251,8 @@ export const useTabsStore = defineStore('tabs', () => {
   const initAffixTabs = (routes: AppRouteRecordRaw[]) => {
     const affixTabs: Tab[] = [];
 
-    const findAffixRoutes = (routes: AppRouteRecordRaw[], basePath = '') => {
-      routes.forEach((route) => {
+    const findAffixRoutes = (nodes: AppRouteRecordRaw[], basePath = '') => {
+      nodes.forEach((route) => {
         const routePath = route.path ? String(route.path) : '';
         const fullPath = resolveRoutePath(routePath, basePath);
         const meta = route.meta;

@@ -403,7 +403,13 @@ async function handleDelete(record: Mode) {
 
 // 可视化设计器
 const designerOpen = ref(false);
-const designerRef = ref<any>();
+interface FcDesignerInstance {
+  setRule?: (rule: unknown) => void;
+  setOption?: (option: unknown) => void;
+  getRule?: () => unknown[];
+  getOption?: () => unknown;
+}
+const designerRef = ref<FcDesignerInstance>();
 function openDesigner() {
   designerOpen.value = true;
   nextTick(() => {

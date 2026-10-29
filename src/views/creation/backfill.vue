@@ -267,7 +267,6 @@
 </template>
 
 <script setup lang="ts">
-import type { VideoCoverCandidate } from '@/api/creation-backfill';
 
 import { message } from 'antdv-next';
 import dayjs from 'dayjs';
@@ -283,6 +282,7 @@ import {
   type EntryCodeRemaining,
   type EntryCodeReport,
   type EntryCodeScope,
+  type VideoCoverCandidate,
   type VideoCoverRemaining,
   type VideoCoverReport,
   type VideoCoverScope,

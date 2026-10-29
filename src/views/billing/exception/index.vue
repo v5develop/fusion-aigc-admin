@@ -116,6 +116,7 @@ import {
   executeCompensation,
   recoverAgedHeldReservations,
 } from '@/api/billing-exception';
+import type { AgedHeldReservation } from '@/types/api';
 import ProTable from '@/components/Pro/ProTable/index.vue';
 import { uuid } from '@/utils/helpers';
 
@@ -281,7 +282,7 @@ async function loadTasks(params: Record<string, unknown>) {
   };
 }
 
-const agedList = ref<any[]>([]);
+const agedList = ref<AgedHeldReservation[]>([]);
 const agedLoading = ref(false);
 
 async function loadAgedReservations() {

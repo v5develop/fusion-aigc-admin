@@ -216,8 +216,8 @@ export function getAllMenuPaths(routes: AppRouteRecordRaw[]): Array<{
 }> {
   const result: Array<{ path: string; title: string; icon?: string }> = [];
 
-  const traverse = (routes: AppRouteRecordRaw[], basePath = '') => {
-    routes.forEach((route) => {
+  const traverse = (nodes: AppRouteRecordRaw[], basePath = '') => {
+    nodes.forEach((route) => {
       const fullPath = resolveRoutePath(route.path, basePath);
 
       if (!route.meta?.hidden && route.meta?.title) {

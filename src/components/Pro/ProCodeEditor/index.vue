@@ -68,13 +68,13 @@ import {
   syntaxHighlighting,
   defaultHighlightStyle,
   bracketMatching,
-  foldGutter,
+  foldGutter as foldGutterExt,
 } from '@codemirror/language';
 import { linter } from '@codemirror/lint';
 import { oneDark } from '@codemirror/theme-one-dark';
 import {
   keymap,
-  lineNumbers,
+  lineNumbers as lineNumbersExt,
   highlightActiveLineGutter,
   highlightSpecialChars,
   drawSelection,
@@ -313,12 +313,12 @@ const baseExtensions = computed<Extension[]>(() => {
   ];
 
   if (props.lineNumbers) {
-    ext.push(lineNumbers());
+    ext.push(lineNumbersExt());
     ext.push(highlightActiveLineGutter());
   }
 
   if (props.foldGutter) {
-    ext.push(foldGutter());
+    ext.push(foldGutterExt());
   }
 
   if (props.theme === 'auto') {

@@ -1,8 +1,8 @@
-import type { PageResult } from '@/types/api';
 import type {
   AdminNotification,
   NotificationPublishParams,
   NotificationQueryParams,
+  PageResult,
 } from '@/types/api';
 
 import { request } from '@/utils/request';

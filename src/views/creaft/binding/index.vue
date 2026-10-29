@@ -514,7 +514,7 @@ type AliasRow = { id: number; alias: string; group: string | undefined };
 
 function buildRoleRows(record: CreaftBindingRow): RoleRow[] {
   const roles = record.modelRoles || {};
-  const rows: RoleRow[] = (record.modelRoleSlots || []).map((slot) => ({
+  const roleRows: RoleRow[] = (record.modelRoleSlots || []).map((slot) => ({
     id: ++rowSeq,
     role: slot.role,
     group: roles[slot.role] || undefined,
@@ -523,11 +523,11 @@ function buildRoleRows(record: CreaftBindingRow): RoleRow[] {
     required: !!slot.required,
   }));
   for (const [role, group] of Object.entries(roles)) {
-    if (!rows.some((r) => r.role === role)) {
-      rows.push({ id: ++rowSeq, role, group, operation: null, declared: false, required: false });
+    if (!roleRows.some((r) => r.role === role)) {
+      roleRows.push({ id: ++rowSeq, role, group, operation: null, declared: false, required: false });
     }
   }
-  return rows;
+  return roleRows;
 }
 
 function addRoleRow() {

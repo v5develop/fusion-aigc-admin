@@ -1,17 +1,18 @@
 import { message } from 'antdv-next';
-import axios, {
+import {
   AxiosError,
   AxiosInstance,
   AxiosRequestConfig,
   AxiosResponse,
   InternalAxiosRequestConfig,
+  create,
 } from 'axios';
 
 import router from '@/router';
 import { useAuthStore } from '@/stores/auth';
 import { getToken, getRefreshToken, clearTokens } from '@/utils/storage';
 
-const service: AxiosInstance = axios.create({
+const service: AxiosInstance = create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   timeout: 15000,
   headers: {
