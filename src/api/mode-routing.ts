@@ -69,3 +69,33 @@ export function modeRoutingErrors(s: ModeRoutingStatus): string[] {
   if (Array.isArray(s.validationErrors)) list.push(...s.validationErrors);
   return list;
 }
+
+/** 定义表与 Mode 流的同步状态；definitionId 为空 = 尚未导入为定义 */
+export interface ModeRoutingDrift {
+  inSync: boolean;
+  definitionId?: number | string | null;
+  definitionVersion?: number | null;
+}
+
+/** 列表页逐行调用；接口未上线时 404（用 isEndpointMissing 判断），不逐条弹错 */
+export function getModeRoutingDrift(modeCode: string) {
+  return request.get<ModeRoutingDrift>(
+    `${path(modeCode)}/drift`,
+    cfg({ silentError: true, noRetry: true }),
+  );
+}
+
+export interface ModeRoutingImportResult {
+  definitionId: number | string;
+  code: string;
+  version: number;
+}
+
+/** 把 Mode 流导入为工作流定义：不存在则创建，已存在则发布新版本 */
+export function importModeDefinition(modeCode: string) {
+  return request.post<ModeRoutingImportResult>(
+    `${path(modeCode)}/import-definition`,
+    undefined,
+    writeCfg(),
+  );
+}

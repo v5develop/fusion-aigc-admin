@@ -31,7 +31,10 @@
                   t('modeRouting.on')
                 }}</a-tag>
                 <a-tag v-else>{{ t('modeRouting.off') }}</a-tag>
-                <a-tooltip v-if="!routingOf(record)!.globalOn" :title="t('modeRouting.globalOffHint')">
+                <a-tooltip
+                  v-if="!routingOf(record)!.globalOn"
+                  :title="t('modeRouting.globalOffHint')"
+                >
                   <a-tag color="orange">{{ t('modeRouting.globalOff') }}</a-tag>
                 </a-tooltip>
               </div>
@@ -40,6 +43,31 @@
                 <span v-if="routingOf(record)!.versionNo != null">
                   · {{ t('modeRouting.sourceVersion', { version: routingOf(record)!.versionNo }) }}
                 </span>
+              </div>
+              <div v-if="driftAvailable">
+                <a-tag v-if="driftLoading[String(record.code)]">…</a-tag>
+                <template v-else-if="driftOf(record)">
+                  <a-tag v-if="!hasDefinition(record)">{{
+                    t('modeRouting.syncNotImported')
+                  }}</a-tag>
+                  <a-tag v-else-if="driftOf(record)!.inSync" color="green">{{
+                    t('modeRouting.syncInSync')
+                  }}</a-tag>
+                  <a-tooltip v-else :title="t('modeRouting.syncOutOfSyncHint')">
+                    <a-tag color="orange">{{ t('modeRouting.syncOutOfSync') }}</a-tag>
+                  </a-tooltip>
+                  <a
+                    v-if="hasDefinition(record)"
+                    class="def-link"
+                    @click="openDefinition(driftOf(record)!.definitionId!)"
+                  >
+                    {{
+                      t('modeRouting.definitionVersion', {
+                        version: driftOf(record)!.definitionVersion ?? '-',
+                      })
+                    }}
+                  </a>
+                </template>
               </div>
               <div>
                 <a-tag v-if="routingOf(record)!.convertible" color="green">{{
@@ -77,8 +105,21 @@
               @click="recheck(record)"
               >{{ t('modeRouting.recheck') }}</a-button
             >
+            <a-button
+              v-if="driftAvailable"
+              v-permission="'mode:publish'"
+              type="link"
+              size="small"
+              :loading="!!importing[String(record.code)]"
+              @click="doImport(record)"
+              >{{
+                hasDefinition(record)
+                  ? t('modeRouting.reimport')
+                  : t('modeRouting.importDefinition')
+              }}</a-button
+            >
             <span v-permission="'mode:publish'">
-              <a-tooltip :title="switchDisabled(record) ? t('modeRouting.needConvertible') : ''">
+              <a-tooltip :title="switchDisabledReason(record)">
                 <a-switch
                   size="small"
                   :checked="!!routingOf(record)?.switchOn"
@@ -119,10 +160,14 @@ import { pageFlows, type ModeFlow } from '@/api/mode';
 import {
   convertModeRouting,
   getModeRouting,
+  getModeRoutingDrift,
+  importModeDefinition,
   modeRoutingErrors,
   setModeRouting,
+  type ModeRoutingDrift,
   type ModeRoutingStatus,
 } from '@/api/mode-routing';
+import { isEndpointMissing } from '@/api/workflow-definition';
 import ProCodeEditor from '@/components/Pro/ProCodeEditor/index.vue';
 import ProTable from '@/components/Pro/ProTable/index.vue';
 
@@ -133,6 +178,12 @@ const router = useRouter();
 const routing = reactive<Record<string, ModeRoutingStatus | undefined>>({});
 const routingLoading = reactive<Record<string, boolean>>({});
 const switching = reactive<Record<string, boolean>>({});
+
+/** 定义表同步状态（定义表是改走定义后的唯一来源）；接口未上线（404）时整列降级为旧行为 */
+const drift = reactive<Record<string, ModeRoutingDrift | undefined>>({});
+const driftLoading = reactive<Record<string, boolean>>({});
+const driftAvailable = ref(true);
+const importing = reactive<Record<string, boolean>>({});
 
 /** 干跑后的只读定义预览：转换出的定义不落库，这里只看不存 */
 const previewOpen = ref(false);
@@ -166,7 +217,7 @@ const columns = [
     title: '操作',
     dataIndex: 'op',
     key: 'op',
-    width: 220,
+    width: 300,
     align: 'center' as const,
     fixed: 'right' as const,
   },
@@ -176,11 +227,77 @@ function routingOf(record: ModeFlow): ModeRoutingStatus | undefined {
   return routing[String(record.code)];
 }
 
-/** 不可转换时禁止开启；已开启的始终允许关闭（关闭是应急手段） */
-function switchDisabled(record: ModeFlow): boolean {
+function driftOf(record: ModeFlow): ModeRoutingDrift | undefined {
+  return drift[String(record.code)];
+}
+
+function hasDefinition(record: ModeFlow): boolean {
+  const d = driftOf(record);
+  return !!d && d.definitionId !== null && d.definitionId !== undefined && d.definitionId !== '';
+}
+
+/**
+ * 开启的前置条件：已导入为定义（同步接口可用时）且可转换。
+ * 已开启的始终允许关闭（关闭是应急手段）。
+ */
+function switchDisabledReason(record: ModeFlow): string {
   const s = routingOf(record);
-  if (!s) return true;
-  return !s.switchOn && !s.convertible;
+  if (!s) return t('modeRouting.needConvertible');
+  if (s.switchOn) return '';
+  if (driftAvailable.value && !hasDefinition(record)) return t('modeRouting.needDefinition');
+  if (!s.convertible) return t('modeRouting.needConvertible');
+  return '';
+}
+
+function switchDisabled(record: ModeFlow): boolean {
+  return switchDisabledReason(record) !== '';
+}
+
+async function loadDrift(code: string) {
+  if (!driftAvailable.value) return;
+  driftLoading[code] = true;
+  try {
+    drift[code] = await getModeRoutingDrift(code);
+  } catch (e) {
+    drift[code] = undefined;
+    if (isEndpointMissing(e)) driftAvailable.value = false;
+  } finally {
+    driftLoading[code] = false;
+  }
+}
+
+function openDefinition(definitionId: number | string) {
+  router.push(`/workflow/definitions/${definitionId}`);
+}
+
+function doImport(record: ModeFlow) {
+  const code = String(record.code);
+  Modal.confirm({
+    title: t(hasDefinition(record) ? 'modeRouting.reimportConfirm' : 'modeRouting.importConfirm', {
+      modeCode: code,
+    }),
+    onOk: async () => {
+      importing[code] = true;
+      try {
+        const res = await importModeDefinition(code);
+        await Promise.all([loadDrift(code), loadRouting(code)]);
+        Modal.confirm({
+          title: t('modeRouting.importOk', { code: res.code, version: res.version }),
+          okText: t('modeRouting.openDefinition'),
+          cancelText: t('modeRouting.previewClose'),
+          onOk: () => openDefinition(res.definitionId),
+        });
+      } catch (e) {
+        if (isEndpointMissing(e)) {
+          driftAvailable.value = false;
+          message.warning(t('modeRouting.importUnavailable'));
+        }
+        /* 其它错误拦截器已提示 */
+      } finally {
+        importing[code] = false;
+      }
+    },
+  });
 }
 
 async function loadRouting(code: string) {
@@ -203,7 +320,10 @@ async function loadData(params: Record<string, unknown>) {
   });
   const list = res.list || [];
   list.forEach((f) => {
-    if (f.code) void loadRouting(String(f.code));
+    if (f.code) {
+      void loadRouting(String(f.code));
+      void loadDrift(String(f.code));
+    }
   });
   return { data: list, total: res.total || 0, success: true };
 }
@@ -273,6 +393,10 @@ function toggle(record: ModeFlow, enabled: boolean) {
   max-width: 420px;
   margin: 0;
   padding-left: 18px;
+}
+.def-link {
+  margin-left: 4px;
+  font-size: 12px;
 }
 .clickable {
   cursor: pointer;

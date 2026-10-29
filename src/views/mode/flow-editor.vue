@@ -24,15 +24,20 @@
           :options="settlementOptions"
           size="small"
           style="width: 170px"
-          :disabled="!isDraft"
+          disabled
         />
       </a-space>
     </div>
 
-    <a-alert type="info" show-icon class="frozen-alert" :message="t('modeRouting.legacyFrozen')">
+    <a-alert
+      type="info"
+      show-icon
+      class="frozen-alert"
+      :message="t('modeRouting.editorReadonlyHint')"
+    >
       <template #action>
-        <a-button size="small" type="link" @click="router.push('/workflow/definitions')">
-          {{ t('modeRouting.goDefinitions') }}
+        <a-button size="small" type="link" @click="goDefinition">
+          {{ definitionId ? t('modeRouting.openDefinition') : t('modeRouting.goDefinitions') }}
         </a-button>
       </template>
     </a-alert>
@@ -40,15 +45,13 @@
     <div class="fe-body">
       <!-- 节点面板 -->
       <div class="fe-palette">
-        <div class="palette-title">节点面板（拖到画布）</div>
-        <div class="palette-hint">按 kind 分组；拖拽添加。节点只描述「跑什么」，不含计费。</div>
+        <div class="palette-title">节点面板</div>
+        <div class="palette-hint">按 kind 分组，仅供查看。节点只描述「跑什么」，不含计费。</div>
         <div
           v-for="m in palette"
           :key="m.id"
           class="palette-node"
           :style="{ borderColor: kindColorHex(m.kind) }"
-          :draggable="isDraft"
-          @dragstart="onDragStart($event, m)"
         >
           <a-tag :color="kindColor(m.kind)" size="small" :title="m.kind">{{
             stepKindLabel(m.kind)
@@ -64,15 +67,16 @@
       </div>
 
       <!-- 画布 -->
-      <div class="fe-canvas" @drop="onDrop" @dragover.prevent @dragenter.prevent>
+      <div class="fe-canvas">
         <VueFlow
           :id="flowKey"
           :default-viewport="{ zoom: 0.9 }"
           :min-zoom="0.2"
           :max-zoom="2"
-          :nodes-draggable="isDraft"
-          :nodes-connectable="isDraft"
-          :edges-updatable="isDraft"
+          :nodes-draggable="false"
+          :nodes-connectable="false"
+          :edges-updatable="false"
+          :delete-key-code="null"
           fit-view-on-init
         >
           <Background :gap="16" />
@@ -117,11 +121,7 @@
             ><a-input :value="selectedNode.data.handler" disabled
           /></a-form-item>
           <a-form-item label="显示名（可选）">
-            <a-input
-              v-model:value="selectedNode.data.label"
-              :disabled="!isDraft"
-              placeholder="节点显示名"
-            />
+            <a-input v-model:value="selectedNode.data.label" disabled placeholder="节点显示名" />
           </a-form-item>
           <a-form-item label="绑定生成模型 modelId（AIGC 步，可空=默认）">
             <a-select
@@ -130,7 +130,7 @@
               allow-clear
               show-search
               option-filter-prop="label"
-              :disabled="!isDraft"
+              disabled
               placeholder="选择生成模型"
             />
           </a-form-item>
@@ -140,7 +140,7 @@
           >
             <a-input
               v-model:value="selectedNode.data.variantGroup"
-              :disabled="!isDraft"
+              disabled
               placeholder="填 stepCode 分组名（如 imageGen）"
             />
             <div class="muted" style="margin-top: 4px">
@@ -154,7 +154,7 @@
           >
             <a-input
               v-model:value="selectedNode.data.promptCode"
-              :disabled="!isDraft"
+              disabled
               placeholder="填 Prompt Lab code（如 scriptReplication@doubao）"
             />
             <div class="muted" style="margin-top: 4px">
@@ -162,10 +162,6 @@
               内定默认；再叠加<b>目标模型维度</b>（自动带提交模型）。空=用默认。
             </div>
           </a-form-item>
-          <a-divider style="margin: 8px 0" />
-          <a-button danger size="small" :disabled="!isDraft" @click="removeSelected"
-            >删除该节点</a-button
-          >
           <a-alert
             type="info"
             show-icon
@@ -189,12 +185,8 @@ import { useRoute, useRouter } from 'vue-router';
 import '@vue-flow/core/dist/style.css';
 import '@vue-flow/core/dist/theme-default.css';
 import '@vue-flow/controls/dist/style.css';
-import {
-  getFlowDetail,
-  listEnabledModes,
-  type Mode,
-  type ModeFlowVersion,
-} from '@/api/mode';
+import { getFlowDetail, listEnabledModes, type Mode, type ModeFlowVersion } from '@/api/mode';
+import { getModeRoutingDrift } from '@/api/mode-routing';
 import { getModelOptions } from '@/api/model';
 import { stepKindLabel } from '@/utils/terms';
 
@@ -205,14 +197,14 @@ const flowId = Number(route.params.flowId);
 const versionId = Number(route.query.versionId);
 const flowKey = `flow-${flowId}-${versionId}`;
 
-const { addNodes, screenToFlowCoordinate, setNodes, setEdges, findNode, removeNodes, onNodeClick } =
-  useVueFlow(flowKey);
+const { setNodes, setEdges, findNode, onNodeClick } = useVueFlow(flowKey);
 
 const flowName = ref('');
 const flowCode = ref('');
 const version = ref<ModeFlowVersion | null>(null);
-// 旧 Mode 流已冻结为只读：任何版本都不可编辑/保存，编辑统一到工作流定义页
-const isDraft = computed(() => false);
+// 旧 Mode 流只读：不可增删节点、拖动或保存；定义表是改走定义后的唯一来源，编辑统一到工作流定义页
+/** 已导入的定义 id（同步接口可用且已导入时），用于直达定义详情 */
+const definitionId = ref<number | string | null>(null);
 const settlementType = ref('ALL_OR_NOTHING');
 const settlementOptions = [
   { label: 'ALL_OR_NOTHING（整单）', value: 'ALL_OR_NOTHING' },
@@ -252,47 +244,12 @@ function vStatusLabel(s?: string) {
   return s === 'published' ? '已发布' : s === 'archived' ? '已归档' : '草稿';
 }
 
-let idc = 0;
-function nid() {
-  return `n${Date.now()}_${idc++}`;
-}
-
 onNodeClick(({ node }) => (selectedNodeId.value = node.id));
 
-function onDragStart(ev: DragEvent, m: Mode) {
-  ev.dataTransfer?.setData('application/mode', String(m.id));
-  if (ev.dataTransfer) ev.dataTransfer.effectAllowed = 'move';
-}
-function onDrop(ev: DragEvent) {
-  if (!isDraft.value) return;
-  const mid = ev.dataTransfer?.getData('application/mode');
-  if (!mid) return;
-  const m = palette.value.find((x) => x.id === Number(mid));
-  if (!m) return;
-  const position = screenToFlowCoordinate({ x: ev.clientX, y: ev.clientY });
-  addNodes([
-    {
-      id: nid(),
-      type: 'mode',
-      position,
-      data: {
-        modeId: m.id,
-        code: m.code,
-        name: m.name,
-        kind: m.kind,
-        mode: m.mode ?? null,
-        handler: m.handler || null,
-        modelId: undefined,
-        label: '',
-      },
-    } as Node,
-  ]);
-}
-function removeSelected() {
-  if (selectedNodeId.value) {
-    removeNodes([selectedNodeId.value]);
-    selectedNodeId.value = undefined;
-  }
+function goDefinition() {
+  router.push(
+    definitionId.value ? `/workflow/definitions/${definitionId.value}` : '/workflow/definitions',
+  );
 }
 
 function goBack() {
@@ -308,6 +265,11 @@ async function load() {
     ]);
     flowName.value = detail.flow.name;
     flowCode.value = detail.flow.code;
+    if (detail.flow.code) {
+      getModeRoutingDrift(String(detail.flow.code))
+        .then((d) => (definitionId.value = d?.definitionId ?? null))
+        .catch(() => (definitionId.value = null));
+    }
     version.value = detail.versions.find((v) => v.id === versionId) || null;
     settlementType.value = version.value?.settlementType || 'ALL_OR_NOTHING';
     palette.value = modes || [];

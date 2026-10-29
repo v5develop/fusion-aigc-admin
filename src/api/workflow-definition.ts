@@ -26,9 +26,14 @@ export interface WorkflowDefinitionItem {
   updateTime?: string;
 }
 
+/** 画布节点坐标：步骤 id → {x, y}。与版本无关，单独存取，不参与校验 */
+export type WorkflowDefinitionLayout = Record<string, { x: number; y: number }>;
+
 export interface WorkflowDefinitionDetail extends WorkflowDefinitionItem {
   /** currentVersion 的内容；未发布过为 null */
   content?: unknown;
+  /** 编辑器画布坐标（后端未上线时没有该字段） */
+  layout?: WorkflowDefinitionLayout | null;
 }
 
 export interface WorkflowDefinitionVersion {
@@ -92,6 +97,68 @@ export function getWorkflowDefinitionVersion(id: number | string, version: numbe
 
 export function listWorkflowStepKinds() {
   return request.get<unknown>(`${BASE}/step-kinds`, cfg()).then(listOf<string>);
+}
+
+export interface WorkflowStepParamSchema {
+  name: string;
+  /** 参数类型：string | integer | boolean | object | list | media | any（与后端 StepKindSchema 一致） */
+  type?: string;
+  required?: boolean;
+  description?: string;
+}
+
+export interface WorkflowStepKindSchema {
+  kind: string;
+  description?: string;
+  params: WorkflowStepParamSchema[];
+  outputs: string[];
+}
+
+export type WorkflowDefinitionStatus = 'ENABLED' | 'DISABLED';
+
+/** 步骤类型的参数说明；后端未上线时 404（用 isEndpointMissing 判断） */
+export function listWorkflowStepKindSchemas() {
+  return request
+    .get<unknown>(`${BASE}/step-kinds/schema`, cfg({ silentError: true, noRetry: true }))
+    .then((res) =>
+      listOf<WorkflowStepKindSchema>(res)
+        .filter((k) => k && typeof k.kind === 'string')
+        .map((k) => ({
+          kind: k.kind,
+          description: k.description,
+          params: Array.isArray(k.params) ? k.params.filter((p) => p && p.name) : [],
+          outputs: Array.isArray(k.outputs) ? k.outputs : [],
+        })),
+    );
+}
+
+/** 启用/停用定义 */
+export function setWorkflowDefinitionStatus(id: number | string, status: WorkflowDefinitionStatus) {
+  return request.post<unknown>(`${BASE}/${id}/status`, { status }, writeCfg({ silentError: true }));
+}
+
+/** 把旧版本重新发布为新的最新版本 */
+export function restoreWorkflowDefinitionVersion(id: number | string, version: number) {
+  return request.post<{ version: number }>(
+    `${BASE}/${id}/versions/${version}/restore`,
+    undefined,
+    writeCfg({ silentError: true }),
+  );
+}
+
+/** 保存画布坐标（整表覆盖）；不发布版本 */
+export function saveWorkflowDefinitionLayout(
+  id: number | string,
+  layout: WorkflowDefinitionLayout,
+) {
+  return request.put<unknown>(`${BASE}/${id}/layout`, layout, writeCfg({ silentError: true }));
+}
+
+/** 接口不存在（后端尚未上线）：HTTP 404 或 CommonResult code 404 */
+export function isEndpointMissing(e: unknown): boolean {
+  if (!e || typeof e !== 'object') return false;
+  const err = e as { status?: number; code?: number; response?: { status?: number } };
+  return err.status === 404 || err.code === 404 || err.response?.status === 404;
 }
 
 /** 从发布失败的错误里取校验错误列表；不是校验失败返回 undefined */
