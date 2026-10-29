@@ -158,6 +158,7 @@ export default {
     llTemplates: '模板素材',
     llPosterTypes: '海报类型',
     creaftBinding: '能力绑定',
+    creaftToolReadiness: '工具就绪',
     creaftCatalog: '数据目录',
     creaftTemplate: '公共模板',
     creaftPlazaTemplate: '创意广场模板',

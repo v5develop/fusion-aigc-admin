@@ -739,3 +739,21 @@ export function enableCreaftBatchBinding(agentSkillId: string) {
 export function disableCreaftBatchBinding(agentSkillId: string) {
   return request.post(`/api/v1/admin/creaft/batch-skill-bindings/${agentSkillId}/disable`);
 }
+
+/**
+ * 工具变体的网关就绪状态（只读）。`reason` 说明为什么某一档读不到：
+ * 没有启用的部署、价格未配、无应答等。`offered` 为 false 的变体只查看、不算故障。
+ */
+export interface CreaftToolVariantStatus {
+  key: string;
+  modelGroup: string;
+  offered: boolean;
+  ready: boolean;
+  reason?: string | null;
+  enabledDeployments?: number | null;
+}
+
+/** 查看工具各变体的就绪状态，route 为 creaft v1 路由，如 /tools/ai-video-enhance。 */
+export function getCreaftToolReadiness(route: string) {
+  return request.get<CreaftToolVariantStatus[]>('/api/v1/admin/tool-readiness', { params: { route } });
+}

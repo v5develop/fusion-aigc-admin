@@ -154,6 +154,7 @@ export default {
     llTemplates: 'Templates',
     llPosterTypes: 'Poster Types',
     creaftBinding: 'Capability Binding',
+    creaftToolReadiness: 'Tool Readiness',
     creaftCatalog: 'Data Catalog',
     creaftTemplate: 'Public Templates',
     creaftPlazaTemplate: 'Plaza Templates',
@@ -3456,6 +3457,9 @@ export default {
     testConnection: 'Test Connection',
     testSuccess: 'Connection test passed',
     testFailed: 'Connection test failed',
+    stsRegionSameAsRegion: 'Same as Region',
+    stsRegionHint:
+      'Usually same as the storage bucket region, used for generating temporary access credentials',
   },
   settingsStorage: {
     title: 'Storage Configuration',

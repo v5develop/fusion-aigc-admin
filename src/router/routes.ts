@@ -596,6 +596,18 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
+        // 只读：列出工具各档的网关就绪状态与原因，回答「用户为什么读不到某一档」
+        path: 'tool-readiness',
+        name: 'CreaftToolReadiness',
+        component: () => import('@/views/creaft/readiness/index.vue'),
+        meta: {
+          title: 'menu.creaftToolReadiness',
+          icon: 'CheckCircleOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'creaft_binding:view',
+        },
+      },
+      {
         path: 'catalog',
         name: 'CreaftCatalog',
         component: () => import('@/views/creaft/catalog/index.vue'),

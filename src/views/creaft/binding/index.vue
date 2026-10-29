@@ -251,7 +251,7 @@
                 <a-input v-model:value="row.alias" placeholder="端上传的模型别名" />
                 <a-select
                   v-model:value="row.group"
-                  :options="groupOptionsFor('video.generate')"
+                  :options="groupOptionsFor(['video.generate', 'video.enhance'])"
                   :loading="groupsLoading"
                   show-search
                   allow-clear
@@ -486,7 +486,7 @@ async function loadModelGroups() {
 }
 
 /** 已配的值即使网关里已不存在也要能显示出来，否则一保存就被清掉 */
-function groupOptionsFor(operation?: string | null) {
+function groupOptionsFor(operation?: string | string[] | null) {
   const options = toModelGroupSelectOptions(modelGroups.value, operation || undefined);
   const known = new Set(options.map((o) => o.value));
   const extra = [...form.roleRows.map((r) => r.group), ...form.aliasRows.map((r) => r.group)]
