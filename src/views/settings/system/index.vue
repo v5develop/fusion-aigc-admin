@@ -272,6 +272,17 @@
                 <div class="form-hint">{{ $t('settingsSystem.definitionRoutingLocalDesc') }}</div>
               </a-form-item>
 
+              <a-form-item :label="$t('settingsSystem.videoEnhanceDefaultTier')">
+                <a-select
+                  v-model:value="videoEnhanceDefaultTier"
+                  :options="videoEnhanceTierOptions"
+                  :loading="savingVideoEnhanceDefaultTier"
+                  style="width: 240px"
+                  @change="(value: VideoEnhanceTier) => handleVideoEnhanceDefaultTierChange(value)"
+                />
+                <div class="form-hint">{{ $t('settingsSystem.videoEnhanceDefaultTierDesc') }}</div>
+              </a-form-item>
+
               <a-divider />
 
               <!-- 可见水印总开关。与上面的盲水印是两回事：盲水印不可见、用于溯源，
@@ -537,7 +548,10 @@ import {
   getBlindWatermarkEnabled,
   setBlindWatermarkEnabled,
   getDefinitionRoutingEnabled,
+  getVideoEnhanceDefaultTier,
   setDefinitionRoutingEnabled,
+  setVideoEnhanceDefaultTier,
+  type VideoEnhanceTier,
   type DefinitionRoutingTarget,
   getDisplayWatermarkEnabled,
   setDisplayWatermarkEnabled,
@@ -625,6 +639,13 @@ const savingVideoWatermark = ref(false);
 /** 图片盲水印开关。同样是 DB 优先后的实际生效值。 */
 const blindWatermarkEnabled = ref(false);
 const savingBlindWatermark = ref(false);
+const videoEnhanceDefaultTier = ref<VideoEnhanceTier>('standard');
+const savingVideoEnhanceDefaultTier = ref(false);
+const videoEnhanceTierOptions = [
+  { value: 'fast', label: t('settingsSystem.videoEnhanceTierFast') },
+  { value: 'standard', label: t('settingsSystem.videoEnhanceTierStandard') },
+  { value: 'generative', label: t('settingsSystem.videoEnhanceTierGenerative') },
+];
 const definitionRoutingDoubao = ref(false);
 const savingDefinitionRoutingDoubao = ref(false);
 const definitionRoutingLocal = ref(false);
@@ -1132,6 +1153,11 @@ async function handleToggleBlindWatermark(checked: boolean) {
 
 async function loadDefinitionRouting() {
   try {
+    videoEnhanceDefaultTier.value = await getVideoEnhanceDefaultTier();
+  } catch {
+    /* 错误已由拦截器提示 */
+  }
+  try {
     definitionRoutingDoubao.value = await getDefinitionRoutingEnabled('hitvideo-doubao');
     definitionRoutingLocal.value = await getDefinitionRoutingEnabled('hitvideo-local');
   } catch {
@@ -1140,6 +1166,19 @@ async function loadDefinitionRouting() {
 }
 
 /** 定义路由开关：保存失败拨回原值，避免界面显示已开、实际未开；提交时读取，只影响此后的新任务。 */
+async function handleVideoEnhanceDefaultTierChange(tier: VideoEnhanceTier) {
+  savingVideoEnhanceDefaultTier.value = true;
+  try {
+    videoEnhanceDefaultTier.value = await setVideoEnhanceDefaultTier(tier);
+    message.success(t('settingsSystem.videoEnhanceDefaultTierSaved'));
+  } catch {
+    /* 错误已由拦截器提示；回读数据库里的真实值 */
+    videoEnhanceDefaultTier.value = await getVideoEnhanceDefaultTier().catch(() => videoEnhanceDefaultTier.value);
+  } finally {
+    savingVideoEnhanceDefaultTier.value = false;
+  }
+}
+
 async function handleToggleDefinitionRouting(target: DefinitionRoutingTarget, checked: boolean) {
   const saving = target === 'hitvideo-doubao' ? savingDefinitionRoutingDoubao : savingDefinitionRoutingLocal;
   const value = target === 'hitvideo-doubao' ? definitionRoutingDoubao : definitionRoutingLocal;

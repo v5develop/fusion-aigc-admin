@@ -775,6 +775,12 @@ export default {
     },
   },
   settingsSystem: {
+    videoEnhanceDefaultTier: '動画高画質化の既定ティア',
+    videoEnhanceDefaultTierDesc: 'ユーザーがティアを選ばなかった場合に使用します。即時反映され、実行・ユーザー向け価格一覧の既定表示・既定の課金が一緒に切り替わります。送信済みのタスクには影響しません。',
+    videoEnhanceDefaultTierSaved: '既定ティアを保存しました',
+    videoEnhanceTierFast: '高速',
+    videoEnhanceTierStandard: '標準',
+    videoEnhanceTierGenerative: '大規模モデル',
     title: 'システムパラメータ',
     basic: '基本設定',
     security: 'セキュリティ設定',

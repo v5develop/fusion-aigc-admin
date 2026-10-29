@@ -3715,6 +3715,12 @@ export default {
     statusRevoked: '已撤回',
   },
   settingsSystem: {
+    videoEnhanceDefaultTier: '超分默认档',
+    videoEnhanceDefaultTierDesc: '用户没有选择超分档位时使用的档位。切换后即时生效：执行、用户端价格列表的默认标记、默认计费一起切换；已提交的任务不受影响。',
+    videoEnhanceDefaultTierSaved: '超分默认档已保存',
+    videoEnhanceTierFast: '极速',
+    videoEnhanceTierStandard: '标准',
+    videoEnhanceTierGenerative: '大模型',
     title: '系统参数',
     basic: '基础设置',
     security: '安全设置',

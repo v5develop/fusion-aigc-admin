@@ -3704,6 +3704,12 @@ export default {
     statusRevoked: 'Revoked',
   },
   settingsSystem: {
+    videoEnhanceDefaultTier: 'Default video enhance tier',
+    videoEnhanceDefaultTierDesc: 'Tier used when the user does not pick one. Takes effect immediately: execution, the default mark in the user price list and default billing switch together; already-submitted tasks are unaffected.',
+    videoEnhanceDefaultTierSaved: 'Default enhance tier saved',
+    videoEnhanceTierFast: 'Fast',
+    videoEnhanceTierStandard: 'Standard',
+    videoEnhanceTierGenerative: 'Generative',
     title: 'System Parameters',
     basic: 'Basic Settings',
     security: 'Security Settings',

@@ -541,6 +541,10 @@ ol {
 }
 
 .page-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
   margin-bottom: var(--spacing-lg);
 }
 
@@ -595,4 +599,17 @@ ol {
   .card {
     padding: var(--spacing-md);
   }
+}
+
+/* 管理端页面的共用布局：标题与操作按钮同一行、筛选条与表格之间留间距。
+   各页面原先各自定义一份，漏定义的页面（如工作流定义、选项管理）会上下挤在一起，这里统一兜底。 */
+.ph-title {
+  margin: 0;
+  font-size: 18px;
+}
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
 }

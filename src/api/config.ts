@@ -346,3 +346,17 @@ export function deleteStorageConfig(id: number) {
 export function validateStorageConfig(_data: StorageConfig) {
   return Promise.resolve(true);
 }
+
+/** 超分默认档：用户未选档位时使用的档位，管理端设置，即时生效。 */
+export const VIDEO_ENHANCE_TIERS = ['fast', 'standard', 'generative'] as const;
+export type VideoEnhanceTier = (typeof VIDEO_ENHANCE_TIERS)[number];
+
+export function getVideoEnhanceDefaultTier() {
+  return request.get<VideoEnhanceTier>('/api/v1/admin/settings/video-enhance-default-tier');
+}
+
+export function setVideoEnhanceDefaultTier(tier: VideoEnhanceTier) {
+  return request.put<VideoEnhanceTier>('/api/v1/admin/settings/video-enhance-default-tier', undefined, {
+    params: { tier },
+  });
+}

@@ -776,6 +776,12 @@ export default {
     },
   },
   settingsSystem: {
+    videoEnhanceDefaultTier: '영상 고화질 기본 등급',
+    videoEnhanceDefaultTierDesc: '사용자가 등급을 선택하지 않았을 때 사용합니다. 즉시 적용되며 실행, 사용자 가격 목록의 기본 표시, 기본 과금이 함께 바뀝니다. 이미 제출된 작업에는 영향이 없습니다.',
+    videoEnhanceDefaultTierSaved: '기본 등급을 저장했습니다',
+    videoEnhanceTierFast: '고속',
+    videoEnhanceTierStandard: '표준',
+    videoEnhanceTierGenerative: '대규모 모델',
     title: '시스템 파라미터',
     basic: '기본 설정',
     security: '보안 설정',
