@@ -7,6 +7,22 @@
         </a-button>
       </template>
     </a-alert>
+    <div v-if="globalState" class="global-switch">
+      <span class="global-label">{{ t('modeRouting.globalSwitch') }}</span>
+      <a-switch
+        :checked="globalState.enabled"
+        :loading="globalSaving"
+        :disabled="!canPublish"
+        @change="(v: unknown) => toggleGlobal(!!v)"
+      />
+      <span class="muted">{{
+        t(
+          globalState.source === 'config'
+            ? 'modeRouting.globalSourceConfig'
+            : 'modeRouting.globalSourceDefault',
+        )
+      }}</span>
+    </div>
     <ProTable :columns="columns" :request="loadData" :search="{}" row-key="id">
       <template #emptyText><a-empty description="暂无 Mode 流" /></template>
       <template #bodyCell="{ column, record }">
@@ -152,7 +168,7 @@
 
 <script setup lang="ts">
 import { message, Modal } from 'antdv-next';
-import { reactive, ref } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
@@ -160,14 +176,18 @@ import { pageFlows, type ModeFlow } from '@/api/mode';
 import {
   convertModeRouting,
   getModeRouting,
+  getModeRoutingGlobal,
   getModeRoutingDrift,
   importModeDefinition,
   modeRoutingErrors,
   setModeRouting,
+  setModeRoutingGlobal,
   type ModeRoutingDrift,
+  type ModeRoutingGlobal,
   type ModeRoutingStatus,
 } from '@/api/mode-routing';
 import { isEndpointMissing } from '@/api/workflow-definition';
+import { usePermission } from '@/composables/usePermission';
 import ProCodeEditor from '@/components/Pro/ProCodeEditor/index.vue';
 import ProTable from '@/components/Pro/ProTable/index.vue';
 
@@ -374,11 +394,55 @@ function toggle(record: ModeFlow, enabled: boolean) {
     },
   });
 }
+
+/** 总开关：GET 404 时隐藏；写入需 mode:publish，无权限时开关只读 */
+const globalState = ref<ModeRoutingGlobal>();
+const globalSaving = ref(false);
+const { can } = usePermission();
+const canPublish = computed(() => can('mode:publish'));
+
+async function loadGlobal() {
+  try {
+    globalState.value = await getModeRoutingGlobal();
+  } catch {
+    globalState.value = undefined;
+  }
+}
+void loadGlobal();
+
+function toggleGlobal(enabled: boolean) {
+  Modal.confirm({
+    title: t(enabled ? 'modeRouting.globalConfirmOn' : 'modeRouting.globalConfirmOff'),
+    content: t(enabled ? 'modeRouting.globalOnWarn' : 'modeRouting.globalOffWarn'),
+    onOk: async () => {
+      globalSaving.value = true;
+      try {
+        globalState.value = await setModeRoutingGlobal(enabled);
+        message.success(t('modeRouting.saved'));
+        await Promise.all(Object.keys(routing).map((code) => loadRouting(code)));
+      } catch {
+        /* 拦截器已提示 */
+        await loadGlobal();
+      } finally {
+        globalSaving.value = false;
+      }
+    },
+  });
+}
 </script>
 
 <style scoped>
 .page-container {
   padding: 24px;
+}
+.global-switch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.global-label {
+  font-weight: 500;
 }
 .frozen-alert {
   margin-bottom: 16px;

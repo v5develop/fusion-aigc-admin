@@ -99,3 +99,19 @@ export function importModeDefinition(modeCode: string) {
     writeCfg(),
   );
 }
+
+/** 对应后端 ModeRoutingAdminService.GlobalStatus；source=config 为系统配置行，default 为配置文件默认 */
+export interface ModeRoutingGlobal {
+  enabled: boolean;
+  source: 'config' | 'default';
+}
+
+/** 总开关；接口未上线时 404（用 isEndpointMissing 判断） */
+export function getModeRoutingGlobal() {
+  return request.get<ModeRoutingGlobal>(`${BASE}/global`, cfg({ silentError: true, noRetry: true }));
+}
+
+/** 写总开关：开启后所有自身开关已开的 mode 改走定义 */
+export function setModeRoutingGlobal(enabled: boolean) {
+  return request.put<ModeRoutingGlobal>(`${BASE}/global`, { enabled }, writeCfg());
+}

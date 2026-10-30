@@ -5650,6 +5650,13 @@ export default {
     on: '切替済み',
     off: '未切替',
     globalOff: '全体スイッチ オフ',
+    globalSwitch: '定義ルーティング全体スイッチ',
+    globalOnWarn: 'オンにすると、個別スイッチがオンのすべての mode が保存済みの定義で実行されます。',
+    globalOffWarn: 'オフにすると、すべての mode が従来のオーケストレーション経路に戻り、mode 別スイッチは無効になります。',
+    globalConfirmOn: '定義ルーティング全体スイッチをオンにしますか？',
+    globalConfirmOff: '定義ルーティング全体スイッチをオフにしますか？',
+    globalSourceConfig: 'システム設定の値',
+    globalSourceDefault: 'デフォルト値（設定ファイル）を使用中',
     globalOffHint:
       '定義ルーティングの全体スイッチがオフのため、mode ごとのスイッチはまだ有効になりません。',
     sourceVersion: '元バージョン v{version}',

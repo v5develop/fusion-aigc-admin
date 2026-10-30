@@ -5662,6 +5662,13 @@ export default {
     on: 'On',
     off: 'Off',
     globalOff: 'Global switch off',
+    globalSwitch: 'Definition routing master switch',
+    globalOnWarn: 'Turning it on makes every mode whose own switch is on run through its stored definition.',
+    globalOffWarn: 'Turning it off makes all modes run the original orchestration path; per-mode switches stop taking effect.',
+    globalConfirmOn: 'Turn on the definition routing master switch?',
+    globalConfirmOff: 'Turn off the definition routing master switch?',
+    globalSourceConfig: 'From system config',
+    globalSourceDefault: 'Using default (config file)',
     globalOffHint:
       'The global definition routing switch is off, so per-mode switches have no effect yet.',
     sourceVersion: 'Source v{version}',
