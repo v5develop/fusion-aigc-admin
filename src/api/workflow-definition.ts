@@ -64,8 +64,20 @@ function listOf<T>(res: unknown): T[] {
   return [];
 }
 
-export function listWorkflowDefinitions() {
-  return request.get<unknown>(BASE, cfg()).then(listOf<WorkflowDefinitionItem>);
+export interface WorkflowDefinitionPage {
+  list: WorkflowDefinitionItem[];
+  total: number;
+}
+
+/** 后端分页：PageResult { list, total }，参数 page（从 1 起）、pageSize（≤100） */
+export function listWorkflowDefinitions(page = 1, pageSize = 20) {
+  return request
+    .get<unknown>(BASE, { ...cfg(), params: { page, pageSize } })
+    .then((res): WorkflowDefinitionPage => {
+      const r = (res ?? {}) as { list?: unknown; total?: unknown };
+      const list = Array.isArray(r.list) ? (r.list as WorkflowDefinitionItem[]) : listOf<WorkflowDefinitionItem>(res);
+      return { list, total: typeof r.total === 'number' ? r.total : list.length };
+    });
 }
 
 export function createWorkflowDefinition(data: { code: string; name: string }) {

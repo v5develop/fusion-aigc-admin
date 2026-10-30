@@ -4,7 +4,7 @@
       <h2 class="ph-title">{{ $t('workflowDefinition.list') }}</h2>
       <a-space>
         <a-button :loading="loading" @click="load">{{ $t('common.refresh') }}</a-button>
-        <a-button v-permission="'ai_gateway:config'" type="primary" @click="openCreate">
+        <a-button v-permission="'mode:create'" type="primary" @click="openCreate">
           {{ $t('workflowDefinition.create') }}
         </a-button>
       </a-space>
@@ -15,9 +15,10 @@
         :columns="columns"
         :data-source="rows"
         :loading="loading"
-        :pagination="{ pageSize: 20 }"
+        :pagination="pagination"
         row-key="id"
         size="small"
+        @change="onTableChange"
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.dataIndex === 'code'">
@@ -110,13 +111,24 @@ function statusText(row: { currentVersion?: number | null; status?: string }) {
   return t('workflowDefinition.statusOther', { status: row.status });
 }
 
+// 服务端分页：后端返回 PageResult { list, total }
+const pagination = reactive({ current: 1, pageSize: 20, total: 0, showSizeChanger: true });
+
 async function load() {
   loading.value = true;
   try {
-    rows.value = await listWorkflowDefinitions();
+    const page = await listWorkflowDefinitions(pagination.current, pagination.pageSize);
+    rows.value = page.list;
+    pagination.total = page.total;
   } finally {
     loading.value = false;
   }
+}
+
+function onTableChange(p: { current?: number; pageSize?: number }) {
+  pagination.current = p.current ?? 1;
+  pagination.pageSize = p.pageSize ?? pagination.pageSize;
+  load();
 }
 
 function openDetail(record: WorkflowDefinitionItem) {
