@@ -37,6 +37,10 @@ export interface ModeRoutingStatus {
   validationErrors?: string[];
   /** mode 流自身状态；旧后端无此字段 */
   flowStatus?: 'ENABLED' | 'DISABLED' | 'MISSING';
+  /** 该 mode 的提交路径是否调用定义路由；缺省按 true（旧后端） */
+  wired?: boolean;
+  /** wired=false 时的原因 */
+  wiredReason?: string | null;
 }
 
 function path(modeCode: string) {

@@ -1167,6 +1167,10 @@ async function loadDefinitionRouting() {
   }
   try {
     definitionRoutingDoubao.value = await getDefinitionRoutingEnabled('hitvideo-doubao');
+  } catch {
+    /* 错误已由拦截器提示 */
+  }
+  try {
     definitionRoutingLocal.value = await getDefinitionRoutingEnabled('hitvideo-local');
   } catch {
     /* 错误已由拦截器提示 */

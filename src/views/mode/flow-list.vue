@@ -80,7 +80,9 @@
               <div v-if="driftAvailable">
                 <a-tag v-if="driftLoading[String(record.code)]">…</a-tag>
                 <template v-else-if="driftOf(record)">
-                  <a-tag v-if="!hasDefinition(record)">{{
+                  <!-- 停用的流程有意不导入，不显示「未导入」 -->
+                  <template v-if="routingOf(record)?.flowStatus === 'DISABLED'" />
+                  <a-tag v-else-if="!hasDefinition(record)">{{
                     t('modeRouting.syncNotImported')
                   }}</a-tag>
                   <a-tag v-else-if="driftOf(record)!.inSync" color="green">{{
@@ -103,7 +105,10 @@
                 </template>
               </div>
               <div>
-                <a-tag v-if="routingOf(record)!.flowStatus === 'DISABLED'" color="default">{{
+                <a-tooltip v-if="routingOf(record)!.wired === false" :title="routingOf(record)!.wiredReason || ''">
+                  <a-tag color="default">{{ t('modeRouting.notWired') }}</a-tag>
+                </a-tooltip>
+                <a-tag v-else-if="routingOf(record)!.flowStatus === 'DISABLED'" color="default">{{
                   t('modeRouting.flowDisabled')
                 }}</a-tag>
                 <a-tag v-else-if="routingOf(record)!.convertible" color="green">{{
@@ -142,8 +147,12 @@
               >{{ t('modeRouting.recheck') }}</a-button
             >
             <a-button
-              v-if="driftAvailable"
-              v-permission="'mode:publish'"
+              v-if="
+                driftAvailable &&
+                routingOf(record)?.flowStatus !== 'DISABLED' &&
+                routingOf(record)?.wired !== false
+              "
+              v-permission="'mode:edit'"
               type="link"
               size="small"
               :loading="!!importing[String(record.code)]"
@@ -287,6 +296,8 @@ function switchDisabledReason(record: ModeFlow): string {
   const s = routingOf(record);
   if (!s) return t('modeRouting.needConvertible');
   if (s.switchOn) return '';
+  if (s.flowStatus === 'DISABLED') return t('modeRouting.flowDisabled');
+  if (s.wired === false) return s.wiredReason || t('modeRouting.notWired');
   if (driftAvailable.value && !hasDefinition(record)) return t('modeRouting.needDefinition');
   if (!s.convertible) return t('modeRouting.needConvertible');
   return '';
