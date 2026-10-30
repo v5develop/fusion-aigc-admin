@@ -70,6 +70,12 @@
           <template v-else-if="column.key === 'prices'">
             <span v-if="!record.prices.length" class="muted">—</span>
             <div v-else class="prices">
+              <a-tooltip v-if="record.priceSource === 'draft'" :title="t('workflowDefinition.tools.priceDraftTip')">
+                <a-tag color="orange" class="price-source">{{ t('workflowDefinition.tools.priceDraft') }}</a-tag>
+              </a-tooltip>
+              <span v-else-if="record.priceSource === 'published' && record.configVersion" class="muted price-source">
+                {{ t('workflowDefinition.tools.pricePublished', { version: record.configVersion }) }}
+              </span>
               <div v-for="p in record.prices" :key="p.deploymentCode" class="price-line">
                 <span class="deployment">{{ p.deploymentCode }}</span>
                 <span v-if="p.priceModelCode === null" class="muted">{{
@@ -111,7 +117,7 @@ import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { type CreaftToolVariantStatus, getCreaftToolReadiness } from '@/api/creaft-compat';
-import { isEndpointMissing } from '@/api/workflow-definition';
+import { isEndpointMissing, isForbidden } from '@/api/workflow-definition';
 import {
   listWorkflowTools,
   type WorkflowToolPriceComponent,
@@ -211,7 +217,8 @@ async function loadTools() {
   try {
     toolRows.value = await listWorkflowTools();
   } catch (e) {
-    if (isEndpointMissing(e)) {
+    // 接口未上线（404）或当前账号没有 mode:view（403）：整块静默隐藏，不打扰只看 creaft 档位的运营
+    if (isEndpointMissing(e) || isForbidden(e)) {
       toolsVisible.value = false;
     } else {
       message.error(t('workflowDefinition.tools.loadFailed'));

@@ -420,6 +420,8 @@ export function connectSteps(def: DefinitionObject, source: string, target: stri
   if (!t || !findStep(next, source)) return { ok: false, error: 'unknown_step' };
   const after = afterOf(t);
   if (after.includes(source)) return { ok: false, error: 'already_connected' };
+  // after 环单独按 after 链判断：定义里有残缺步骤时下面的整图检查返回 bad_step，查不出环
+  if (ancestorsByAfter(next, source).has(target)) return { ok: false, error: 'cycle' };
   setAfter(t, [...after, source]);
   const graph = buildGraphFromDefinition(next, { allowEmpty: true });
   if (!graph.ok && graph.error === 'cycle') return { ok: false, error: 'cycle' };
@@ -759,4 +761,144 @@ export function issuesByStep(issues: LocalIssue[]): Map<string, LocalIssue[]> {
     map.set(i.stepId, list);
   });
   return map;
+}
+
+// ---------------------------------------------------------------------------
+// 输入/输出与引用候选（「输入与输出」页签、属性面板的引用下拉用）
+// ---------------------------------------------------------------------------
+
+/** 改定义顶层字段（inputs、outputs…）；value 为 undefined 时删除。 */
+export function setDefinitionField(
+  def: DefinitionObject,
+  field: string,
+  value: unknown,
+): DefinitionObject {
+  const next = clone(def);
+  if (value === undefined) delete next[field];
+  else next[field] = clone(value);
+  return next;
+}
+
+function renameInputBind(bind: string, oldName: string, newName: string): string {
+  return bind
+    .split('|')
+    .map((candidate) => {
+      const trimmed = candidate.trim();
+      if (trimmed !== `input.${oldName}`) return candidate;
+      return candidate.replace(trimmed, `input.${newName}`);
+    })
+    .join('|');
+}
+
+function renameInputBindsDeep(value: unknown, oldName: string, newName: string): void {
+  if (Array.isArray(value)) {
+    value.forEach((item) => renameInputBindsDeep(item, oldName, newName));
+    return;
+  }
+  if (!isRecord(value)) return;
+  if (typeof value.bind === 'string') value.bind = renameInputBind(value.bind, oldName, newName);
+  Object.values(value).forEach((item) => renameInputBindsDeep(item, oldName, newName));
+}
+
+/** 改输入名：保持 inputs 的键顺序，并同步改各步骤参数/条件与 outputs 里的 `input.<旧名>` 绑定。 */
+export function renameInput(def: DefinitionObject, oldName: string, newName: string): EditResult {
+  const name = newName.trim();
+  if (!name) return { ok: false, error: 'empty_id' };
+  const inputs = isRecord(def.inputs) ? def.inputs : {};
+  if (name === oldName) return { ok: true, def: clone(def) };
+  if (name in inputs) return { ok: false, error: 'duplicate_id' };
+  const next = clone(def);
+  const renamed: Record<string, unknown> = {};
+  Object.entries(isRecord(next.inputs) ? next.inputs : {}).forEach(([k, v]) => {
+    renamed[k === oldName ? name : k] = v;
+  });
+  next.inputs = renamed;
+  stepsOf(next).forEach((s) => {
+    renameInputBindsDeep(s.params, oldName, name);
+    renameInputBindsDeep(s.when, oldName, name);
+  });
+  renameInputBindsDeep(next.outputs, oldName, name);
+  if (isRecord(next.outputs)) {
+    const outputs = next.outputs;
+    Object.entries(outputs).forEach(([k, v]) => {
+      if (typeof v === 'string') outputs[k] = renameInputBind(v, oldName, name);
+    });
+  }
+  return { ok: true, def: next };
+}
+
+/** 定义里用到的 `config.<key>`（去重，按出现顺序）。 */
+export function configRefsOf(def: DefinitionObject): string[] {
+  const binds: string[] = [];
+  stepsOf(def).forEach((s) => {
+    collectBinds(s.params, binds);
+    collectBinds(s.when, binds);
+  });
+  collectBinds(def.outputs, binds);
+  const out = new Set<string>();
+  binds.forEach((b) =>
+    b.split('|').forEach((candidate) => {
+      const parts = candidate.trim().split('.');
+      if (parts[0] === 'config' && parts.length === 2 && parts[1]) out.add(parts[1]);
+    }),
+  );
+  return [...out];
+}
+
+/** 图上某节点的全部下游（沿控制流与数据流边），不含自身。 */
+export function descendantsOf(edges: GraphEdge[], id: string): Set<string> {
+  const out = new Set<string>();
+  const stack = [id];
+  while (stack.length) {
+    const cur = stack.pop() as string;
+    edges.forEach((e) => {
+      if (e.source === cur && !out.has(e.target) && e.target !== id) {
+        out.add(e.target);
+        stack.push(e.target);
+      }
+    });
+  }
+  return out;
+}
+
+/** 按 after 链计算某步骤的祖先（与后端 bind 可见性一致）。 */
+export function ancestorsByAfter(def: DefinitionObject, id: string): Set<string> {
+  const afterById = new Map<string, string[]>();
+  stepsOf(def).forEach((s) => {
+    if (typeof s.id === 'string') afterById.set(s.id, afterOf(s));
+  });
+  const out = new Set<string>();
+  const stack = [...(afterById.get(id) ?? [])];
+  while (stack.length) {
+    const cur = stack.pop() as string;
+    if (out.has(cur) || cur === id) continue;
+    out.add(cur);
+    stack.push(...(afterById.get(cur) ?? []));
+  }
+  return out;
+}
+
+/** bind 表达式里每个候选指向的步骤 id（input./config. 不算；不要求步骤存在）。 */
+export function stepHeadsOfBind(bind: string): string[] {
+  return bind
+    .split('|')
+    .map((candidate) => candidate.trim().split('.'))
+    .filter((parts) => parts.length >= 2 && parts[1] === 'output')
+    .map((parts) => parts[0])
+    .filter((head) => head && head !== 'input' && head !== 'config');
+}
+
+/** 复制一个步骤：参数、条件、after 原样复制，id 取不重复的新值，插在原步骤后面。 */
+export function duplicateStep(
+  def: DefinitionObject,
+  id: string,
+): { def: DefinitionObject; id: string } | undefined {
+  const next = clone(def);
+  const src = findStep(next, id);
+  if (!src || !Array.isArray(next.steps)) return undefined;
+  const newId = uniqueStepId(next, id);
+  const copy: StepObject = { ...clone(src), id: newId };
+  const index = next.steps.indexOf(src);
+  next.steps.splice(index + 1, 0, copy);
+  return { def: next, id: newId };
 }

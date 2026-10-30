@@ -173,6 +173,13 @@ export function isEndpointMissing(e: unknown): boolean {
   return err.status === 404 || err.code === 404 || err.response?.status === 404;
 }
 
+/** 当前账号无权访问（403）：页面上的附属区块据此静默隐藏，而不是报错 */
+export function isForbidden(e: unknown): boolean {
+  if (!e || typeof e !== 'object') return false;
+  const err = e as { status?: number; code?: number; response?: { status?: number } };
+  return err.status === 403 || err.code === 403 || err.response?.status === 403;
+}
+
 /** 从发布失败的错误里取校验错误列表；不是校验失败返回 undefined */
 export function publishErrorsOf(e: unknown): WorkflowValidationError[] | undefined {
   const d = errorDataOf<{ errors?: WorkflowValidationError[] }>(e);

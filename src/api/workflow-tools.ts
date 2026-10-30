@@ -45,18 +45,39 @@ export interface WorkflowToolRow {
   usedBy: WorkflowToolUsage[];
   /** 后端未上线该字段时缺省，listWorkflowTools 归一为 [] */
   prices: WorkflowToolPrice[];
+  /** 价格来源：published=网关已发布快照（正在生效）；draft=网关草稿（旧网关或未发布时的回退）；null=无价格 */
+  priceSource?: 'published' | 'draft' | null;
+  /** 价格来源为 published 时的网关配置版本号 */
+  configVersion?: number | null;
+  /** 模型组支持的全部操作（scope=all 起下发；旧后端缺省） */
+  operations?: string[];
+  /** 模型组显示名（scope=all 起下发；旧后端缺省） */
+  displayName?: string | null;
 }
 
-/** 后端未上线时 404（用 isEndpointMissing 判断），调用方静默隐藏，故不弹全局错误 */
-export function listWorkflowTools() {
+/**
+ * 后端未上线时 404（用 isEndpointMissing 判断），调用方静默隐藏，故不弹全局错误。
+ * scope=all：返回网关全部模型组（含未被定义引用的）；旧后端忽略该参数，只返回已引用的，
+ * 调用方对查不到的组按「就绪/价格未知」处理。
+ */
+export function listWorkflowTools(scope: 'used' | 'all' = 'used') {
   return request
-    .get<unknown>(BASE, cfg({ silentError: true, noRetry: true }))
+    .get<unknown>(
+      BASE,
+      cfg({ silentError: true, noRetry: true, params: scope === 'all' ? { scope } : undefined }),
+    )
     .then((res) =>
       (Array.isArray(res) ? (res as WorkflowToolRow[]) : [])
         .filter((r) => r && typeof r.modelGroup === 'string')
         .map((r) => ({
           ...r,
           usedBy: Array.isArray(r.usedBy) ? r.usedBy : [],
+          priceSource: r.priceSource === 'published' || r.priceSource === 'draft' ? r.priceSource : null,
+          configVersion: typeof r.configVersion === 'number' ? r.configVersion : null,
+          operations: Array.isArray(r.operations)
+            ? r.operations.filter((op): op is string => typeof op === 'string')
+            : undefined,
+          displayName: typeof r.displayName === 'string' ? r.displayName : null,
           prices: (Array.isArray(r.prices) ? r.prices : []).map((p) => ({
             ...p,
             components: (Array.isArray(p?.components) ? p.components : []).map((c) => ({
