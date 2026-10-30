@@ -40,6 +40,7 @@
         }}</a-button>
       </template>
       <div class="hint">{{ t('workflowDefinition.tools.hint') }}</div>
+      <div class="hint">{{ t('workflowDefinition.tools.priceHint') }}</div>
       <a-table
         :columns="toolColumns"
         :data-source="toolRows"
@@ -65,6 +66,25 @@
             <span v-else>{{
               record.reason ? reasonText(record.reason) : t('workflowDefinition.tools.noReason')
             }}</span>
+          </template>
+          <template v-else-if="column.key === 'prices'">
+            <span v-if="!record.prices.length" class="muted">—</span>
+            <div v-else class="prices">
+              <div v-for="p in record.prices" :key="p.deploymentCode" class="price-line">
+                <span class="deployment">{{ p.deploymentCode }}</span>
+                <span v-if="p.priceModelCode === null" class="muted">{{
+                  t('workflowDefinition.tools.noPrice')
+                }}</span>
+                <template v-else>
+                  <span
+                    v-for="(c, i) in p.components"
+                    :key="`${c.unit}-${c.resolution ?? ''}-${i}`"
+                    class="component"
+                    >{{ formatComponent(c, p.currency, i > 0 ? p.components[i - 1] : null) }}</span
+                  >
+                </template>
+              </div>
+            </div>
           </template>
           <template v-else-if="column.key === 'usedBy'">
             <span v-if="!record.usedBy.length" class="muted">{{
@@ -92,7 +112,11 @@ import { useI18n } from 'vue-i18n';
 
 import { type CreaftToolVariantStatus, getCreaftToolReadiness } from '@/api/creaft-compat';
 import { isEndpointMissing } from '@/api/workflow-definition';
-import { listWorkflowTools, type WorkflowToolRow } from '@/api/workflow-tools';
+import {
+  listWorkflowTools,
+  type WorkflowToolPriceComponent,
+  type WorkflowToolRow,
+} from '@/api/workflow-tools';
 
 const { t } = useI18n();
 
@@ -157,8 +181,30 @@ const toolColumns = computed(() => [
   },
   { title: t('workflowDefinition.tools.ready'), key: 'ready', width: 140 },
   { title: t('workflowDefinition.tools.reason'), key: 'reason' },
+  { title: t('workflowDefinition.tools.price'), key: 'prices' },
   { title: t('workflowDefinition.tools.usedBy'), key: 'usedBy' },
 ]);
+
+// 原样显示网关标价：不换算币种、不求和
+// 分档：有 upTo 前缀「≤ upTo unit」；无上限且上一档有 upTo 时前缀「> 上一档 upTo unit」
+function formatComponent(
+  c: WorkflowToolPriceComponent,
+  currency: string | null,
+  prev: WorkflowToolPriceComponent | null,
+) {
+  const head = currency ? `${c.price} ${currency}` : `${c.price}`;
+  const base = `${head} / ${c.unit}`;
+  const text = c.resolution ? `${base} (${c.resolution})` : base;
+  const upTo = c.upTo ?? null;
+  const prevUpTo = prev?.upTo ?? null;
+  if (upTo !== null) {
+    return `${t('workflowDefinition.tools.priceUpTo', { upTo, unit: c.unit })} ${text}`;
+  }
+  if (prevUpTo !== null) {
+    return `${t('workflowDefinition.tools.priceAbove', { upTo: prevUpTo, unit: c.unit })} ${text}`;
+  }
+  return text;
+}
 
 async function loadTools() {
   toolsLoading.value = true;
@@ -199,6 +245,19 @@ onMounted(() => {
 }
 .workflow-tools {
   margin-top: 16px;
+}
+.price-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+}
+.price-line + .price-line {
+  margin-top: 4px;
+}
+.deployment {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45);
 }
 .used-by {
   display: flex;
