@@ -583,16 +583,11 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
     },
     children: [
       {
-        // 只读：列出工具各档的网关就绪状态与原因，回答「用户为什么读不到某一档」
+        // 工具就绪页已搬到「工作流 → 能力」下，旧链接转过去
         path: 'tool-readiness',
-        name: 'CreaftToolReadiness',
-        component: () => import('@/views/creaft/readiness/index.vue'),
-        meta: {
-          title: 'menu.creaftToolReadiness',
-          icon: 'CheckCircleOutlined',
-          requiresAuth: true,
-          requiredPermissions: 'creaft_binding:view',
-        },
+        name: 'CreaftToolReadinessMoved',
+        redirect: '/workflow/capabilities/tool-readiness',
+        meta: { title: 'menu.creaftToolReadiness', hidden: true, requiresAuth: true },
       },
       {
         path: 'catalog',
@@ -737,6 +732,19 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         meta: {
           title: 'menu.creaftBinding',
           icon: 'ApiOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'creaft_binding:view',
+        },
+      },
+      {
+        // 只读：creaft 工具各档与工作流定义所用模型组的网关就绪状态与原因，
+        // 回答「用户为什么读不到某一档」「哪条定义的模型组没就绪」
+        path: 'capabilities/tool-readiness',
+        name: 'CreaftToolReadiness',
+        component: () => import('@/views/creaft/readiness/index.vue'),
+        meta: {
+          title: 'menu.creaftToolReadiness',
+          icon: 'CheckCircleOutlined',
           requiresAuth: true,
           requiredPermissions: 'creaft_binding:view',
         },

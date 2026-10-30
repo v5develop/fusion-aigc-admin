@@ -40,6 +40,17 @@
         </div>
       </a-form-item>
 
+      <a-form-item v-if="modelGroup" :label="$t('workflowDefinition.modelGroupStatus')">
+        <div class="mg-line">
+          <code v-if="modelGroup.kind === 'literal'">{{ modelGroup.value }}</code>
+          <ModelGroupBadge :model-group="modelGroup" :tool="modelGroupTool" />
+          <span v-if="modelGroup.kind === 'literal' && !modelGroupTool" class="muted">-</span>
+        </div>
+        <div v-if="modelGroupTool?.ready === false" class="field-note mg-reason">
+          {{ modelGroupTool.reason || $t('workflowDefinition.tools.noReason') }}
+        </div>
+      </a-form-item>
+
       <a-form-item :label="$t('workflowDefinition.propsAfter')">
         <span v-if="!afterList.length" class="muted">-</span>
         <a-tag
@@ -158,12 +169,18 @@
 
 <script setup lang="ts">
 import type { WorkflowStepKindSchema } from '@/api/workflow-definition';
+import type { WorkflowToolRow } from '@/api/workflow-tools';
 
 import { message } from 'antdv-next';
 import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import { isBindValue, type StepObject } from '@/views/workflow-definition/graph';
+import {
+  isBindValue,
+  type ModelGroupRef,
+  type StepObject,
+} from '@/views/workflow-definition/graph';
+import ModelGroupBadge from '@/views/workflow-definition/ModelGroupBadge.vue';
 
 const props = defineProps<{
   step?: StepObject;
@@ -172,6 +189,9 @@ const props = defineProps<{
   disabled: boolean;
   /** 即时校验在该步骤上的问题（已格式化） */
   issues?: string[];
+  /** gateway.call 步骤的模型组引用及其网关就绪状态（总览里查不到时 tool 为空） */
+  modelGroup?: ModelGroupRef;
+  modelGroupTool?: WorkflowToolRow;
 }>();
 
 const emit = defineEmits<{
@@ -355,6 +375,16 @@ function onWhenBlur() {
   margin: 0;
   padding-left: 18px;
   font-size: 12px;
+}
+.mg-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+.mg-reason {
+  color: #cf1322;
 }
 .json-area {
   font-family: var(--font-mono, monospace);

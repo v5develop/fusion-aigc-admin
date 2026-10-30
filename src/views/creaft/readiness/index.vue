@@ -32,14 +32,69 @@
         </template>
       </template>
     </a-table>
+
+    <a-card v-if="toolsVisible" class="workflow-tools" :title="t('workflowDefinition.tools.title')">
+      <template #extra>
+        <a-button size="small" :loading="toolsLoading" @click="loadTools">{{
+          t('workflowDefinition.tools.refresh')
+        }}</a-button>
+      </template>
+      <div class="hint">{{ t('workflowDefinition.tools.hint') }}</div>
+      <a-table
+        :columns="toolColumns"
+        :data-source="toolRows"
+        :loading="toolsLoading"
+        :pagination="false"
+        :row-key="(r: WorkflowToolRow) => `${r.modelGroup}|${r.operation}`"
+        size="middle"
+      >
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.key === 'ready'">
+            <a-tag v-if="record.ready === true" color="green">{{
+              t('workflowDefinition.tools.statusReady')
+            }}</a-tag>
+            <a-tag v-else-if="record.ready === false" color="red">{{
+              t('workflowDefinition.tools.statusNotReady')
+            }}</a-tag>
+            <a-tooltip v-else :title="t('workflowDefinition.tools.unknownTip')">
+              <a-tag color="default">{{ t('workflowDefinition.tools.statusUnknown') }}</a-tag>
+            </a-tooltip>
+          </template>
+          <template v-else-if="column.key === 'reason'">
+            <span v-if="record.ready !== false" class="muted">—</span>
+            <span v-else>{{
+              record.reason ? reasonText(record.reason) : t('workflowDefinition.tools.noReason')
+            }}</span>
+          </template>
+          <template v-else-if="column.key === 'usedBy'">
+            <span v-if="!record.usedBy.length" class="muted">{{
+              t('workflowDefinition.tools.noUsage')
+            }}</span>
+            <div v-else class="used-by">
+              <router-link
+                v-for="u in record.usedBy"
+                :key="`${u.definitionId}-${u.version}`"
+                :to="`/workflow/definitions/${u.definitionId}`"
+                >{{ u.definitionCode }} v{{ u.version }}</router-link
+              >
+            </div>
+          </template>
+        </template>
+      </a-table>
+    </a-card>
   </div>
 </template>
 
 <script setup lang="ts">
 import { message } from 'antdv-next';
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { type CreaftToolVariantStatus, getCreaftToolReadiness } from '@/api/creaft-compat';
+import { isEndpointMissing } from '@/api/workflow-definition';
+import { listWorkflowTools, type WorkflowToolRow } from '@/api/workflow-tools';
+
+const { t } = useI18n();
 
 // 目前只有超分登记了变体；新增工具时在后端 ToolVariantReadiness 登记后，这里加一项即可
 const routeOptions = [
@@ -87,7 +142,43 @@ async function load() {
   }
 }
 
-onMounted(load);
+// 工作流工具：后端接口未上线（404）时整块隐藏，不报错
+const toolRows = ref<WorkflowToolRow[]>([]);
+const toolsLoading = ref(false);
+const toolsVisible = ref(true);
+
+const toolColumns = computed(() => [
+  { title: t('workflowDefinition.tools.modelGroup'), dataIndex: 'modelGroup', key: 'modelGroup' },
+  {
+    title: t('workflowDefinition.tools.operation'),
+    dataIndex: 'operation',
+    key: 'operation',
+    width: 180,
+  },
+  { title: t('workflowDefinition.tools.ready'), key: 'ready', width: 140 },
+  { title: t('workflowDefinition.tools.reason'), key: 'reason' },
+  { title: t('workflowDefinition.tools.usedBy'), key: 'usedBy' },
+]);
+
+async function loadTools() {
+  toolsLoading.value = true;
+  try {
+    toolRows.value = await listWorkflowTools();
+  } catch (e) {
+    if (isEndpointMissing(e)) {
+      toolsVisible.value = false;
+    } else {
+      message.error(t('workflowDefinition.tools.loadFailed'));
+    }
+  } finally {
+    toolsLoading.value = false;
+  }
+}
+
+onMounted(() => {
+  load();
+  loadTools();
+});
 </script>
 
 <style scoped>
@@ -105,5 +196,13 @@ onMounted(load);
 }
 .muted {
   color: rgba(0, 0, 0, 0.35);
+}
+.workflow-tools {
+  margin-top: 16px;
+}
+.used-by {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
 }
 </style>

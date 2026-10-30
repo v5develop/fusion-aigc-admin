@@ -16,7 +16,15 @@ export interface GraphNode {
   /** 参数里绑定到的来源（去重），用于节点上的小字说明 */
   sources: string[];
   hasCondition: boolean;
+  /** gateway.call 步骤的模型组引用；其它步骤或未填写时为 undefined */
+  modelGroup?: ModelGroupRef;
 }
+
+/** 字面量模型组可查网关就绪状态；绑定（bind）在运行时才解析，无法预先判断 */
+export type ModelGroupRef = { kind: 'literal'; value: string } | { kind: 'runtime' };
+
+/** 与后端 GatewayCallStepExecutor.KIND 一致 */
+export const GATEWAY_CALL_KIND = 'gateway.call';
 
 export interface GraphEdge {
   id: string;
@@ -100,6 +108,19 @@ function upstreamOf(bind: string, stepIds: Set<string>): string[] {
     .split('|')
     .map((candidate) => candidate.trim().split('.')[0])
     .filter((head) => head && head !== 'input' && head !== 'config' && stepIds.has(head));
+}
+
+/**
+ * gateway.call 步骤的模型组引用（与后端 GatewayModelGroupRefs 口径一致）：
+ * 非空字面量 → literal（去首尾空白）；bind → runtime；空白、缺省或其它 → undefined。
+ */
+export function modelGroupRefOf(step: unknown): ModelGroupRef | undefined {
+  if (!isRecord(step) || step.kind !== GATEWAY_CALL_KIND || !isRecord(step.params)) return undefined;
+  const group = step.params.modelGroup;
+  if (typeof group === 'string') {
+    return group.trim() ? { kind: 'literal', value: group.trim() } : undefined;
+  }
+  return isBindValue(group) ? { kind: 'runtime' } : undefined;
 }
 
 export interface NodePosition {
@@ -188,6 +209,7 @@ export function buildGraphFromDefinition(
     after: string[];
     binds: string[];
     hasCondition: boolean;
+    modelGroup?: ModelGroupRef;
   }[] = [];
   for (const raw of parsed.steps) {
     if (!isRecord(raw) || typeof raw.id !== 'string' || !raw.id || typeof raw.kind !== 'string') {
@@ -201,7 +223,14 @@ export function buildGraphFromDefinition(
     const binds: string[] = [];
     collectBinds(raw.params, binds);
     collectBinds(raw.when, binds);
-    steps.push({ id: raw.id, kind: raw.kind, after, binds, hasCondition: isRecord(raw.when) });
+    steps.push({
+      id: raw.id,
+      kind: raw.kind,
+      after,
+      binds,
+      hasCondition: isRecord(raw.when),
+      modelGroup: modelGroupRefOf(raw),
+    });
   }
 
   const stepIds = new Set(steps.map((s) => s.id));
@@ -273,6 +302,7 @@ export function buildGraphFromDefinition(
       kind: s.kind,
       sources,
       hasCondition: s.hasCondition,
+      ...(s.modelGroup ? { modelGroup: s.modelGroup } : {}),
       layer,
       x: layout[s.id]?.x ?? layer * LAYER_GAP_X,
       y: layout[s.id]?.y ?? row * ROW_GAP_Y,

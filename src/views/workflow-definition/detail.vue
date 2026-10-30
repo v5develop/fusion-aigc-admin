@@ -323,6 +323,8 @@
             :kind-options="kindOptions"
             :disabled="!canvasEditable || !draftParse.ok"
             :issues="selectedIssues"
+            :model-group="selectedModelGroup"
+            :model-group-tool="selectedModelGroupTool"
             @rename="onRename"
             @set-param="onSetParam"
             @set-field="onSetField"
@@ -374,7 +376,7 @@ import {
   type NodeMouseEvent,
 } from '@vue-flow/core';
 import { message, Modal } from 'antdv-next';
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { computed, h, nextTick, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -397,6 +399,7 @@ import {
   type WorkflowStepKindSchema,
   type WorkflowValidationError,
 } from '@/api/workflow-definition';
+import { listWorkflowTools, type WorkflowToolRow } from '@/api/workflow-tools';
 import ProCodeEditor from '@/components/Pro/ProCodeEditor/index.vue';
 import '@vue-flow/core/dist/style.css';
 import '@vue-flow/controls/dist/style.css';
@@ -409,6 +412,7 @@ import {
   findStep,
   issuesByStep,
   LAYER_GAP_X,
+  modelGroupRefOf,
   parseDefinition,
   pruneLayout,
   removeStep,
@@ -425,9 +429,11 @@ import {
   type EditResult,
   type GraphResult,
   type LocalIssue,
+  type ModelGroupRef,
   type NodePosition,
   type WorkflowGraph,
 } from '@/views/workflow-definition/graph';
+import ModelGroupBadge from '@/views/workflow-definition/ModelGroupBadge.vue';
 import StepPropsPanel from '@/views/workflow-definition/StepPropsPanel.vue';
 
 const { t } = useI18n();
@@ -477,6 +483,12 @@ const errors = ref<WorkflowValidationError[]>([]);
 const layout = ref<Record<string, NodePosition>>({});
 const layoutSaveAvailable = ref(true);
 let layoutTimer: ReturnType<typeof setTimeout> | undefined;
+
+/**
+ * 模型组 → 工作流工具总览行（网关就绪状态）。每次进入页面加载一次；
+ * 接口缺失或失败时为空表，节点与属性面板都不显示徽标。
+ */
+const toolByModelGroup = ref<Map<string, WorkflowToolRow>>(new Map());
 
 const selectedStepId = ref<string | null>(null);
 const selectedEdgeId = ref<string | null>(null);
@@ -597,6 +609,31 @@ const serverErrorSteps = computed(() => new Set(errorStepIds.value.flat()));
 // 画布
 // ---------------------------------------------------------------------------
 
+function toolOf(mg?: ModelGroupRef): WorkflowToolRow | undefined {
+  return mg?.kind === 'literal' ? toolByModelGroup.value.get(mg.value) : undefined;
+}
+
+/**
+ * 节点文字；gateway.call 节点在 kind 那一行末尾挂模型组徽标（不新增行，节点尺寸不变）。
+ * Vue Flow 默认节点的 label 可以是组件，这里用函数式组件渲染。
+ */
+function nodeLabel(lines: string[], kindLine: number, mg?: ModelGroupRef) {
+  const plain = lines.filter(Boolean).join('\n');
+  if (!mg) return plain;
+  const tool = toolOf(mg);
+  if (mg.kind === 'literal' && !tool) return plain;
+  return () =>
+    lines
+      .map((line, i) =>
+        i === kindLine
+          ? h('div', [line, h(ModelGroupBadge, { modelGroup: mg, tool, compact: true })])
+          : line
+            ? h('div', line)
+            : null,
+      )
+      .filter(Boolean);
+}
+
 const flowNodes = computed<Node[]>(() => {
   const g = displayGraph.value;
   if (!g) return [];
@@ -610,14 +647,16 @@ const flowNodes = computed<Node[]>(() => {
       sourcePosition: Position.Right,
       targetPosition: Position.Left,
       data: {
-        label: [
-          `${n.id}${n.hasCondition ? ' ·' + t('workflowDefinition.graphCondition') : ''}`,
-          n.kind,
-          n.sources.length ? `← ${n.sources.join(', ')}` : '',
-          issueCount ? `⚠ ${t('workflowDefinition.nodeIssueCount', { count: issueCount })}` : '',
-        ]
-          .filter(Boolean)
-          .join('\n'),
+        label: nodeLabel(
+          [
+            `${n.id}${n.hasCondition ? ' ·' + t('workflowDefinition.graphCondition') : ''}`,
+            n.kind,
+            n.sources.length ? `← ${n.sources.join(', ')}` : '',
+            issueCount ? `⚠ ${t('workflowDefinition.nodeIssueCount', { count: issueCount })}` : '',
+          ],
+          1,
+          n.modelGroup,
+        ),
       },
       style: {
         whiteSpace: 'pre-line',
@@ -805,6 +844,8 @@ const selectedSchema = computed(() => {
   const kind = selectedStep.value?.kind;
   return typeof kind === 'string' ? schemaByKind.value.get(kind) : undefined;
 });
+const selectedModelGroup = computed(() => modelGroupRefOf(selectedStep.value));
+const selectedModelGroupTool = computed(() => toolOf(selectedModelGroup.value));
 const selectedIssues = computed(() =>
   !isReadonly.value && selectedStepId.value
     ? (localIssueMap.value.get(selectedStepId.value) ?? []).map(formatIssue)
@@ -1060,7 +1101,18 @@ async function loadKindSchemas() {
   }
 }
 
+/** 工作流工具总览：只用于就绪徽标，失败（含 404）静默为空表，不影响页面 */
+async function loadWorkflowTools() {
+  try {
+    const rows = await listWorkflowTools();
+    toolByModelGroup.value = new Map(rows.map((r) => [r.modelGroup, r] as const));
+  } catch {
+    toolByModelGroup.value = new Map();
+  }
+}
+
 onMounted(async () => {
+  void loadWorkflowTools();
   try {
     await refreshMeta();
     text.value = pretty(detail.value?.content ?? null);
