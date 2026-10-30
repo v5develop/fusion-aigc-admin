@@ -223,6 +223,7 @@ export default {
     settingsSystem: '시스템 파라미터',
     settingsUserLevel: '경험 등급',
     settingsCheckIn: '일일 출석',
+    settingsVideoEnhancePresets: '화질 향상 프리셋',
     settingsNotification: '알림',
     promptCreate: '프롬프트 생성',
     promptEdit: '프롬프트 편집',
@@ -779,7 +780,8 @@ export default {
   },
   settingsSystem: {
     videoEnhanceDefaultTier: '영상 고화질 기본 등급',
-    videoEnhanceDefaultTierDesc: '사용자가 등급을 선택하지 않았을 때 사용합니다. 즉시 적용되며 실행, 사용자 가격 목록의 기본 표시, 기본 과금이 함께 바뀝니다. 이미 제출된 작업에는 영향이 없습니다.',
+    videoEnhanceDefaultTierDesc:
+      '사용자가 등급을 선택하지 않았을 때 사용합니다. 즉시 적용되며 실행, 사용자 가격 목록의 기본 표시, 기본 과금이 함께 바뀝니다. 이미 제출된 작업에는 영향이 없습니다.',
     videoEnhanceDefaultTierSaved: '기본 등급을 저장했습니다',
     videoEnhanceTierFast: '고속',
     videoEnhanceTierStandard: '표준',
@@ -822,18 +824,27 @@ export default {
     videoWatermarkHint:
       '사용하면 백그라운드 작업이 각 동영상의 워터마크 사본을 만듭니다. 표시에는 워터마크 버전을 사용하고 다운로드는 원본을 반환합니다. 동영상마다 전체 재인코딩과 저장 사본 하나가 추가되어 실시간 이미지 워터마크보다 훨씬 무거우므로 기본값은 꺼짐입니다. 워터마크 로고 경로도 설정해야 하며, 없으면 커버만 생성됩니다.',
     videoWatermarkOn: '동영상 표시 워터마크 사용. 새로 생성되는 동영상에 워터마크가 적용됩니다',
-    videoWatermarkOff: '동영상 표시 워터마크 사용 안 함. 이미 생성된 워터마크 동영상은 계속 사용됩니다',
+    videoWatermarkOff:
+      '동영상 표시 워터마크 사용 안 함. 이미 생성된 워터마크 동영상은 계속 사용됩니다',
     blindWatermark: '이미지 블라인드 워터마크',
-    blindWatermarkDesc: '생성된 모든 이미지에 보이지 않는 추적 정보를 심습니다. 블라인드 워터마크 서비스 URL이 필요합니다',
-    blindWatermarkOn: '이미지 블라인드 워터마크 사용. 새로 생성되는 이미지에 추적 정보가 포함됩니다',
-    blindWatermarkOff: '이미지 블라인드 워터마크 사용 안 함. 이미 심어진 이미지에서는 계속 추출할 수 있습니다',
+    blindWatermarkDesc:
+      '생성된 모든 이미지에 보이지 않는 추적 정보를 심습니다. 블라인드 워터마크 서비스 URL이 필요합니다',
+    blindWatermarkOn:
+      '이미지 블라인드 워터마크 사용. 새로 생성되는 이미지에 추적 정보가 포함됩니다',
+    blindWatermarkOff:
+      '이미지 블라인드 워터마크 사용 안 함. 이미 심어진 이미지에서는 계속 추출할 수 있습니다',
     definitionRoutingDoubao: '워크플로 정의를 통한 hitVideo(Doubao)',
-    definitionRoutingDoubaoDesc: '사용하면 새로운 Doubao(표준·고속) 제출이 워크플로 정의를 거칩니다. 게시된 정의와 Volcengine 게이트웨이 배포가 필요합니다.',
-    definitionRoutingDoubaoModeFlowHint: 'Doubao 경로는 이제 모드별로 사용합니다. 여기서는 끄기만 가능하며, 모드 플로우 목록 페이지에서 모드별로 사용하세요.',
+    definitionRoutingDoubaoDesc:
+      '사용하면 새로운 Doubao(표준·고속) 제출이 워크플로 정의를 거칩니다. 게시된 정의와 Volcengine 게이트웨이 배포가 필요합니다.',
+    definitionRoutingDoubaoModeFlowHint:
+      'Doubao 경로는 이제 모드별로 사용합니다. 여기서는 끄기만 가능하며, 모드 플로우 목록 페이지에서 모드별로 사용하세요.',
     definitionRoutingLocal: '워크플로 정의를 통한 로컬 hitVideo',
-    definitionRoutingLocalDesc: '사용하면 새로운 로컬 hitVideo(xiaoqi-video-1.0-lite 전용) 제출이 워크플로 정의를 거칩니다.',
-    definitionRoutingOn: '워크플로 정의 라우팅 사용. 해당되는 새 hitVideo 제출이 워크플로 정의를 사용합니다',
-    definitionRoutingOff: '워크플로 정의 라우팅 사용 안 함. 새 제출은 기존 경로로 돌아갑니다(이미 제출된 작업에는 영향 없음)',
+    definitionRoutingLocalDesc:
+      '사용하면 새로운 로컬 hitVideo(xiaoqi-video-1.0-lite 전용) 제출이 워크플로 정의를 거칩니다.',
+    definitionRoutingOn:
+      '워크플로 정의 라우팅 사용. 해당되는 새 hitVideo 제출이 워크플로 정의를 사용합니다',
+    definitionRoutingOff:
+      '워크플로 정의 라우팅 사용 안 함. 새 제출은 기존 경로로 돌아갑니다(이미 제출된 작업에는 영향 없음)',
     displayWatermark: '표시용 이미지 워터마크',
     displayWatermarkDesc:
       '마스터 스위치입니다. 무료 사용자에게는 보기·다운로드·에셋 라이브러리에서 워터마크를 적용합니다. 끄면 아무에게도 적용하지 않습니다',
@@ -855,7 +866,8 @@ export default {
     mediaPurposeWarning:
       '변경 이후에 만들어진 호출에만 적용됩니다. 사용하기 전에 게이트웨이가 media_purpose를 지원하는지 확인하세요',
     mediaPurposeOn: '새 호출에 대해 에셋 라이브러리 직접 적재 사용',
-    mediaPurposeOff: '에셋 라이브러리 직접 적재 사용 안 함. 새 호출에 media_purpose가 붙지 않습니다',
+    mediaPurposeOff:
+      '에셋 라이브러리 직접 적재 사용 안 함. 새 호출에 media_purpose가 붙지 않습니다',
     freeOriginalCleanup: '무료 등급 원본 자동 삭제',
     freeOriginalCleanupDesc:
       '기본값은 꺼짐. 켜면 만료된 무료 등급 원본을 작업 기록과 에셋 라이브러리 항목과 함께 삭제합니다(되돌릴 수 없음). 사용하기 전에 보관 일수를 확인하세요',
@@ -878,7 +890,8 @@ export default {
     userInputRetentionConfirmTitle: '만료된 사용자 입력 이미지를 삭제할까요?',
     userInputRetentionConfirm:
       '적용하면 {days}일이 지난 사용자 입력 이미지가 삭제됩니다(7일 유예 기간 동안 복구 가능). 그 뒤에는 재생성에 사용할 수 없습니다.',
-    userInputRetentionSavedForever: '영구 보관으로 설정했습니다. 사용자 입력 이미지는 삭제되지 않습니다',
+    userInputRetentionSavedForever:
+      '영구 보관으로 설정했습니다. 사용자 입력 이미지는 삭제되지 않습니다',
     userInputRetentionSavedDays: '저장됨: 사용자 입력 이미지는 {days}일 후 정리됩니다',
     processingPlaceholders: '워터마크 대기 플레이스홀더',
     processingPlaceholdersDesc:
@@ -894,7 +907,8 @@ export default {
     agentModelHint:
       '프롬프트 최적화 등 백엔드 Agent 시나리오에서 사용하는 모델입니다. 요청에 이미지가 포함되었는지에 따라 자동으로 나뉩니다. 이미지가 없으면 텍스트 프로파일을, 이미지가 있으면 비전 프로파일을 사용합니다. 각 프로파일이 설정되지 않았거나 사용할 수 없으면 yaml 설정으로 대체됩니다. (여기의 프로파일은 모델 역할이며 사용자 권한 역할과는 무관합니다.)',
     agentModelPlaceholder: '모델 선택',
-    agentModelSelectHint: '사용 중인 텍스트 채팅 모델만 선택할 수 있습니다. 비워 두면 yaml 대체 설정을 사용합니다',
+    agentModelSelectHint:
+      '사용 중인 텍스트 채팅 모델만 선택할 수 있습니다. 비워 두면 yaml 대체 설정을 사용합니다',
     agentModelSupportVision: '비전 지원',
     agentProfileText: '텍스트 프로파일(이미지 없는 프롬프트 최적화)',
     agentProfileTextHint:
@@ -1709,8 +1723,7 @@ export default {
     expireTime: '만료 시간',
     status: '상태',
     revoke: '회수',
-    confirmRevoke:
-      '이 기능을 회수하시겠습니까? 회수 후에는 사용자가 이 기능을 사용할 수 없습니다.',
+    confirmRevoke: '이 기능을 회수하시겠습니까? 회수 후에는 사용자가 이 기능을 사용할 수 없습니다.',
     revokeSuccess: '기능을 회수했습니다',
     sourceMap: {
       union: '얼라이언스 부여',
@@ -1857,22 +1870,26 @@ export default {
     enabledOn: '레벨별 대기열 우선순위를 사용합니다',
     enabledOff: '사용 안 함. 모두 같은 우선순위를 공유합니다(대기열은 FIFO로 되돌아갑니다)',
     weights: '가중치',
-    weightsDesc: 'JSON 객체: rechargeAmountWeight, paidMonthWeight, topPackageAmountWeight. 비워 두면 스위치만 변경됩니다.',
+    weightsDesc:
+      'JSON 객체: rechargeAmountWeight, paidMonthWeight, topPackageAmountWeight. 비워 두면 스위치만 변경됩니다.',
     create: '새 레벨',
     edit: '레벨 편집',
     levelCode: '레벨 코드',
     levelName: '레벨 이름',
     minScore: '최소 점수',
-    minScoreDesc: '해당 값을 포함합니다. 가장 낮은 레벨은 0이어야 하며, 그렇지 않으면 결제한 적 없는 사용자가 어떤 레벨에도 해당하지 않습니다.',
+    minScoreDesc:
+      '해당 값을 포함합니다. 가장 낮은 레벨은 0이어야 하며, 그렇지 않으면 결제한 적 없는 사용자가 어떤 레벨에도 해당하지 않습니다.',
     queuePriority: '대기열 우선순위',
     queuePriorityDesc: '값이 클수록 먼저 처리됩니다. 같은 우선순위 안에서는 FIFO가 유지됩니다.',
     deleteConfirm: '이 레벨은 더 이상 매칭되지 않습니다. 삭제하시겠습니까?',
     baseLevel: '기본 레벨이므로 삭제할 수 없습니다',
     manualOnly: '지정 전용',
-    manualOnlyDesc: '켜면 이 레벨은 점수로 매칭되지 않고 아래에서 특정 사용자에게만 지정할 수 있습니다(예: v1 Prime 파트너 레벨).',
+    manualOnlyDesc:
+      '켜면 이 레벨은 점수로 매칭되지 않고 아래에서 특정 사용자에게만 지정할 수 있습니다(예: v1 Prime 파트너 레벨).',
     manualOnlyTag: '지정 전용',
     assignments: '지정된 레벨',
-    assignmentsHint: '지정은 점수보다 우선합니다. 사용자는 해당 레벨로 간주되며 대기열 우선순위와 레벨별 가격 규칙도 이를 따릅니다. 만료되거나 레벨이 비활성화되면 점수 기준 레벨로 되돌아갑니다. 레벨은 5분간 캐시되므로 지정과 해제는 모든 인스턴스에서 5분 이내에 반영됩니다.',
+    assignmentsHint:
+      '지정은 점수보다 우선합니다. 사용자는 해당 레벨로 간주되며 대기열 우선순위와 레벨별 가격 규칙도 이를 따릅니다. 만료되거나 레벨이 비활성화되면 점수 기준 레벨로 되돌아갑니다. 레벨은 5분간 캐시되므로 지정과 해제는 모든 인스턴스에서 5분 이내에 반영됩니다.',
     assign: '레벨 지정',
     userId: '사용자 ID',
     assignLevel: '레벨',
@@ -1883,8 +1900,50 @@ export default {
     longTerm: '만료 없음',
     operator: '작업자',
     unassign: '해제',
-    unassignConfirm: '사용자는 점수 기준 레벨로 되돌아갑니다(전체 5분 이내 반영). 해제하시겠습니까?',
+    unassignConfirm:
+      '사용자는 점수 기준 레벨로 되돌아갑니다(전체 5분 이내 반영). 해제하시겠습니까?',
   },
+  videoEnhancePresets: {
+    intro:
+      '프리셋은 백엔드에서 고정된 파라미터입니다. 사용자 화면에는 해상도 등 일부 옵션만 남습니다.',
+    hint: '비워 두면 프리셋을 설정하지 않으며, 사용자 값 또는 기본값이 적용됩니다. 네 개 티어를 한꺼번에 저장하며 즉시 적용되고, 이후 제출에만 영향을 줍니다. 이미 제출된 작업에는 영향이 없습니다.',
+    tiers: {
+      fast: '고속 버전',
+      standard: '표준 버전',
+      professional: '전문가 버전',
+      generative: '대형 모델 버전',
+    },
+    fields: {
+      enhance_style: '강화 스타일',
+      scene: '장면',
+      codec: '코덱',
+      bit_depth: '비트 심도',
+      bitrate_level: '비트레이트 레벨',
+      bitrate: '비트레이트',
+      fps: 'FPS',
+      resolution_limit: '해상도 상한',
+    },
+    options: {
+      enhance_style: { hd: 'HD', natural: '자연스럽게' },
+      scene: { aigc: 'AIGC', short_series: '숏폼 드라마', ugc: 'UGC', old_film: '옛 필름' },
+      bitrate_level: { low: '낮음', medium: '보통', high: '높음' },
+    },
+    resolutionsHint: '해상도는 사용자가 선택합니다({resolutions}). 프리셋에는 포함되지 않습니다.',
+    unsetPlaceholder: '설정 안 함(사용자 값 또는 기본값 적용)',
+    rangeHelp: '값 범위 {min}–{max}',
+    bitDepth16Help: '16비트 심도는 {seconds}초 이하 입력만 지원합니다',
+    codecHelp: '코덱과 비트 심도를 맞춰 주세요: h264→8; h265→8/10/12; prores→10; ffv1→16; exr→16',
+    noParams: '이 티어에는 설정할 수 있는 프리셋 파라미터가 없습니다',
+    issue: {
+      unsupported: '이 티어에서는 이 파라미터를 지원하지 않습니다',
+      integer: '정수여야 합니다',
+      range: '{min}~{max} 사이여야 합니다',
+      enum: '선택 가능한 값: {options}',
+      combination:
+        '코덱 {codec}은(는) 비트 심도 {bitDepth}을(를) 지원하지 않습니다(가능: {allowed})',
+    },
+  },
+
   checkIn: {
     hint: '출석 체크는 선물 배치를 지급합니다(유료로 집계되지 않음). 여기서의 변경은 지급되는 포인트 수를 직접 좌우하며, 저장할 때마다 감사 기록이 남습니다.',
     enabled: '일일 출석 체크',
@@ -1892,7 +1951,8 @@ export default {
     enabledOn: '일일 출석 체크를 사용합니다',
     enabledOff: '일일 출석 체크를 사용하지 않습니다',
     rewards: '연속 출석 보상',
-    rewardsDesc: '쉼표로 구분하며 순서가 연속 일수에 해당합니다. 초과하면 목록이 반복됩니다. 예: 10,10,10,10,10,10,60 은 7일째에 보너스를 지급합니다.',
+    rewardsDesc:
+      '쉼표로 구분하며 순서가 연속 일수에 해당합니다. 초과하면 목록이 반복됩니다. 예: 10,10,10,10,10,10,60 은 7일째에 보너스를 지급합니다.',
     rewardsRequired: '보상 값을 하나 이상 입력하세요',
     day: '{day}일차',
     pointsValidDays: '선물 포인트 유효 기간(일)',
@@ -4246,8 +4306,7 @@ export default {
     secondConfirmContent: '이 작업은 사용자 과금에 영향을 줍니다. 계속하시겠습니까?',
     highRiskOperation: '고위험 작업',
     highRiskConfirmTitle: '고위험 작업 확인',
-    highRiskConfirmContent:
-      '재확인이 필요한 고위험 과금 작업입니다. 다음 내용을 확인해 주세요:',
+    highRiskConfirmContent: '재확인이 필요한 고위험 과금 작업입니다. 다음 내용을 확인해 주세요:',
     operationType: '작업 유형',
     targetUser: '대상 사용자',
     operationAmount: '작업 포인트',
@@ -4472,8 +4531,7 @@ export default {
     unionUserStatusDesc: '계정 상태: active/frozen/deactivating/deactivated',
     createdAtDesc: '사용자 가입 시각 (ISO-8601)',
     maskPhoneDesc: '마스킹된 전화번호 (예: 138****1234)',
-    userNotFoundDesc:
-      'data가 null이면 해당 연합 사용자가 로컬 시스템에 등록되지 않았다는 뜻입니다',
+    userNotFoundDesc: 'data가 null이면 해당 연합 사용자가 로컬 시스템에 등록되지 않았다는 뜻입니다',
     phoneDesc: '전화번호',
     rechargeConsumptionDesc:
       '충전 소비 요약 일괄 조회 인터페이스. 여러 충전 ID의 지급액, 소비액, 잔액 및 만료 상태를 일괄 조회합니다',
@@ -5441,15 +5499,19 @@ export default {
     stepKinds: '사용 가능한 단계 유형',
     stepKindsHint: 'steps[].kind 는 아래 중 하나여야 합니다. 클릭하면 복사됩니다',
     copied: '복사했습니다',
-    structureHint: '구조: schema 는 workflow-definition/v1 고정. steps[] 항목은 id, kind, params 와 선택적 after(의존), when(조건)을 가집니다. outputs 는 최종 출력. bind 는 입력 또는 조상 단계의 출력만 참조할 수 있습니다.',
-    contractHint: '약속: billing(entryCode, featureCode, modelId, actionType, quantity, legacyMode)은 발행 전에 설정하고 offer 와 일치해야 하며, 없으면 제출할 수 없습니다. 타입이 ? 로 끝나면 선택 입력입니다(예: number?). "optional": true 인 bind 는 값이 없으면 해당 파라미터를 생략합니다. bind 는 | 로 후보를 나열해 첫 번째 값을 씁니다. config.<name> 은 제출 시 시스템 설정 workflow.definition.<code>.config.<name> 에서 읽어 고정하며, 없으면 거절됩니다. 미디어 입력은 kind 로 심사하고 오디오는 거절합니다.',
+    structureHint:
+      '구조: schema 는 workflow-definition/v1 고정. steps[] 항목은 id, kind, params 와 선택적 after(의존), when(조건)을 가집니다. outputs 는 최종 출력. bind 는 입력 또는 조상 단계의 출력만 참조할 수 있습니다.',
+    contractHint:
+      '약속: billing(entryCode, featureCode, modelId, actionType, quantity, legacyMode)은 발행 전에 설정하고 offer 와 일치해야 하며, 없으면 제출할 수 없습니다. 타입이 ? 로 끝나면 선택 입력입니다(예: number?). "optional": true 인 bind 는 값이 없으면 해당 파라미터를 생략합니다. bind 는 | 로 후보를 나열해 첫 번째 값을 씁니다. config.<name> 은 제출 시 시스템 설정 workflow.definition.<code>.config.<name> 에서 읽어 고정하며, 없으면 거절됩니다. 미디어 입력은 kind 로 심사하고 오디오는 거절합니다.',
     loadFailed: '불러오기 실패',
     currentVersionTitle: '현재 버전',
-    currentVersionHint: '제출되는 작업은 항상 현재 버전을 사용합니다. 저장하면 새 버전이 게시되어 현재 버전이 됩니다.',
+    currentVersionHint:
+      '제출되는 작업은 항상 현재 버전을 사용합니다. 저장하면 새 버전이 게시되어 현재 버전이 됩니다.',
     history: '이전 버전 ({count})',
     historyHint: '추적용입니다. 클릭하면 읽기 전용으로 봅니다',
     save: '저장(새 버전 게시)',
-    saveConfirm: '저장하면 새 버전 v{version}(으)로 게시되어 즉시 현재 버전이 되고 이후 모든 작업에 사용됩니다. 저장할까요?',
+    saveConfirm:
+      '저장하면 새 버전 v{version}(으)로 게시되어 즉시 현재 버전이 되고 이후 모든 작업에 사용됩니다. 저장할까요?',
     layoutLocalOnly: '백엔드가 아직 노드 위치 저장을 지원하지 않아 이 페이지에서만 유지됩니다',
     layoutSaveFailed: '노드 위치 저장 실패',
     statusEnabled: '활성',
@@ -5457,7 +5519,8 @@ export default {
     enable: '활성화',
     disable: '비활성화',
     enableConfirm: '이 정의를 활성화할까요? 현재 버전으로 새 작업을 제출할 수 있습니다.',
-    disableConfirm: '이 정의를 비활성화할까요? 새 제출은 거부되며 진행 중인 작업에는 영향이 없습니다.',
+    disableConfirm:
+      '이 정의를 비활성화할까요? 새 제출은 거부되며 진행 중인 작업에는 영향이 없습니다.',
     statusSaved: '상태가 변경되었습니다',
     latestVersion: '최신',
     restore: '복원',
@@ -5469,10 +5532,12 @@ export default {
     pickKind: '단계 유형 선택',
     addStep: '단계 추가',
     deleteStep: '단계 삭제',
-    deleteStepConfirm: '이 단계를 삭제할까요? 다른 단계의 실행 순서 의존도 함께 제거되며, 출력을 참조하는 bind는 직접 수정해야 합니다.',
+    deleteStepConfirm:
+      '이 단계를 삭제할까요? 다른 단계의 실행 순서 의존도 함께 제거되며, 출력을 참조하는 bind는 직접 수정해야 합니다.',
     disconnect: '연결 해제',
     resetLayout: '레이아웃 초기화',
-    editHint: '노드를 드래그해 위치를 조정합니다(좌표는 버전과 별도로 저장되며 게시되지 않음). 노드 오른쪽 점에서 다른 노드 왼쪽으로 드래그하면 실행 순서가 추가되고, 연결선을 클릭하면 해제할 수 있습니다.',
+    editHint:
+      '노드를 드래그해 위치를 조정합니다(좌표는 버전과 별도로 저장되며 게시되지 않음). 노드 오른쪽 점에서 다른 노드 왼쪽으로 드래그하면 실행 순서가 추가되고, 연결선을 클릭하면 해제할 수 있습니다.',
     keepLastGraph: 'JSON 형식 오류: 그래프는 마지막으로 유효했던 내용을 표시합니다: {msg}',
     graphLegendError: '문제가 있는 단계',
     graphEmpty: '단계가 없습니다. 편집 모드에서 추가하세요',
@@ -5490,7 +5555,8 @@ export default {
     propsAfterHint: '캔버스에서 연결하면 추가됩니다. 태그의 x를 눌러 해제합니다',
     propsParams: '파라미터 params',
     propsNoSchema: '이 유형에는 파라미터 설명이 없어 기존 파라미터를 그대로 편집합니다',
-    propsBindNote: 'bind는 텍스트로 편집합니다: input.이름, config.이름 또는 단계id.output.필드. 후보는 {\'|\'}로 구분합니다.',
+    propsBindNote:
+      "bind는 텍스트로 편집합니다: input.이름, config.이름 또는 단계id.output.필드. 후보는 {'|'}로 구분합니다.",
     propsExtraParam: '미선언',
     propsBindPlaceholder: '예: input.image 또는 step1.output.url',
     propsUseBind: 'bind로 전환',
@@ -5542,7 +5608,8 @@ export default {
     previewTitle: '변환된 정의 미리보기 (읽기 전용, 저장되지 않음)',
     previewClose: '닫기',
     needConvertible: '게시된 버전이 변환 및 검증을 통과해야 전환할 수 있습니다',
-    confirmOn: '{modeCode}을(를) 정의 {definitionCode}(으)로 전환할까요? 새 제출부터 바로 적용됩니다.',
+    confirmOn:
+      '{modeCode}을(를) 정의 {definitionCode}(으)로 전환할까요? 새 제출부터 바로 적용됩니다.',
     confirmOff: '{modeCode}을(를) 기존 Mode 플로우로 되돌릴까요? 새 제출부터 바로 적용됩니다.',
     saved: '저장됨',
     syncNotImported: '가져오지 않음',
@@ -5553,11 +5620,13 @@ export default {
     importDefinition: '정의로 가져오기',
     reimport: '다시 가져오기',
     needDefinition: '아직 정의로 가져오지 않았습니다. 가져온 뒤 전환하세요',
-    importConfirm: '{modeCode}을(를) 워크플로 정의로 가져올까요? 정의가 없으면 생성하고 첫 버전을 게시합니다.',
+    importConfirm:
+      '{modeCode}을(를) 워크플로 정의로 가져올까요? 정의가 없으면 생성하고 첫 버전을 게시합니다.',
     reimportConfirm: '{modeCode}을(를) 다시 가져올까요? 기존 정의에 새 버전을 게시합니다.',
     importOk: '정의 {code}(으)로 가져왔습니다. 버전 v{version}',
     openDefinition: '정의 열기',
     importUnavailable: '백엔드가 아직 가져오기를 지원하지 않아 관련 작업을 숨겼습니다',
-    editorReadonlyHint: 'Mode 흐름은 읽기 전용입니다. 정의로 전환한 mode는 워크플로 정의 페이지에서 편집하세요.',
+    editorReadonlyHint:
+      'Mode 흐름은 읽기 전용입니다. 정의로 전환한 mode는 워크플로 정의 페이지에서 편집하세요.',
   },
 };

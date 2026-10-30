@@ -259,17 +259,23 @@
                   v-model:checked="definitionRoutingDoubao"
                   :loading="savingDefinitionRoutingDoubao"
                   :disabled="!definitionRoutingDoubao"
-                  @change="(checked: boolean) => handleToggleDefinitionRouting('hitvideo-doubao', checked)"
+                  @change="
+                    (checked: boolean) => handleToggleDefinitionRouting('hitvideo-doubao', checked)
+                  "
                 />
                 <div class="form-hint">{{ $t('settingsSystem.definitionRoutingDoubaoDesc') }}</div>
-                <div class="form-hint">{{ $t('settingsSystem.definitionRoutingDoubaoModeFlowHint') }}</div>
+                <div class="form-hint">
+                  {{ $t('settingsSystem.definitionRoutingDoubaoModeFlowHint') }}
+                </div>
               </a-form-item>
 
               <a-form-item :label="$t('settingsSystem.definitionRoutingLocal')">
                 <a-switch
                   v-model:checked="definitionRoutingLocal"
                   :loading="savingDefinitionRoutingLocal"
-                  @change="(checked: boolean) => handleToggleDefinitionRouting('hitvideo-local', checked)"
+                  @change="
+                    (checked: boolean) => handleToggleDefinitionRouting('hitvideo-local', checked)
+                  "
                 />
                 <div class="form-hint">{{ $t('settingsSystem.definitionRoutingLocalDesc') }}</div>
               </a-form-item>
@@ -1175,14 +1181,17 @@ async function handleVideoEnhanceDefaultTierChange(tier: VideoEnhanceTier) {
     message.success(t('settingsSystem.videoEnhanceDefaultTierSaved'));
   } catch {
     /* 错误已由拦截器提示；回读数据库里的真实值 */
-    videoEnhanceDefaultTier.value = await getVideoEnhanceDefaultTier().catch(() => videoEnhanceDefaultTier.value);
+    videoEnhanceDefaultTier.value = await getVideoEnhanceDefaultTier().catch(
+      () => videoEnhanceDefaultTier.value,
+    );
   } finally {
     savingVideoEnhanceDefaultTier.value = false;
   }
 }
 
 async function handleToggleDefinitionRouting(target: DefinitionRoutingTarget, checked: boolean) {
-  const saving = target === 'hitvideo-doubao' ? savingDefinitionRoutingDoubao : savingDefinitionRoutingLocal;
+  const saving =
+    target === 'hitvideo-doubao' ? savingDefinitionRoutingDoubao : savingDefinitionRoutingLocal;
   const value = target === 'hitvideo-doubao' ? definitionRoutingDoubao : definitionRoutingLocal;
   saving.value = true;
   try {

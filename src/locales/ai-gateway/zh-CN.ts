@@ -321,7 +321,8 @@ export default {
     adapter_kind: '已注册的适配器类型；未知类型发布时会被拒绝',
     adapter_params: '按所选适配器的参数结构校验',
     ambiguous_policy: '请求可能已发出但没收到明确响应时怎么办',
-    ambiguous_risk_ack: '选填。tolerate 且供应商无权威查询时，填写接受重复扣费风险的理由；填写后发布不再警告',
+    ambiguous_risk_ack:
+      '选填。tolerate 且供应商无权威查询时，填写接受重复扣费风险的理由；填写后发布不再警告',
     asset_base_url: '素材库 API 根地址（默认 https://console.atlascloud.ai/api/v1）',
     balance_alert_threshold: '余额低于此值时触发余额告警',
     billing_semantics: '供应商在什么时候扣费',
@@ -340,7 +341,8 @@ export default {
     fx_to_cny: '固定汇率；币种不是 CNY 时必填',
     generate_model: '覆盖文生图模型名，默认为供应商模型名加 /text-to-image',
     half_open_probe_probability: '允许用于试探半开熔断的选路比例',
-    image_source: 'upload_media = 上传到供应商临时地址（默认）；asset_library = 先进素材库，用 asset://<id> 引用',
+    image_source:
+      'upload_media = 上传到供应商临时地址（默认）；asset_library = 先进素材库，用 asset://<id> 引用',
     input_url_policy: '网关如何让供应商读取输入素材',
     input_url_ttl_s: '签名地址 / 公开副本交给供应商时的有效期',
     kind: 'auth / balance 不产生费用；minimal_call 会真实计费',
@@ -665,7 +667,8 @@ export default {
     title: '输入来源白名单',
     hint: '允许供应商直接通过 https 读取的输入媒体主机名（如 xx-shop-img.oss-cn-hangzhou.aliyuncs.com）。保存只写草稿，发布后生效。未在草稿中设置时，使用网关启动环境变量 AIG_INPUT_SOURCE_HOSTS。',
     statusConfigured: '草稿中已设置，发布后生效。',
-    statusFallback: '草稿中未设置，当前显示的是启动环境变量 AIG_INPUT_SOURCE_HOSTS 的值。保存一次即可改为在管理端维护。',
+    statusFallback:
+      '草稿中未设置，当前显示的是启动环境变量 AIG_INPUT_SOURCE_HOSTS 的值。保存一次即可改为在管理端维护。',
     hostsLabel: '主机名',
     hostPlaceholder: '输入主机名后回车或逗号分隔，如 xx-shop-img.oss-cn-hangzhou.aliyuncs.com',
     invalidHost: '不是合法的主机名（不能含协议、路径、端口）',

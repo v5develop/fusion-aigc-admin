@@ -107,6 +107,8 @@
 </template>
 
 <script setup lang="ts">
+import type { AgedHeldReservation } from '@/types/api';
+
 import { message } from 'antdv-next';
 import { ref, computed } from 'vue';
 
@@ -116,7 +118,6 @@ import {
   executeCompensation,
   recoverAgedHeldReservations,
 } from '@/api/billing-exception';
-import type { AgedHeldReservation } from '@/types/api';
 import ProTable from '@/components/Pro/ProTable/index.vue';
 import { uuid } from '@/utils/helpers';
 

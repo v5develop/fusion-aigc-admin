@@ -45,7 +45,17 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 }
 
 export function emptySlot(): SlotModel {
-  return { uid: uid(), title: '', url: '', maxNum: null, tips: '', content: '', hadTips: false, hadContent: false, extra: {} };
+  return {
+    uid: uid(),
+    title: '',
+    url: '',
+    maxNum: null,
+    tips: '',
+    content: '',
+    hadTips: false,
+    hadContent: false,
+    extra: {},
+  };
 }
 
 export function toSlot(value: Record<string, unknown>): SlotModel {
@@ -128,13 +138,18 @@ export function toPayloadModel(payload: Record<string, unknown>): PayloadModel {
 export function fromPayloadModel(model: PayloadModel): Record<string, unknown> {
   const results = model.results.map((r) => r.url.trim()).filter(Boolean);
   const out: Record<string, unknown> = { ...model.topExtra };
-  const filled = results.length > 0 || !!model.prompt.trim() || model.images.length > 0 || model.videos.length > 0;
+  const filled =
+    results.length > 0 ||
+    !!model.prompt.trim() ||
+    model.images.length > 0 ||
+    model.videos.length > 0;
   // 本地生活两条在 v1 里就是 {}：什么都没填时保持空对象，不凭空长出 result / payload 两个键
   if (!('result' in out) && (model.had.result || filled)) out.result = results;
   if (!('payload' in out) && (model.had.payload || filled)) {
     const inner: Record<string, unknown> = { ...model.innerExtra };
     if (!('prompt' in inner) && (model.had.prompt || filled)) inner.prompt = model.prompt;
-    if (!('image_urls' in inner) && (model.had.images || filled)) inner.image_urls = model.images.map(fromSlot);
+    if (!('image_urls' in inner) && (model.had.images || filled))
+      inner.image_urls = model.images.map(fromSlot);
     if (!('video_urls' in inner) && (model.had.videos || model.videos.length > 0)) {
       inner.video_urls = model.videos.map(fromSlot);
     }

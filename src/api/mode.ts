@@ -52,7 +52,6 @@ export interface ModeFlowDetail {
   versions: ModeFlowVersion[];
 }
 
-
 const MODE = '/api/v1/admin/modes';
 const FLOW = '/api/v1/admin/mode-flows';
 

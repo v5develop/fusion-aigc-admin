@@ -524,7 +524,14 @@ function buildRoleRows(record: CreaftBindingRow): RoleRow[] {
   }));
   for (const [role, group] of Object.entries(roles)) {
     if (!roleRows.some((r) => r.role === role)) {
-      roleRows.push({ id: ++rowSeq, role, group, operation: null, declared: false, required: false });
+      roleRows.push({
+        id: ++rowSeq,
+        role,
+        group,
+        operation: null,
+        declared: false,
+        required: false,
+      });
     }
   }
   return roleRows;

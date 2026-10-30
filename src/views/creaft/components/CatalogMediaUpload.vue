@@ -44,7 +44,9 @@ async function onPicked(event: Event) {
   // 先按大小预检，与服务端上限一致（图片、音频 20MB，视频 100MB）：超限就不发请求，免得传完才被拒
   const limitMb = file.type.startsWith('video/') ? 100 : 20;
   if (file.size > limitMb * 1024 * 1024) {
-    message.warning(`文件太大：${file.type.startsWith('video/') ? '视频' : '图片和音频'}不能超过 ${limitMb}MB`);
+    message.warning(
+      `文件太大：${file.type.startsWith('video/') ? '视频' : '图片和音频'}不能超过 ${limitMb}MB`,
+    );
     return;
   }
   uploading.value = true;

@@ -322,7 +322,8 @@ export default {
     adapter_params: "Validated against the selected adapter's params schema",
     ambiguous_policy:
       'What to do when a request may have been sent but no clear response came back',
-    ambiguous_risk_ack: 'Optional. For a tolerate deployment without an authoritative lookup, state why the duplicate-charge risk is accepted; publishing then stops warning.',
+    ambiguous_risk_ack:
+      'Optional. For a tolerate deployment without an authoritative lookup, state why the duplicate-charge risk is accepted; publishing then stops warning.',
     asset_base_url: 'Asset library API root (default https://console.atlascloud.ai/api/v1)',
     balance_alert_threshold: 'Balance below this fires a balance_low alert',
     billing_semantics: 'When the vendor charges',
@@ -342,7 +343,8 @@ export default {
     generate_model:
       'Overrides the text-to-image model name; default = vendor model + /text-to-image',
     half_open_probe_probability: 'Share of routing decisions allowed to probe a half-open circuit',
-    image_source: 'upload_media = upload to a temporary vendor URL (default); asset_library = register in the asset library and reference by asset://<id>',
+    image_source:
+      'upload_media = upload to a temporary vendor URL (default); asset_library = register in the asset library and reference by asset://<id>',
     input_url_policy: 'How the gateway makes input media readable for the vendor',
     input_url_ttl_s: 'TTL of URLs handed to the vendor under signed / public_copy',
     kind: 'auth / balance never cost money; minimal_call is a real, billable call',
@@ -670,9 +672,11 @@ export default {
     title: 'Input source allowlist',
     hint: 'Hostnames that vendors may fetch input media from over https (e.g. xx-shop-img.oss-cn-hangzhou.aliyuncs.com). Saving only writes the draft; it takes effect after publishing. When not set in the draft, the gateway startup environment variable AIG_INPUT_SOURCE_HOSTS is used.',
     statusConfigured: 'Set in the draft; takes effect after publishing.',
-    statusFallback: 'Not set in the draft; the value shown is from the AIG_INPUT_SOURCE_HOSTS startup environment variable. Save once to maintain it here.',
+    statusFallback:
+      'Not set in the draft; the value shown is from the AIG_INPUT_SOURCE_HOSTS startup environment variable. Save once to maintain it here.',
     hostsLabel: 'Hostnames',
-    hostPlaceholder: 'Type a hostname and press Enter or comma, e.g. xx-shop-img.oss-cn-hangzhou.aliyuncs.com',
+    hostPlaceholder:
+      'Type a hostname and press Enter or comma, e.g. xx-shop-img.oss-cn-hangzhou.aliyuncs.com',
     invalidHost: 'Not a valid hostname (no scheme, path or port)',
     save: 'Save to draft',
     saved: 'Saved to the draft ({count} hosts); takes effect after publishing.',

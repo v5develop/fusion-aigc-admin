@@ -4,13 +4,21 @@
       <a-alert
         :type="data.configured ? 'success' : 'warning'"
         show-icon
-        :message="data.configured ? t('aiGateway.inputSources.statusConfigured') : t('aiGateway.inputSources.statusFallback')"
+        :message="
+          data.configured
+            ? t('aiGateway.inputSources.statusConfigured')
+            : t('aiGateway.inputSources.statusFallback')
+        "
         :description="t('aiGateway.inputSources.hint')"
         style="margin-bottom: 16px"
       />
 
       <a-form layout="vertical" style="max-width: 720px">
-        <a-form-item :label="t('aiGateway.inputSources.hostsLabel')" :validate-status="invalidHosts.length ? 'error' : ''" :help="invalidHostsHelp">
+        <a-form-item
+          :label="t('aiGateway.inputSources.hostsLabel')"
+          :validate-status="invalidHosts.length ? 'error' : ''"
+          :help="invalidHostsHelp"
+        >
           <a-select
             v-model:value="form.hosts"
             mode="tags"
@@ -22,7 +30,12 @@
         </a-form-item>
         <a-form-item>
           <a-space>
-            <a-button type="primary" :loading="saving" :disabled="invalidHosts.length > 0" @click="save">
+            <a-button
+              type="primary"
+              :loading="saving"
+              :disabled="invalidHosts.length > 0"
+              @click="save"
+            >
               {{ t('aiGateway.inputSources.save') }}
             </a-button>
             <a-button :disabled="saving" @click="reset">{{ t('common.reset') }}</a-button>
@@ -45,7 +58,8 @@ const { t } = useI18n();
 const router = useRouter();
 
 // 与后端 InputSourceHosts 的校验一致：小写主机名，不含协议、路径、端口或用户信息
-const HOST_RE = /^(?=.{1,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$/;
+const HOST_RE =
+  /^(?=.{1,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$/;
 
 const loading = ref(false);
 const saving = ref(false);
@@ -85,7 +99,9 @@ function reset() {
 async function save() {
   saving.value = true;
   try {
-    const normalized = [...new Set(form.hosts.map((host) => String(host).trim().toLowerCase()))].sort();
+    const normalized = [
+      ...new Set(form.hosts.map((host) => String(host).trim().toLowerCase())),
+    ].sort();
     const saved = await putInputSourceHosts(normalized);
     apply(saved);
     // 草稿已写入，发布后才生效：提示里给出去发布的入口（VNode，不用函数）

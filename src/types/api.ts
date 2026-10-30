@@ -688,6 +688,27 @@ export interface CheckInSettings {
   pointsValidDays?: number;
 }
 
+/** 画质增强档位：fast 极速 / standard 标准 / professional 专业 / generative 大模型 */
+export type VideoEnhanceTier = 'fast' | 'standard' | 'professional' | 'generative';
+
+/**
+ * 单档预设（规范化 snake_case 字段名，与后端 VideoEnhancePresetRules 一致）。
+ * 留空（字段缺省）表示不设预设，由用户值或默认生效。
+ */
+export interface VideoEnhanceTierPreset {
+  enhance_style?: string;
+  scene?: string;
+  bitrate_level?: string;
+  bitrate?: number;
+  fps?: number;
+  resolution_limit?: number;
+  bit_depth?: number;
+  codec?: string;
+}
+
+/** 四档整表（管理端 GET / PUT /api/v1/admin/settings/video-enhance-tier-presets 的请求体与响应体） */
+export type VideoEnhanceTierPresetMap = Record<VideoEnhanceTier, VideoEnhanceTierPreset>;
+
 /** 站内通知（后台视角，含排期稿与已撤回） */
 export interface AdminNotification {
   id: number;

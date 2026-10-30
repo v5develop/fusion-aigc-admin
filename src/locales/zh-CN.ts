@@ -197,6 +197,7 @@ export default {
     settingsSystem: '系统参数',
     settingsUserLevel: '经验等级',
     settingsCheckIn: '每日签到',
+    settingsVideoEnhancePresets: '画质增强预设',
     settingsNotification: '站内通知',
     settingsRuntime: '运行参数',
     templateManagement: '模板管理',
@@ -3675,6 +3676,45 @@ export default {
     ruleNone: '不限',
   },
 
+  videoEnhancePresets: {
+    intro: '预设是后台固定参数，用户端只保留分辨率等少量选项。',
+    hint: '每档留空表示不设预设，由用户值或默认生效。保存为整表提交（四档一起），写入即时生效，只影响此后的提交，已提交任务不受影响。',
+    tiers: {
+      fast: '极速版',
+      standard: '标准版',
+      professional: '专业版',
+      generative: '大模型版',
+    },
+    fields: {
+      enhance_style: '增强风格',
+      scene: '场景',
+      codec: '编码',
+      bit_depth: '色深',
+      bitrate_level: '码率档位',
+      bitrate: '码率',
+      fps: '帧率（fps）',
+      resolution_limit: '分辨率上限',
+    },
+    options: {
+      enhance_style: { hd: '高清', natural: '自然' },
+      scene: { aigc: 'AIGC', short_series: '短剧', ugc: 'UGC', old_film: '老片' },
+      bitrate_level: { low: '低', medium: '中', high: '高' },
+    },
+    resolutionsHint: '分辨率由用户选择（{resolutions}），不在预设中。',
+    unsetPlaceholder: '未设置（由用户值或默认生效）',
+    rangeHelp: '取值 {min}–{max}',
+    bitDepth16Help: '16 位色深仅支持不超过 {seconds} 秒的输入',
+    codecHelp: '编码与色深需匹配：h264→8；h265→8/10/12；prores→10；ffv1→16；exr→16',
+    noParams: '该档没有可配置的预设参数',
+    issue: {
+      unsupported: '该档不支持此参数',
+      integer: '必须为整数',
+      range: '取值需在 {min}–{max} 之间',
+      enum: '可选值：{options}',
+      combination: '编码 {codec} 不支持色深 {bitDepth}（可选：{allowed}）',
+    },
+  },
+
   checkIn: {
     hint: '签到发放的是赠送批次（不计入付费），改动直接决定送出去多少点数，每次保存都会进审计日志。',
     enabled: '签到功能',
@@ -3718,7 +3758,8 @@ export default {
   },
   settingsSystem: {
     videoEnhanceDefaultTier: '超分默认档',
-    videoEnhanceDefaultTierDesc: '用户没有选择超分档位时使用的档位。切换后即时生效：执行、用户端价格列表的默认标记、默认计费一起切换；已提交的任务不受影响。',
+    videoEnhanceDefaultTierDesc:
+      '用户没有选择超分档位时使用的档位。切换后即时生效：执行、用户端价格列表的默认标记、默认计费一起切换；已提交的任务不受影响。',
     videoEnhanceDefaultTierSaved: '超分默认档已保存',
     videoEnhanceTierFast: '极速',
     videoEnhanceTierStandard: '标准',
@@ -3767,10 +3808,13 @@ export default {
     blindWatermarkOn: '已开启图片盲水印，新生成的图片将嵌入溯源信息',
     blindWatermarkOff: '已关闭图片盲水印，已嵌入的历史图片仍可提取',
     definitionRoutingDoubao: 'hitVideo 豆包路改走定义任务',
-    definitionRoutingDoubaoDesc: '开启后豆包路（标准、快速）新提交走数据驱动工作流，需已发布定义并录入火山方舟网关部署',
-    definitionRoutingDoubaoModeFlowHint: '豆包路已改为按模式开启，此处只能关闭；请到「模式流」列表页按模式开启',
+    definitionRoutingDoubaoDesc:
+      '开启后豆包路（标准、快速）新提交走数据驱动工作流，需已发布定义并录入火山方舟网关部署',
+    definitionRoutingDoubaoModeFlowHint:
+      '豆包路已改为按模式开启，此处只能关闭；请到「模式流」列表页按模式开启',
     definitionRoutingLocal: '本地 hitVideo 改走定义任务',
-    definitionRoutingLocalDesc: '开启后本地 hitVideo（仅 xiaoqi-video-1.0-lite）新提交走数据驱动工作流',
+    definitionRoutingLocalDesc:
+      '开启后本地 hitVideo（仅 xiaoqi-video-1.0-lite）新提交走数据驱动工作流',
     definitionRoutingOn: '已开启工作流定义路由，此后新提交的对应 hitVideo 走定义任务',
     definitionRoutingOff: '已关闭工作流定义路由，此后新提交恢复旧路径（已提交的任务不受影响）',
     displayWatermark: '图片展示水印',
@@ -5450,15 +5494,18 @@ export default {
     stepKinds: '可用步骤类型',
     stepKindsHint: 'steps[].kind 必须取下列之一，点击可复制',
     copied: '已复制',
-    structureHint: '结构：schema 固定为 workflow-definition/v1；steps[] 每项含 id、kind、params，可选 after（依赖）、when（条件）；outputs 声明最终输出。bind 只能引用输入或祖先步骤输出。',
-    contractHint: '约定：billing 计费声明（entryCode、featureCode、modelId、actionType、quantity、legacyMode）发布前必须配置且与 offer 一致，缺失则不可提交；输入类型以 ? 结尾为可选（如 number?）；绑定写 {"bind":"…","optional":true} 时缺失即省略该参数；bind 用 | 分隔取第一个有值的候选；config.<name> 从系统配置 workflow.definition.<code>.config.<name> 读取，提交时冻结，缺失即拒收；媒体输入按 kind 审核，音频拒收。',
+    structureHint:
+      '结构：schema 固定为 workflow-definition/v1；steps[] 每项含 id、kind、params，可选 after（依赖）、when（条件）；outputs 声明最终输出。bind 只能引用输入或祖先步骤输出。',
+    contractHint:
+      '约定：billing 计费声明（entryCode、featureCode、modelId、actionType、quantity、legacyMode）发布前必须配置且与 offer 一致，缺失则不可提交；输入类型以 ? 结尾为可选（如 number?）；绑定写 {"bind":"…","optional":true} 时缺失即省略该参数；bind 用 | 分隔取第一个有值的候选；config.<name> 从系统配置 workflow.definition.<code>.config.<name> 读取，提交时冻结，缺失即拒收；媒体输入按 kind 审核，音频拒收。',
     loadFailed: '加载失败',
     currentVersionTitle: '当前版本',
     currentVersionHint: '运营提交的任务始终使用当前版本；保存即发布新版本并成为当前版本。',
     history: '历史版本（{count}）',
     historyHint: '仅供追溯，点击可只读查看',
     save: '保存（发布新版本）',
-    saveConfirm: '保存将发布为新版本 v{version}，并立即成为当前版本，之后提交的任务都用它。确认保存？',
+    saveConfirm:
+      '保存将发布为新版本 v{version}，并立即成为当前版本，之后提交的任务都用它。确认保存？',
     layoutLocalOnly: '后端暂不支持保存节点位置，位置只在本页保留',
     layoutSaveFailed: '节点位置保存失败',
     statusEnabled: '已启用',
@@ -5478,10 +5525,12 @@ export default {
     pickKind: '选择步骤类型',
     addStep: '添加步骤',
     deleteStep: '删除步骤',
-    deleteStepConfirm: '删除该步骤？其它步骤对它的执行顺序依赖会一并去掉，引用它输出的绑定需手动修改。',
+    deleteStepConfirm:
+      '删除该步骤？其它步骤对它的执行顺序依赖会一并去掉，引用它输出的绑定需手动修改。',
     disconnect: '断开连线',
     resetLayout: '重置布局',
-    editHint: '拖动节点调整位置（坐标单独保存，不进版本、不触发发布）；从节点右侧圆点拖到另一节点左侧建立执行顺序；点连线后可断开。',
+    editHint:
+      '拖动节点调整位置（坐标单独保存，不进版本、不触发发布）；从节点右侧圆点拖到另一节点左侧建立执行顺序；点连线后可断开。',
     keepLastGraph: 'JSON 格式错误，图上显示的是最后一次有效内容：{msg}',
     graphLegendError: '有问题的步骤',
     graphEmpty: '还没有步骤，打开编辑模式后添加',
@@ -5499,7 +5548,8 @@ export default {
     propsAfterHint: '在画布上连线即可添加；点标签上的叉可断开',
     propsParams: '参数 params',
     propsNoSchema: '该类型没有参数说明，按原样编辑已有参数',
-    propsBindNote: '绑定按文本编辑 bind 表达式：input.名称、config.名称 或 步骤id.output.字段；多个候选用 {\'|\'} 分隔。',
+    propsBindNote:
+      "绑定按文本编辑 bind 表达式：input.名称、config.名称 或 步骤id.output.字段；多个候选用 {'|'} 分隔。",
     propsExtraParam: '未声明',
     propsBindPlaceholder: '如 input.image 或 step1.output.url',
     propsUseBind: '改为绑定',

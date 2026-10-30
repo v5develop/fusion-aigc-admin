@@ -17,10 +17,14 @@
     >
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'offered'">
-          <a-tag :color="record.offered ? 'blue' : 'default'">{{ record.offered ? '用户可选' : '仅查看' }}</a-tag>
+          <a-tag :color="record.offered ? 'blue' : 'default'">{{
+            record.offered ? '用户可选' : '仅查看'
+          }}</a-tag>
         </template>
         <template v-else-if="column.key === 'ready'">
-          <a-tag :color="record.ready ? 'green' : 'red'">{{ record.ready ? '已就绪' : '未就绪' }}</a-tag>
+          <a-tag :color="record.ready ? 'green' : 'red'">{{
+            record.ready ? '已就绪' : '未就绪'
+          }}</a-tag>
         </template>
         <template v-else-if="column.key === 'reason'">
           <span v-if="record.ready" class="muted">—</span>
@@ -38,7 +42,9 @@ import { onMounted, ref } from 'vue';
 import { type CreaftToolVariantStatus, getCreaftToolReadiness } from '@/api/creaft-compat';
 
 // 目前只有超分登记了变体；新增工具时在后端 ToolVariantReadiness 登记后，这里加一项即可
-const routeOptions = [{ label: '视频超分 /tools/ai-video-enhance', value: '/tools/ai-video-enhance' }];
+const routeOptions = [
+  { label: '视频超分 /tools/ai-video-enhance', value: '/tools/ai-video-enhance' },
+];
 const route = ref('/tools/ai-video-enhance');
 const rows = ref<CreaftToolVariantStatus[]>([]);
 const loading = ref(false);

@@ -28,9 +28,15 @@ export function demoRow(locale = '', url = ''): DemoRow {
 export function toMeta(value: Record<string, unknown>): MetaModel {
   const { demo, locales, ...extra } = value;
   const model: MetaModel = { demos: [], locales: [], had: { demo: false, locales: false }, extra };
-  if (demo && typeof demo === 'object' && !Array.isArray(demo)
-      && Object.values(demo).every((url) => typeof url === 'string')) {
-    model.demos = Object.entries(demo as Record<string, string>).map(([locale, url]) => demoRow(locale, url));
+  if (
+    demo &&
+    typeof demo === 'object' &&
+    !Array.isArray(demo) &&
+    Object.values(demo).every((url) => typeof url === 'string')
+  ) {
+    model.demos = Object.entries(demo as Record<string, string>).map(([locale, url]) =>
+      demoRow(locale, url),
+    );
     model.had.demo = true;
   } else if (demo !== undefined) {
     extra.demo = demo;
@@ -51,7 +57,8 @@ export function fromMeta(model: MetaModel): Record<string, unknown> {
     if (locale.trim() && url.trim()) demo[locale.trim()] = url.trim();
   }
   if (!('demo' in out) && (model.had.demo || Object.keys(demo).length)) out.demo = demo;
-  if (!('locales' in out) && (model.had.locales || model.locales.length)) out.locales = model.locales;
+  if (!('locales' in out) && (model.had.locales || model.locales.length))
+    out.locales = model.locales;
   return out;
 }
 

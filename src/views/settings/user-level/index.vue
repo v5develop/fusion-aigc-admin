@@ -43,7 +43,9 @@
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'levelCode'">
             {{ record.levelCode }}
-            <a-tag v-if="record.manualOnly" color="purple" class="ml-1">{{ $t('userLevel.manualOnlyTag') }}</a-tag>
+            <a-tag v-if="record.manualOnly" color="purple" class="ml-1">{{
+              $t('userLevel.manualOnlyTag')
+            }}</a-tag>
           </template>
           <template v-else-if="column.key === 'minScore'">
             <!-- 仅指定的档位不参与打分，最低分对它没有意义 -->
@@ -94,7 +96,10 @@
           <template v-else-if="column.key === 'action'">
             <a-space>
               <a @click="openAssign(record)">{{ $t('common.edit') }}</a>
-              <a-popconfirm :title="$t('userLevel.unassignConfirm')" @confirm="handleUnassign(record)">
+              <a-popconfirm
+                :title="$t('userLevel.unassignConfirm')"
+                @confirm="handleUnassign(record)"
+              >
                 <a class="danger-link">{{ $t('userLevel.unassign') }}</a>
               </a-popconfirm>
             </a-space>
@@ -117,7 +122,10 @@
           <a-select v-model:value="assignForm.levelCode" :options="levelOptions" />
         </a-form-item>
         <a-form-item :label="$t('userLevel.reason')">
-          <a-input v-model:value="assignForm.reason" :placeholder="$t('userLevel.reasonPlaceholder')" />
+          <a-input
+            v-model:value="assignForm.reason"
+            :placeholder="$t('userLevel.reasonPlaceholder')"
+          />
         </a-form-item>
         <a-form-item :label="$t('userLevel.expireTime')">
           <a-date-picker

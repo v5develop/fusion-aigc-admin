@@ -193,6 +193,7 @@ export default {
     settingsSystem: 'System Parameters',
     settingsUserLevel: 'Experience Levels',
     settingsCheckIn: 'Daily Check-in',
+    settingsVideoEnhancePresets: 'Video Enhance Presets',
     settingsNotification: 'Notifications',
     settingsRuntime: 'Runtime Settings',
     templateManagement: 'Template Management',
@@ -3664,6 +3665,47 @@ export default {
     ruleNone: 'None',
   },
 
+  videoEnhancePresets: {
+    intro:
+      'Presets are fixed backend parameters; users only keep a few options such as resolution.',
+    hint: 'Leaving a field empty means no preset: the user value or the default applies. All four tiers are saved together, take effect immediately, and only affect later submissions; submitted tasks are not affected.',
+    tiers: {
+      fast: 'Fast',
+      standard: 'Standard',
+      professional: 'Professional',
+      generative: 'Generative',
+    },
+    fields: {
+      enhance_style: 'Enhance style',
+      scene: 'Scene',
+      codec: 'Codec',
+      bit_depth: 'Bit depth',
+      bitrate_level: 'Bitrate level',
+      bitrate: 'Bitrate',
+      fps: 'FPS',
+      resolution_limit: 'Resolution limit',
+    },
+    options: {
+      enhance_style: { hd: 'HD', natural: 'Natural' },
+      scene: { aigc: 'AIGC', short_series: 'Short series', ugc: 'UGC', old_film: 'Old film' },
+      bitrate_level: { low: 'Low', medium: 'Medium', high: 'High' },
+    },
+    resolutionsHint:
+      'Resolution is chosen by the user ({resolutions}) and is not part of the preset.',
+    unsetPlaceholder: 'Not set (user value or default applies)',
+    rangeHelp: 'Range {min}–{max}',
+    bitDepth16Help: '16-bit depth only supports inputs up to {seconds} seconds',
+    codecHelp: 'Codec must match bit depth: h264→8; h265→8/10/12; prores→10; ffv1→16; exr→16',
+    noParams: 'This tier has no configurable preset parameters',
+    issue: {
+      unsupported: 'This parameter is not supported for this tier',
+      integer: 'Must be an integer',
+      range: 'Must be between {min} and {max}',
+      enum: 'Allowed values: {options}',
+      combination: 'Codec {codec} does not support bit depth {bitDepth} (allowed: {allowed})',
+    },
+  },
+
   checkIn: {
     hint: 'Check-in grants gift batches (not counted as paid). Changes here directly control how many points are given away, and every save is audited.',
     enabled: 'Daily Check-in',
@@ -3707,7 +3749,8 @@ export default {
   },
   settingsSystem: {
     videoEnhanceDefaultTier: 'Default video enhance tier',
-    videoEnhanceDefaultTierDesc: 'Tier used when the user does not pick one. Takes effect immediately: execution, the default mark in the user price list and default billing switch together; already-submitted tasks are unaffected.',
+    videoEnhanceDefaultTierDesc:
+      'Tier used when the user does not pick one. Takes effect immediately: execution, the default mark in the user price list and default billing switch together; already-submitted tasks are unaffected.',
     videoEnhanceDefaultTierSaved: 'Default enhance tier saved',
     videoEnhanceTierFast: 'Fast',
     videoEnhanceTierStandard: 'Standard',
@@ -3760,12 +3803,17 @@ export default {
       'Image blind watermark enabled; newly generated images will carry tracing info',
     blindWatermarkOff: 'Image blind watermark disabled; already-embedded images remain extractable',
     definitionRoutingDoubao: 'hitVideo Doubao path via workflow definition',
-    definitionRoutingDoubaoDesc: 'When on, new Doubao (standard and fast) submissions run through the definition workflow. Requires a published definition and the Volcengine gateway deployment.',
-    definitionRoutingDoubaoModeFlowHint: 'The Doubao path is now enabled per mode; this switch can only be turned off. Enable it per mode on the Mode flow list page.',
+    definitionRoutingDoubaoDesc:
+      'When on, new Doubao (standard and fast) submissions run through the definition workflow. Requires a published definition and the Volcengine gateway deployment.',
+    definitionRoutingDoubaoModeFlowHint:
+      'The Doubao path is now enabled per mode; this switch can only be turned off. Enable it per mode on the Mode flow list page.',
     definitionRoutingLocal: 'Local hitVideo via workflow definition',
-    definitionRoutingLocalDesc: 'When on, new local hitVideo (xiaoqi-video-1.0-lite only) submissions run through the definition workflow.',
-    definitionRoutingOn: 'Workflow definition routing enabled; new matching hitVideo submissions will use the definition workflow',
-    definitionRoutingOff: 'Workflow definition routing disabled; new submissions return to the legacy path (already submitted tasks are unaffected)',
+    definitionRoutingLocalDesc:
+      'When on, new local hitVideo (xiaoqi-video-1.0-lite only) submissions run through the definition workflow.',
+    definitionRoutingOn:
+      'Workflow definition routing enabled; new matching hitVideo submissions will use the definition workflow',
+    definitionRoutingOff:
+      'Workflow definition routing disabled; new submissions return to the legacy path (already submitted tasks are unaffected)',
     displayWatermark: 'Visible image watermark',
     displayWatermarkDesc:
       'Master switch. Free users get watermarks on view, download and asset library; off means nobody does',
@@ -5486,23 +5534,30 @@ export default {
     stepKinds: 'Available Step Kinds',
     stepKindsHint: 'steps[].kind must be one of these; click to copy',
     copied: 'Copied',
-    structureHint: 'Structure: schema is fixed to workflow-definition/v1; each steps[] item has id, kind, params, optional after (dependencies) and when (condition); outputs declares the final output. bind may only reference inputs or ancestor step outputs.',
-    contractHint: 'Contract: billing (entryCode, featureCode, modelId, actionType, quantity, legacyMode) must be set and match the offer before publishing, otherwise the definition cannot be submitted. An input type ending with ? is optional (e.g. number?). A bind with "optional": true is omitted when missing. Separate bind candidates with | and take the first present one. config.<name> is read from the system config workflow.definition.<code>.config.<name> at submit time and frozen; a missing value is rejected. Media inputs are moderated by kind; audio is rejected.',
+    structureHint:
+      'Structure: schema is fixed to workflow-definition/v1; each steps[] item has id, kind, params, optional after (dependencies) and when (condition); outputs declares the final output. bind may only reference inputs or ancestor step outputs.',
+    contractHint:
+      'Contract: billing (entryCode, featureCode, modelId, actionType, quantity, legacyMode) must be set and match the offer before publishing, otherwise the definition cannot be submitted. An input type ending with ? is optional (e.g. number?). A bind with "optional": true is omitted when missing. Separate bind candidates with | and take the first present one. config.<name> is read from the system config workflow.definition.<code>.config.<name> at submit time and frozen; a missing value is rejected. Media inputs are moderated by kind; audio is rejected.',
     loadFailed: 'Load failed',
     currentVersionTitle: 'Current version',
-    currentVersionHint: 'Submitted tasks always use the current version; saving publishes a new version that becomes current.',
+    currentVersionHint:
+      'Submitted tasks always use the current version; saving publishes a new version that becomes current.',
     history: 'History ({count})',
     historyHint: 'For traceability only; click to view read-only',
     save: 'Save (publish new version)',
-    saveConfirm: 'Saving publishes new version v{version}, which becomes current immediately and is used by all later tasks. Save?',
-    layoutLocalOnly: 'The backend cannot store node positions yet; positions are kept on this page only',
+    saveConfirm:
+      'Saving publishes new version v{version}, which becomes current immediately and is used by all later tasks. Save?',
+    layoutLocalOnly:
+      'The backend cannot store node positions yet; positions are kept on this page only',
     layoutSaveFailed: 'Failed to save node positions',
     statusEnabled: 'Enabled',
     statusDisabled: 'Disabled',
     enable: 'Enable',
     disable: 'Disable',
-    enableConfirm: 'Enable this definition? New tasks can be submitted against its current version.',
-    disableConfirm: 'Disable this definition? New submissions will be rejected; running tasks are not affected.',
+    enableConfirm:
+      'Enable this definition? New tasks can be submitted against its current version.',
+    disableConfirm:
+      'Disable this definition? New submissions will be rejected; running tasks are not affected.',
     statusSaved: 'Status updated',
     latestVersion: 'Latest',
     restore: 'Restore',
@@ -5514,10 +5569,12 @@ export default {
     pickKind: 'Pick a step kind',
     addStep: 'Add step',
     deleteStep: 'Delete step',
-    deleteStepConfirm: 'Delete this step? Other steps lose their execution-order dependency on it; bindings to its output must be fixed by hand.',
+    deleteStepConfirm:
+      'Delete this step? Other steps lose their execution-order dependency on it; bindings to its output must be fixed by hand.',
     disconnect: 'Disconnect',
     resetLayout: 'Reset layout',
-    editHint: 'Drag nodes to move them (positions are saved separately from versions and never publish); drag from a node\'s right handle to another node\'s left handle to add an execution-order edge; click an edge to disconnect it.',
+    editHint:
+      "Drag nodes to move them (positions are saved separately from versions and never publish); drag from a node's right handle to another node's left handle to add an execution-order edge; click an edge to disconnect it.",
     keepLastGraph: 'Invalid JSON; the graph shows the last valid content: {msg}',
     graphLegendError: 'Step with problems',
     graphEmpty: 'No steps yet; turn on edit mode to add one',
@@ -5535,7 +5592,8 @@ export default {
     propsAfterHint: 'Connect on the canvas to add; click the x on a tag to disconnect',
     propsParams: 'Parameters',
     propsNoSchema: 'No parameter description for this kind; existing parameters are edited as-is',
-    propsBindNote: 'Bindings are edited as text: input.name, config.name or stepId.output.field; separate candidates with {\'|\'}.',
+    propsBindNote:
+      "Bindings are edited as text: input.name, config.name or stepId.output.field; separate candidates with {'|'}.",
     propsExtraParam: 'Undeclared',
     propsBindPlaceholder: 'e.g. input.image or step1.output.url',
     propsUseBind: 'Use binding',
@@ -5549,10 +5607,12 @@ export default {
       self_loop: 'A step cannot be connected to itself',
       already_connected: 'These steps are already connected',
       not_connected: 'There is no execution-order dependency between these steps',
-      data_edge: 'This is a data dependency (from a bind); change the binding in the property panel',
+      data_edge:
+        'This is a data dependency (from a bind); change the binding in the property panel',
       cycle: 'The connection would create a cycle and was refused',
       empty_id: 'Step id cannot be empty',
-      invalid_id: 'Step id may only use lowercase letters, digits, underscores and hyphens, starting with a letter or digit',
+      invalid_id:
+        'Step id may only use lowercase letters, digits, underscores and hyphens, starting with a letter or digit',
       duplicate_id: 'Step id already exists',
     },
     localIssue: {
@@ -5577,7 +5637,8 @@ export default {
     on: 'On',
     off: 'Off',
     globalOff: 'Global switch off',
-    globalOffHint: 'The global definition routing switch is off, so per-mode switches have no effect yet.',
+    globalOffHint:
+      'The global definition routing switch is off, so per-mode switches have no effect yet.',
     sourceVersion: 'Source v{version}',
     convertOk: 'Converts cleanly',
     convertFail: 'Conversion fails ({count})',
@@ -5587,8 +5648,10 @@ export default {
     previewTitle: 'Converted definition preview (read-only, not saved)',
     previewClose: 'Close',
     needConvertible: 'The published version must convert and validate before switching',
-    confirmOn: 'Route {modeCode} to definition {definitionCode}? New submissions use it immediately.',
-    confirmOff: 'Route {modeCode} back to the legacy mode flow? New submissions use it immediately.',
+    confirmOn:
+      'Route {modeCode} to definition {definitionCode}? New submissions use it immediately.',
+    confirmOff:
+      'Route {modeCode} back to the legacy mode flow? New submissions use it immediately.',
     saved: 'Saved',
     syncNotImported: 'Not imported',
     syncInSync: 'In sync',
@@ -5598,11 +5661,13 @@ export default {
     importDefinition: 'Import as definition',
     reimport: 'Re-import',
     needDefinition: 'Not imported as a definition yet; import it before switching',
-    importConfirm: 'Import {modeCode} as a workflow definition? A definition is created if missing and its first version is published.',
+    importConfirm:
+      'Import {modeCode} as a workflow definition? A definition is created if missing and its first version is published.',
     reimportConfirm: 'Re-import {modeCode}? A new version is published on the existing definition.',
     importOk: 'Imported as definition {code}, version v{version}',
     openDefinition: 'Open definition',
     importUnavailable: 'The backend does not support import yet; the related actions are hidden',
-    editorReadonlyHint: 'Mode flows are read-only; edit routed modes on the workflow definition page.',
+    editorReadonlyHint:
+      'Mode flows are read-only; edit routed modes on the workflow definition page.',
   },
 };

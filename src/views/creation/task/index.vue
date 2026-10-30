@@ -290,6 +290,7 @@ import { ref, computed, onActivated, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
+import { getContentEntryCodes } from '@/api/creation-content';
 import {
   getCreationTaskList,
   cancelCreationTask,
@@ -302,7 +303,6 @@ import {
   exportCreationTasks,
   batchCancelCreationTasks,
 } from '@/api/creation-task';
-import { getContentEntryCodes } from '@/api/creation-content';
 import ProTable from '@/components/Pro/ProTable/index.vue';
 
 import ChildTaskExpand from './ChildTaskExpand.vue';
@@ -621,7 +621,11 @@ function handleCancel(record: CreationTask) {
 function handleRetry(record: CreationTask) {
   Modal.confirm({
     title: t('common.warning'),
-    content: t(isRefundedBilling(record.billingStatus) ? 'creationTask.confirmRetryCharge' : 'creationTask.confirmRetry'),
+    content: t(
+      isRefundedBilling(record.billingStatus)
+        ? 'creationTask.confirmRetryCharge'
+        : 'creationTask.confirmRetry',
+    ),
     onOk: async () => {
       await retryCreationTask(record.taskId);
       message.success(t('creationTask.retrySuccess'));

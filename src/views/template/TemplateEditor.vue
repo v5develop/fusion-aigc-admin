@@ -182,7 +182,8 @@ async function loadTemplate() {
         },
       ];
     let mode: LayoutMode = 'stacked';
-    if (raw.layout && typeof raw.layout === 'object') mode = (raw.layout as { mode?: LayoutMode }).mode || 'stacked';
+    if (raw.layout && typeof raw.layout === 'object')
+      mode = (raw.layout as { mode?: LayoutMode }).mode || 'stacked';
     else if (res.uiConfig?.layout === 'tabs') mode = 'sidebar-right';
     loadFromConfig({
       id: res.id,

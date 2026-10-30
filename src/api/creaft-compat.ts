@@ -755,5 +755,7 @@ export interface CreaftToolVariantStatus {
 
 /** 查看工具各变体的就绪状态，route 为 creaft v1 路由，如 /tools/ai-video-enhance。 */
 export function getCreaftToolReadiness(route: string) {
-  return request.get<CreaftToolVariantStatus[]>('/api/v1/admin/tool-readiness', { params: { route } });
+  return request.get<CreaftToolVariantStatus[]>('/api/v1/admin/tool-readiness', {
+    params: { route },
+  });
 }

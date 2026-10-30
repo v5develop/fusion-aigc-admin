@@ -1315,6 +1315,18 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
+        // 画质增强（超分）各档位预设：整表保存，后端写入权限 settings:update
+        path: 'video-enhance-presets',
+        name: 'SettingsVideoEnhancePresets',
+        component: () => import('@/views/settings/video-enhance-presets/index.vue'),
+        meta: {
+          title: 'menu.settingsVideoEnhancePresets',
+          icon: 'ThunderboltOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'settings:update',
+        },
+      },
+      {
         // 通知有自己的一组权限码（notification:view/publish/delete，V1.0.99 落库），
         // 不跟着系统参数走：发公告与改系统参数是两类完全不同的授权
         path: 'notification',

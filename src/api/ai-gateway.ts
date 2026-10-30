@@ -570,5 +570,9 @@ export function getInputSourceHosts() {
 }
 
 export function putInputSourceHosts(hosts: string[]) {
-  return request.put<InputSourceHosts>(`${BASE}/settings/input-source-hosts`, { hosts }, writeCfg());
+  return request.put<InputSourceHosts>(
+    `${BASE}/settings/input-source-hosts`,
+    { hosts },
+    writeCfg(),
+  );
 }

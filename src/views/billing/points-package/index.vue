@@ -33,17 +33,28 @@
           </template>
           <template v-else-if="column.key === 'rules'">
             <a-space :size="4" wrap>
-              <a-tag v-if="record.validDays">{{ $t('pointsPackage.ruleValidDays', { days: record.validDays }) }}</a-tag>
+              <a-tag v-if="record.validDays">{{
+                $t('pointsPackage.ruleValidDays', { days: record.validDays })
+              }}</a-tag>
               <a-tag v-if="record.purchaseLimit" color="blue">
                 {{ $t('pointsPackage.ruleLimit', { limit: record.purchaseLimit }) }}
               </a-tag>
               <a-tag v-if="record.prerequisitePackageCodes?.length" color="purple">
-                {{ $t('pointsPackage.rulePrerequisite', { codes: record.prerequisitePackageCodes.join('、') }) }}
+                {{
+                  $t('pointsPackage.rulePrerequisite', {
+                    codes: record.prerequisitePackageCodes.join('、'),
+                  })
+                }}
               </a-tag>
               <span
-                v-if="!record.validDays && !record.purchaseLimit && !record.prerequisitePackageCodes?.length"
+                v-if="
+                  !record.validDays &&
+                  !record.purchaseLimit &&
+                  !record.prerequisitePackageCodes?.length
+                "
                 class="form-hint"
-              >{{ $t('pointsPackage.ruleNone') }}</span>
+                >{{ $t('pointsPackage.ruleNone') }}</span
+              >
             </a-space>
           </template>
           <template v-else-if="column.key === 'badge'">
@@ -134,7 +145,12 @@
           <div class="form-hint">{{ $t('pointsPackage.validDaysDesc') }}</div>
         </a-form-item>
         <a-form-item :label="$t('pointsPackage.purchaseLimit')">
-          <a-input-number v-model:value="form.purchaseLimit" :min="1" :precision="0" class="w-full" />
+          <a-input-number
+            v-model:value="form.purchaseLimit"
+            :min="1"
+            :precision="0"
+            class="w-full"
+          />
           <div class="form-hint">{{ $t('pointsPackage.purchaseLimitDesc') }}</div>
         </a-form-item>
         <a-form-item :label="$t('pointsPackage.prerequisites')">
@@ -342,7 +358,9 @@ function openEdit(record: AdminPointsPackage) {
     enabled: record.enabled ?? true,
     remark: record.remark ?? '',
     originalPriceMajor:
-      record.originalPriceAmount == null ? null : record.originalPriceAmount / MINOR_UNITS_PER_MAJOR,
+      record.originalPriceAmount == null
+        ? null
+        : record.originalPriceAmount / MINOR_UNITS_PER_MAJOR,
     featuresText: (record.features ?? []).join('\n'),
     validDays: record.validDays ?? null,
     purchaseLimit: record.purchaseLimit ?? null,
@@ -366,7 +384,9 @@ function toPayload(): PointsPackage {
     enabled: form.enabled,
     remark: form.remark.trim() || null,
     originalPriceAmount:
-      form.originalPriceMajor == null ? null : Math.round(form.originalPriceMajor * MINOR_UNITS_PER_MAJOR),
+      form.originalPriceMajor == null
+        ? null
+        : Math.round(form.originalPriceMajor * MINOR_UNITS_PER_MAJOR),
     features: form.featuresText
       .split('\n')
       .map((line) => line.trim())

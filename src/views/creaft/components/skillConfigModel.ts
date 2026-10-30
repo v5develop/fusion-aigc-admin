@@ -57,7 +57,10 @@ export function stageKeys(schema: CreaftSkillConfigSchema | null): Set<string> {
   return new Set((schema?.localLifeStages || []).map((s) => s.key));
 }
 
-export function toModel(config: Record<string, unknown>, schema: CreaftSkillConfigSchema | null): SkillConfigModel {
+export function toModel(
+  config: Record<string, unknown>,
+  schema: CreaftSkillConfigSchema | null,
+): SkillConfigModel {
   const { tool_prompt_overrides: overrides, tags, tools, ...rest } = config;
   const prompts: Record<string, string> = {};
   for (const field of schema?.promptFields || []) {
@@ -72,8 +75,12 @@ export function toModel(config: Record<string, unknown>, schema: CreaftSkillConf
   const overrideMap: Record<string, string> = {};
   const extra: Record<string, unknown> = { ...rest };
   if (overrides !== undefined) {
-    if (overrides && typeof overrides === 'object' && !Array.isArray(overrides)
-        && Object.values(overrides).every((v) => typeof v === 'string')) {
+    if (
+      overrides &&
+      typeof overrides === 'object' &&
+      !Array.isArray(overrides) &&
+      Object.values(overrides).every((v) => typeof v === 'string')
+    ) {
       Object.assign(overrideMap, overrides);
     } else {
       // 形状不对（不是字符串映射）：不接管，原样放回，由原文 JSON 处理
@@ -83,12 +90,18 @@ export function toModel(config: Record<string, unknown>, schema: CreaftSkillConf
   let toolModels: ToolModel[] = [];
   if (Array.isArray(tools) && tools.every((t) => t && typeof t === 'object' && !Array.isArray(t))) {
     toolModels = tools.map((tool) => {
-      const { name, description_override: descriptionOverride, ...toolExtra } = tool as Record<string, unknown>;
+      const {
+        name,
+        description_override: descriptionOverride,
+        ...toolExtra
+      } = tool as Record<string, unknown>;
       return {
         name: String(name ?? ''),
         descriptionOverride: typeof descriptionOverride === 'string' ? descriptionOverride : '',
-        extra: descriptionOverride === undefined || typeof descriptionOverride === 'string'
-          ? toolExtra : { ...toolExtra, description_override: descriptionOverride },
+        extra:
+          descriptionOverride === undefined || typeof descriptionOverride === 'string'
+            ? toolExtra
+            : { ...toolExtra, description_override: descriptionOverride },
       };
     });
   } else if (tools !== undefined) {
@@ -97,23 +110,40 @@ export function toModel(config: Record<string, unknown>, schema: CreaftSkillConf
   let tagList: string[] = [];
   if (Array.isArray(tags) && tags.every((t) => typeof t === 'string')) tagList = tags as string[];
   else if (tags !== undefined) extra.tags = tags;
-  return { prompts, tags: tagList, tools: toolModels, overrides: overrideMap, extra, had: new Set(Object.keys(config)) };
+  return {
+    prompts,
+    tags: tagList,
+    tools: toolModels,
+    overrides: overrideMap,
+    extra,
+    had: new Set(Object.keys(config)),
+  };
 }
 
 /** 形态：有智能体键就是智能体技能；本地生活技能编码或出现分段键就是行业技能；否则只有覆盖 */
-export function detectShape(config: Record<string, unknown>, schema: CreaftSkillConfigSchema | null,
-                            skillCode: string, model: SkillConfigModel): SkillShape {
+export function detectShape(
+  config: Record<string, unknown>,
+  schema: CreaftSkillConfigSchema | null,
+  skillCode: string,
+  model: SkillConfigModel,
+): SkillShape {
   const keys = Object.keys(config);
   if (keys.some((k) => REACT_KEYS.includes(k))) return 'react';
   const stages = stageKeys(schema);
-  if ((schema?.localLifeSkillCodes || []).includes(skillCode)
-      || Object.keys(model.overrides).some((k) => stages.has(k))) return 'localLife';
+  if (
+    (schema?.localLifeSkillCodes || []).includes(skillCode) ||
+    Object.keys(model.overrides).some((k) => stages.has(k))
+  )
+    return 'localLife';
   return keys.length ? 'overrides' : 'react';
 }
 
 /** 行业技能形态下分段键在上面逐条编辑；其余的键进自由列表 */
-export function freeRows(model: SkillConfigModel, shape: SkillShape,
-                         schema: CreaftSkillConfigSchema | null): FreeOverride[] {
+export function freeRows(
+  model: SkillConfigModel,
+  shape: SkillShape,
+  schema: CreaftSkillConfigSchema | null,
+): FreeOverride[] {
   const fixed = shape === 'localLife' ? stageKeys(schema) : new Set<string>();
   return Object.entries(model.overrides)
     .filter(([key]) => !fixed.has(key))
@@ -125,15 +155,19 @@ export function freeRows(model: SkillConfigModel, shape: SkillShape,
  * 否则输入键名途中恰好拼出某个分段名（style_transform_v2 输到 style_transform），那一刻的空值就会冲掉上万字的分段；
  * 两行同名时后一行也会悄悄盖掉前一行。返回与 rows 同序的提示，没问题为空串。
  */
-export function freeRowProblems(rows: FreeOverride[], shape: SkillShape,
-                                schema: CreaftSkillConfigSchema | null): string[] {
+export function freeRowProblems(
+  rows: FreeOverride[],
+  shape: SkillShape,
+  schema: CreaftSkillConfigSchema | null,
+): string[] {
   const stages = shape === 'localLife' ? stageKeys(schema) : new Set<string>();
   // 先让「键名没被改过」的行占住自己的键：用户把 A 行误改成 B 行的键名时，标红的应该是改动的 A 行，
   // 而不是原封未动、可能装着上万字的 B 行
   const claimed = new Map<string, number>();
   rows.forEach((row, index) => {
     const key = row.key.trim();
-    if (key && key === row.originalKey && !stages.has(key) && !claimed.has(key)) claimed.set(key, index);
+    if (key && key === row.originalKey && !stages.has(key) && !claimed.has(key))
+      claimed.set(key, index);
   });
   const seen = new Set<string>();
   return rows.map((row, index) => {
@@ -141,18 +175,24 @@ export function freeRowProblems(rows: FreeOverride[], shape: SkillShape,
     if (!key) return row.value ? '键名不能为空' : '';
     if (stages.has(key)) return '与上面的分段同名，请直接在分段里编辑';
     const owner = claimed.get(key);
-    if ((owner !== undefined && owner !== index) || (owner === undefined && seen.has(key))) return '与另一行同名';
+    if ((owner !== undefined && owner !== index) || (owner === undefined && seen.has(key)))
+      return '与另一行同名';
     seen.add(key);
     return '';
   });
 }
 
 /** 把「分段」与「自由列表」两块收拢回一个映射：自由列表改了键名时旧键随之消失；有问题的行不写回 */
-export function collectOverrides(model: SkillConfigModel, rows: FreeOverride[], shape: SkillShape,
-                                 schema: CreaftSkillConfigSchema | null): Record<string, string> {
+export function collectOverrides(
+  model: SkillConfigModel,
+  rows: FreeOverride[],
+  shape: SkillShape,
+  schema: CreaftSkillConfigSchema | null,
+): Record<string, string> {
   const next: Record<string, string> = {};
   if (shape === 'localLife') {
-    for (const key of stageKeys(schema)) if (model.overrides[key] !== undefined) next[key] = model.overrides[key];
+    for (const key of stageKeys(schema))
+      if (model.overrides[key] !== undefined) next[key] = model.overrides[key];
   }
   const problems = freeRowProblems(rows, shape, schema);
   rows.forEach((row, index) => {
@@ -161,10 +201,18 @@ export function collectOverrides(model: SkillConfigModel, rows: FreeOverride[], 
   return next;
 }
 
-export function buildConfig(model: SkillConfigModel, shape: SkillShape,
-                            schema: CreaftSkillConfigSchema | null): Record<string, unknown> {
+export function buildConfig(
+  model: SkillConfigModel,
+  shape: SkillShape,
+  schema: CreaftSkillConfigSchema | null,
+): Record<string, unknown> {
   const out: Record<string, unknown> = { ...model.extra };
-  const tools = () => model.tools.map((t) => ({ ...t.extra, name: t.name, description_override: t.descriptionOverride }));
+  const tools = () =>
+    model.tools.map((t) => ({
+      ...t.extra,
+      name: t.name,
+      description_override: t.descriptionOverride,
+    }));
   for (const field of schema?.promptFields || []) {
     if (!(field.key in model.prompts)) continue;
     const value = model.prompts[field.key] || '';
@@ -179,7 +227,8 @@ export function buildConfig(model: SkillConfigModel, shape: SkillShape,
     // 空值不写：留空的分段等同于没配（服务端只取非空），写进去只会让「缺段」看起来像配了
     const overrides: Record<string, string> = {};
     for (const [key, value] of Object.entries(model.overrides)) if (value) overrides[key] = value;
-    if (Object.keys(overrides).length || model.had.has('tool_prompt_overrides')) out.tool_prompt_overrides = overrides;
+    if (Object.keys(overrides).length || model.had.has('tool_prompt_overrides'))
+      out.tool_prompt_overrides = overrides;
   }
   return out;
 }

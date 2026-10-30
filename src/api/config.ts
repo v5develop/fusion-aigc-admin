@@ -356,7 +356,11 @@ export function getVideoEnhanceDefaultTier() {
 }
 
 export function setVideoEnhanceDefaultTier(tier: VideoEnhanceTier) {
-  return request.put<VideoEnhanceTier>('/api/v1/admin/settings/video-enhance-default-tier', undefined, {
-    params: { tier },
-  });
+  return request.put<VideoEnhanceTier>(
+    '/api/v1/admin/settings/video-enhance-default-tier',
+    undefined,
+    {
+      params: { tier },
+    },
+  );
 }

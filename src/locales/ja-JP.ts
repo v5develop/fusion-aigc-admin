@@ -223,6 +223,7 @@ export default {
     settingsSystem: 'システムパラメータ',
     settingsUserLevel: '経験レベル',
     settingsCheckIn: 'デイリーチェックイン',
+    settingsVideoEnhancePresets: '画質強化プリセット',
     settingsNotification: '通知',
     promptCreate: 'プロンプトを作成',
     promptEdit: 'プロンプトを編集',
@@ -778,7 +779,8 @@ export default {
   },
   settingsSystem: {
     videoEnhanceDefaultTier: '動画高画質化の既定ティア',
-    videoEnhanceDefaultTierDesc: 'ユーザーがティアを選ばなかった場合に使用します。即時反映され、実行・ユーザー向け価格一覧の既定表示・既定の課金が一緒に切り替わります。送信済みのタスクには影響しません。',
+    videoEnhanceDefaultTierDesc:
+      'ユーザーがティアを選ばなかった場合に使用します。即時反映され、実行・ユーザー向け価格一覧の既定表示・既定の課金が一緒に切り替わります。送信済みのタスクには影響しません。',
     videoEnhanceDefaultTierSaved: '既定ティアを保存しました',
     videoEnhanceTierFast: '高速',
     videoEnhanceTierStandard: '標準',
@@ -823,16 +825,23 @@ export default {
     videoWatermarkOn: '動画の表示用透かしを有効化。新しく生成される動画には透かしが入ります',
     videoWatermarkOff: '動画の表示用透かしを無効化。生成済みの透かし入り動画はそのまま使われます',
     blindWatermark: '画像のブラインド透かし',
-    blindWatermarkDesc: '生成されたすべての画像に、目に見えない追跡情報を埋め込みます。ブラインド透かしサービスの URL が必要です',
+    blindWatermarkDesc:
+      '生成されたすべての画像に、目に見えない追跡情報を埋め込みます。ブラインド透かしサービスの URL が必要です',
     blindWatermarkOn: '画像のブラインド透かしを有効化。新しく生成される画像には追跡情報が入ります',
-    blindWatermarkOff: '画像のブラインド透かしを無効化。埋め込み済みの画像からは引き続き抽出できます',
+    blindWatermarkOff:
+      '画像のブラインド透かしを無効化。埋め込み済みの画像からは引き続き抽出できます',
     definitionRoutingDoubao: 'ワークフロー定義経由の hitVideo（Doubao）',
-    definitionRoutingDoubaoDesc: '有効にすると、新規の Doubao（標準・高速）送信はワークフロー定義を経由します。公開済みの定義と Volcengine のゲートウェイ配備が必要です。',
-    definitionRoutingDoubaoModeFlowHint: 'Doubao 経路はモード単位で有効化する方式に変わりました。ここでは無効化のみ可能です。モードフロー一覧ページでモードごとに有効化してください。',
+    definitionRoutingDoubaoDesc:
+      '有効にすると、新規の Doubao（標準・高速）送信はワークフロー定義を経由します。公開済みの定義と Volcengine のゲートウェイ配備が必要です。',
+    definitionRoutingDoubaoModeFlowHint:
+      'Doubao 経路はモード単位で有効化する方式に変わりました。ここでは無効化のみ可能です。モードフロー一覧ページでモードごとに有効化してください。',
     definitionRoutingLocal: 'ワークフロー定義経由のローカル hitVideo',
-    definitionRoutingLocalDesc: '有効にすると、新規のローカル hitVideo（xiaoqi-video-1.0-lite のみ）送信はワークフロー定義を経由します。',
-    definitionRoutingOn: 'ワークフロー定義のルーティングを有効化。該当する新規 hitVideo 送信はワークフロー定義を使います',
-    definitionRoutingOff: 'ワークフロー定義のルーティングを無効化。新規送信は従来の経路に戻ります（送信済みのタスクには影響しません）',
+    definitionRoutingLocalDesc:
+      '有効にすると、新規のローカル hitVideo（xiaoqi-video-1.0-lite のみ）送信はワークフロー定義を経由します。',
+    definitionRoutingOn:
+      'ワークフロー定義のルーティングを有効化。該当する新規 hitVideo 送信はワークフロー定義を使います',
+    definitionRoutingOff:
+      'ワークフロー定義のルーティングを無効化。新規送信は従来の経路に戻ります（送信済みのタスクには影響しません）',
     displayWatermark: '表示用の画像透かし',
     displayWatermarkDesc:
       'マスタースイッチ。無料ユーザーには閲覧・ダウンロード・素材ライブラリで透かしを付けます。オフの場合は誰にも付けません',
@@ -854,7 +863,8 @@ export default {
     mediaPurposeWarning:
       '変更後に作成された呼び出しにのみ適用されます。有効にする前に、ゲートウェイが media_purpose に対応していることを確認してください',
     mediaPurposeOn: '新規の呼び出しで素材ライブラリへの直接取り込みを有効化',
-    mediaPurposeOff: '素材ライブラリへの直接取り込みを無効化。新規の呼び出しには media_purpose が付かなくなります',
+    mediaPurposeOff:
+      '素材ライブラリへの直接取り込みを無効化。新規の呼び出しには media_purpose が付かなくなります',
     freeOriginalCleanup: '無料枠の原本の自動削除',
     freeOriginalCleanupDesc:
       '既定はオフ。オンにすると、期限切れの無料枠の原本をタスク履歴と素材ライブラリの項目と一緒に削除します（元に戻せません）。有効にする前に保持日数を確認してください',
@@ -873,7 +883,8 @@ export default {
     userInputRetentionDays: 'ユーザー入力の保持日数',
     userInputRetentionDaysDesc:
       '最短 365 日（1 年）、最長 3650 日。無期限保持がオフのときのみ有効です。保存を押すと適用されます。値を下げると削除される入力画像が増えるため、確認を求めます',
-    userInputRetentionDaysInvalid: '保持日数は {min}（最短 1 年）から {max} 日の間の整数で入力してください',
+    userInputRetentionDaysInvalid:
+      '保持日数は {min}（最短 1 年）から {max} 日の間の整数で入力してください',
     userInputRetentionConfirmTitle: '期限切れのユーザー入力画像を削除しますか？',
     userInputRetentionConfirm:
       '適用すると、{days} 日より古いユーザー入力画像が削除されます（7 日間の猶予期間中は復元可能）。その後は再生成に使えなくなります。',
@@ -893,7 +904,8 @@ export default {
     agentModelHint:
       'プロンプト最適化などバックエンドの Agent シーン用のモデルです。リクエストに画像が含まれるかで自動的に振り分けます。画像なしはテキスト用プロファイル、画像ありはビジョン用プロファイルを使います。各プロファイルは未設定または利用不可の場合、yaml の設定にフォールバックします。（ここのプロファイルはモデルの役割であり、ユーザー権限のロールとは無関係です。）',
     agentModelPlaceholder: 'モデルを選択',
-    agentModelSelectHint: '有効なテキストチャットモデルのみ選択できます。空のままにすると yaml のフォールバック設定を使います',
+    agentModelSelectHint:
+      '有効なテキストチャットモデルのみ選択できます。空のままにすると yaml のフォールバック設定を使います',
     agentModelSupportVision: 'ビジョン対応',
     agentProfileText: 'テキスト用プロファイル（画像なしのプロンプト最適化）',
     agentProfileTextHint:
@@ -965,7 +977,8 @@ export default {
     useVariable: '変数を使用',
     insertVariable: '変数を挿入',
     availableVariables: '利用可能な変数',
-    promptPlaceholder: 'プロンプトテンプレートを入力。{varFormat} でフォームフィールドを参照できます',
+    promptPlaceholder:
+      'プロンプトテンプレートを入力。{varFormat} でフォームフィールドを参照できます',
     variableFormat: 'variableName',
     previewResult: 'プレビュー結果',
     enterTestValue: 'テスト値を入力',
@@ -1463,8 +1476,7 @@ export default {
     maxConcurrencyHint:
       'このモデルが同時に処理できるタスクの最大数。空欄の場合はシステム既定値を使用します。',
     generationTimeout: '生成タイムアウト（秒）',
-    generationTimeoutHint:
-      '1 回の生成タスクの最大実時間。空欄の場合はシステム既定値を使用します。',
+    generationTimeoutHint: '1 回の生成タスクの最大実時間。空欄の場合はシステム既定値を使用します。',
     supportVision: 'ビジョン対応',
     supportVisionHint:
       '有効にすると、このモデルは画像入力を受け付けます（プロンプト最適化や画像認識などのシーンで画像が渡されます）。',
@@ -1857,22 +1869,26 @@ export default {
     enabledOn: 'レベル別キュー優先度を有効にしました',
     enabledOff: '無効です。全員が同じ優先度になります（キューは FIFO に戻ります）',
     weights: '重み',
-    weightsDesc: 'JSON オブジェクト：rechargeAmountWeight、paidMonthWeight、topPackageAmountWeight。空のままにするとスイッチのみ変更されます。',
+    weightsDesc:
+      'JSON オブジェクト：rechargeAmountWeight、paidMonthWeight、topPackageAmountWeight。空のままにするとスイッチのみ変更されます。',
     create: 'レベルを新規作成',
     edit: 'レベルを編集',
     levelCode: 'レベルコード',
     levelName: 'レベル名',
     minScore: '最小スコア',
-    minScoreDesc: 'この値を含みます。最低レベルは 0 にする必要があります。そうしないと、一度も課金していないユーザーがどのレベルにも該当しません。',
+    minScoreDesc:
+      'この値を含みます。最低レベルは 0 にする必要があります。そうしないと、一度も課金していないユーザーがどのレベルにも該当しません。',
     queuePriority: 'キュー優先度',
     queuePriorityDesc: '値が大きいほど先に取り出されます。同じ優先度内では FIFO が維持されます。',
     deleteConfirm: 'このレベルは今後マッチされなくなります。削除しますか？',
     baseLevel: '基本レベルのため削除できません',
     manualOnly: '手動割り当てのみ',
-    manualOnlyDesc: 'オンにすると、このレベルはスコアでは付与されず、下の指定ユーザーにのみ割り当てられます（例：v1 の Prime パートナーレベル）。',
+    manualOnlyDesc:
+      'オンにすると、このレベルはスコアでは付与されず、下の指定ユーザーにのみ割り当てられます（例：v1 の Prime パートナーレベル）。',
     manualOnlyTag: '手動割り当てのみ',
     assignments: '割り当て済みレベル',
-    assignmentsHint: '割り当てはスコアより優先されます。ユーザーはそのレベルとして扱われ、キュー優先度やレベル別の価格ルールもそれに従います。有効期限切れ、またはレベルが無効の場合はスコアのレベルに戻ります。レベルは 5 分間キャッシュされるため、割り当てと取り消しは全インスタンスで 5 分以内に反映されます。',
+    assignmentsHint:
+      '割り当てはスコアより優先されます。ユーザーはそのレベルとして扱われ、キュー優先度やレベル別の価格ルールもそれに従います。有効期限切れ、またはレベルが無効の場合はスコアのレベルに戻ります。レベルは 5 分間キャッシュされるため、割り当てと取り消しは全インスタンスで 5 分以内に反映されます。',
     assign: 'レベルを割り当て',
     userId: 'ユーザー ID',
     assignLevel: 'レベル',
@@ -1883,8 +1899,51 @@ export default {
     longTerm: '無期限',
     operator: '操作者',
     unassign: '取り消し',
-    unassignConfirm: 'ユーザーはスコアのレベルに戻ります（全体で 5 分以内に反映）。取り消しますか？',
+    unassignConfirm:
+      'ユーザーはスコアのレベルに戻ります（全体で 5 分以内に反映）。取り消しますか？',
   },
+  videoEnhancePresets: {
+    intro:
+      'プリセットはバックエンドで固定されたパラメータです。ユーザー側には解像度など少数の選択肢のみ残ります。',
+    hint: '空欄は「プリセットなし」を意味し、ユーザー値またはデフォルトが適用されます。4 つのティアをまとめて保存し、即時反映されます。以後の送信にのみ影響し、送信済みタスクには影響しません。',
+    tiers: {
+      fast: '高速版',
+      standard: '標準版',
+      professional: 'プロ版',
+      generative: '大規模モデル版',
+    },
+    fields: {
+      enhance_style: '強化スタイル',
+      scene: 'シーン',
+      codec: 'コーデック',
+      bit_depth: 'ビット深度',
+      bitrate_level: 'ビットレートレベル',
+      bitrate: 'ビットレート',
+      fps: 'FPS',
+      resolution_limit: '解像度上限',
+    },
+    options: {
+      enhance_style: { hd: 'HD', natural: 'ナチュラル' },
+      scene: { aigc: 'AIGC', short_series: 'ショートドラマ', ugc: 'UGC', old_film: '旧作フィルム' },
+      bitrate_level: { low: '低', medium: '中', high: '高' },
+    },
+    resolutionsHint: '解像度はユーザーが選択します（{resolutions}）。プリセットには含まれません。',
+    unsetPlaceholder: '未設定（ユーザー値またはデフォルトが適用）',
+    rangeHelp: '値の範囲 {min}–{max}',
+    bitDepth16Help: '16 ビット深度は {seconds} 秒以下の入力のみ対応します',
+    codecHelp:
+      'コーデックとビット深度を合わせてください：h264→8；h265→8/10/12；prores→10；ffv1→16；exr→16',
+    noParams: 'このティアに設定可能なプリセットパラメータはありません',
+    issue: {
+      unsupported: 'このティアではこのパラメータはサポートされていません',
+      integer: '整数で入力してください',
+      range: '{min}〜{max} の範囲で入力してください',
+      enum: '選択可能な値：{options}',
+      combination:
+        'コーデック {codec} はビット深度 {bitDepth} をサポートしていません（選択可能：{allowed}）',
+    },
+  },
+
   checkIn: {
     hint: 'チェックインではギフトバッチが付与されます（有料分には計上されません）。ここでの変更は付与ポイント数を直接左右し、保存のたびに監査記録が残ります。',
     enabled: '毎日のチェックイン',
@@ -1892,7 +1951,8 @@ export default {
     enabledOn: '毎日のチェックインを有効にしました',
     enabledOff: '毎日のチェックインを無効にしました',
     rewards: '連続チェックイン報酬',
-    rewardsDesc: 'カンマ区切りで、順番が連続日数に対応します。超過するとリストを繰り返します。例：10,10,10,10,10,10,60 は 7 日目にボーナスを付与します。',
+    rewardsDesc:
+      'カンマ区切りで、順番が連続日数に対応します。超過するとリストを繰り返します。例：10,10,10,10,10,10,60 は 7 日目にボーナスを付与します。',
     rewardsRequired: '報酬値を 1 つ以上入力してください',
     day: '{day} 日目',
     pointsValidDays: 'ギフトポイントの有効期間（日）',
@@ -4488,8 +4548,7 @@ export default {
     unionUserStatusDesc: 'アカウントステータス: active/frozen/deactivating/deactivated',
     createdAtDesc: 'ユーザー登録日時 (ISO-8601)',
     maskPhoneDesc: 'マスク済みの電話番号（例: 138****1234）',
-    userNotFoundDesc:
-      'data が null の場合、その連合ユーザーはローカルシステムに未登録です',
+    userNotFoundDesc: 'data が null の場合、その連合ユーザーはローカルシステムに未登録です',
     phoneDesc: '電話番号',
     rechargeConsumptionDesc:
       'チャージ消費サマリの一括照会インターフェース。複数のチャージ ID について、付与額・消費額・残額・有効期限の状態を一括で照会します',
@@ -5458,29 +5517,36 @@ export default {
     errorList: '検証結果',
     stale: '内容が変更されました。公開前に再検証してください',
     mustValidate: '公開前に検証を通す必要があります',
-    publishConfirm: '新しいバージョンとして公開しますか？以降に投入されるタスクはこのバージョンに固定されます。',
+    publishConfirm:
+      '新しいバージョンとして公開しますか？以降に投入されるタスクはこのバージョンに固定されます。',
     publishOk: 'v{version} を公開しました',
     publishFailed: '公開に失敗しました（{count} 件）',
     stepKinds: '利用可能なステップ種別',
     stepKindsHint: 'steps[].kind は以下のいずれか。クリックでコピー',
     copied: 'コピーしました',
-    structureHint: '構造：schema は workflow-definition/v1 固定。steps[] の各項目は id、kind、params を持ち、after（依存）と when（条件）は任意。outputs は最終出力。bind は入力または先祖ステップの出力のみ参照できます。',
-    contractHint: '約定：billing（entryCode、featureCode、modelId、actionType、quantity、legacyMode）は公開前に設定し offer と一致させる必要があり、欠けると提出できません。型末尾の ? は任意入力（例 number?）。"optional": true の bind は欠けるとパラメータを省略します。bind は | で候補を並べ、最初に値があるものを使います。config.<name> は提出時にシステム設定 workflow.definition.<code>.config.<name> から読み込んで固定し、欠けると拒否します。メディア入力は kind で審査し、音声は拒否します。',
+    structureHint:
+      '構造：schema は workflow-definition/v1 固定。steps[] の各項目は id、kind、params を持ち、after（依存）と when（条件）は任意。outputs は最終出力。bind は入力または先祖ステップの出力のみ参照できます。',
+    contractHint:
+      '約定：billing（entryCode、featureCode、modelId、actionType、quantity、legacyMode）は公開前に設定し offer と一致させる必要があり、欠けると提出できません。型末尾の ? は任意入力（例 number?）。"optional": true の bind は欠けるとパラメータを省略します。bind は | で候補を並べ、最初に値があるものを使います。config.<name> は提出時にシステム設定 workflow.definition.<code>.config.<name> から読み込んで固定し、欠けると拒否します。メディア入力は kind で審査し、音声は拒否します。',
     loadFailed: '読み込みに失敗しました',
     currentVersionTitle: '現在のバージョン',
-    currentVersionHint: '送信されるタスクは常に現在のバージョンを使います。保存すると新バージョンが公開され、現在のバージョンになります。',
+    currentVersionHint:
+      '送信されるタスクは常に現在のバージョンを使います。保存すると新バージョンが公開され、現在のバージョンになります。',
     history: '履歴（{count}）',
     historyHint: '追跡用です。クリックすると読み取り専用で表示します',
     save: '保存（新バージョンを公開）',
-    saveConfirm: '保存すると新バージョン v{version} として公開され、すぐに現在のバージョンになり以降のタスクで使われます。保存しますか？',
-    layoutLocalOnly: 'バックエンドがノード位置の保存に未対応のため、位置はこのページ内だけで保持します',
+    saveConfirm:
+      '保存すると新バージョン v{version} として公開され、すぐに現在のバージョンになり以降のタスクで使われます。保存しますか？',
+    layoutLocalOnly:
+      'バックエンドがノード位置の保存に未対応のため、位置はこのページ内だけで保持します',
     layoutSaveFailed: 'ノード位置の保存に失敗しました',
     statusEnabled: '有効',
     statusDisabled: '無効',
     enable: '有効化',
     disable: '無効化',
     enableConfirm: 'この定義を有効にしますか？現在のバージョンで新しいタスクを送信できます。',
-    disableConfirm: 'この定義を無効にしますか？新規送信は拒否されます。実行中のタスクには影響しません。',
+    disableConfirm:
+      'この定義を無効にしますか？新規送信は拒否されます。実行中のタスクには影響しません。',
     statusSaved: 'ステータスを更新しました',
     latestVersion: '最新',
     restore: '復元',
@@ -5492,10 +5558,12 @@ export default {
     pickKind: 'ステップ種別を選択',
     addStep: 'ステップを追加',
     deleteStep: 'ステップを削除',
-    deleteStepConfirm: 'このステップを削除しますか？他のステップの実行順依存も外れます。出力への bind は手動で修正してください。',
+    deleteStepConfirm:
+      'このステップを削除しますか？他のステップの実行順依存も外れます。出力への bind は手動で修正してください。',
     disconnect: '接続を解除',
     resetLayout: 'レイアウトをリセット',
-    editHint: 'ノードをドラッグして配置できます（座標はバージョンとは別に保存され、公開は発生しません）。ノード右側の点から別ノードの左側へドラッグすると実行順を追加、線をクリックすると解除できます。',
+    editHint:
+      'ノードをドラッグして配置できます（座標はバージョンとは別に保存され、公開は発生しません）。ノード右側の点から別ノードの左側へドラッグすると実行順を追加、線をクリックすると解除できます。',
     keepLastGraph: 'JSON が不正です。図は最後に有効だった内容を表示しています：{msg}',
     graphLegendError: '問題のあるステップ',
     graphEmpty: 'ステップがありません。編集モードで追加してください',
@@ -5513,7 +5581,8 @@ export default {
     propsAfterHint: 'キャンバスで接続すると追加されます。タグの × で解除できます',
     propsParams: 'パラメータ params',
     propsNoSchema: 'この種別にはパラメータ説明がありません。既存パラメータをそのまま編集します',
-    propsBindNote: 'bind はテキストで編集します：input.名前、config.名前、またはステップid.output.フィールド。候補は {\'|\'} で区切ります。',
+    propsBindNote:
+      "bind はテキストで編集します：input.名前、config.名前、またはステップid.output.フィールド。候補は {'|'} で区切ります。",
     propsExtraParam: '未宣言',
     propsBindPlaceholder: '例：input.image または step1.output.url',
     propsUseBind: 'bind に切替',
@@ -5549,13 +5618,15 @@ export default {
     },
   },
   modeRouting: {
-    legacyFrozen: '旧 Mode フローは読み取り専用です。編集はワークフロー定義ページで行ってください。',
+    legacyFrozen:
+      '旧 Mode フローは読み取り専用です。編集はワークフロー定義ページで行ってください。',
     goDefinitions: 'ワークフロー定義へ',
     column: '定義ランタイム',
     on: '切替済み',
     off: '未切替',
     globalOff: '全体スイッチ オフ',
-    globalOffHint: '定義ルーティングの全体スイッチがオフのため、mode ごとのスイッチはまだ有効になりません。',
+    globalOffHint:
+      '定義ルーティングの全体スイッチがオフのため、mode ごとのスイッチはまだ有効になりません。',
     sourceVersion: '元バージョン v{version}',
     convertOk: '変換可能',
     convertFail: '変換不可（{count}）',
@@ -5565,22 +5636,27 @@ export default {
     previewTitle: '変換後の定義プレビュー（読み取り専用・保存されません）',
     previewClose: '閉じる',
     needConvertible: '公開バージョンの変換と検証が通ってから切り替えてください',
-    confirmOn: '{modeCode} を定義 {definitionCode} に切り替えますか？新規送信から即時に適用されます。',
+    confirmOn:
+      '{modeCode} を定義 {definitionCode} に切り替えますか？新規送信から即時に適用されます。',
     confirmOff: '{modeCode} を旧 Mode フローに戻しますか？新規送信から即時に適用されます。',
     saved: '保存しました',
     syncNotImported: '未インポート',
     syncInSync: '同期済み',
     syncOutOfSync: '未同期',
-    syncOutOfSyncHint: 'Mode フローと定義テーブルが一致しません。定義として再インポートしてください',
+    syncOutOfSyncHint:
+      'Mode フローと定義テーブルが一致しません。定義として再インポートしてください',
     definitionVersion: '定義 v{version}',
     importDefinition: '定義としてインポート',
     reimport: '再インポート',
     needDefinition: 'まだ定義としてインポートされていません。インポートしてから切り替えてください',
-    importConfirm: '{modeCode} をワークフロー定義としてインポートしますか？存在しない場合は定義を作成し最初のバージョンを公開します。',
-    reimportConfirm: '{modeCode} を再インポートしますか？既存の定義に新しいバージョンを公開します。',
+    importConfirm:
+      '{modeCode} をワークフロー定義としてインポートしますか？存在しない場合は定義を作成し最初のバージョンを公開します。',
+    reimportConfirm:
+      '{modeCode} を再インポートしますか？既存の定義に新しいバージョンを公開します。',
     importOk: '定義 {code} としてインポートしました（v{version}）',
     openDefinition: '定義を開く',
     importUnavailable: 'バックエンドがインポートに未対応のため、関連操作を非表示にしました',
-    editorReadonlyHint: 'Mode フローは読み取り専用です。定義へ切り替えた mode はワークフロー定義ページで編集してください。',
+    editorReadonlyHint:
+      'Mode フローは読み取り専用です。定義へ切り替えた mode はワークフロー定義ページで編集してください。',
   },
 };
