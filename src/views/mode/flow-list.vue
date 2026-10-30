@@ -23,6 +23,23 @@
         )
       }}</span>
     </div>
+    <div v-if="shadowState" class="global-switch">
+      <span class="global-label">{{ t('modeRouting.shadowSwitch') }}</span>
+      <a-switch
+        :checked="shadowState.enabled"
+        :loading="shadowSaving"
+        :disabled="!canPublish"
+        @change="(v: unknown) => toggleShadow(!!v)"
+      />
+      <span class="muted">{{
+        t(
+          shadowState.source === 'config'
+            ? 'modeRouting.globalSourceConfig'
+            : 'modeRouting.globalSourceDefault',
+        )
+      }}</span>
+      <span class="muted">{{ t('modeRouting.shadowHint') }}</span>
+    </div>
     <ProTable :columns="columns" :request="loadData" :search="{}" row-key="id">
       <template #emptyText><a-empty description="暂无 Mode 流" /></template>
       <template #bodyCell="{ column, record }">
@@ -86,7 +103,10 @@
                 </template>
               </div>
               <div>
-                <a-tag v-if="routingOf(record)!.convertible" color="green">{{
+                <a-tag v-if="routingOf(record)!.flowStatus === 'DISABLED'" color="default">{{
+                  t('modeRouting.flowDisabled')
+                }}</a-tag>
+                <a-tag v-else-if="routingOf(record)!.convertible" color="green">{{
                   t('modeRouting.convertOk')
                 }}</a-tag>
                 <a-popover v-else :title="t('modeRouting.errorsTitle')" placement="left">
@@ -177,13 +197,16 @@ import {
   convertModeRouting,
   getModeRouting,
   getModeRoutingGlobal,
+  getModeRoutingShadowQuote,
   getModeRoutingDrift,
   importModeDefinition,
   modeRoutingErrors,
   setModeRouting,
   setModeRoutingGlobal,
+  setModeRoutingShadowQuote,
   type ModeRoutingDrift,
   type ModeRoutingGlobal,
+  type ModeRoutingShadowQuote,
   type ModeRoutingStatus,
 } from '@/api/mode-routing';
 import { isEndpointMissing } from '@/api/workflow-definition';
@@ -425,6 +448,38 @@ function toggleGlobal(enabled: boolean) {
         await loadGlobal();
       } finally {
         globalSaving.value = false;
+      }
+    },
+  });
+}
+
+/** 影子报价开关：只记录价格差异；GET 404 时隐藏，写入需 mode:publish */
+const shadowState = ref<ModeRoutingShadowQuote>();
+const shadowSaving = ref(false);
+
+async function loadShadow() {
+  try {
+    shadowState.value = await getModeRoutingShadowQuote();
+  } catch {
+    shadowState.value = undefined;
+  }
+}
+void loadShadow();
+
+function toggleShadow(enabled: boolean) {
+  Modal.confirm({
+    title: t(enabled ? 'modeRouting.shadowConfirmOn' : 'modeRouting.shadowConfirmOff'),
+    content: t(enabled ? 'modeRouting.shadowOnWarn' : 'modeRouting.shadowOffWarn'),
+    onOk: async () => {
+      shadowSaving.value = true;
+      try {
+        shadowState.value = await setModeRoutingShadowQuote(enabled);
+        message.success(t('modeRouting.saved'));
+      } catch {
+        /* 拦截器已提示 */
+        await loadShadow();
+      } finally {
+        shadowSaving.value = false;
       }
     },
   });

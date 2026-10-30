@@ -35,6 +35,8 @@ export interface ModeRoutingStatus {
   convertError?: string | null;
   /** 定义校验错误 */
   validationErrors?: string[];
+  /** mode 流自身状态；旧后端无此字段 */
+  flowStatus?: 'ENABLED' | 'DISABLED' | 'MISSING';
 }
 
 function path(modeCode: string) {
@@ -114,4 +116,23 @@ export function getModeRoutingGlobal() {
 /** 写总开关：开启后所有自身开关已开的 mode 改走定义 */
 export function setModeRoutingGlobal(enabled: boolean) {
   return request.put<ModeRoutingGlobal>(`${BASE}/global`, { enabled }, writeCfg());
+}
+
+/** 对应后端 ModeRoutingAdminService.ShadowQuoteStatus；source=config 为系统配置行，default 为配置文件默认 */
+export interface ModeRoutingShadowQuote {
+  enabled: boolean;
+  source: 'config' | 'default';
+}
+
+/** hitVideo 豆包影子报价开关；接口未上线时 404（用 isEndpointMissing 判断） */
+export function getModeRoutingShadowQuote() {
+  return request.get<ModeRoutingShadowQuote>(
+    `${BASE}/shadow-quote`,
+    cfg({ silentError: true, noRetry: true }),
+  );
+}
+
+/** 写影子报价开关：只记录价格差异，不扣费 */
+export function setModeRoutingShadowQuote(enabled: boolean) {
+  return request.put<ModeRoutingShadowQuote>(`${BASE}/shadow-quote`, { enabled }, writeCfg());
 }
