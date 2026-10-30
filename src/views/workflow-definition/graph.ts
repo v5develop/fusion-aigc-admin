@@ -117,8 +117,15 @@ function upstreamOf(bind: string, stepIds: Set<string>): string[] {
 export function modelGroupRefOf(step: unknown): ModelGroupRef | undefined {
   if (!isRecord(step) || step.kind !== GATEWAY_CALL_KIND || !isRecord(step.params)) return undefined;
   const group = step.params.modelGroup;
-  if (typeof group === 'string') {
-    return group.trim() ? { kind: 'literal', value: group.trim() } : undefined;
+  // 字面量可以是裸字符串，也可以是运行时同样接受的 {"value": x} 包装（试点与转换器的写法）
+  const literal =
+    typeof group === 'string'
+      ? group
+      : isRecord(group) && Object.keys(group).length === 1 && typeof group.value === 'string'
+        ? group.value
+        : undefined;
+  if (literal !== undefined) {
+    return literal.trim() ? { kind: 'literal', value: literal.trim() } : undefined;
   }
   return isBindValue(group) ? { kind: 'runtime' } : undefined;
 }
