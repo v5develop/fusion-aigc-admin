@@ -302,6 +302,8 @@ export interface DeploymentRuntime {
   [key: string]: unknown;
 }
 
+export type BalanceState = 'AVAILABLE' | 'LOW' | 'INSUFFICIENT' | 'QUOTA_EXHAUSTED' | string;
+
 export interface AccountRuntime {
   account_code: string;
   running: number;
@@ -309,10 +311,27 @@ export interface AccountRuntime {
   balance?: string | null;
   balance_currency?: string | null;
   balance_checked_at?: string | null;
+  /** 最近一次余额查询结论：AVAILABLE | LOW | INSUFFICIENT | QUOTA_EXHAUSTED */
+  balance_state?: BalanceState | null;
+  /**
+   * 供应商余额明细（十进制字符串与标签，只供展示；判定用 `balance`）。Atlas：available / cash / bonus /
+   * subscription_bonus / frozen / credit_status / credit_granted / credit_used / credit_remaining_overdraft /
+   * credit_overdrawn / effective_available / currency / low_threshold / account_type / account_name / key_source
+   */
+  balance_details?: Record<string, string> | null;
+  /** 最近一次余额查询失败的判据（如 atlas.balance.key_format / atlas.balance.http_403）；下次成功清除 */
+  balance_error?: string | null;
+  balance_error_at?: string | null;
+  /** 最近一次余额查询用的 key：balance = 独立查余额 key（balance_api_key）| main = 主 key */
+  balance_key_source?: BalanceKeySource | string | null;
   excluded_until?: string | null;
   exclusion_reason?: string | null;
   [key: string]: unknown;
 }
+
+/** Atlas 独立查余额 key 的密钥名：只用于查余额，生成仍用主 key（api_key） */
+export const BALANCE_SECRET_NAME = 'balance_api_key';
+export type BalanceKeySource = 'balance' | 'main';
 
 export interface RuntimeSnapshot {
   deployments: DeploymentRuntime[];

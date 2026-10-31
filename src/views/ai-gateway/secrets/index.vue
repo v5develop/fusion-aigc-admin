@@ -36,6 +36,9 @@
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'env'">
             <code v-if="record.env">{{ record.env }}</code>
+            <span v-else-if="record.optional" class="muted">{{
+              $t('aiGateway.balanceView.balanceKeySlot')
+            }}</span>
             <span v-else class="muted">-</span>
           </template>
           <template v-else-if="column.key === 'account'">
@@ -51,6 +54,9 @@
             <a-tag v-if="record.fingerprint" color="green">
               {{ $t('aiGateway.secretSet') }} <code>{{ record.fingerprint }}</code>
             </a-tag>
+            <a-tag v-else-if="record.optional">{{
+              $t('aiGateway.balanceView.balanceKeySlot')
+            }}</a-tag>
             <a-tag v-else-if="record.enabled" color="red">{{
               $t('aiGateway.secretMissing')
             }}</a-tag>
@@ -104,7 +110,11 @@
         </a-form-item>
         <a-form-item :label="$t('aiGateway.secretName')" required>
           <a-input v-model:value="writeForm.name" :disabled="writeLocked" placeholder="api_key" />
-          <div class="muted">{{ $t('aiGateway.secretNameHint') }}</div>
+          <div v-if="writeForm.name === BALANCE_SECRET_NAME" class="muted">
+            {{ $t('aiGateway.balanceView.balanceKeySlot') }} ·
+            {{ $t('aiGateway.balanceView.needBalanceKey') }}
+          </div>
+          <div v-else class="muted">{{ $t('aiGateway.secretNameHint') }}</div>
         </a-form-item>
         <a-form-item :label="$t('aiGateway.secretValue')" required>
           <a-input-password v-model:value="writeForm.value" autocomplete="new-password" />
@@ -121,6 +131,7 @@ import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
 import {
+  BALANCE_SECRET_NAME,
   deleteSecret,
   listAllSecrets,
   listResources,
@@ -136,6 +147,9 @@ import {
  *
  * 密钥只写：网关只回指纹（明文 SHA-256 前 16 位），页面不在任何地方留明文——写入后立刻清空输入框。
  * 密钥不进配置快照，写入即生效，不用发布。
+ *
+ * Atlas 账户（服务商适配器 atlas.*）额外列一个可选密钥位 balance_api_key：独立查余额 key，只用于查 Atlas 余额，
+ * 生成仍用 api_key；不计入「待补」。从账户页「去配置查余额 key」跳来时（query.write=balance_api_key）直接打开写入框。
  */
 
 interface Slot {
@@ -146,6 +160,8 @@ interface Slot {
   enabled: boolean;
   sharedBy: number;
   fingerprint: string;
+  /** 可选密钥位（不计入待补），目前只有 Atlas 的 balance_api_key */
+  optional: boolean;
 }
 
 const { t } = useI18n();
@@ -153,6 +169,8 @@ const route = useRoute();
 
 const accounts = ref<GatewayResource[]>([]);
 const secrets = ref<SecretInfo[]>([]);
+/** 服务商编码 → 适配器类型（判定 Atlas 账户） */
+const providerKinds = ref<Record<string, string>>({});
 const loading = ref(false);
 const keyword = ref(typeof route.query.account === 'string' ? route.query.account : '');
 const onlyMissing = ref(false);
@@ -175,6 +193,8 @@ const slots = computed<Slot[]>(() => {
       .filter((k) => k.startsWith('secret_env.'))
       .map((k) => k.slice('secret_env.'.length));
     const names = Array.from(new Set([...declared, ...((a.secret_names as string[]) || [])]));
+    const isAtlas = (providerKinds.value[String(a.provider_code)] || '').startsWith('atlas.');
+    if (isAtlas && !names.includes(BALANCE_SECRET_NAME)) names.push(BALANCE_SECRET_NAME);
     for (const name of names) {
       out.push({
         account: code,
@@ -184,17 +204,20 @@ const slots = computed<Slot[]>(() => {
         enabled: a.enabled !== false,
         sharedBy: shared.get(code) || 0,
         fingerprint: fp.get(`${code}/${name}`) || '',
+        optional: isAtlas && name === BALANCE_SECRET_NAME,
       });
     }
   }
   // 缺的在前（启用的缺 → 停用的缺 → 已录），同组内按变量名
-  const rank = (s: Slot) => (s.fingerprint ? 2 : s.enabled ? 0 : 1);
+  const rank = (s: Slot) => (s.fingerprint ? 2 : s.optional ? 1.5 : s.enabled ? 0 : 1);
   return out.sort(
     (x, y) => rank(x) - rank(y) || (x.env || x.account).localeCompare(y.env || y.account),
   );
 });
 
-const missingCount = computed(() => slots.value.filter((s) => !s.fingerprint && s.enabled).length);
+const missingCount = computed(
+  () => slots.value.filter((s) => !s.fingerprint && s.enabled && !s.optional).length,
+);
 
 const visibleSlots = computed(() => {
   const kw = keyword.value.trim().toLowerCase();
@@ -223,18 +246,41 @@ const columns = [
 async function load() {
   loading.value = true;
   try {
-    const [acc, sec] = await Promise.all([
+    const [acc, sec, providers] = await Promise.all([
       listResources('/accounts').catch(() => []),
       listAllSecrets().catch(() => []),
+      listResources('/providers').catch(() => [] as GatewayResource[]),
     ]);
     accounts.value = acc;
     secrets.value = sec;
+    providerKinds.value = Object.fromEntries(
+      providers.map((p) => [String(p.code), String(p.adapter_kind || '')]),
+    );
   } finally {
     loading.value = false;
   }
 }
 
-onMounted(load);
+onMounted(async () => {
+  await load();
+  // 从账户页「去配置查余额 key」跳来：直接打开该账户的 balance_api_key 写入框
+  const account = typeof route.query.account === 'string' ? route.query.account : '';
+  if (route.query.write === BALANCE_SECRET_NAME && account) {
+    const slot = slots.value.find((s) => s.account === account && s.name === BALANCE_SECRET_NAME);
+    openWrite(
+      slot || {
+        account,
+        displayName: '',
+        name: BALANCE_SECRET_NAME,
+        env: '',
+        enabled: true,
+        sharedBy: 0,
+        fingerprint: '',
+        optional: true,
+      },
+    );
+  }
+});
 
 const writeOpen = ref(false);
 const saving = ref(false);

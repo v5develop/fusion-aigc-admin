@@ -134,10 +134,7 @@
             {{ record.running }}/{{ record.max_running ?? '∞' }}
           </template>
           <template v-if="column.dataIndex === 'balance'">
-            {{ record.balance ?? '-' }} {{ record.balance_currency || '' }}
-            <div v-if="record.balance_checked_at" class="muted">
-              {{ formatDateTime(record.balance_checked_at) }}
-            </div>
+            <BalanceCell :row="record" />
           </template>
           <template v-if="column.dataIndex === 'excluded_until'">
             <template v-if="record.excluded_until">
@@ -207,11 +204,13 @@ import {
 } from '@/api/ai-gateway';
 import { formatDateTime } from '@/utils/helpers';
 
+import BalanceCell from '../components/BalanceCell.vue';
 import { enumLabel, enumShort, formText } from '../components/gatewayI18n';
 
 /**
  * 运行态：每个部署的熔断、失败率、容量、冷却，每个账户的并发、余额、排除状态。
  * 强制动作（强开/强关熔断、清冷却、复检余额、解除排除）必须写原因，网关记审计。
+ * 余额列按 balance_state 着色，悬停看供应商明细（如 Atlas 的现金 / 赠送 / 冻结 / 授信）。
  */
 const { t } = useI18n();
 

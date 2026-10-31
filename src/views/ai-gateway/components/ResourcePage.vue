@@ -92,6 +92,9 @@
               </a-popconfirm>
             </a-space>
           </template>
+          <template v-else-if="extraKeys.has(String(column.key))">
+            <slot name="extra-cell" :column="column" :record="record" />
+          </template>
           <template v-else-if="column.dataIndex === 'enabled'">
             <a-switch
               v-if="canConfig"
@@ -220,9 +223,12 @@ const props = withDefaults(
     title?: string;
     description?: string;
     codeField?: string;
+    /** 页面追加的非 schema 列（如账户的运行态余额），插在操作列之前，单元格由 `extra-cell` 插槽渲染 */
+    extraColumns?: { key: string; title: string; width?: number }[];
   }>(),
-  { title: '', description: '', codeField: 'code' },
+  { title: '', description: '', codeField: 'code', extraColumns: () => [] },
 );
+const emit = defineEmits<{ reloaded: [] }>();
 
 const { t } = useI18n();
 const router = useRouter();
@@ -337,6 +343,8 @@ function enumCell(v: unknown) {
   return v === undefined || v === null || v === '' ? '-' : enumShort(v);
 }
 
+const extraKeys = computed(() => new Set(props.extraColumns.map((c) => c.key)));
+
 const columns = computed(() => {
   const root = schema.value;
   const top = root ? normalize(root, root).schema : null;
@@ -353,6 +361,7 @@ const columns = computed(() => {
       ellipsis: true,
       fixed: i === 0 ? ('left' as const) : undefined,
     })),
+    ...props.extraColumns.map((c) => ({ title: c.title, key: c.key, width: c.width ?? 200 })),
     {
       title: t('common.action'),
       key: 'operation',
@@ -440,6 +449,7 @@ async function reload() {
     loadError.value = (e as Error)?.message || t('aiGateway.loadFailed');
   } finally {
     loading.value = false;
+    emit('reloaded');
   }
 }
 
