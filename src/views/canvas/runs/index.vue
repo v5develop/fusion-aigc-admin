@@ -75,6 +75,9 @@
             <a-tag v-if="record.billing_status === 'unsettled'" color="warning">{{
               RUN_BILLING_STATUS.unsettled.text
             }}</a-tag>
+            <a-tag v-else-if="record.billing_status === 'review'" color="warning">{{
+              RUN_BILLING_STATUS.review.text
+            }}</a-tag>
           </template>
           <template v-else-if="column.dataIndex === 'candidates'">
             <div class="thumbs">

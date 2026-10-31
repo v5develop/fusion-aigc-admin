@@ -174,13 +174,21 @@
                     >重做</a-button
                   >
                   <a-button
-                    v-if="canUpdate"
+                    v-if="canUpdate && isUnfinished(record)"
                     type="link"
                     size="small"
                     danger
                     :disabled="!canForceFail(record)"
                     @click="confirmForceFail(record)"
                     >强制失败</a-button
+                  >
+                  <a-button
+                    v-if="canUpdate && canBanRetry(record)"
+                    type="link"
+                    size="small"
+                    danger
+                    @click="confirmBanRetry(record)"
+                    >封禁重做</a-button
                   >
                 </a-space>
               </template>
@@ -355,12 +363,20 @@ function pretty(text?: string) {
   return v == null ? text || '-' : JSON.stringify(v, null, 2);
 }
 
-// 重做仅对失败 / 已取消的任务有意义；已封禁的不允许；强制失败仅对未终结的任务
+// 重做仅对失败 / 已取消的任务有意义；已封禁的不允许
 function canRetry(t: Task) {
   return (t.status === 3 || t.status === 4) && !t.admin_locked;
 }
+// 未终结（0 排队 / 1 生成中）：强制失败，置失败并退回冻结点数、封禁重做
+function isUnfinished(t: Task) {
+  return t.status === 0 || t.status === 1;
+}
 function canForceFail(t: Task) {
-  return (t.status === 0 || t.status === 1) && !t.admin_locked;
+  return isUnfinished(t) && !t.admin_locked;
+}
+// 已终结（3 失败 / 4 已取消）且未封禁：仅封禁重做，不动账
+function canBanRetry(t: Task) {
+  return (t.status === 3 || t.status === 4) && !t.admin_locked;
 }
 
 function confirmRetry(t: Task) {
@@ -380,13 +396,28 @@ function confirmRetry(t: Task) {
 function confirmForceFail(t: Task) {
   Modal.confirm({
     title: '强制失败',
-    content: `确认强制失败任务 ${t.task_id}？将封禁该任务重做；点数已退回，不会再动账。`,
+    content: `确认强制失败任务 ${t.task_id}？将置为失败并退回本次冻结的点数，并禁止重做。`,
     okText: '确认',
     okType: 'danger',
     cancelText: '取消',
     onOk: async () => {
       await forceFailTask(t.task_id);
-      message.success('已强制失败');
+      message.success('已强制失败，点数已退回');
+      load();
+    },
+  });
+}
+
+function confirmBanRetry(t: Task) {
+  Modal.confirm({
+    title: '封禁重做',
+    content: `确认封禁任务 ${t.task_id} 的重做？不改变计费，只禁止之后重做。`,
+    okText: '确认',
+    okType: 'danger',
+    cancelText: '取消',
+    onOk: async () => {
+      await forceFailTask(t.task_id);
+      message.success('已封禁重做，未改动点数');
       load();
     },
   });

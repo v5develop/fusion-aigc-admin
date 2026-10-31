@@ -35,7 +35,7 @@ export const RUN_BILLING_STATUS: Record<string, { text: string; color: string }>
   shadow: { text: '影子模式', color: 'purple' },
   java: { text: 'Java 计费', color: 'default' },
   studio: { text: 'Studio 计费', color: 'default' },
-  review: { text: '待核查', color: 'warning' },
+  review: { text: '待对账', color: 'warning' },
 };
 
 export const RUN_KIND_LABEL: Record<string, string> = {

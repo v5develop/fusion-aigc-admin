@@ -15,9 +15,6 @@ export const BATCH_STATUS: Record<number, { text: string; color: string }> = {
 
 /** 批次终态：4–7（8 提交中不是终态，不能用 >= 4 判断） */
 export const BATCH_TERMINAL_STATUSES: readonly number[] = [4, 5, 6, 7];
-export function isBatchTerminal(s: number): boolean {
-  return BATCH_TERMINAL_STATUSES.includes(s);
-}
 
 /** 子任务状态：0 排队 1 生成中 2 成功 3 失败 4 已取消 5 交付中（已出图、确认扣点中，按生成中展示） */
 export const TASK_STATUS: Record<number, { text: string; color: string }> = {
@@ -31,9 +28,6 @@ export const TASK_STATUS: Record<number, { text: string; color: string }> = {
 
 /** 子任务终态：2 / 3 / 4（5 交付中仍在进行） */
 export const TASK_TERMINAL_STATUSES: readonly number[] = [2, 3, 4];
-export function isTaskTerminal(s: number): boolean {
-  return TASK_TERMINAL_STATUSES.includes(s);
-}
 
 /** 计费状态：0 未计费 1 已冻结 2 已结算 3 已退回 4 影子模式 */
 export const BILLING_STATUS: Record<number, { text: string; color: string }> = {
