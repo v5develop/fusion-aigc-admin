@@ -1495,7 +1495,7 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
       icon: 'FolderOpenOutlined',
       requiresAuth: true,
       requiredPermissions: 'asset_library:view',
-      order: 92,
+      order: 93,
     },
     children: [
       {
@@ -1522,7 +1522,7 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
       icon: 'ApartmentOutlined',
       requiresAuth: true,
       requiredPermissions: 'canvas:view',
-      order: 93,
+      order: 92,
     },
     children: [
       {

@@ -110,7 +110,7 @@ export default {
     llDigitalHuman: 'AI 디지털 휴먼',
     llNote: '이미지 노트',
     llCreations: '포스터 / 영상',
-    studio: '웹 제작(studio)',
+    studio: '크리에이션 스튜디오(studio)',
     studioBatches: '배치 목록',
     studioBatchDetail: '배치 상세',
     studioCost: '비용 집계',

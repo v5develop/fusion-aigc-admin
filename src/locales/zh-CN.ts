@@ -162,7 +162,7 @@ export default {
     assetLib: '资产库增强',
     assetLibKindStats: '分类统计',
     assetLibTags: '标签字典',
-    canvas: '画布',
+    canvas: '创作画布',
     canvasRuns: '节点执行',
     canvasTemplates: '官方模板',
     canvasPrompts: '官方提示词',
