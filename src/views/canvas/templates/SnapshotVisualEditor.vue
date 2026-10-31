@@ -144,6 +144,8 @@ const parseError = ref('');
 const flowNodes = shallowRef<Node[]>([]);
 const flowEdges = shallowRef<Edge[]>([]);
 const selectedId = ref<string | null>(null);
+/** 等待替换的旧提示词连线 id（autoConnect 记下，新线添加成功后在 onFlowEdges 中移除） */
+let pendingReplace = new Set<string>();
 /** 自己 emit 出去的文本：父组件回传同一段文本时不重新解析，避免光标与视图跳动 */
 let lastEmitted: string | null = null;
 
@@ -284,14 +286,12 @@ function autoConnect(conn: Connection): Connection | false {
       : [];
   const remaining = snap.value.edges.filter((e) => !replaced.includes(e));
   const err = validateEdge(snap.value, remaining, conn);
+  // 只记下待替换的旧线，真正的删除放到 onFlowEdges（新线添加成功之后），避免添加失败时快照与文本不一致
+  pendingReplace = new Set(replaced.map((e) => e.id));
   if (err) {
+    pendingReplace.clear();
     message.warning(err);
     return false;
-  }
-  if (replaced.length) {
-    const ids = new Set(replaced.map((e) => e.id));
-    snap.value.edges = remaining;
-    flowEdges.value = flowEdges.value.filter((e) => !ids.has(e.id));
   }
   const data: Record<string, unknown> = { color: '#38bdf8' };
   const order = nextOrder(conn.target, conn.targetHandle);
@@ -324,7 +324,12 @@ function onFlowNodes(nodes: Node[]) {
 }
 
 /** 连线列表变化：新增的连线已经过 autoConnect 校验，这里只把它写进快照 */
-function onFlowEdges(edges: Edge[]) {
+function onFlowEdges(incoming: Edge[]) {
+  let edges = incoming;
+  if (pendingReplace.size) {
+    edges = incoming.filter((e) => !pendingReplace.has(e.id));
+    pendingReplace.clear();
+  }
   flowEdges.value = edges;
   const alive = new Set(snap.value.nodes.map((n) => n.id));
   const before = JSON.stringify(snap.value.edges);
