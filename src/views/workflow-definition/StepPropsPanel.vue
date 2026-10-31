@@ -158,9 +158,7 @@
               :precision="p.integer ? 0 : undefined"
               :disabled="disabled"
               style="width: 100%"
-              @update:value="
-                (v: unknown) => setLiteral(p, typeof v === 'number' ? v : undefined)
-              "
+              @update:value="(v: unknown) => setLiteral(p, typeof v === 'number' ? v : undefined)"
             />
             <a-switch
               v-else-if="p.control === 'boolean'"
@@ -231,7 +229,9 @@
 
         <div v-if="schema?.outputs.length" class="muted field-note" style="margin: 8px 0">
           {{ $t('workflowDefinition.propsOutputs') }}:
-          <code v-for="o in schema.outputs" :key="o" class="out-code">{{ stepId }}.output.{{ o }}</code>
+          <code v-for="o in schema.outputs" :key="o" class="out-code"
+            >{{ stepId }}.output.{{ o }}</code
+          >
         </div>
 
         <a-collapse ghost class="advanced">
@@ -278,7 +278,10 @@
 
         <template v-if="!disabled">
           <a-divider style="margin: 12px 0" />
-          <a-popconfirm :title="$t('workflowDefinition.deleteStepConfirm')" @confirm="emit('remove')">
+          <a-popconfirm
+            :title="$t('workflowDefinition.deleteStepConfirm')"
+            @confirm="emit('remove')"
+          >
             <a-button danger size="small">{{ $t('workflowDefinition.deleteStep') }}</a-button>
           </a-popconfirm>
         </template>
@@ -295,12 +298,6 @@ import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import {
-  GATEWAY_CALL_KIND,
-  isBindValue,
-  type ModelGroupRef,
-  type StepObject,
-} from '@/views/workflow-definition/graph';
-import {
   matchesQuery,
   READINESS_COLOR,
   READINESS_LABEL_KEY,
@@ -310,6 +307,12 @@ import {
   type PromptItem,
   type Readiness,
 } from '@/views/workflow-definition/catalog';
+import {
+  GATEWAY_CALL_KIND,
+  isBindValue,
+  type ModelGroupRef,
+  type StepObject,
+} from '@/views/workflow-definition/graph';
 import { kindDisplayName } from '@/views/workflow-definition/kinds';
 import ModelGroupBadge from '@/views/workflow-definition/ModelGroupBadge.vue';
 
@@ -367,9 +370,7 @@ const asRecord = (v: unknown): Record<string, unknown> => (isRecord(v) ? v : {})
 
 const stepId = computed(() => (typeof props.step?.id === 'string' ? props.step.id : ''));
 const stepKind = computed(() => (typeof props.step?.kind === 'string' ? props.step.kind : ''));
-const kindTitle = computed(() =>
-  kindDisplayName(stepKind.value, te, t, props.schema?.description),
-);
+const kindTitle = computed(() => kindDisplayName(stepKind.value, te, t, props.schema?.description));
 const afterList = computed(() =>
   Array.isArray(props.step?.after)
     ? props.step.after.filter((x): x is string => typeof x === 'string')
@@ -409,7 +410,8 @@ function controlOf(name: string, type: string | undefined, value: unknown): Cont
   if (['string', 'text', 'url', 'prompt', 'enum'].includes(tp)) {
     if (lit !== undefined && typeof lit !== 'string') return 'json';
     const long =
-      LONG_TEXT_NAME.test(name) || (typeof lit === 'string' && (lit.length > 60 || lit.includes('\n')));
+      LONG_TEXT_NAME.test(name) ||
+      (typeof lit === 'string' && (lit.length > 60 || lit.includes('\n')));
     return long ? 'textarea' : 'string';
   }
   return 'json';

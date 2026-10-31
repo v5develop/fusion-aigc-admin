@@ -114,7 +114,9 @@
                 style="margin-bottom: 8px"
               />
               <div v-for="g in paletteGroups" :key="g.group" class="palette-group">
-                <div class="palette-group-title">{{ $t(`workflowDefinition.kindGroup.${g.group}`) }}</div>
+                <div class="palette-group-title">
+                  {{ $t(`workflowDefinition.kindGroup.${g.group}`) }}
+                </div>
                 <div
                   v-for="item in g.items"
                   :key="item.kind"
@@ -173,17 +175,16 @@
                     :style="{ borderLeftColor: KIND_GROUP_COLOR.generate }"
                     :draggable="!paletteDisabled"
                     :title="item.code"
-                    @dragstart="onPaletteDragStart($event, GATEWAY_CALL_KIND, modelDropParams(item, g.op))"
+                    @dragstart="
+                      onPaletteDragStart($event, GATEWAY_CALL_KIND, modelDropParams(item, g.op))
+                    "
                     @click="
                       !paletteDisabled && doAddStep(GATEWAY_CALL_KIND, modelDropParams(item, g.op))
                     "
                   >
                     <div class="pi-row">
                       <span class="pi-name">{{ item.name || item.code }}</span>
-                      <a-tag
-                        :color="READINESS_COLOR[readinessOf(item.tool)]"
-                        class="pi-tag"
-                      >
+                      <a-tag :color="READINESS_COLOR[readinessOf(item.tool)]" class="pi-tag">
                         {{ $t(READINESS_LABEL_KEY[readinessOf(item.tool)]) }}
                       </a-tag>
                     </div>
@@ -229,7 +230,9 @@
                   :style="{ borderLeftColor: KIND_GROUP_COLOR.prompt }"
                   :draggable="!paletteDisabled"
                   :title="item.description || item.code"
-                  @dragstart="onPaletteDragStart($event, PROMPT_DROP_KIND, { templateCode: item.code })"
+                  @dragstart="
+                    onPaletteDragStart($event, PROMPT_DROP_KIND, { templateCode: item.code })
+                  "
                   @click="
                     !paletteDisabled && doAddStep(PROMPT_DROP_KIND, { templateCode: item.code })
                   "
@@ -258,8 +261,14 @@
           >
             <div class="canvas-overlay">
               <div class="graph-legend">
-                <span><i class="legend-line solid"></i>{{ $t('workflowDefinition.graphLegendAfter') }}</span>
-                <span><i class="legend-line dashed"></i>{{ $t('workflowDefinition.graphLegendData') }}</span>
+                <span
+                  ><i class="legend-line solid"></i
+                  >{{ $t('workflowDefinition.graphLegendAfter') }}</span
+                >
+                <span
+                  ><i class="legend-line dashed"></i
+                  >{{ $t('workflowDefinition.graphLegendData') }}</span
+                >
                 <span v-if="!isReadonly && localIssues.length" class="legend-error">
                   <i class="legend-box"></i>{{ $t('workflowDefinition.graphLegendError') }}
                 </span>
@@ -277,14 +286,18 @@
                 </a-tooltip>
                 <span class="tools-sep"></span>
                 <a-tooltip :title="$t('workflowDefinition.zoomOut')">
-                  <a-button size="small" type="text" @click="zoomOut()"><ZoomOutOutlined /></a-button>
+                  <a-button size="small" type="text" @click="zoomOut()"
+                    ><ZoomOutOutlined
+                  /></a-button>
                 </a-tooltip>
                 <span class="zoom-text">{{ zoomPercent }}%</span>
                 <a-tooltip :title="$t('workflowDefinition.zoomIn')">
                   <a-button size="small" type="text" @click="zoomIn()"><ZoomInOutlined /></a-button>
                 </a-tooltip>
                 <a-tooltip :title="$t('workflowDefinition.fitView')">
-                  <a-button size="small" type="text" @click="fitView()"><ExpandOutlined /></a-button>
+                  <a-button size="small" type="text" @click="fitView()"
+                    ><ExpandOutlined
+                  /></a-button>
                 </a-tooltip>
                 <span class="tools-sep"></span>
                 <a-tooltip :title="$t('workflowDefinition.autoLayout')">
@@ -359,7 +372,11 @@
                 <div class="ctx-item" :class="{ disabled: !canvasEditable }" @click="menuRename">
                   {{ $t('workflowDefinition.ctxRename') }}
                 </div>
-                <div class="ctx-item danger" :class="{ disabled: !canvasEditable }" @click="menuDelete">
+                <div
+                  class="ctx-item danger"
+                  :class="{ disabled: !canvasEditable }"
+                  @click="menuDelete"
+                >
                   {{ $t('workflowDefinition.deleteStep') }} <span class="ctx-key">Del</span>
                 </div>
               </template>
@@ -367,7 +384,11 @@
                 <div class="ctx-item" :class="{ disabled: !canvasEditable }" @click="menuAddStep">
                   {{ $t('workflowDefinition.addStep') }}
                 </div>
-                <div class="ctx-item" :class="{ disabled: !canvasEditable }" @click="menuAutoLayout">
+                <div
+                  class="ctx-item"
+                  :class="{ disabled: !canvasEditable }"
+                  @click="menuAutoLayout"
+                >
                   {{ $t('workflowDefinition.autoLayout') }}
                 </div>
                 <div class="ctx-item" @click="menuFitView">
@@ -500,11 +521,17 @@
                 :show-zero="true"
               />
             </span>
-            <span v-if="resultMsg" :class="resultOk ? 'ok-text' : 'err-text'" class="problems-result">
+            <span
+              v-if="resultMsg"
+              :class="resultOk ? 'ok-text' : 'err-text'"
+              class="problems-result"
+            >
               {{ resultMsg }}
             </span>
             <span class="problems-toggle">
-              {{ problemsOpen ? $t('workflowDefinition.collapse') : $t('workflowDefinition.expand') }}
+              {{
+                problemsOpen ? $t('workflowDefinition.collapse') : $t('workflowDefinition.expand')
+              }}
             </span>
           </div>
           <div v-if="problemsOpen" class="problems-body">
@@ -516,7 +543,9 @@
                 :class="{ clickable: !!issue.stepId }"
                 @click="issue.stepId && focusStep(issue.stepId)"
               >
-                <a-tag color="orange" size="small">{{ $t('workflowDefinition.problemLocal') }}</a-tag>
+                <a-tag color="orange" size="small">{{
+                  $t('workflowDefinition.problemLocal')
+                }}</a-tag>
                 {{ formatIssue(issue) }}
               </li>
               <li
@@ -608,8 +637,14 @@
               }}
             </div>
             <div v-if="currentVersionMeta" class="muted" style="font-size: 12px">
-              {{ currentVersionMeta.publishedAt ? formatDateTime(currentVersionMeta.publishedAt) : '-' }}
-              <span v-if="currentVersionMeta.publishedBy"> · {{ currentVersionMeta.publishedBy }}</span>
+              {{
+                currentVersionMeta.publishedAt
+                  ? formatDateTime(currentVersionMeta.publishedAt)
+                  : '-'
+              }}
+              <span v-if="currentVersionMeta.publishedBy">
+                · {{ currentVersionMeta.publishedBy }}</span
+              >
             </div>
             <div class="muted" style="font-size: 12px; margin-top: 8px; line-height: 1.6">
               {{ $t('workflowDefinition.currentVersionHint') }}
@@ -695,6 +730,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n';
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 
+import { listModelGroupOptions, type ModelGroupOption } from '@/api/ai-gateway';
 import {
   formatValidationError,
   getWorkflowDefinition,
@@ -714,12 +750,26 @@ import {
   type WorkflowStepKindSchema,
   type WorkflowValidationError,
 } from '@/api/workflow-definition';
-import { listModelGroupOptions, type ModelGroupOption } from '@/api/ai-gateway';
 import { listWorkflowTools, type WorkflowToolRow } from '@/api/workflow-tools';
 import ProCodeEditor from '@/components/Pro/ProCodeEditor/index.vue';
 import '@vue-flow/core/dist/style.css';
 import '@vue-flow/core/dist/theme-default.css';
 import { formatDateTime } from '@/utils/helpers';
+import {
+  loadPromptItems,
+  matchesQuery,
+  mergeModelGroups,
+  modelGroupDisplayName,
+  OPERATION_ORDER,
+  operationLabelKey,
+  OTHER_OPERATION,
+  READINESS_COLOR,
+  READINESS_LABEL_KEY,
+  readinessOf,
+  shortPriceText,
+  type ModelGroupItem,
+  type PromptItem,
+} from '@/views/workflow-definition/catalog';
 import {
   addStep,
   ancestorsByAfter,
@@ -758,21 +808,6 @@ import {
   type NodePosition,
   type WorkflowGraph,
 } from '@/views/workflow-definition/graph';
-import {
-  loadPromptItems,
-  matchesQuery,
-  mergeModelGroups,
-  modelGroupDisplayName,
-  OPERATION_ORDER,
-  operationLabelKey,
-  OTHER_OPERATION,
-  READINESS_COLOR,
-  READINESS_LABEL_KEY,
-  readinessOf,
-  shortPriceText,
-  type ModelGroupItem,
-  type PromptItem,
-} from '@/views/workflow-definition/catalog';
 import IoEditor from '@/views/workflow-definition/IoEditor.vue';
 import {
   KIND_GROUP_COLOR,
@@ -1157,15 +1192,17 @@ function filterKinds(query: string): KindItem[] {
     }))
     .filter(
       (item) =>
-        !q || [item.kind, item.name, item.description ?? ''].some((s) => s.toLowerCase().includes(q)),
+        !q ||
+        [item.kind, item.name, item.description ?? ''].some((s) => s.toLowerCase().includes(q)),
     );
 }
 
 const paletteGroups = computed(() => {
   const items = filterKinds(paletteSearch.value);
-  return KIND_GROUP_ORDER.map((g) => ({ group: g, items: items.filter((i) => i.group === g) })).filter(
-    (g) => g.items.length,
-  );
+  return KIND_GROUP_ORDER.map((g) => ({
+    group: g,
+    items: items.filter((i) => i.group === g),
+  })).filter((g) => g.items.length);
 });
 
 // ---------------------------------------------------------------------------
@@ -1246,7 +1283,11 @@ const flowNodes = computed<Node<StepNodeData>[]>(() => {
         modelGroup: n.modelGroup,
         modelGroupName:
           n.modelGroup?.kind === 'literal'
-            ? modelGroupDisplayName(n.modelGroup.value, modelGroupItems.value, toolByModelGroup.value)
+            ? modelGroupDisplayName(
+                n.modelGroup.value,
+                modelGroupItems.value,
+                toolByModelGroup.value,
+              )
             : undefined,
         tool: toolOf(n.modelGroup),
         issueCount: issues.length,

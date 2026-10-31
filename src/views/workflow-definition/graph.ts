@@ -115,7 +115,8 @@ function upstreamOf(bind: string, stepIds: Set<string>): string[] {
  * 非空字面量 → literal（去首尾空白）；bind → runtime；空白、缺省或其它 → undefined。
  */
 export function modelGroupRefOf(step: unknown): ModelGroupRef | undefined {
-  if (!isRecord(step) || step.kind !== GATEWAY_CALL_KIND || !isRecord(step.params)) return undefined;
+  if (!isRecord(step) || step.kind !== GATEWAY_CALL_KIND || !isRecord(step.params))
+    return undefined;
   const group = step.params.modelGroup;
   // 字面量可以是裸字符串，也可以是运行时同样接受的 {"value": x} 包装（试点与转换器的写法）
   const literal =

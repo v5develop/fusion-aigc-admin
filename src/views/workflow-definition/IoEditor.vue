@@ -160,8 +160,12 @@ const isRecord = (v: unknown): v is Record<string, unknown> =>
 function filterOption(input: string, option?: { value?: unknown; label?: unknown }) {
   const q = input.toLowerCase();
   return (
-    String(option?.value ?? '').toLowerCase().includes(q) ||
-    String(option?.label ?? '').toLowerCase().includes(q)
+    String(option?.value ?? '')
+      .toLowerCase()
+      .includes(q) ||
+    String(option?.label ?? '')
+      .toLowerCase()
+      .includes(q)
   );
 }
 

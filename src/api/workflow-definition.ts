@@ -75,7 +75,9 @@ export function listWorkflowDefinitions(page = 1, pageSize = 20) {
     .get<unknown>(BASE, { ...cfg(), params: { page, pageSize } })
     .then((res): WorkflowDefinitionPage => {
       const r = (res ?? {}) as { list?: unknown; total?: unknown };
-      const list = Array.isArray(r.list) ? (r.list as WorkflowDefinitionItem[]) : listOf<WorkflowDefinitionItem>(res);
+      const list = Array.isArray(r.list)
+        ? (r.list as WorkflowDefinitionItem[])
+        : listOf<WorkflowDefinitionItem>(res);
       return { list, total: typeof r.total === 'number' ? r.total : list.length };
     });
 }

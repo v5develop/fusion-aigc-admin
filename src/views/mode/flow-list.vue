@@ -105,7 +105,10 @@
                 </template>
               </div>
               <div>
-                <a-tooltip v-if="routingOf(record)!.wired === false" :title="routingOf(record)!.wiredReason || ''">
+                <a-tooltip
+                  v-if="routingOf(record)!.wired === false"
+                  :title="routingOf(record)!.wiredReason || ''"
+                >
                   <a-tag color="default">{{ t('modeRouting.notWired') }}</a-tag>
                 </a-tooltip>
                 <a-tag v-else-if="routingOf(record)!.flowStatus === 'DISABLED'" color="default">{{
@@ -219,9 +222,9 @@ import {
   type ModeRoutingStatus,
 } from '@/api/mode-routing';
 import { isEndpointMissing } from '@/api/workflow-definition';
-import { usePermission } from '@/composables/usePermission';
 import ProCodeEditor from '@/components/Pro/ProCodeEditor/index.vue';
 import ProTable from '@/components/Pro/ProTable/index.vue';
+import { usePermission } from '@/composables/usePermission';
 
 const { t } = useI18n();
 const router = useRouter();

@@ -72,7 +72,8 @@ export function listWorkflowTools(scope: 'used' | 'all' = 'used') {
         .map((r) => ({
           ...r,
           usedBy: Array.isArray(r.usedBy) ? r.usedBy : [],
-          priceSource: r.priceSource === 'published' || r.priceSource === 'draft' ? r.priceSource : null,
+          priceSource:
+            r.priceSource === 'published' || r.priceSource === 'draft' ? r.priceSource : null,
           configVersion: typeof r.configVersion === 'number' ? r.configVersion : null,
           operations: Array.isArray(r.operations)
             ? r.operations.filter((op): op is string => typeof op === 'string')

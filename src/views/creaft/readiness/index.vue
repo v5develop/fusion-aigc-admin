@@ -70,11 +70,21 @@
           <template v-else-if="column.key === 'prices'">
             <span v-if="!record.prices.length" class="muted">—</span>
             <div v-else class="prices">
-              <a-tooltip v-if="record.priceSource === 'draft'" :title="t('workflowDefinition.tools.priceDraftTip')">
-                <a-tag color="orange" class="price-source">{{ t('workflowDefinition.tools.priceDraft') }}</a-tag>
+              <a-tooltip
+                v-if="record.priceSource === 'draft'"
+                :title="t('workflowDefinition.tools.priceDraftTip')"
+              >
+                <a-tag color="orange" class="price-source">{{
+                  t('workflowDefinition.tools.priceDraft')
+                }}</a-tag>
               </a-tooltip>
-              <span v-else-if="record.priceSource === 'published' && record.configVersion" class="muted price-source">
-                {{ t('workflowDefinition.tools.pricePublished', { version: record.configVersion }) }}
+              <span
+                v-else-if="record.priceSource === 'published' && record.configVersion"
+                class="muted price-source"
+              >
+                {{
+                  t('workflowDefinition.tools.pricePublished', { version: record.configVersion })
+                }}
               </span>
               <div v-for="p in record.prices" :key="p.deploymentCode" class="price-line">
                 <span class="deployment">{{ p.deploymentCode }}</span>

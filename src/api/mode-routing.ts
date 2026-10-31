@@ -114,7 +114,10 @@ export interface ModeRoutingGlobal {
 
 /** 总开关；接口未上线时 404（用 isEndpointMissing 判断） */
 export function getModeRoutingGlobal() {
-  return request.get<ModeRoutingGlobal>(`${BASE}/global`, cfg({ silentError: true, noRetry: true }));
+  return request.get<ModeRoutingGlobal>(
+    `${BASE}/global`,
+    cfg({ silentError: true, noRetry: true }),
+  );
 }
 
 /** 写总开关：开启后所有自身开关已开的 mode 改走定义 */

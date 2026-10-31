@@ -78,7 +78,15 @@ export const VIDEO_ENHANCE_TIER_RULES: Readonly<Record<VideoEnhanceTier, TierRul
     enums: { enhance_style: ENHANCE_STYLES, scene: SCENES, bitrate_level: BITRATE_LEVELS },
   },
   professional: {
-    params: ['enhance_style', 'resolution_limit', 'fps', 'bit_depth', 'codec', 'bitrate_level', 'bitrate'],
+    params: [
+      'enhance_style',
+      'resolution_limit',
+      'fps',
+      'bit_depth',
+      'codec',
+      'bitrate_level',
+      'bitrate',
+    ],
     resolutions: RES_STANDARD,
     ranges: {
       resolution_limit: { min: 128, max: 4320 },
