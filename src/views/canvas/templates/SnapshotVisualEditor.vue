@@ -49,13 +49,15 @@
         >
           <Background :gap="16" />
           <Controls />
-          <template #node-canvas="{ data, label }">
+          <template #node-canvas="{ data }">
             <div
               :class="['cnode', `cnode-${data.nodeType}`]"
               :style="data.style"
               :title="data.hint"
             >
-              <div class="cn-label">{{ label }}</div>
+              <div class="cn-type">{{ data.typeText }}</div>
+              <div class="cn-title">{{ data.title }}</div>
+              <div v-if="data.subtitle" class="cn-sub">{{ data.subtitle }}</div>
               <Handle
                 v-for="(h, i) in data.inputs"
                 :key="`in-${h}`"
@@ -65,7 +67,7 @@
                 :style="{ top: slotTop(i, data.inputs.length) }"
                 class="cn-handle"
               >
-                <span class="cn-handle-name">{{ h }}</span>
+                <span class="cn-handle-name cn-in">{{ handleName(h) }}</span>
               </Handle>
               <Handle
                 v-for="(h, i) in data.outputs"
@@ -76,7 +78,7 @@
                 :style="{ top: slotTop(i, data.outputs.length) }"
                 class="cn-handle"
               >
-                <span class="cn-handle-name">{{ h }}</span>
+                <span class="cn-handle-name cn-out">{{ handleName(h) }}</span>
               </Handle>
             </div>
           </template>
@@ -182,9 +184,61 @@ function handlesOf(n: CanvasNode): { inputs: string[]; outputs: string[] } {
   }
 }
 
+/** 口 id 的中文名（仅用于展示，连线与校验仍用原 id） */
+const HANDLE_NAMES: Record<string, string> = {
+  prompt: '提示词',
+  image: '图片',
+  image1: '图片1',
+  image2: '图片2',
+  video: '视频',
+  garment: '服装',
+  models: '模特',
+  'image-in': '结果图',
+  'image-out': '图片',
+  text: '文字',
+};
+function handleName(id: string | null | undefined): string {
+  return id ? (HANDLE_NAMES[id] ?? id) : '';
+}
+
+const TOOL_NAMES: Record<string, string> = {
+  crop: '裁剪',
+  upscale: '高清放大',
+  outpaint: '扩图',
+  mask: '局部重绘',
+  i2p: '反推提示词',
+  tryon: '模特试穿',
+};
+
+function typeTextOf(n: CanvasNode): string {
+  switch (n.type) {
+    case 'text':
+      return '文字';
+    case 'image':
+      return n.data?.kind === 'result' ? '结果图' : '图片输入';
+    case 'video':
+      return '视频输入';
+    case 'model':
+      return n.data?.kind === 'video' ? '视频生成' : '图片生成';
+    case 'tool':
+      return TOOL_NAMES[n.data?.tool as string] ?? String(n.data?.tool ?? '工具');
+    case 'module':
+      return '分组';
+    default:
+      return String(n.type);
+  }
+}
+
+function subtitleOf(n: CanvasNode): string {
+  if (n.type === 'text') return String(n.data?.text ?? '').slice(0, 30);
+  if (n.type === 'model') return String(n.data?.model ?? '');
+  return '';
+}
+
 function toFlowNode(n: CanvasNode): Node {
   const isModule = n.type === 'module';
   const { inputs, outputs } = handlesOf(n);
+  const slots = Math.max(inputs.length, outputs.length, 1);
   return {
     id: n.id,
     type: 'canvas',
@@ -198,13 +252,16 @@ function toFlowNode(n: CanvasNode): Node {
       inputs,
       outputs,
       hint: n.id,
+      typeText: typeTextOf(n),
+      title: String(n.data?.title ?? ''),
+      subtitle: subtitleOf(n),
       style: isModule
         ? {
             width: `${n.data?.width ?? 600}px`,
             height: `${n.data?.height ?? 400}px`,
             background: n.data?.color || 'rgba(142, 102, 249, 0.10)',
           }
-        : undefined,
+        : { minHeight: `${Math.max(76, slots * 28 + 16)}px` },
     },
   };
 }
@@ -216,7 +273,7 @@ function toFlowEdge(e: CanvasEdge): Edge {
     target: e.target,
     sourceHandle: e.sourceHandle ?? undefined,
     targetHandle: e.targetHandle ?? undefined,
-    label: e.targetHandle ?? '',
+    label: handleName(e.targetHandle),
   };
 }
 
@@ -487,28 +544,57 @@ function removeSelected() {
   margin-bottom: 8px;
 }
 .cnode {
-  min-width: 170px;
-  padding: 8px 10px;
+  position: relative;
+  box-sizing: border-box;
+  width: 200px;
+  padding: 10px 12px;
   border: 1px solid #94a3b8;
-  border-radius: 6px;
+  border-radius: 8px;
   background: #fff;
+  color: #1f2937;
   font-size: 12px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
 }
 .cnode-module {
-  min-width: 0;
+  width: auto;
   border-style: dashed;
+  box-shadow: none;
 }
-.cn-label {
+.cn-type {
+  font-size: 11px;
+  color: #6b7280;
+}
+.cn-title {
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cn-sub {
+  margin-top: 2px;
+  font-size: 11px;
+  color: #6b7280;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .cn-handle-name {
   position: absolute;
-  top: -14px;
-  font-size: 10px;
-  color: #64748b;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  color: #1f2937;
   white-space: nowrap;
+  pointer-events: none;
+}
+.cn-in {
+  left: 12px;
+}
+.cn-out {
+  right: 12px;
 }
 .muted {
   color: #94a3b8;
