@@ -1,7 +1,7 @@
 import { useAuthStore } from '@/stores/auth';
 
 /**
- * 网页创作（studio）后台的权限码，与 Go 服务的校验一一对应：
+ * 创作工坊（studio）后台的权限码，与 Go 服务的校验一一对应：
  * GET 要 view，重做 / 强制失败要 update。规则同 local-life-permission：精确匹配，不认 '*'。
  */
 export const STUDIO_VIEW = 'studio:view';

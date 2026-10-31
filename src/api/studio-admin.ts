@@ -5,7 +5,7 @@ import router from '@/router';
 import { clearTokens, getToken } from '@/utils/storage';
 
 /**
- * 网页创作（studio：商拍 / 姿态 / 图片生成）运营后台接口。
+ * 创作工坊（studio：商拍 / 姿态 / 图片生成）运营后台接口。
  * fusion_aigc_go 的 admin-api，前缀 /api/v1/studio/admin。
  *
  * 信封与鉴权与 local-life-admin 一致：HTTP 恒为 200，业务结果看 code（0 成功；1002 未登录）。

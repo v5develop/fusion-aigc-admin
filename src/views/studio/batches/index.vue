@@ -2,7 +2,7 @@
   <div class="page-container">
     <div class="page-header">
       <h2 class="ph-title">批次列表</h2>
-      <span class="muted">网页创作（商拍 / 姿态 / 图片生成）的批次，用于排查与对账</span>
+      <span class="muted">创作工坊（商拍 / 姿态 / 图片生成）的批次，用于排查与对账</span>
     </div>
 
     <a-card variant="borderless">
