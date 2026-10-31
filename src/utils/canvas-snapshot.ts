@@ -62,13 +62,12 @@ const TEXT_KEYS = new Set([
   'label',
 ]);
 
-const IMAGE_HANDLES = new Set(['image', 'image1', 'image2', 'first', 'last']);
+/** 参考图族（归一后都记为 image 口，共用 maxImageRefs 名额）：image / image1 / image2 / first / last / image-in 之外的图片口 */
+const IMAGE_FAMILY = new Set(['image', 'image1', 'image2', 'first', 'last']);
 /** 节点 data 的路径（仅这一层的文本键豁免，连线 data 与嵌套 data 不豁免） */
 const NODE_DATA_PATH = /^nodes\[\d+\]\.data$/;
-/** 视频首尾帧别名：first 即 image1，last 即 image2（api-canvas.md 5.2） */
-const SLOT_ALIAS: Record<string, string> = { first: 'image1', last: 'image2' };
+/** 图片口接受的来源（服务端 accepts：image 口 = image / model / video / tool） */
 const IMAGE_SOURCE_TYPES = new Set(['image', 'model', 'video', 'tool']);
-const GARMENT_SOURCE_TYPES = new Set(['image', 'model', 'tool']);
 
 export function parseSnapshot(
   text: string,
@@ -178,6 +177,23 @@ function reachable(edges: CanvasEdge[], from: string, to: string): boolean {
  * 校验一条待添加的连线。返回错误文案，合法返回 null。
  * edges 为当前已有的连线（不含待添加这一条）。
  */
+/**
+ * 参考图上限，与服务端 DefaultImageLimit 一致：data.maxImageRefs 优先；视频模型 2；
+ * 模型 Image 14 / Banana 5；其它 3。
+ */
+export function defaultImageLimit(dst: CanvasNode): number {
+  const v = dst.data?.maxImageRefs;
+  if (typeof v === 'number' && v > 0) return v;
+  if (dst.type === 'model' && dst.data?.kind === 'video') return 2;
+  if (dst.data?.model === 'Image') return 14;
+  if (dst.data?.model === 'Banana') return 5;
+  return 3;
+}
+
+/**
+ * 校验一条待添加的连线（规则与服务端 app/canvas/rpc/internal/logic/validate.go 一致）。
+ * 返回错误文案，合法返回 null。edges 为当前已有的连线（不含待添加这一条）。
+ */
 export function validateEdge(
   snap: Snapshot,
   edges: CanvasEdge[],
@@ -192,8 +208,7 @@ export function validateEdge(
   const src = byId.get(conn.source);
   const dst = byId.get(conn.target);
   if (!src || !dst) return '连线引用的节点不存在';
-  if (src.id === dst.id) return '不能连接自己';
-  if (src.type === 'module' || dst.type === 'module') return '分组框没有连线口';
+  if (src.id === dst.id) return '不能连到自己';
 
   const sh = conn.sourceHandle ?? '';
   const th = conn.targetHandle ?? '';
@@ -206,56 +221,43 @@ export function validateEdge(
   );
   if (dup) return '这两个口之间已经有连线';
 
-  // 目标节点是否有输入口
-  // 工具节点的输入图走 handle=image（api-canvas.md 3.2），试穿另有服装 / 模特口
-  const isTarget =
-    dst.type === 'model' ||
-    dst.type === 'tool' ||
-    (dst.type === 'image' && dst.data?.kind === 'result');
-  if (!isTarget) return `「${nodeLabel(dst)}」没有输入口`;
+  // 目标只能是模型节点、试穿工具、结果图片节点（服务端 checkTarget）
+  const tryon = dst.type === 'tool' && dst.data?.tool === 'tryon';
+  const result = dst.type === 'image' && dst.data?.kind === 'result';
+  if (dst.type !== 'model' && !tryon && !result) return `「${nodeLabel(dst)}」没有输入口`;
+  if (result && th !== 'image-in') return '结果图片只有一个输入口';
+  if (tryon && th !== 'garment' && th !== 'models') return '试穿节点只有服装和模特两个输入口';
 
-  const into = edges.filter((e) => e.target === dst.id);
-  const countHandle = (names: string[]) =>
-    into.filter((e) => names.includes(e.targetHandle ?? '')).length;
+  // 来源与数量
+  const into = (names: string[]) =>
+    edges.filter((e) => e.target === dst.id && names.includes(e.targetHandle ?? '')).length;
 
-  if (dst.type === 'model' && (th === 'prompt' || th === '')) {
-    if (th === '') return '请连到具体的输入口（提示词 / 参考图 / 参考视频）';
+  if (result) {
+    if (!IMAGE_SOURCE_TYPES.has(src.type)) return '结果图片只收图片类来源';
+    if (into(['image-in']) >= 1) return '结果图片只能接一条线';
+  } else if (tryon) {
+    if (!IMAGE_SOURCE_TYPES.has(src.type)) return '试穿输入只收图片类来源';
+    if (th === 'garment' && into(['garment']) >= 1) return '服装口只能接一条线';
+    if (th === 'models' && into(['models']) >= 9) return '模特口最多接 9 条线';
+  } else if (th === 'prompt') {
     const textOK = src.type === 'text' || (src.type === 'tool' && src.data?.tool === 'i2p');
     if (!textOK) return '提示词口只收文字节点或反推工具的输出';
-    if (countHandle(['prompt']) >= 1) return '提示词口只能接一条线，请先删除原连线';
-  } else if (dst.type === 'model' && IMAGE_HANDLES.has(th)) {
-    if (!IMAGE_SOURCE_TYPES.has(src.type)) return '参考图口只收图片、模型或工具的输出';
-    const slot = SLOT_ALIAS[th] ?? th;
-    if (slot === 'image1' || slot === 'image2') {
-      if (
-        countHandle([slot, ...Object.keys(SLOT_ALIAS).filter((k) => SLOT_ALIAS[k] === slot)]) >= 1
-      )
-        return `${slot} 口只能接一条线`;
-    }
-    const max = typeof dst.data?.maxImageRefs === 'number' ? dst.data.maxImageRefs : Infinity;
-    if (countHandle(['image', 'image1', 'image2', 'first', 'last']) >= max) {
-      return `节点「${nodeLabel(dst)}」的参考图最多接 ${max} 条`;
-    }
-  } else if (dst.type === 'model' && th === 'video') {
+    if (into(['prompt']) >= 1) return '提示词口只能接一条线，请先删除原连线';
+  } else if (th === 'video') {
     if (!(src.type === 'model' && src.data?.kind === 'video'))
       return '参考视频口只收视频模型的输出';
-    if (countHandle(['video']) >= 1) return '参考视频口只能接一条线';
-  } else if (dst.type === 'model' && th === 'audio') {
-    return '音频输入暂未开放';
-  } else if (dst.type === 'tool' && dst.data?.tool !== 'tryon' && th === 'image') {
-    if (!IMAGE_SOURCE_TYPES.has(src.type)) return '工具的输入图口只收图片、模型或工具的输出';
-    if (countHandle(['image']) >= 1) return '工具的输入图只能接一条线';
-  } else if (dst.type === 'tool' && dst.data?.tool === 'tryon' && th === 'garment') {
-    if (!GARMENT_SOURCE_TYPES.has(src.type)) return '服装口只收图片类来源';
-    if (countHandle(['garment']) >= 1) return '服装口只能接一条线';
-  } else if (dst.type === 'tool' && dst.data?.tool === 'tryon' && th === 'models') {
-    if (!GARMENT_SOURCE_TYPES.has(src.type)) return '模特口只收图片类来源';
-    if (countHandle(['models']) >= 9) return '模特口最多接 9 条线';
-  } else if (dst.type === 'image' && th === 'image-in') {
-    if (!GARMENT_SOURCE_TYPES.has(src.type)) return '结果图片节点只收图片类来源';
-    if (countHandle(['image-in']) >= 1) return '结果图片节点只能接一条线';
+    if (into(['video']) >= 1) return '参考视频口只能接一条线';
+  } else if (th === 'audio') {
+    return '音频参考暂未接入';
+  } else if (IMAGE_FAMILY.has(th)) {
+    if (!IMAGE_SOURCE_TYPES.has(src.type)) return '参考图口只收图片、模型或工具的输出';
+    // 视频模型的首图 / 次图口各 1 条（服务端 portLimit）
+    if (dst.data?.kind === 'video' && (th === 'image1' || th === 'image2') && into([th]) >= 1)
+      return `${th} 口只能接一条线`;
+    if (into([...IMAGE_FAMILY]) >= defaultImageLimit(dst))
+      return `节点「${nodeLabel(dst)}」的参考图最多接 ${defaultImageLimit(dst)} 条`;
   } else {
-    return `「${nodeLabel(dst)}」不支持输入口 ${th || '(空)'}`;
+    return '请连到有编号的输入端口';
   }
 
   // 成环：从目标出发能走回来源，就会形成环

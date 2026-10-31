@@ -171,8 +171,9 @@ function handlesOf(n: CanvasNode): { inputs: string[]; outputs: string[] } {
     case 'tool': {
       const tool = n.data?.tool;
       if (tool === 'tryon') return { inputs: ['garment', 'models'], outputs: ['image-out'] };
-      if (tool === 'i2p') return { inputs: ['image'], outputs: ['text'] };
-      return { inputs: ['image'], outputs: ['image-out'] };
+      if (tool === 'i2p') return { inputs: [], outputs: ['text'] };
+      // 其它工具（裁剪、放大、扩图、重绘）在服务端不是连线目标，没有输入口
+      return { inputs: [], outputs: ['image-out'] };
     }
     default:
       return { inputs: [], outputs: [] };
