@@ -32,7 +32,7 @@
     <a-alert v-if="parseError" type="error" show-icon :message="parseError" />
 
     <div v-else class="sve-body">
-      <div class="sve-canvas">
+      <div class="sve-canvas" :style="{ height: props.height }">
         <VueFlow
           :nodes="flowNodes"
           :edges="flowEdges"
@@ -136,7 +136,9 @@ import {
  * 画布快照的可视化编辑。modelValue 是快照 JSON 文本（与模板页的文本框是同一份数据）。
  * 文本是唯一数据源：每次改动都 emit 整段 JSON，外部改了文本也会同步回画布。
  */
-const props = defineProps<{ modelValue: string }>();
+const props = withDefaults(defineProps<{ modelValue: string; height?: string }>(), {
+  height: '460px',
+});
 const emit = defineEmits<{ (e: 'update:modelValue', v: string): void }>();
 
 const snap = ref<Snapshot>({ nodes: [], edges: [] });
@@ -468,7 +470,7 @@ function removeSelected() {
 }
 .sve-canvas {
   flex: 1;
-  height: 460px;
+  min-width: 0;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
   overflow: hidden;

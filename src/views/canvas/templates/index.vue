@@ -131,7 +131,12 @@
             <a-radio-button value="visual">可视化</a-radio-button>
             <a-radio-button value="json">JSON</a-radio-button>
           </a-radio-group>
-          <SnapshotVisualEditor v-if="snapshotMode === 'visual'" v-model="form.snapshot" />
+          <template v-if="snapshotMode === 'visual'">
+            <a-button size="small" style="margin-bottom: 8px" @click="fullscreenOpen = true">
+              满屏编辑
+            </a-button>
+            <SnapshotVisualEditor v-model="form.snapshot" />
+          </template>
           <a-textarea
             v-else
             v-model:value="form.snapshot"
@@ -146,6 +151,15 @@
           </div>
         </a-form-item>
       </a-form>
+      <a-drawer
+        v-model:open="fullscreenOpen"
+        title="可视化编辑（满屏）"
+        placement="right"
+        width="100%"
+        :body-style="{ padding: '12px' }"
+      >
+        <SnapshotVisualEditor v-model="form.snapshot" height="calc(100vh - 140px)" />
+      </a-drawer>
       <template #footer>
         <a-space>
           <a-button @click="drawerOpen = false">取消</a-button>
@@ -270,6 +284,8 @@ const form = reactive({
 const snapshotInfo = computed(() => inspectSnapshot(form.snapshot));
 /** 快照编辑方式：可视化（Vue Flow）与 JSON 文本互相切换，数据都是 form.snapshot */
 const snapshotMode = ref<'visual' | 'json'>('visual');
+/** 可视化编辑的满屏右抽屉 */
+const fullscreenOpen = ref(false);
 
 function openEdit(record?: CanvasTemplate) {
   Object.assign(form, {
