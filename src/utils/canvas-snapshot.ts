@@ -224,7 +224,11 @@ export function validateEdge(
   // 目标只能是模型节点、试穿工具、结果图片节点（服务端 checkTarget）
   const tryon = dst.type === 'tool' && dst.data?.tool === 'tryon';
   const result = dst.type === 'image' && dst.data?.kind === 'result';
-  if (dst.type !== 'model' && !tryon && !result) return `「${nodeLabel(dst)}」没有输入口`;
+  // 工具节点（裁剪 / 放大 / 扩图 / 重绘 / 反推）有一个图片输入口 image，1 条（服务端 checkTarget）
+  const toolIn = dst.type === 'tool' && !tryon;
+  if (dst.type !== 'model' && !tryon && !result && !toolIn)
+    return `「${nodeLabel(dst)}」没有输入口`;
+  if (toolIn && th !== 'image') return '工具节点只有一个图片输入口 image';
   if (result && th !== 'image-in') return '结果图片只有一个输入口';
   if (tryon && th !== 'garment' && th !== 'models') return '试穿节点只有服装和模特两个输入口';
 
@@ -235,6 +239,9 @@ export function validateEdge(
   if (result) {
     if (!IMAGE_SOURCE_TYPES.has(src.type)) return '结果图片只收图片类来源';
     if (into(['image-in']) >= 1) return '结果图片只能接一条线';
+  } else if (toolIn) {
+    if (!IMAGE_SOURCE_TYPES.has(src.type)) return '工具的输入图只收图片、模型或工具的输出';
+    if (into(['image']) >= 1) return '工具的输入图只能接一条线';
   } else if (tryon) {
     if (!IMAGE_SOURCE_TYPES.has(src.type)) return '试穿输入只收图片类来源';
     if (th === 'garment' && into(['garment']) >= 1) return '服装口只能接一条线';
