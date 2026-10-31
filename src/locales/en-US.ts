@@ -150,6 +150,19 @@ export default {
     llDigitalHuman: 'Digital Human',
     llNote: 'Notes',
     llCreations: 'Posters / Videos',
+    studio: 'Web Studio',
+    studioBatches: 'Batches',
+    studioBatchDetail: 'Batch Detail',
+    studioCost: 'Cost Summary',
+    studioSidecar: 'Reverse Service Status',
+    assetLib: 'Asset Library',
+    assetLibKindStats: 'Kind Stats',
+    assetLibTags: 'Tag Dictionary',
+    canvas: 'Canvas',
+    canvasRuns: 'Node Runs',
+    canvasTemplates: 'Official Templates',
+    canvasPrompts: 'Official Prompts',
+    canvasCost: 'Cost Summary',
     llGenOptions: 'Generation Options',
     llTemplates: 'Templates',
     llPosterTypes: 'Poster Types',
@@ -5486,7 +5499,8 @@ export default {
   workflowDefinition: {
     modelGroupStatus: 'Model group readiness',
     modelGroupRuntime: 'Resolved at runtime',
-    modelGroupRuntimeTip: 'The model group comes from a binding and is decided at runtime, so gateway readiness cannot be checked in advance',
+    modelGroupRuntimeTip:
+      'The model group comes from a binding and is decided at runtime, so gateway readiness cannot be checked in advance',
     tools: {
       title: 'Workflow Tools',
       hint: 'Read-only: model groups used by workflow definitions and their readiness in the AI Gateway.',
@@ -5505,9 +5519,11 @@ export default {
       loadFailed: 'Failed to load workflow tools',
       price: 'Price',
       noPrice: 'No price configured',
-      priceHint: 'Prices are the list prices maintained by operators in the AI Gateway, shown in their own currency without conversion; token-billed models show per-token units.',
+      priceHint:
+        'Prices are the list prices maintained by operators in the AI Gateway, shown in their own currency without conversion; token-billed models show per-token units.',
       priceDraft: 'Draft price',
-      priceDraftTip: 'Price comes from the AI Gateway draft config (not published yet, or an older gateway); it may differ from the live price. After Validate → Publish in the gateway, the published price is shown',
+      priceDraftTip:
+        'Price comes from the AI Gateway draft config (not published yet, or an older gateway); it may differ from the live price. After Validate → Publish in the gateway, the published price is shown',
       pricePublished: 'Published v{version}',
       priceUpTo: '≤ {upTo} {unit}:',
       priceAbove: '> {upTo} {unit}:',
@@ -5673,8 +5689,10 @@ export default {
       tabSteps: 'Steps',
       tabModels: 'Models',
       tabPrompts: 'Prompts',
-      modelsHint: 'Drag onto the canvas to add a Gateway call step with model group and operation filled in',
-      promptsHint: 'Drag onto the canvas to add a Prompt optimize step with the template code filled in; change the step type in the panel for storyboard/script',
+      modelsHint:
+        'Drag onto the canvas to add a Gateway call step with model group and operation filled in',
+      promptsHint:
+        'Drag onto the canvas to add a Prompt optimize step with the template code filled in; change the step type in the panel for storyboard/script',
       searchModels: 'Search model group name or code',
       searchPrompts: 'Search template name or code',
       manage: 'Manage',
@@ -5682,15 +5700,18 @@ export default {
       retry: 'Retry',
       emptyModels: 'No matching model groups',
       emptyPrompts: 'No matching prompt templates',
-      fileOnlyHint: 'Only templates in Prompt Lab are listed; file-only templates are not, type their code in the properties panel',
+      fileOnlyHint:
+        'Only templates in Prompt Lab are listed; file-only templates are not, type their code in the properties panel',
       priceMore: '+{count} more',
       pickPlaceholder: 'Select or type a code',
       useTyped: 'Use "{value}"',
       notListed: '{value} (not in list)',
       disabled: 'Disabled',
       modelGroupNote: 'Codes not in the list can be typed, then pick "Use …"',
-      modelGroupNoteOp: 'Only model groups supporting {op} are listed; type other codes, then pick "Use …"',
-      templateNote: 'Only templates in Prompt Lab are listed; type the code for file-only templates',
+      modelGroupNoteOp:
+        'Only model groups supporting {op} are listed; type other codes, then pick "Use …"',
+      templateNote:
+        'Only templates in Prompt Lab are listed; type the code for file-only templates',
       op: {
         image_generate: 'Image generation',
         image_edit: 'Image editing',
@@ -5712,10 +5733,13 @@ export default {
     pickerTitleFrom: 'Add step after {step}',
     graphEmptyDrag: 'Drag a step from the left to start, or right-click the canvas to add one',
     graphEmptyReadonly: 'This version has no steps',
-    canvasHint: 'Drag from a node\'s right dot to another node\'s left dot to connect · Shift+drag to box-select · Right-click for more · Delete removes · Ctrl/⌘+Z undoes',
+    canvasHint:
+      "Drag from a node's right dot to another node's left dot to connect · Shift+drag to box-select · Right-click for more · Delete removes · Ctrl/⌘+Z undoes",
     multiSelected: '{count} steps selected',
-    multiSelectedHint: 'Move, duplicate or delete them together; select a single step to edit its properties',
-    deleteStepsConfirm: 'Delete the {count} selected steps? Execution-order links to them are removed; bindings to their outputs must be fixed by hand.',
+    multiSelectedHint:
+      'Move, duplicate or delete them together; select a single step to edit its properties',
+    deleteStepsConfirm:
+      'Delete the {count} selected steps? Execution-order links to them are removed; bindings to their outputs must be fixed by hand.',
     problemsTitle: 'Problems',
     expand: 'Expand',
     collapse: 'Collapse',
@@ -5723,22 +5747,26 @@ export default {
     problemLocal: 'Instant check',
     problemServer: 'Server validation',
     localIssuesNote: 'Click an item to locate its step; server validation is authoritative on save',
-    jsonHint: 'Synced both ways with the canvas; while the JSON is invalid the canvas keeps the last valid content',
+    jsonHint:
+      'Synced both ways with the canvas; while the JSON is invalid the canvas keeps the last valid content',
     viewVersion: 'View',
     bindInput: 'Input: {name}',
     bindConfig: 'Config: {key}',
     bindStepWhole: 'All output of {step}',
     bindStepOutput: '{step} output: {field}',
-    autoLinked: 'Added {steps} to the execution order automatically (only upstream outputs can be referenced)',
+    autoLinked:
+      'Added {steps} to the execution order automatically (only upstream outputs can be referenced)',
     leaveConfirm: 'You have unpublished changes that will be lost. Leave anyway?',
-    propsIdHint: 'Lowercase letters, digits, underscores and hyphens; renaming updates every reference',
+    propsIdHint:
+      'Lowercase letters, digits, underscores and hyphens; renaming updates every reference',
     propsModeLiteral: 'Fixed value',
     propsModeBind: 'Reference',
     propsBindSelect: 'Pick an input, config or upstream output',
     propsBindOptional: 'Omit this parameter when the source has no value',
     propsJsonPlaceholder: 'Enter JSON',
     propsExtraParams: 'Other parameters',
-    propsExtraParamsHint: 'Parameters present in the definition but not declared by this step type, edited as JSON',
+    propsExtraParamsHint:
+      'Parameters present in the definition but not declared by this step type, edited as JSON',
     propsAdvanced: 'Advanced (type, order, condition)',
     bindGroupInput: 'Inputs',
     bindGroupConfig: 'Config',
@@ -5753,7 +5781,8 @@ export default {
     },
     io: {
       inputsTitle: 'Inputs',
-      inputsHint: 'Parameters passed in on submit; a type ending with ? is optional. Renaming updates references',
+      inputsHint:
+        'Parameters passed in on submit; a type ending with ? is optional. Renaming updates references',
       addInput: 'Add input',
       outputsTitle: 'Outputs',
       outputsHint: 'Final results of the workflow: name → source step output',
@@ -5793,15 +5822,19 @@ export default {
     off: 'Off',
     globalOff: 'Global switch off',
     globalSwitch: 'Definition routing master switch',
-    globalOnWarn: 'Turning it on makes every mode whose own switch is on run through its stored definition.',
-    globalOffWarn: 'Turning it off makes all modes run the original orchestration path; per-mode switches stop taking effect.',
+    globalOnWarn:
+      'Turning it on makes every mode whose own switch is on run through its stored definition.',
+    globalOffWarn:
+      'Turning it off makes all modes run the original orchestration path; per-mode switches stop taking effect.',
     flowDisabled: 'Disabled',
     notWired: 'Not wired to runtime routing',
     shadowSwitch: 'Shadow quote comparison (hitVideo Doubao)',
-    shadowHint: 'It only logs price differences and never charges.It only runs on the legacy path, so a mode whose definition routing is active (global switch on and that mode\'s switch on) collects nothing; collect shadow data before turning on the global switch.',
+    shadowHint:
+      "It only logs price differences and never charges.It only runs on the legacy path, so a mode whose definition routing is active (global switch on and that mode's switch on) collects nothing; collect shadow data before turning on the global switch.",
     shadowConfirmOn: 'Turn on shadow quote comparison?',
     shadowConfirmOff: 'Turn off shadow quote comparison?',
-    shadowOnWarn: 'Once on, legacy-path submissions also compute a quote on the definition basis. It only logs price differences and never charges. It only runs on the legacy path, so a mode whose definition routing is active (global switch on and that mode\'s switch on) collects nothing; collect shadow data before turning on the global switch.',
+    shadowOnWarn:
+      "Once on, legacy-path submissions also compute a quote on the definition basis. It only logs price differences and never charges. It only runs on the legacy path, so a mode whose definition routing is active (global switch on and that mode's switch on) collects nothing; collect shadow data before turning on the global switch.",
     shadowOffWarn: 'Once off, legacy-path submissions no longer run the shadow quote comparison.',
     globalConfirmOn: 'Turn on the definition routing master switch?',
     globalConfirmOff: 'Turn off the definition routing master switch?',

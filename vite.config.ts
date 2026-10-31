@@ -55,6 +55,23 @@ export default defineConfig(({ mode }) => {
           target: env.VITE_LOCAL_LIFE_PROXY_TARGET || 'http://127.0.0.1:18889',
           changeOrigin: true,
         },
+        // Go admin-api 的另外四组后台前缀（studio / 资产库 / 画布 / 提示词库），与线上 nginx 的 location 一致。
+        '/api/v1/studio/admin': {
+          target: env.VITE_LOCAL_LIFE_PROXY_TARGET || 'http://127.0.0.1:18889',
+          changeOrigin: true,
+        },
+        '/api/v1/asset-library/admin': {
+          target: env.VITE_LOCAL_LIFE_PROXY_TARGET || 'http://127.0.0.1:18889',
+          changeOrigin: true,
+        },
+        '/api/v1/canvas/admin': {
+          target: env.VITE_LOCAL_LIFE_PROXY_TARGET || 'http://127.0.0.1:18889',
+          changeOrigin: true,
+        },
+        '/api/v1/prompt-library/admin': {
+          target: env.VITE_LOCAL_LIFE_PROXY_TARGET || 'http://127.0.0.1:18889',
+          changeOrigin: true,
+        },
         '/api': {
           target: proxyTarget,
           changeOrigin: true,

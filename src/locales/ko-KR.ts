@@ -110,6 +110,19 @@ export default {
     llDigitalHuman: 'AI 디지털 휴먼',
     llNote: '이미지 노트',
     llCreations: '포스터 / 영상',
+    studio: '웹 제작(studio)',
+    studioBatches: '배치 목록',
+    studioBatchDetail: '배치 상세',
+    studioCost: '비용 집계',
+    studioSidecar: '역추론 서비스 상태',
+    assetLib: '에셋 라이브러리',
+    assetLibKindStats: '분류 통계',
+    assetLibTags: '태그 사전',
+    canvas: '캔버스',
+    canvasRuns: '노드실행',
+    canvasTemplates: '공식템플릿',
+    canvasPrompts: '공식프롬프트',
+    canvasCost: '비용집계',
     llGenOptions: '생성 설정',
     llTemplates: '템플릿 소재',
     llPosterTypes: '포스터 유형',
@@ -5451,7 +5464,8 @@ export default {
   workflowDefinition: {
     modelGroupStatus: '모델 그룹 준비 상태',
     modelGroupRuntime: '런타임에 결정',
-    modelGroupRuntimeTip: '모델 그룹은 바인딩으로 런타임에 결정되므로 게이트웨이 준비 상태를 미리 확인할 수 없습니다',
+    modelGroupRuntimeTip:
+      '모델 그룹은 바인딩으로 런타임에 결정되므로 게이트웨이 준비 상태를 미리 확인할 수 없습니다',
     tools: {
       title: '워크플로 도구',
       hint: '읽기 전용: 워크플로 정의가 사용하는 모델 그룹과 AI 게이트웨이에서의 준비 상태입니다.',
@@ -5470,9 +5484,11 @@ export default {
       loadFailed: '워크플로 도구를 불러오지 못했습니다',
       price: '가격',
       noPrice: '가격 미설정',
-      priceHint: '가격은 AI 게이트웨이에서 운영자가 관리하는 정가이며, 각 통화 그대로 환산 없이 표시합니다. 토큰 과금 모델은 토큰당 단가를 표시합니다.',
+      priceHint:
+        '가격은 AI 게이트웨이에서 운영자가 관리하는 정가이며, 각 통화 그대로 환산 없이 표시합니다. 토큰 과금 모델은 토큰당 단가를 표시합니다.',
       priceDraft: '초안 가격',
-      priceDraftTip: '가격은 AI 게이트웨이 초안 설정에서 가져왔습니다(미게시 또는 구버전 게이트웨이). 실제 적용 가격과 다를 수 있습니다. 게이트웨이에서 검증 → 게시 후에는 게시된 가격을 표시합니다',
+      priceDraftTip:
+        '가격은 AI 게이트웨이 초안 설정에서 가져왔습니다(미게시 또는 구버전 게이트웨이). 실제 적용 가격과 다를 수 있습니다. 게이트웨이에서 검증 → 게시 후에는 게시된 가격을 표시합니다',
       pricePublished: '게시됨 v{version}',
       priceUpTo: '≤ {upTo} {unit}:',
       priceAbove: '> {upTo} {unit}:',
@@ -5635,7 +5651,8 @@ export default {
       tabModels: '모델',
       tabPrompts: '프롬프트',
       modelsHint: '캔버스로 끌어오면 모델 그룹과 작업이 채워진 게이트웨이 호출 단계를 추가합니다',
-      promptsHint: '캔버스로 끌어오면 템플릿 코드가 채워진 프롬프트 최적화 단계를 추가합니다. 스토리보드/스크립트는 속성 패널에서 단계 유형을 바꾸세요',
+      promptsHint:
+        '캔버스로 끌어오면 템플릿 코드가 채워진 프롬프트 최적화 단계를 추가합니다. 스토리보드/스크립트는 속성 패널에서 단계 유형을 바꾸세요',
       searchModels: '모델 그룹 이름 또는 코드 검색',
       searchPrompts: '템플릿 이름 또는 코드 검색',
       manage: '관리',
@@ -5643,15 +5660,18 @@ export default {
       retry: '다시 시도',
       emptyModels: '일치하는 모델 그룹이 없습니다',
       emptyPrompts: '일치하는 프롬프트 템플릿이 없습니다',
-      fileOnlyHint: '프롬프트 랩의 템플릿만 표시됩니다. 파일에만 있는 템플릿은 속성 패널에서 코드를 직접 입력하세요',
+      fileOnlyHint:
+        '프롬프트 랩의 템플릿만 표시됩니다. 파일에만 있는 템플릿은 속성 패널에서 코드를 직접 입력하세요',
       priceMore: '외 {count}개',
       pickPlaceholder: '선택하거나 코드 입력',
       useTyped: '"{value}" 사용',
       notListed: '{value} (목록에 없음)',
       disabled: '비활성',
       modelGroupNote: '목록에 없는 코드는 입력 후 "… 사용"을 선택하세요',
-      modelGroupNoteOp: '{op}을(를) 지원하는 모델 그룹만 표시됩니다. 목록에 없는 코드는 입력 후 "… 사용"을 선택하세요',
-      templateNote: '프롬프트 랩의 템플릿만 표시됩니다. 파일에만 있는 템플릿은 코드를 직접 입력하세요',
+      modelGroupNoteOp:
+        '{op}을(를) 지원하는 모델 그룹만 표시됩니다. 목록에 없는 코드는 입력 후 "… 사용"을 선택하세요',
+      templateNote:
+        '프롬프트 랩의 템플릿만 표시됩니다. 파일에만 있는 템플릿은 코드를 직접 입력하세요',
       op: {
         image_generate: '이미지 생성',
         image_edit: '이미지 편집',
@@ -5673,10 +5693,13 @@ export default {
     pickerTitleFrom: '{step} 다음에 단계 추가',
     graphEmptyDrag: '왼쪽에서 단계를 끌어와 시작하거나 빈 곳을 오른쪽 클릭해 추가하세요',
     graphEmptyReadonly: '이 버전에는 단계가 없습니다',
-    canvasHint: '노드 오른쪽 점에서 다른 노드 왼쪽 점으로 끌어 연결 · Shift+드래그로 범위 선택 · 오른쪽 클릭으로 더 보기 · Delete로 삭제 · Ctrl/⌘+Z로 실행 취소',
+    canvasHint:
+      '노드 오른쪽 점에서 다른 노드 왼쪽 점으로 끌어 연결 · Shift+드래그로 범위 선택 · 오른쪽 클릭으로 더 보기 · Delete로 삭제 · Ctrl/⌘+Z로 실행 취소',
     multiSelected: '{count}개 단계 선택됨',
-    multiSelectedHint: '함께 이동, 복제, 삭제할 수 있습니다. 속성은 단계 하나만 선택했을 때 편집할 수 있습니다',
-    deleteStepsConfirm: '선택한 {count}개 단계를 삭제할까요? 실행 순서 의존은 함께 제거되며, 출력을 참조하는 바인딩은 직접 수정해야 합니다.',
+    multiSelectedHint:
+      '함께 이동, 복제, 삭제할 수 있습니다. 속성은 단계 하나만 선택했을 때 편집할 수 있습니다',
+    deleteStepsConfirm:
+      '선택한 {count}개 단계를 삭제할까요? 실행 순서 의존은 함께 제거되며, 출력을 참조하는 바인딩은 직접 수정해야 합니다.',
     problemsTitle: '문제',
     expand: '펼치기',
     collapse: '접기',
@@ -5684,7 +5707,8 @@ export default {
     problemLocal: '즉시 검사',
     problemServer: '서버 검증',
     localIssuesNote: '항목을 클릭하면 해당 단계로 이동합니다. 저장 시에는 서버 검증이 기준입니다',
-    jsonHint: '캔버스와 양방향 동기화됩니다. JSON이 잘못된 동안 캔버스는 마지막 유효 내용을 유지합니다',
+    jsonHint:
+      '캔버스와 양방향 동기화됩니다. JSON이 잘못된 동안 캔버스는 마지막 유효 내용을 유지합니다',
     viewVersion: '보기',
     bindInput: '입력: {name}',
     bindConfig: '설정: {key}',
@@ -5755,14 +5779,17 @@ export default {
     globalOff: '전체 스위치 꺼짐',
     globalSwitch: '정의 라우팅 전체 스위치',
     globalOnWarn: '켜면 자체 스위치가 켜진 모든 mode가 저장된 정의로 실행됩니다.',
-    globalOffWarn: '끄면 모든 mode가 기존 오케스트레이션 경로로 돌아가며 mode별 스위치는 적용되지 않습니다.',
+    globalOffWarn:
+      '끄면 모든 mode가 기존 오케스트레이션 경로로 돌아가며 mode별 스위치는 적용되지 않습니다.',
     flowDisabled: '사용 중지',
     notWired: '런타임 라우팅 미연결',
     shadowSwitch: '섀도 견적 비교(hitVideo Doubao)',
-    shadowHint: '가격 차이만 기록하며 과금은 하지 않습니다.기존 경로에서만 동작하므로 정의 라우팅이 활성화된 mode(전체 스위치 켜짐 및 해당 mode 스위치 켜짐)에서는 데이터가 수집되지 않습니다. 전체 스위치를 켜기 전에 섀도 데이터를 먼저 수집하세요.',
+    shadowHint:
+      '가격 차이만 기록하며 과금은 하지 않습니다.기존 경로에서만 동작하므로 정의 라우팅이 활성화된 mode(전체 스위치 켜짐 및 해당 mode 스위치 켜짐)에서는 데이터가 수집되지 않습니다. 전체 스위치를 켜기 전에 섀도 데이터를 먼저 수집하세요.',
     shadowConfirmOn: '섀도 견적 비교를 켤까요?',
     shadowConfirmOff: '섀도 견적 비교를 끌까요?',
-    shadowOnWarn: '켜면 기존 경로 제출 시 정의 기준 견적을 추가로 계산합니다. 가격 차이만 기록하며 과금은 하지 않습니다. 기존 경로에서만 동작하므로 정의 라우팅이 활성화된 mode(전체 스위치 켜짐 및 해당 mode 스위치 켜짐)에서는 데이터가 수집되지 않습니다. 전체 스위치를 켜기 전에 섀도 데이터를 먼저 수집하세요.',
+    shadowOnWarn:
+      '켜면 기존 경로 제출 시 정의 기준 견적을 추가로 계산합니다. 가격 차이만 기록하며 과금은 하지 않습니다. 기존 경로에서만 동작하므로 정의 라우팅이 활성화된 mode(전체 스위치 켜짐 및 해당 mode 스위치 켜짐)에서는 데이터가 수집되지 않습니다. 전체 스위치를 켜기 전에 섀도 데이터를 먼저 수집하세요.',
     shadowOffWarn: '끄면 기존 경로 제출에서 섀도 견적 비교를 하지 않습니다.',
     globalConfirmOn: '정의 라우팅 전체 스위치를 켜시겠습니까?',
     globalConfirmOff: '정의 라우팅 전체 스위치를 끄시겠습니까?',

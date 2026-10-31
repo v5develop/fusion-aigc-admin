@@ -110,6 +110,19 @@ export default {
     llDigitalHuman: 'AIデジタルヒューマン',
     llNote: '図文ノート',
     llCreations: 'ポスター / 動画',
+    studio: 'ウェブ制作（studio）',
+    studioBatches: 'バッチ一覧',
+    studioBatchDetail: 'バッチ詳細',
+    studioCost: 'コスト集計',
+    studioSidecar: '逆推サービス状態',
+    assetLib: 'アセットライブラリ',
+    assetLibKindStats: '分類統計',
+    assetLibTags: 'タグ辞書',
+    canvas: 'キャンバス',
+    canvasRuns: 'ノード実行',
+    canvasTemplates: '公式テンプレート',
+    canvasPrompts: '公式プロンプト',
+    canvasCost: 'コスト集計',
     llGenOptions: '生成設定',
     llTemplates: 'テンプレート素材',
     llPosterTypes: 'ポスタータイプ',
@@ -5475,7 +5488,8 @@ export default {
   workflowDefinition: {
     modelGroupStatus: 'モデルグループの準備状況',
     modelGroupRuntime: '実行時に解決',
-    modelGroupRuntimeTip: 'モデルグループはバインドにより実行時に決まるため、ゲートウェイの準備状況を事前に確認できません',
+    modelGroupRuntimeTip:
+      'モデルグループはバインドにより実行時に決まるため、ゲートウェイの準備状況を事前に確認できません',
     tools: {
       title: 'ワークフローツール',
       hint: '読み取り専用：ワークフロー定義が使用するモデルグループと AI ゲートウェイでの準備状況。',
@@ -5494,9 +5508,11 @@ export default {
       loadFailed: 'ワークフローツールの読み込みに失敗しました',
       price: '価格',
       noPrice: '価格未設定',
-      priceHint: '価格は AI ゲートウェイで運用者が管理する定価で、各通貨のまま換算せずに表示します。トークン課金のモデルはトークン単位の単価を表示します。',
+      priceHint:
+        '価格は AI ゲートウェイで運用者が管理する定価で、各通貨のまま換算せずに表示します。トークン課金のモデルはトークン単位の単価を表示します。',
       priceDraft: '下書き価格',
-      priceDraftTip: '価格は AI ゲートウェイの下書き設定から取得しています（未公開、または古いゲートウェイ）。有効な価格と異なる場合があります。ゲートウェイで「検証 → 公開」後は公開済みの価格を表示します',
+      priceDraftTip:
+        '価格は AI ゲートウェイの下書き設定から取得しています（未公開、または古いゲートウェイ）。有効な価格と異なる場合があります。ゲートウェイで「検証 → 公開」後は公開済みの価格を表示します',
       pricePublished: '公開済み v{version}',
       priceUpTo: '≤ {upTo} {unit}：',
       priceAbove: '> {upTo} {unit}：',
@@ -5660,8 +5676,10 @@ export default {
       tabSteps: 'ステップ',
       tabModels: 'モデル',
       tabPrompts: 'プロンプト',
-      modelsHint: 'キャンバスへドラッグすると、モデルグループと操作を設定済みのゲートウェイ呼び出しステップを追加します',
-      promptsHint: 'キャンバスへドラッグすると、テンプレートコードを設定済みのプロンプト最適化ステップを追加します。絵コンテ/脚本系はプロパティでステップ種別を変更できます',
+      modelsHint:
+        'キャンバスへドラッグすると、モデルグループと操作を設定済みのゲートウェイ呼び出しステップを追加します',
+      promptsHint:
+        'キャンバスへドラッグすると、テンプレートコードを設定済みのプロンプト最適化ステップを追加します。絵コンテ/脚本系はプロパティでステップ種別を変更できます',
       searchModels: 'モデルグループ名またはコードを検索',
       searchPrompts: 'テンプレート名またはコードを検索',
       manage: '管理へ',
@@ -5669,15 +5687,18 @@ export default {
       retry: '再試行',
       emptyModels: '一致するモデルグループがありません',
       emptyPrompts: '一致するプロンプトテンプレートがありません',
-      fileOnlyHint: 'プロンプトラボのテンプレートのみ表示します。ファイルのみのテンプレートはプロパティでコードを直接入力してください',
+      fileOnlyHint:
+        'プロンプトラボのテンプレートのみ表示します。ファイルのみのテンプレートはプロパティでコードを直接入力してください',
       priceMore: 'ほか {count} 件',
       pickPlaceholder: '選択またはコードを入力',
       useTyped: '「{value}」を使用',
       notListed: '{value}（一覧にありません）',
       disabled: '無効',
       modelGroupNote: '一覧にないコードは入力して「… を使用」を選択してください',
-      modelGroupNoteOp: '{op} に対応するモデルグループのみ表示します。一覧にないコードは入力して「… を使用」を選択してください',
-      templateNote: 'プロンプトラボのテンプレートのみ表示します。ファイルのみのテンプレートはコードを直接入力してください',
+      modelGroupNoteOp:
+        '{op} に対応するモデルグループのみ表示します。一覧にないコードは入力して「… を使用」を選択してください',
+      templateNote:
+        'プロンプトラボのテンプレートのみ表示します。ファイルのみのテンプレートはコードを直接入力してください',
       op: {
         image_generate: '画像生成',
         image_edit: '画像編集',
@@ -5699,17 +5720,21 @@ export default {
     pickerTitleFrom: '{step} の後にステップを追加',
     graphEmptyDrag: '左からステップをドラッグして開始するか、空白を右クリックして追加',
     graphEmptyReadonly: 'このバージョンにはステップがありません',
-    canvasHint: 'ノード右の点から別ノード左の点へドラッグして接続 · Shift+ドラッグで範囲選択 · 右クリックでその他 · Delete で削除 · Ctrl/⌘+Z で元に戻す',
+    canvasHint:
+      'ノード右の点から別ノード左の点へドラッグして接続 · Shift+ドラッグで範囲選択 · 右クリックでその他 · Delete で削除 · Ctrl/⌘+Z で元に戻す',
     multiSelected: '{count} 個のステップを選択中',
-    multiSelectedHint: 'まとめて移動・複製・削除できます。プロパティ編集は 1 つだけ選択したときに行えます',
-    deleteStepsConfirm: '選択した {count} 個のステップを削除しますか？実行順の依存は外れ、出力を参照するバインドは手動で修正が必要です。',
+    multiSelectedHint:
+      'まとめて移動・複製・削除できます。プロパティ編集は 1 つだけ選択したときに行えます',
+    deleteStepsConfirm:
+      '選択した {count} 個のステップを削除しますか？実行順の依存は外れ、出力を参照するバインドは手動で修正が必要です。',
     problemsTitle: '問題',
     expand: '展開',
     collapse: '折りたたむ',
     noProblems: '問題は見つかりません',
     problemLocal: '即時チェック',
     problemServer: 'サーバー検証',
-    localIssuesNote: '項目をクリックすると該当ステップへ移動します。保存時はサーバー検証が優先されます',
+    localIssuesNote:
+      '項目をクリックすると該当ステップへ移動します。保存時はサーバー検証が優先されます',
     jsonHint: 'キャンバスと双方向に同期。JSON が不正な間は最後の有効な内容を表示します',
     viewVersion: '表示',
     bindInput: '入力：{name}',
@@ -5781,15 +5806,19 @@ export default {
     off: '未切替',
     globalOff: '全体スイッチ オフ',
     globalSwitch: '定義ルーティング全体スイッチ',
-    globalOnWarn: 'オンにすると、個別スイッチがオンのすべての mode が保存済みの定義で実行されます。',
-    globalOffWarn: 'オフにすると、すべての mode が従来のオーケストレーション経路に戻り、mode 別スイッチは無効になります。',
+    globalOnWarn:
+      'オンにすると、個別スイッチがオンのすべての mode が保存済みの定義で実行されます。',
+    globalOffWarn:
+      'オフにすると、すべての mode が従来のオーケストレーション経路に戻り、mode 別スイッチは無効になります。',
     flowDisabled: '無効',
     notWired: '実行ルーティング未接続',
     shadowSwitch: 'シャドウ見積比較（hitVideo Doubao）',
-    shadowHint: '価格差をログに記録するだけで、課金は一切行いません。従来経路でのみ動作するため、定義ルーティングが有効な mode（総スイッチオンかつその mode のスイッチオン）ではデータが収集されません。総スイッチをオンにする前にシャドウデータを収集してください。',
+    shadowHint:
+      '価格差をログに記録するだけで、課金は一切行いません。従来経路でのみ動作するため、定義ルーティングが有効な mode（総スイッチオンかつその mode のスイッチオン）ではデータが収集されません。総スイッチをオンにする前にシャドウデータを収集してください。',
     shadowConfirmOn: 'シャドウ見積比較をオンにしますか？',
     shadowConfirmOff: 'シャドウ見積比較をオフにしますか？',
-    shadowOnWarn: 'オンにすると、従来経路での送信時に定義基準の見積も追加で計算します。価格差をログに記録するだけで、課金は一切行いません。従来経路でのみ動作するため、定義ルーティングが有効な mode（総スイッチオンかつその mode のスイッチオン）ではデータが収集されません。総スイッチをオンにする前にシャドウデータを収集してください。',
+    shadowOnWarn:
+      'オンにすると、従来経路での送信時に定義基準の見積も追加で計算します。価格差をログに記録するだけで、課金は一切行いません。従来経路でのみ動作するため、定義ルーティングが有効な mode（総スイッチオンかつその mode のスイッチオン）ではデータが収集されません。総スイッチをオンにする前にシャドウデータを収集してください。',
     shadowOffWarn: 'オフにすると、従来経路の送信でシャドウ見積比較を行わなくなります。',
     globalConfirmOn: '定義ルーティング全体スイッチをオンにしますか？',
     globalConfirmOff: '定義ルーティング全体スイッチをオフにしますか？',
