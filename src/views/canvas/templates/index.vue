@@ -122,7 +122,18 @@
           :validate-status="snapshotInfo.ok || !form.snapshot.trim() ? undefined : 'error'"
           :help="snapshotInfo.ok || !form.snapshot.trim() ? undefined : snapshotInfo.error"
         >
+          <a-radio-group
+            v-model:value="snapshotMode"
+            button-style="solid"
+            size="small"
+            style="margin-bottom: 8px"
+          >
+            <a-radio-button value="visual">可视化</a-radio-button>
+            <a-radio-button value="json">JSON</a-radio-button>
+          </a-radio-group>
+          <SnapshotVisualEditor v-if="snapshotMode === 'visual'" v-model="form.snapshot" />
           <a-textarea
+            v-else
             v-model:value="form.snapshot"
             :rows="14"
             spellcheck="false"
@@ -130,9 +141,7 @@
             placeholder='{"nodes": [], "edges": []}'
           />
           <div v-if="snapshotInfo.ok" class="ok preview">
-            JSON 有效：{{ snapshotInfo.nodes }} 个节点，{{
-              snapshotInfo.edges
-            }}
+            JSON 有效：{{ snapshotInfo.nodes }} 个节点，{{ snapshotInfo.edges }}
             条边（连线规则由服务端校验）
           </div>
         </a-form-item>
@@ -160,7 +169,10 @@ import {
 } from '@/api/canvas-admin';
 import { inspectSnapshot } from '@/utils/canvas';
 import { CANVAS_UPDATE, hasCanvasPermission } from '@/utils/canvas-permission';
+import { parseSnapshot, stripRuntime, validateSnapshot } from '@/utils/canvas-snapshot';
 import { formatTime } from '@/utils/format';
+
+import SnapshotVisualEditor from './SnapshotVisualEditor.vue';
 
 const canUpdate = computed(() => hasCanvasPermission(CANVAS_UPDATE));
 
@@ -256,6 +268,8 @@ const form = reactive({
 });
 
 const snapshotInfo = computed(() => inspectSnapshot(form.snapshot));
+/** 快照编辑方式：可视化（Vue Flow）与 JSON 文本互相切换，数据都是 form.snapshot */
+const snapshotMode = ref<'visual' | 'json'>('visual');
 
 function openEdit(record?: CanvasTemplate) {
   Object.assign(form, {
@@ -282,6 +296,12 @@ function prettySnapshot(text: string): string {
 async function save() {
   if (!form.title.trim()) return message.warning('请填写标题');
   if (!snapshotInfo.value.ok) return message.warning(snapshotInfo.value.error || 'snapshot 无效');
+  const parsed = parseSnapshot(form.snapshot);
+  if (!parsed.ok) return message.warning(parsed.error);
+  // 校验与提交的是同一份数据：先剥离运行态字段，大小按压缩后的提交内容计算
+  const payload = stripRuntime(parsed.snapshot);
+  const errors = validateSnapshot(payload);
+  if (errors.length) return message.warning(`画布校验未通过：${errors.slice(0, 3).join('；')}`);
   saving.value = true;
   try {
     const body = {
@@ -290,8 +310,8 @@ async function save() {
       cover_url: form.cover_url.trim(),
       sort: form.sort ?? 0,
       enabled: form.enabled,
-      // 压缩成单行再提交
-      snapshot: JSON.stringify(JSON.parse(form.snapshot)),
+      // 剥离模型 / 工具节点的运行态字段，压缩成单行再提交
+      snapshot: JSON.stringify(payload),
     };
     if (form.id) await updateTemplate(form.id, body);
     else await createTemplate(body);
