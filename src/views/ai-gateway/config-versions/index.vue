@@ -68,6 +68,47 @@
       </template>
     </a-card>
 
+    <a-card
+      :title="$t('aiGateway.publishedConfig')"
+      variant="borderless"
+      style="margin-bottom: 16px"
+    >
+      <template #extra>
+        <a-button :loading="publishedLoading" @click="loadPublished">
+          {{ $t('common.refresh') }}
+        </a-button>
+      </template>
+      <a-empty v-if="publishedState === 'none'" :description="$t('aiGateway.publishedNone')" />
+      <a-alert
+        v-else-if="publishedState === 'error'"
+        type="error"
+        show-icon
+        :message="$t('aiGateway.publishedLoadFailed')"
+      />
+      <a-descriptions
+        v-else-if="publishedState === 'ok' && published"
+        :column="5"
+        size="small"
+        bordered
+      >
+        <a-descriptions-item :label="$t('aiGateway.publishedVersion')">
+          v{{ published.version }}
+        </a-descriptions-item>
+        <a-descriptions-item :label="$t('aiGateway.publishedAt')">
+          {{ formatDateTime(published.published_at) }}
+        </a-descriptions-item>
+        <a-descriptions-item :label="$t('aiGateway.publishedGroups')">
+          {{ published.model_groups.length }}
+        </a-descriptions-item>
+        <a-descriptions-item :label="$t('aiGateway.publishedDeployments')">
+          {{ published.deployments.length }}
+        </a-descriptions-item>
+        <a-descriptions-item :label="$t('aiGateway.publishedPriceModels')">
+          {{ published.price_models.length }}
+        </a-descriptions-item>
+      </a-descriptions>
+    </a-card>
+
     <a-card :title="$t('aiGateway.versions')" variant="borderless">
       <template #extra>
         <a-space v-if="canConfig">
@@ -186,6 +227,7 @@ import {
   CONFIG_VERSION_DELETE_MAX,
   deleteConfigVersions,
   gatewayErrorOf,
+  getPublishedConfig,
   listConfigVersions,
   publishConfig,
   rollbackConfig,
@@ -193,6 +235,7 @@ import {
   type ConfigIssue,
   type ConfigValidateResult,
   type ConfigVersion,
+  type PublishedConfig,
 } from '@/api/ai-gateway';
 import { usePermission } from '@/composables/usePermission';
 import { formatDateTime } from '@/utils/helpers';
@@ -260,7 +303,26 @@ async function loadVersions() {
     versionsLoading.value = false;
   }
 }
-onMounted(loadVersions);
+const published = ref<PublishedConfig | null>(null);
+/** loading 加载中；none 网关从未发布过（config.not_published，404）；error 其它失败（网络、5xx），不能当作「未发布」 */
+const publishedState = ref<'loading' | 'ok' | 'none' | 'error'>('loading');
+const publishedLoading = computed(() => publishedState.value === 'loading');
+
+async function loadPublished() {
+  publishedState.value = 'loading';
+  try {
+    published.value = await getPublishedConfig();
+    publishedState.value = 'ok';
+  } catch (e) {
+    published.value = null;
+    publishedState.value = gatewayErrorOf(e)?.check === 'config.not_published' ? 'none' : 'error';
+  }
+}
+
+onMounted(() => {
+  loadVersions();
+  loadPublished();
+});
 
 const publishOpen = ref(false);
 const publishing = ref(false);

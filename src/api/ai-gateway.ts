@@ -262,6 +262,19 @@ export function listConfigVersions(limit = 50) {
     .then(itemsOf<ConfigVersion>);
 }
 
+/** 当前已发布（运行中）的配置快照；网关从未发布过时返回 404（config.not_published）。 */
+export interface PublishedConfig {
+  version: number;
+  published_at: string;
+  model_groups: unknown[];
+  deployments: unknown[];
+  price_models: unknown[];
+}
+
+export function getPublishedConfig() {
+  return request.get<PublishedConfig>(`${BASE}/config/published`, cfg());
+}
+
 /** 单次批量删除的上限（网关 ConfigVersionDeleteRequest.versions max_length） */
 export const CONFIG_VERSION_DELETE_MAX = 200;
 
