@@ -55,9 +55,11 @@
               :style="data.style"
               :title="data.hint"
             >
-              <div class="cn-type">{{ data.typeText }}</div>
-              <div class="cn-title">{{ data.title }}</div>
-              <div v-if="data.subtitle" class="cn-sub">{{ data.subtitle }}</div>
+              <div class="cn-body">
+                <div class="cn-type">{{ data.typeText }}</div>
+                <div class="cn-title">{{ data.title }}</div>
+                <div v-if="data.subtitle" class="cn-sub">{{ data.subtitle }}</div>
+              </div>
               <Handle
                 v-for="(h, i) in data.inputs"
                 :key="`in-${h}`"
@@ -261,7 +263,7 @@ function toFlowNode(n: CanvasNode): Node {
             height: `${n.data?.height ?? 400}px`,
             background: n.data?.color || 'rgba(142, 102, 249, 0.10)',
           }
-        : { minHeight: `${Math.max(76, slots * 28 + 16)}px` },
+        : { minHeight: `${Math.max(88, slots * 34 + 24)}px` },
     },
   };
 }
@@ -560,9 +562,17 @@ function removeSelected() {
   border-style: dashed;
   box-shadow: none;
 }
+.cn-body {
+  padding: 0 52px;
+}
 .cn-type {
   font-size: 11px;
   color: #6b7280;
+}
+.cnode-module .cn-type,
+.cnode-module .cn-title,
+.cnode-module .cn-sub {
+  color: #e5e7eb;
 }
 .cn-title {
   margin-top: 2px;
