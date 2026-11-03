@@ -8,12 +8,15 @@ import {
   storeUser,
   clearUser,
   loginWithPassword,
+  loginWithTwoFactor,
   logout as apiLogout,
   refreshToken as apiRefreshToken,
   getAdminInfo,
+  type LoginResult,
   type UserInfo,
 } from '@/api/auth';
 import { usePermissionStore } from '@/stores/permission';
+import { useTwoFactorStore } from '@/stores/two-factor';
 import { setRefreshToken, getRefreshToken, clearTokens } from '@/utils/storage';
 
 export const useAuthStore = defineStore('auth', () => {
@@ -21,8 +24,33 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref<UserInfo | null>(getStoredUser());
   const isLoggedIn = computed(() => !!token.value);
 
-  const login = async (username: string, password: string): Promise<void> => {
+  /**
+   * 密码登录。已绑定两步验证（且本设备未被记住）时后端回 requires2fa + pendingToken，
+   * 此时不落 token，返回 pendingToken 交给登录页走第二步 loginTwoFactor。
+   */
+  const login = async (
+    username: string,
+    password: string,
+  ): Promise<{ pendingToken: string } | void> => {
     const resp = await loginWithPassword(username, password);
+    if (resp?.requires2fa) {
+      if (!resp.pendingToken) throw new Error('Login failed');
+      return { pendingToken: resp.pendingToken };
+    }
+    await applyLoginResult(resp);
+  };
+
+  /** 登录第二步：验证码通过后与密码登录一样落 token、拉权限 */
+  const loginTwoFactor = async (
+    pendingToken: string,
+    code: string,
+    rememberDevice: boolean,
+  ): Promise<void> => {
+    const resp = await loginWithTwoFactor(pendingToken, code, rememberDevice);
+    await applyLoginResult(resp);
+  };
+
+  const applyLoginResult = async (resp: LoginResult | undefined): Promise<void> => {
     // Backend returns: { accessToken, refreshToken, expiresIn, adminId, username, roleCode }
     if (resp?.accessToken) {
       token.value = resp.accessToken;
@@ -43,6 +71,8 @@ export const useAuthStore = defineStore('auth', () => {
       // 登录响应不含权限列表，拉取 /auth/info 填充 roles/permissions，
       // 否则 v-permission 永远拿到空数组，按钮全被隐藏。
       await loadUserInfo();
+      // 2FA 开关开着且未绑定时打开强制绑定弹窗；开关关着时 required=false，什么都不发生
+      void useTwoFactorStore().checkAfterLogin();
     } else {
       throw new Error('Login failed');
     }
@@ -101,6 +131,7 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = null;
       const permissionStore = usePermissionStore();
       permissionStore.resetPermission();
+      useTwoFactorStore().reset();
     }
   };
 
@@ -125,6 +156,7 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     isLoggedIn,
     login,
+    loginTwoFactor,
     logout,
     initAuth,
     setTokens,

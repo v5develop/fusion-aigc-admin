@@ -57,6 +57,17 @@
         </a-tab-pane>
 
         <a-tab-pane key="security" :tab="$t('settingsSystem.security')">
+          <!-- 切换即保存，与安全表单的「保存」分开：只写 admin.two_factor.enabled 这一个键 -->
+          <a-form layout="vertical" class="max-w-2xl">
+            <a-form-item :label="$t('settingsSystem.twoFactorEnabled')">
+              <a-switch
+                v-model:checked="twoFactorEnabled"
+                :loading="savingTwoFactor"
+                @change="handleToggleTwoFactor"
+              />
+              <div class="form-hint">{{ $t('settingsSystem.twoFactorEnabledDesc') }}</div>
+            </a-form-item>
+          </a-form>
           <a-form layout="vertical" :model="securityForm" ref="securityFormRef" class="max-w-2xl">
             <a-form-item :label="$t('settingsSystem.tokenExpireHours')" name="tokenExpireHours">
               <a-input-number
@@ -581,6 +592,7 @@ import {
   setUserTierEnabled,
 } from '@/api/config';
 import { getModelOptions } from '@/api/model';
+import { getTwoFactorEnabled, setTwoFactorEnabled } from '@/api/two-factor';
 
 import {
   USER_INPUT_RETENTION_MAX_DAYS,
@@ -1193,6 +1205,30 @@ async function handleVideoEnhanceDefaultTierChange(tier: VideoEnhanceTier) {
   }
 }
 
+// ===== 管理员两步验证开关（admin.two_factor.enabled，默认关）=====
+const twoFactorEnabled = ref(false);
+const savingTwoFactor = ref(false);
+
+async function loadTwoFactor() {
+  try {
+    twoFactorEnabled.value = (await getTwoFactorEnabled()) === true;
+  } catch {
+    /* 错误已由拦截器提示；拉不到保持关闭态 */
+  }
+}
+
+async function handleToggleTwoFactor(checked: boolean) {
+  savingTwoFactor.value = true;
+  try {
+    await setTwoFactorEnabled(checked);
+    message.success(checked ? t('settingsSystem.twoFactorOn') : t('settingsSystem.twoFactorOff'));
+  } catch {
+    twoFactorEnabled.value = !checked;
+  } finally {
+    savingTwoFactor.value = false;
+  }
+}
+
 async function handleToggleDefinitionRouting(target: DefinitionRoutingTarget, checked: boolean) {
   const saving =
     target === 'hitvideo-doubao' ? savingDefinitionRoutingDoubao : savingDefinitionRoutingLocal;
@@ -1224,6 +1260,7 @@ onMounted(() => {
   loadUserInputRetention();
   loadProcessingPlaceholders();
   loadUserTier();
+  loadTwoFactor();
 });
 </script>
 

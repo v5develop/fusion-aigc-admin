@@ -181,6 +181,12 @@
         </a-layout>
       </template>
     </a-layout>
+    <!-- 2FA 开关开着且未绑定：强制绑定，绑定前挡住所有后台页面 -->
+    <TwoFactorBindModal
+      :open="twoFactorStore.forceBindOpen"
+      mode="force"
+      @success="twoFactorStore.markBound()"
+    />
   </a-watermark>
 </template>
 
@@ -199,10 +205,12 @@ import { useLayoutStore } from '@/stores/layout';
 import { usePermissionStore } from '@/stores/permission';
 import { useSettingsStore } from '@/stores/settings';
 import { useTabsStore } from '@/stores/tabs';
+import { useTwoFactorStore } from '@/stores/two-factor';
 import { useWatermarkStore } from '@/stores/watermark';
 import { resolveLocaleText } from '@/utils/i18n';
 import { resolveIcon } from '@/utils/icon';
 
+import TwoFactorBindModal from '../TwoFactor/TwoFactorBindModal.vue';
 import AICollabPanel from './AICollabPanel.vue';
 import Header from './Header.vue';
 import Sidebar from './Sidebar.vue';
@@ -217,6 +225,7 @@ const settingsStore = useSettingsStore();
 const tabsStore = useTabsStore();
 const permissionStore = usePermissionStore();
 const watermarkStore = useWatermarkStore();
+const twoFactorStore = useTwoFactorStore();
 
 const menuAreaRef = ref<HTMLElement>();
 const measureMenuWrapRef = ref<HTMLElement>();

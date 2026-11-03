@@ -5,9 +5,23 @@ import { request } from '@/utils/request';
 import { getToken, setToken, removeToken, getUser, setUser, removeUser } from '@/utils/storage';
 
 export function loginWithPassword(username: string, password: string) {
+  // withCredentials：带上「记住此设备」cookie，后端据此跳过第二步
   return request.post<LoginResult>('/api/v1/admin/auth/login', { username, password }, {
     silentError: true,
+    withCredentials: true,
   } as AxiosRequestConfig & { silentError: boolean });
+}
+
+/**
+ * 登录第二步：提交验证码。rememberDevice=true 时后端下发「记住此设备」cookie，
+ * 带 withCredentials 让跨域部署下 cookie 也能写入、下次登录带上。
+ */
+export function loginWithTwoFactor(pendingToken: string, code: string, rememberDevice: boolean) {
+  return request.post<LoginResult>(
+    '/api/v1/admin/auth/login/2fa',
+    { pendingToken, code, rememberDevice },
+    { silentError: true, withCredentials: true } as AxiosRequestConfig & { silentError: boolean },
+  );
 }
 
 export function refreshToken(token: string) {

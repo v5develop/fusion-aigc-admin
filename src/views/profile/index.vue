@@ -73,6 +73,31 @@
             </a-form-item>
           </a-form>
         </a-card>
+
+        <a-card :title="$t('twoFactor.profileTitle')" class="two-factor-card">
+          <div class="form-hint">{{ $t('twoFactor.profileDesc') }}</div>
+          <a-space>
+            <template v-if="twoFactorStatus">
+              <a-tag v-if="twoFactorStatus.bound" color="success">
+                {{ $t('twoFactor.bound') }}
+              </a-tag>
+              <a-tag v-else>{{ $t('twoFactor.unbound') }}</a-tag>
+              <a-button
+                :type="twoFactorStatus.bound ? 'default' : 'primary'"
+                @click="openTwoFactorModal"
+              >
+                {{ twoFactorStatus.bound ? $t('twoFactor.rebind') : $t('twoFactor.bind') }}
+              </a-button>
+            </template>
+            <a-spin v-else-if="loadingTwoFactor" size="small" />
+          </a-space>
+        </a-card>
+
+        <TwoFactorBindModal
+          v-model:open="twoFactorModalOpen"
+          :mode="twoFactorStatus?.bound ? 'rebind' : 'bind'"
+          @success="loadTwoFactorStatus"
+        />
       </a-col>
     </a-row>
   </div>
@@ -80,9 +105,11 @@
 
 <script setup lang="ts">
 import { message } from 'antdv-next';
-import { reactive, ref } from 'vue';
+import { onMounted, reactive, ref } from 'vue';
 
 import { changePassword } from '@/api/auth';
+import { getTwoFactorStatus, type TwoFactorStatus } from '@/api/two-factor';
+import TwoFactorBindModal from '@/components/TwoFactor/TwoFactorBindModal.vue';
 import { $t } from '@/locales';
 import { useAuthStore } from '@/stores/auth';
 
@@ -141,6 +168,28 @@ const handleChangePassword = async () => {
     submitting.value = false;
   }
 };
+
+// ===== 两步验证：查看绑定状态、换绑（换绑须先输入当前验证码）=====
+const twoFactorStatus = ref<TwoFactorStatus | null>(null);
+const loadingTwoFactor = ref(false);
+const twoFactorModalOpen = ref(false);
+
+async function loadTwoFactorStatus() {
+  loadingTwoFactor.value = true;
+  try {
+    twoFactorStatus.value = await getTwoFactorStatus();
+  } catch {
+    twoFactorStatus.value = null;
+  } finally {
+    loadingTwoFactor.value = false;
+  }
+}
+
+function openTwoFactorModal() {
+  twoFactorModalOpen.value = true;
+}
+
+onMounted(loadTwoFactorStatus);
 </script>
 
 <style scoped lang="scss">
@@ -182,5 +231,9 @@ const handleChangePassword = async () => {
 
 .max-w-2xl {
   max-width: 42rem;
+}
+
+.two-factor-card {
+  margin-top: 16px;
 }
 </style>

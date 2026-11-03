@@ -14,3 +14,4 @@ export { useSettingsStore } from './settings';
 export { useNotificationStore } from './notification';
 export { useWatermarkStore } from './watermark';
 export { useDictStore } from './dict';
+export { useTwoFactorStore } from './two-factor';

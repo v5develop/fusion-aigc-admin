@@ -10,6 +10,7 @@ import {
 
 import router from '@/router';
 import { useAuthStore } from '@/stores/auth';
+import { useTwoFactorStore } from '@/stores/two-factor';
 import { getToken, getRefreshToken, clearTokens } from '@/utils/storage';
 
 const service: AxiosInstance = create({
@@ -62,6 +63,19 @@ export function extractErrorMessage(data: unknown): string | undefined {
   const d = data as { msg?: string; message?: string };
   return d.msg || d.message || undefined;
 }
+/**
+ * 2FA 开关开着、当前管理员未绑定时，后端对后台接口回 HTTP 403，错误码 2FA_BIND_REQUIRED
+ * （CommonResult 的 reason，兼容放在 code 里的写法）。这种 403 不是权限不足：
+ * 不弹通用错误、不跳 /403，改为打开强制绑定弹窗。
+ */
+const TWO_FACTOR_BIND_REQUIRED = '2FA_BIND_REQUIRED';
+
+function isTwoFactorBindRequired(body: unknown): boolean {
+  if (!body || typeof body !== 'object') return false;
+  const b = body as { reason?: unknown; code?: unknown };
+  return b.reason === TWO_FACTOR_BIND_REQUIRED || b.code === TWO_FACTOR_BIND_REQUIRED;
+}
+
 const MAX_RETRY_COUNT = 2;
 const RETRY_DELAY_BASE = 500;
 
@@ -142,6 +156,12 @@ service.interceptors.response.use(
         return Promise.reject(authError);
       }
 
+      // 未绑定 2FA：打开强制绑定弹窗，不当成权限不足
+      if (isTwoFactorBindRequired(res)) {
+        useTwoFactorStore().requireBind();
+        return Promise.reject(requestError(msg || '请先绑定两步验证', code, res.data, 403));
+      }
+
       // Access denied: HTTP 标准 403
       if (code === 403) {
         if (!silentError) message.error(msg || '访问被拒绝');
@@ -202,6 +222,15 @@ service.interceptors.response.use(
         await new Promise((resolve) => setTimeout(resolve, delay));
         return service(originalRequest);
       }
+    }
+
+    // 未绑定 2FA 的 403：打开强制绑定弹窗，不弹通用错误、不跳 /403
+    if (error.response?.status === 403 && isTwoFactorBindRequired(error.response.data)) {
+      useTwoFactorStore().requireBind();
+      const body = error.response.data as { data?: unknown };
+      return Promise.reject(
+        requestError(extractErrorMessage(body) || '请先绑定两步验证', 403, body?.data, 403),
+      );
     }
 
     // If no config (e.g. network error) or not 401, handle normally

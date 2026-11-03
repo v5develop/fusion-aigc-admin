@@ -19,7 +19,29 @@
         <p class="subtitle">{{ $t('login.subtitle') }}</p>
       </div>
 
-      <a-form :model="formState" :rules="rules" @finish="handleSubmit" class="login-form">
+      <!-- 第二步：已绑定两步验证，密码通过后输入验证码 -->
+      <div v-if="pendingToken" class="login-form two-factor-step">
+        <p class="two-factor-tip">{{ $t('login.twoFactorTip') }}</p>
+        <a-input-otp v-model:value="twoFactorCode" :length="6" size="large" />
+        <a-checkbox v-model:checked="rememberDevice">
+          {{ $t('login.rememberDevice') }}
+        </a-checkbox>
+        <a-button
+          type="primary"
+          size="large"
+          block
+          :loading="loading"
+          :disabled="twoFactorCode.length !== 6"
+          @click="handleTwoFactorSubmit"
+        >
+          {{ $t('login.twoFactorSubmit') }}
+        </a-button>
+        <a-button type="link" block @click="backToPassword">
+          {{ $t('login.backToLogin') }}
+        </a-button>
+      </div>
+
+      <a-form v-else :model="formState" :rules="rules" @finish="handleSubmit" class="login-form">
         <a-form-item name="username">
           <a-input
             v-model:value="formState.username"
@@ -86,6 +108,7 @@ import LanguageSwitch from '@/components/Layout/LanguageSwitch.vue';
 import ThemeToggle from '@/components/Layout/ThemeToggle.vue';
 import { $t } from '@/locales';
 import { useAuthStore } from '@/stores/auth';
+import { extractErrorMessage, type RequestError } from '@/utils/request';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -111,20 +134,83 @@ const onCaptchaFail = () => {
   captchaVerified.value = false;
 };
 
+// ===== 两步验证（第二步）=====
+const pendingToken = ref('');
+const twoFactorCode = ref('');
+/** 默认不勾；勾选后由后端下发 cookie，7 天内本设备免验证码 */
+const rememberDevice = ref(false);
+
+const enterAdmin = async () => {
+  message.success($t('login.loginSuccess'));
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  const redirect = (router.currentRoute.value.query.redirect as string) || '/';
+  router.push(redirect);
+};
+
+const resetCaptcha = () => {
+  captchaVerified.value = false;
+  captchaRef.value?.reset();
+};
+
+const backToPassword = () => {
+  pendingToken.value = '';
+  twoFactorCode.value = '';
+  rememberDevice.value = false;
+  resetCaptcha();
+};
+
+type TwoFactorError = RequestError & {
+  response?: { status?: number; data?: { reason?: unknown } };
+};
+
+/** 后端原因：业务错误在 message 里；HTTP 401 走的是原始 AxiosError，原因在响应体 */
+const twoFactorErrorText = (error: TwoFactorError) =>
+  extractErrorMessage(error.response?.data) || error.message || $t('login.loginFailed');
+
+/** pendingToken 过期 / 失效：回到密码登录（401，或错误码里带 EXPIRED / PENDING） */
+const isPendingExpired = (error: TwoFactorError) => {
+  const reason = String(error.response?.data?.reason ?? '');
+  return (
+    error.status === 401 ||
+    error.code === 401 ||
+    error.response?.status === 401 ||
+    /EXPIRED|PENDING/i.test(reason)
+  );
+};
+
+const handleTwoFactorSubmit = async () => {
+  loading.value = true;
+  try {
+    await authStore.loginTwoFactor(pendingToken.value, twoFactorCode.value, rememberDevice.value);
+    await enterAdmin();
+  } catch (e: unknown) {
+    const error = (e ?? {}) as TwoFactorError;
+    message.error(twoFactorErrorText(error));
+    if (isPendingExpired(error)) {
+      backToPassword();
+    } else {
+      twoFactorCode.value = '';
+    }
+  } finally {
+    loading.value = false;
+  }
+};
+
 const handleSubmit = async () => {
   loading.value = true;
   try {
-    await authStore.login(formState.username, formState.password);
-    message.success($t('login.loginSuccess'));
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    const redirect = (router.currentRoute.value.query.redirect as string) || '/';
-    router.push(redirect);
+    const result = await authStore.login(formState.username, formState.password);
+    if (result?.pendingToken) {
+      pendingToken.value = result.pendingToken;
+      twoFactorCode.value = '';
+      return;
+    }
+    await enterAdmin();
   } catch (error: unknown) {
     message.error(
       (error instanceof Error ? error.message : String(error)) || $t('login.loginFailed'),
     );
-    captchaVerified.value = false;
-    captchaRef.value?.reset();
+    resetCaptcha();
   } finally {
     loading.value = false;
   }
@@ -132,6 +218,19 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped lang="scss">
+.two-factor-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+
+  .two-factor-tip {
+    margin: 0;
+    color: var(--login-muted);
+    text-align: center;
+  }
+}
+
 .login-shell {
   --login-font-family: 'Outfit', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --login-bg:

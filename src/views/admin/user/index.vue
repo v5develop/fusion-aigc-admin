@@ -29,6 +29,16 @@
               <a-button type="link" size="small" @click="handleResetPassword(record)">
                 {{ $t('admin.user.resetPassword') }}
               </a-button>
+              <!-- 仅超级管理员可见；后端同样校验 -->
+              <a-button
+                v-if="hasRole('super_admin')"
+                type="link"
+                size="small"
+                danger
+                @click="openResetTwoFactor(record)"
+              >
+                {{ $t('twoFactor.reset') }}
+              </a-button>
               <a-button
                 type="link"
                 size="small"
@@ -103,6 +113,28 @@
         </a-form-item>
       </a-form>
     </a-modal>
+
+    <!-- 重置两步验证（super_admin）：原因必填，后端记审计 -->
+    <a-modal
+      v-model:open="resetTwoFactorOpen"
+      :title="$t('twoFactor.reset')"
+      :confirm-loading="resetTwoFactorLoading"
+      :ok-button-props="{ danger: true, disabled: !resetTwoFactorReason.trim() }"
+      @ok="handleResetTwoFactor"
+    >
+      <p>{{ $t('twoFactor.resetConfirm', { username: resetTwoFactorTarget?.username }) }}</p>
+      <a-form layout="vertical">
+        <a-form-item :label="$t('twoFactor.resetReason')" required>
+          <a-textarea
+            v-model:value="resetTwoFactorReason"
+            :rows="3"
+            :maxlength="200"
+            show-count
+            :placeholder="$t('twoFactor.resetReasonPlaceholder')"
+          />
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
@@ -122,9 +154,12 @@ import {
   resetAdminPassword,
   toggleAdminStatus,
 } from '@/api/admin-user';
+import { resetTwoFactor } from '@/api/two-factor';
 import ProTable from '@/components/Pro/ProTable/index.vue';
+import { usePermission } from '@/composables/usePermission';
 
 const { t } = useI18n();
+const { hasRole } = usePermission();
 
 const tableRef = ref();
 
@@ -327,6 +362,38 @@ function handleResetPassword(record: Record<string, unknown>) {
       }
     },
   });
+}
+
+// ===== 重置两步验证（仅 super_admin）=====
+const resetTwoFactorOpen = ref(false);
+const resetTwoFactorLoading = ref(false);
+const resetTwoFactorReason = ref('');
+const resetTwoFactorTarget = ref<{ id: number; username: string } | null>(null);
+
+function openResetTwoFactor(record: Record<string, unknown>) {
+  resetTwoFactorTarget.value = { id: record.id as number, username: String(record.username ?? '') };
+  resetTwoFactorReason.value = '';
+  resetTwoFactorOpen.value = true;
+}
+
+async function handleResetTwoFactor() {
+  const reason = resetTwoFactorReason.value.trim();
+  if (!resetTwoFactorTarget.value) return;
+  if (!reason) {
+    message.warning(t('twoFactor.resetReasonRequired'));
+    return;
+  }
+  resetTwoFactorLoading.value = true;
+  try {
+    await resetTwoFactor(resetTwoFactorTarget.value.id, reason);
+    message.success(t('twoFactor.resetSuccess'));
+    resetTwoFactorOpen.value = false;
+  } catch (error) {
+    // 错误已由拦截器提示
+    console.error('Reset 2FA failed:', error);
+  } finally {
+    resetTwoFactorLoading.value = false;
+  }
 }
 
 function handleToggleStatus(record: Record<string, unknown>) {
