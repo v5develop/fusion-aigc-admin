@@ -350,7 +350,7 @@ import {
   toPayloadModel,
   uid,
   type PayloadModel,
-} from './workflowPayloadModel';
+} from './workflow-payload-model';
 
 /** 上传默认隐藏：v1 的素材都是填地址，上传只在需要时打开 */
 const uploadEnabled = ref(false);

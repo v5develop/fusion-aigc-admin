@@ -92,7 +92,7 @@ import {
   validatePresetMap,
   type PresetIssue,
   type VideoEnhanceParam,
-} from './presetRules';
+} from './preset-rules';
 
 const { t } = useI18n();
 

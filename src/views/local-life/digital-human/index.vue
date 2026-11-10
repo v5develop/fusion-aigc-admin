@@ -38,10 +38,10 @@
               <template v-if="column.dataIndex === 'categories'">
                 <a-tag v-for="c in record.categories" :key="c">{{ c }}</a-tag>
               </template>
-              <template v-else-if="column.dataIndex === 'preview_url'">
+              <template v-else-if="column.dataIndex === 'previewUrl'">
                 <audio
-                  v-if="record.preview_url"
-                  :src="record.preview_url"
+                  v-if="record.previewUrl"
+                  :src="record.previewUrl"
                   controls
                   preload="none"
                   style="height: 32px"
@@ -97,7 +97,7 @@
                 />
               </a-form-item>
               <a-form-item label="排序（越小越靠前）">
-                <a-input-number v-model:value="voiceForm.sort_order" :min="0" style="width: 100%" />
+                <a-input-number v-model:value="voiceForm.sortOrder" :min="0" style="width: 100%" />
               </a-form-item>
               <a-form-item label="状态">
                 <a-switch
@@ -135,20 +135,20 @@
             size="middle"
           >
             <template #bodyCell="{ column, record }">
-              <template v-if="column.dataIndex === 'video_url'">
+              <template v-if="column.dataIndex === 'videoUrl'">
                 <video
-                  v-if="record.video_url"
-                  :src="record.video_url"
+                  v-if="record.videoUrl"
+                  :src="record.videoUrl"
                   controls
                   preload="metadata"
                   style="height: 96px"
                 />
                 <span v-else class="muted">-</span>
               </template>
-              <template v-else-if="column.dataIndex === 'image_url'">
+              <template v-else-if="column.dataIndex === 'imageUrl'">
                 <img
-                  v-if="record.image_url"
-                  :src="record.image_url"
+                  v-if="record.imageUrl"
+                  :src="record.imageUrl"
                   alt=""
                   style="height: 64px; border-radius: 4px"
                 />
@@ -157,8 +157,8 @@
               <template v-else-if="column.dataIndex === 'script'">
                 <div class="clamp-2">{{ record.script }}</div>
               </template>
-              <template v-else-if="column.dataIndex === 'create_time'">{{
-                formatTime(record.create_time)
+              <template v-else-if="column.dataIndex === 'createTime'">{{
+                formatTime(record.createTime)
               }}</template>
             </template>
           </a-table>
@@ -232,7 +232,7 @@ const voiceForm = reactive<VoiceForm>({
   gender: 'female',
   style: '',
   categories: [],
-  sort_order: 0,
+  sortOrder: 0,
   status: 1,
 });
 
@@ -242,8 +242,8 @@ const voiceColumns = [
   { title: '性别', dataIndex: 'gender', width: 80, align: 'center' as const },
   { title: '风格', dataIndex: 'style', width: 120 },
   { title: '分类', dataIndex: 'categories' },
-  { title: '试听', dataIndex: 'preview_url', width: 260 },
-  { title: '排序', dataIndex: 'sort_order', width: 80, align: 'center' as const },
+  { title: '试听', dataIndex: 'previewUrl', width: 260 },
+  { title: '排序', dataIndex: 'sortOrder', width: 80, align: 'center' as const },
   { title: '状态', dataIndex: 'status', width: 90, align: 'center' as const },
   { title: '操作', dataIndex: 'operation', width: 230, align: 'center' as const },
 ];
@@ -271,7 +271,7 @@ function openCreate() {
     gender: 'female',
     style: '',
     categories: [],
-    sort_order: 0,
+    sortOrder: 0,
     status: 1,
   });
   voiceModal.value = true;
@@ -285,7 +285,7 @@ function openEdit(record: Voice) {
     gender: record.gender === 'male' ? 'male' : 'female',
     style: record.style,
     categories: [...(record.categories || [])],
-    sort_order: record.sort_order,
+    sortOrder: record.sortOrder,
     status: record.status,
   });
   voiceModal.value = true;
@@ -355,16 +355,16 @@ const statusOptions = [
 ];
 
 const listColumns = [
-  { title: '用户', dataIndex: 'user_id', width: 90 },
+  { title: '用户', dataIndex: 'userId', width: 90 },
   { title: '名称', dataIndex: 'name', width: 140 },
-  { title: '形象', dataIndex: 'image_url', width: 110 },
-  { title: '音色', dataIndex: 'voice_name', width: 120 },
+  { title: '形象', dataIndex: 'imageUrl', width: 110 },
+  { title: '音色', dataIndex: 'voiceName', width: 120 },
   { title: '口播文案', dataIndex: 'script' },
-  { title: '视频', dataIndex: 'video_url', width: 220 },
+  { title: '视频', dataIndex: 'videoUrl', width: 220 },
   { title: '时长(秒)', dataIndex: 'duration', width: 90, align: 'center' as const },
   { title: '状态', dataIndex: 'status', width: 90, align: 'center' as const },
-  { title: '失败原因', dataIndex: 'fail_reason', width: 180, ellipsis: true },
-  { title: '创建时间', dataIndex: 'create_time', width: 170 },
+  { title: '失败原因', dataIndex: 'failReason', width: 180, ellipsis: true },
+  { title: '创建时间', dataIndex: 'createTime', width: 170 },
 ];
 
 function onFilterChange() {
@@ -382,10 +382,10 @@ async function load() {
   loading.value = true;
   try {
     const result = await listDigitalHumans({
-      user_id: userId.value ?? undefined,
+      userId: userId.value ?? undefined,
       status: status.value,
       page: page.value,
-      page_size: pageSize.value,
+      pageSize: pageSize.value,
     });
     rows.value = result?.list || [];
     total.value = result?.total || 0;

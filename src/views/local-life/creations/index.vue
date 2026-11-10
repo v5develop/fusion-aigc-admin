@@ -38,10 +38,10 @@
             size="middle"
           >
             <template #bodyCell="{ column, record }">
-              <template v-if="column.dataIndex === 'image_urls'">
+              <template v-if="column.dataIndex === 'imageUrls'">
                 <a-image-preview-group>
                   <img
-                    v-for="(src, i) in record.image_urls"
+                    v-for="(src, i) in record.imageUrls"
                     :key="i"
                     :src="src"
                     alt=""
@@ -52,8 +52,8 @@
               <template v-else-if="column.dataIndex === 'content'">
                 <div class="clamp-2">{{ record.content }}</div>
               </template>
-              <template v-else-if="column.dataIndex === 'create_time'">{{
-                formatTime(record.create_time)
+              <template v-else-if="column.dataIndex === 'createTime'">{{
+                formatTime(record.createTime)
               }}</template>
             </template>
           </a-table>
@@ -101,10 +101,10 @@
             size="middle"
           >
             <template #bodyCell="{ column, record }">
-              <template v-if="column.dataIndex === 'video_url'">
+              <template v-if="column.dataIndex === 'videoUrl'">
                 <video
-                  v-if="record.video_url"
-                  :src="record.video_url"
+                  v-if="record.videoUrl"
+                  :src="record.videoUrl"
                   controls
                   preload="metadata"
                   style="height: 120px"
@@ -114,8 +114,8 @@
               <template v-else-if="column.dataIndex === 'content'">
                 <div class="clamp-2">{{ record.content }}</div>
               </template>
-              <template v-else-if="column.dataIndex === 'create_time'">{{
-                formatTime(record.create_time)
+              <template v-else-if="column.dataIndex === 'createTime'">{{
+                formatTime(record.createTime)
               }}</template>
             </template>
           </a-table>
@@ -165,21 +165,21 @@
             size="middle"
           >
             <template #bodyCell="{ column, record }">
-              <template v-if="column.dataIndex === 'video_url'">
+              <template v-if="column.dataIndex === 'videoUrl'">
                 <video
-                  v-if="record.video_url"
-                  :src="record.video_url"
+                  v-if="record.videoUrl"
+                  :src="record.videoUrl"
                   controls
                   preload="metadata"
                   style="height: 120px"
                 />
                 <span v-else class="muted">-</span>
               </template>
-              <template v-else-if="column.dataIndex === 'user_text'">
-                <div class="clamp-2">{{ record.user_text }}</div>
+              <template v-else-if="column.dataIndex === 'userText'">
+                <div class="clamp-2">{{ record.userText }}</div>
               </template>
-              <template v-else-if="column.dataIndex === 'create_time'">{{
-                formatTime(record.create_time)
+              <template v-else-if="column.dataIndex === 'createTime'">{{
+                formatTime(record.createTime)
               }}</template>
             </template>
           </a-table>
@@ -261,37 +261,37 @@ const videoLoading = ref(false);
 const videoTotal = ref(0);
 
 const imageColumns = [
-  { title: '用户', dataIndex: 'user_id', width: 90 },
+  { title: '用户', dataIndex: 'userId', width: 90 },
   { title: '类型', dataIndex: 'kind', width: 120 },
   { title: '需求', dataIndex: 'content' },
-  { title: '成图', dataIndex: 'image_urls', width: 260 },
+  { title: '成图', dataIndex: 'imageUrls', width: 260 },
   { title: '状态', dataIndex: 'status', width: 90, align: 'center' as const },
-  { title: '失败原因', dataIndex: 'fail_reason', width: 180, ellipsis: true },
-  { title: '创建时间', dataIndex: 'create_time', width: 170 },
+  { title: '失败原因', dataIndex: 'failReason', width: 180, ellipsis: true },
+  { title: '创建时间', dataIndex: 'createTime', width: 170 },
 ];
 
 const videoImageColumns = [
-  { title: '用户', dataIndex: 'user_id', width: 90 },
+  { title: '用户', dataIndex: 'userId', width: 90 },
   { title: '类型', dataIndex: 'kind', width: 120 },
   { title: '文案 / 需求', dataIndex: 'content' },
-  { title: '视频', dataIndex: 'video_url', width: 240 },
+  { title: '视频', dataIndex: 'videoUrl', width: 240 },
   { title: '状态', dataIndex: 'status', width: 90, align: 'center' as const },
-  { title: '失败原因', dataIndex: 'fail_reason', width: 180, ellipsis: true },
-  { title: '创建时间', dataIndex: 'create_time', width: 170 },
+  { title: '失败原因', dataIndex: 'failReason', width: 180, ellipsis: true },
+  { title: '创建时间', dataIndex: 'createTime', width: 170 },
 ];
 
 const videoColumns = [
-  { title: '用户', dataIndex: 'user_id', width: 90 },
+  { title: '用户', dataIndex: 'userId', width: 90 },
   { title: '类型', dataIndex: 'kind', width: 120 },
-  { title: '用户输入', dataIndex: 'user_text' },
-  { title: '卖点', dataIndex: 'selling_points', width: 200, ellipsis: true },
+  { title: '用户输入', dataIndex: 'userText' },
+  { title: '卖点', dataIndex: 'sellingPoints', width: 200, ellipsis: true },
   { title: '时长(秒)', dataIndex: 'duration', width: 90, align: 'center' as const },
   { title: '尺寸', dataIndex: 'size', width: 110 },
   { title: '模型', dataIndex: 'model', width: 160 },
-  { title: '视频', dataIndex: 'video_url', width: 240 },
+  { title: '视频', dataIndex: 'videoUrl', width: 240 },
   { title: '状态', dataIndex: 'status', width: 90, align: 'center' as const },
-  { title: '失败原因', dataIndex: 'fail_reason', width: 180, ellipsis: true },
-  { title: '创建时间', dataIndex: 'create_time', width: 170 },
+  { title: '失败原因', dataIndex: 'failReason', width: 180, ellipsis: true },
+  { title: '创建时间', dataIndex: 'createTime', width: 170 },
 ];
 
 function onSize(q: Query, size: number, reload: () => void) {
@@ -325,12 +325,12 @@ async function loadImages() {
   try {
     const q = imageQuery.value;
     const result = await listCreations({
-      user_id: q.userId ?? undefined,
+      userId: q.userId ?? undefined,
       kind: q.kind || undefined,
       media: 'image',
       status: q.status,
       page: q.page,
-      page_size: q.pageSize,
+      pageSize: q.pageSize,
     });
     imageRows.value = result?.list || [];
     imageTotal.value = result?.total || 0;
@@ -346,12 +346,12 @@ async function loadVideoImages() {
   try {
     const q = videoImageQuery.value;
     const result = await listCreations({
-      user_id: q.userId ?? undefined,
+      userId: q.userId ?? undefined,
       kind: q.kind || undefined,
       media: 'video',
       status: q.status,
       page: q.page,
-      page_size: q.pageSize,
+      pageSize: q.pageSize,
     });
     videoImageRows.value = result?.list || [];
     videoImageTotal.value = result?.total || 0;
@@ -367,11 +367,11 @@ async function loadVideos() {
   try {
     const q = videoQuery.value;
     const result = await listVideoCreations({
-      user_id: q.userId ?? undefined,
+      userId: q.userId ?? undefined,
       kind: q.kind || undefined,
       status: q.status,
       page: q.page,
-      page_size: q.pageSize,
+      pageSize: q.pageSize,
     });
     videoRows.value = result?.list || [];
     videoTotal.value = result?.total || 0;

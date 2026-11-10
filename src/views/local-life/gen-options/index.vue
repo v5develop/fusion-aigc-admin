@@ -27,8 +27,8 @@
               record.enabled ? '启用' : '停用'
             }}</a-tag>
           </template>
-          <template v-else-if="column.dataIndex === 'is_default'">
-            <a-tag v-if="record.is_default" color="blue">默认</a-tag>
+          <template v-else-if="column.dataIndex === 'isDefault'">
+            <a-tag v-if="record.isDefault" color="blue">默认</a-tag>
           </template>
           <template v-else-if="column.dataIndex === 'operation' && canEdit">
             <a-button type="link" size="small" @click="openEdit(record)">编辑</a-button>
@@ -51,9 +51,9 @@
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.dataIndex === 'kind'">{{ kindLabel(record.kind) }}</template>
-          <template v-else-if="column.dataIndex === 'template_required'">
+          <template v-else-if="column.dataIndex === 'templateRequired'">
             <a-switch
-              :checked="record.template_required"
+              :checked="record.templateRequired"
               :disabled="!canEdit"
               :loading="kindSaving === record.kind"
               @change="(v: boolean) => toggleKind(record, v)"
@@ -73,7 +73,7 @@
           <span v-if="isStyleGroup" class="hint">风格名称会进入出图提示词，不能在后台修改</span>
         </a-form-item>
         <a-form-item label="排序（越小越靠前）">
-          <a-input-number v-model:value="form.sort_order" :min="0" style="width: 100%" />
+          <a-input-number v-model:value="form.sortOrder" :min="0" style="width: 100%" />
         </a-form-item>
         <a-form-item label="启用">
           <a-switch :checked="form.enabled" @change="onEnabledChange" />
@@ -81,9 +81,9 @@
         </a-form-item>
         <a-form-item label="设为默认">
           <a-switch
-            :checked="form.is_default"
+            :checked="form.isDefault"
             :disabled="!form.enabled"
-            @change="(v: boolean) => (form.is_default = v)"
+            @change="(v: boolean) => (form.isDefault = v)"
           />
           <span class="hint">默认项必须启用，同组只能有一个默认</span>
         </a-form-item>
@@ -109,7 +109,7 @@ import { hasLocalLifePermission, LOCAL_LIFE_UPDATE } from '@/utils/local-life-pe
 const GROUP_LABELS: Record<string, string> = {
   poster_models: '海报档位',
   poster_sizes: '海报比例',
-  poster_styles: '海报风格',
+  posterStyles: '海报风格',
   longimage_sizes: '长图比例',
   action_models: '动作迁移模型',
   voiceover_models: '口播模型',
@@ -143,9 +143,9 @@ const saving = ref(false);
 const editing = ref<GenOptionItem | null>(null);
 const form = reactive<GenOptionUpdate>({
   label: '',
-  sort_order: 0,
+  sortOrder: 0,
   enabled: true,
-  is_default: false,
+  isDefault: false,
 });
 
 const isStyleGroup = computed(() => editing.value?.group === 'poster_styles');
@@ -154,9 +154,9 @@ const columns = [
   { title: '分组', dataIndex: 'group', width: 150 },
   { title: '编码', dataIndex: 'code', width: 220 },
   { title: '名称', dataIndex: 'label', width: 180 },
-  { title: '排序', dataIndex: 'sort_order', width: 80, align: 'center' as const },
+  { title: '排序', dataIndex: 'sortOrder', width: 80, align: 'center' as const },
   { title: '启用', dataIndex: 'enabled', width: 90, align: 'center' as const },
-  { title: '默认', dataIndex: 'is_default', width: 90, align: 'center' as const },
+  { title: '默认', dataIndex: 'isDefault', width: 90, align: 'center' as const },
   { title: '操作', dataIndex: 'operation', width: 90, align: 'center' as const },
 ];
 const visibleColumns = computed(() =>
@@ -165,7 +165,7 @@ const visibleColumns = computed(() =>
 
 const kindColumns = [
   { title: '类型', dataIndex: 'kind', width: 200 },
-  { title: '模板必选', dataIndex: 'template_required', width: 140, align: 'center' as const },
+  { title: '模板必选', dataIndex: 'templateRequired', width: 140, align: 'center' as const },
 ];
 
 const rows = computed(() => all.value.filter((r) => !group.value || r.group === group.value));
@@ -195,16 +195,16 @@ function openEdit(record: GenOptionItem) {
   editing.value = record;
   Object.assign(form, {
     label: record.label,
-    sort_order: record.sort_order,
+    sortOrder: record.sortOrder,
     enabled: record.enabled,
-    is_default: record.is_default,
+    isDefault: record.isDefault,
   });
   modalVisible.value = true;
 }
 
 function onEnabledChange(checked: boolean) {
   form.enabled = checked;
-  if (!checked) form.is_default = false;
+  if (!checked) form.isDefault = false;
 }
 
 async function save() {
@@ -229,7 +229,7 @@ async function save() {
 async function toggleKind(record: GenKindItem, checked: boolean) {
   kindSaving.value = record.kind;
   try {
-    await updateGenKind(record.kind, { template_required: checked });
+    await updateGenKind(record.kind, { templateRequired: checked });
     message.success('已保存');
     load();
   } catch {

@@ -600,7 +600,7 @@ import {
   isDestructiveRetentionChange,
   normalizeRetentionDays,
   type RetentionState,
-} from './userInputRetention';
+} from './user-input-retention';
 
 const { t } = useI18n();
 

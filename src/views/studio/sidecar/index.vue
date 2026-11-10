@@ -26,8 +26,8 @@
 
     <a-card variant="borderless">
       <a-descriptions v-if="status" :column="2" size="small" style="margin-bottom: 16px">
-        <a-descriptions-item label="运行中子任务">{{ status.running_tasks }}</a-descriptions-item>
-        <a-descriptions-item label="排队批次">{{ status.queued_batches }}</a-descriptions-item>
+        <a-descriptions-item label="运行中子任务">{{ status.runningTasks }}</a-descriptions-item>
+        <a-descriptions-item label="排队批次">{{ status.queuedBatches }}</a-descriptions-item>
       </a-descriptions>
 
       <a-table
@@ -56,8 +56,8 @@
               record.ok ? '正常' : '异常'
             }}</a-tag>
           </template>
-          <template v-else-if="column.dataIndex === 'latency_ms'">
-            {{ record.latency_ms }} ms
+          <template v-else-if="column.dataIndex === 'latencyMs'">
+            {{ record.latencyMs }} ms
           </template>
         </template>
       </a-table>
@@ -115,8 +115,8 @@ const columns = [
   { title: '服务', dataIndex: 'name', width: 200 },
   { title: '状态', dataIndex: 'ok', width: 90 },
   { title: '版本', dataIndex: 'version', width: 180 },
-  { title: '延迟', dataIndex: 'latency_ms', width: 100 },
-  { title: '地址', dataIndex: 'base_url', ellipsis: true },
+  { title: '延迟', dataIndex: 'latencyMs', width: 100 },
+  { title: '地址', dataIndex: 'baseUrl', ellipsis: true },
   { title: '详情（模型 / Key 是否配置）', dataIndex: 'detail', ellipsis: true },
 ];
 

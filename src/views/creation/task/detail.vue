@@ -290,6 +290,45 @@
         </a-descriptions>
       </a-card>
 
+      <!-- 画布运行：画布生图/视频等由 Go 画布发起的任务，入参里带 canvasId / runId / nodeId -->
+      <a-card v-if="canvasRun" title="画布运行" style="margin-bottom: 16px">
+        <a-descriptions :column="2" size="small" bordered>
+          <a-descriptions-item label="画布 ID">
+            <code>{{ canvasRun.canvasId }}</code>
+          </a-descriptions-item>
+          <a-descriptions-item label="运行 ID">
+            <code>{{ canvasRun.runId || '-' }}</code>
+          </a-descriptions-item>
+          <a-descriptions-item label="节点 ID">
+            <code>{{ canvasRun.nodeId || '-' }}</code>
+          </a-descriptions-item>
+          <a-descriptions-item label="入口码">{{ canvasRun.entryCode || '-' }}</a-descriptions-item>
+          <a-descriptions-item label="模型组">{{
+            canvasRun.modelGroup || '-'
+          }}</a-descriptions-item>
+          <a-descriptions-item label="操作" :span="2">
+            <a-button size="small" type="link" @click="openCanvasRuns">
+              查看该画布的运行记录（节点步骤、后端、状态、报错）
+            </a-button>
+          </a-descriptions-item>
+        </a-descriptions>
+        <div style="margin-top: 16px">
+          <div class="diag-title">工作流步骤（画布节点运行）</div>
+          <a-skeleton v-if="canvasRunLoading" active :paragraph="{ rows: 2 }" />
+          <a-alert
+            v-else-if="canvasRunMissing"
+            type="info"
+            show-icon
+            message="未在画布运行记录中找到本任务（可能已被清理，或运行在其他画布）"
+          />
+          <a-descriptions v-else-if="canvasRunRow" :column="3" size="small" bordered>
+            <a-descriptions-item v-for="f in canvasRunFields" :key="f.label" :label="f.label">
+              {{ f.value }}
+            </a-descriptions-item>
+          </a-descriptions>
+        </div>
+      </a-card>
+
       <!-- Request Params（用户原始入参，仅主任务有值） -->
       <a-card :title="$t('creationTask.requestParamsInfo')" style="margin-bottom: 16px">
         <div v-if="formattedRequestParams" class="json-viewer">
@@ -1023,6 +1062,7 @@ import { ref, computed, onActivated, onBeforeUnmount, onDeactivated, onMounted }
 import { useI18n } from 'vue-i18n';
 import { useRouter, useRoute } from 'vue-router';
 
+import { listRuns, type CanvasRun } from '@/api/canvas-admin';
 import {
   getCreationTaskDetail,
   cancelCreationTask,
@@ -1065,7 +1105,7 @@ import {
   TRACE_POLL_BASE_MS,
   traceFingerprint,
   traceToggleAction,
-} from './traceHelpers';
+} from './trace-helpers';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -1783,6 +1823,73 @@ const childColumns = [
   { title: t('common.createTime'), dataIndex: 'createTime', width: 170 },
 ];
 
+// 画布运行信息：从入参解析（画布任务的 requestParams 带 canvasId / runId / nodeId）
+const canvasRun = computed(() => {
+  if (!task.value?.requestParams) return null;
+  try {
+    const p = JSON.parse(task.value.requestParams) as Record<string, unknown>;
+    const canvasId = typeof p.canvasId === 'string' ? p.canvasId : '';
+    if (!canvasId) return null;
+    const str = (v: unknown) => (typeof v === 'string' && v ? v : '');
+    return {
+      canvasId,
+      runId: str(p.runId),
+      nodeId: str(p.nodeId),
+      entryCode: str(p.entryCode),
+      modelGroup: str(p.modelGroup),
+    };
+  } catch {
+    return null;
+  }
+});
+// 画布运行的步骤：Go 画布管理端按画布过滤运行记录，再按 task_id / run_id 匹配到本任务
+const canvasRunRow = ref<CanvasRun | null>(null);
+const canvasRunLoading = ref(false);
+const canvasRunMissing = ref(false);
+async function loadCanvasRunRow() {
+  canvasRunRow.value = null;
+  canvasRunMissing.value = false;
+  const cr = canvasRun.value;
+  const taskId = task.value?.taskId;
+  if (!cr || !taskId) return;
+  canvasRunLoading.value = true;
+  try {
+    const page = await listRuns({ canvasId: cr.canvasId, page: 1, pageSize: 200 });
+    const row = (page?.list || []).find(
+      (r) => r.taskId === taskId || (!!cr.runId && r.runId === cr.runId),
+    );
+    canvasRunRow.value = row || null;
+    canvasRunMissing.value = !row;
+  } catch {
+    canvasRunMissing.value = true;
+  } finally {
+    canvasRunLoading.value = false;
+  }
+}
+const canvasRunFields = computed(() => {
+  const r = canvasRunRow.value;
+  if (!r) return [];
+  const fmt = (ms: number) => (ms ? new Date(ms).toLocaleString('zh-CN', { hour12: false }) : '-');
+  return [
+    { label: '状态', value: r.status || '-' },
+    { label: '后端', value: r.backend || '-' },
+    { label: '后端引用', value: r.backendRef || '-' },
+    { label: '第几次', value: String(r.attempt ?? '-') },
+    { label: '模型', value: r.model || r.modelGroup || '-' },
+    { label: '计费状态', value: r.billingStatus || '-' },
+    { label: '成本(元)', value: r.costCny || '-' },
+    { label: '进度', value: `${r.progress ?? 0}%` },
+    { label: '开始', value: fmt(r.startedAt) },
+    { label: '结束', value: fmt(r.finishedAt) },
+    { label: '错误码', value: r.errorCode || '-' },
+    { label: '错误', value: r.error || '-' },
+  ];
+});
+function openCanvasRuns() {
+  if (!canvasRun.value) return;
+  router.push({ path: '/canvas/runs', query: { canvas_id: canvasRun.value.canvasId } });
+}
+
 // Format request params JSON（用户原始入参，仅入口主任务有值）
 const formattedRequestParams = computed(() => {
   if (!task.value?.requestParams) return '';
@@ -1821,6 +1928,7 @@ async function loadTask() {
     // 诊断 / 链路均为折叠卡片，打开页面不请求，展开才拉取
     resetTraceForTask();
     resetDiagnosisForTask();
+    void loadCanvasRunRow();
     // 内容审核日志（所有任务：命中/免审/未过审都可能有记录）
     try {
       moderationLogs.value = (await getCreationTaskModerationLogs(id)) ?? [];

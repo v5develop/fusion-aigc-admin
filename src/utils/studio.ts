@@ -49,11 +49,11 @@ export function statusTag(map: Record<number, { text: string; color: string }>, 
 }
 
 /** 日期范围 -> [起 00:00:00 含, 止次日 00:00:00 不含] 的 unix 毫秒 */
-export function rangeToMs(range?: [Dayjs, Dayjs] | null): { start_at?: number; end_at?: number } {
+export function rangeToMs(range?: [Dayjs, Dayjs] | null): { startAt?: number; endAt?: number } {
   if (!range || !range[0] || !range[1]) return {};
   return {
-    start_at: range[0].startOf('day').valueOf(),
-    end_at: range[1].add(1, 'day').startOf('day').valueOf(),
+    startAt: range[0].startOf('day').valueOf(),
+    endAt: range[1].add(1, 'day').startOf('day').valueOf(),
   };
 }
 

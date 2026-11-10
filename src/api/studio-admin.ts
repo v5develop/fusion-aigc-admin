@@ -2,6 +2,7 @@ import { message } from 'antdv-next';
 import { create, type AxiosResponse } from 'axios';
 
 import router from '@/router';
+import { toSnakeKeys } from '@/utils/api-keys';
 import { clearTokens, getToken } from '@/utils/storage';
 
 /**
@@ -67,70 +68,70 @@ export interface PageList<T> {
 
 export interface ListQuery {
   page?: number;
-  page_size?: number;
-  user_id?: number;
+  pageSize?: number;
+  userId?: number;
   /** tryon 商拍 / pose 姿态 / imagegen 图片生成；空 = 全部 */
   kind?: StudioKind | '';
   /** -1 全部；0 排队 1 切图中 2 反推中 3 生图中 4 全部成功 5 全部失败 6 部分成功 7 已取消 */
   status?: number;
   /** 创建时间起（unix 毫秒，含） */
-  start_at?: number;
+  startAt?: number;
   /** 创建时间止（unix 毫秒，不含） */
-  end_at?: number;
+  endAt?: number;
 }
 
 export interface Batch {
   id: number;
-  user_id: number;
-  workspace_id: number;
+  userId: number;
+  workspaceId: number;
   kind: StudioKind | string;
   status: number;
-  request_id: string;
+  requestId: string;
   /** JSON 文本 */
   payload: string;
-  task_total: number;
-  task_done: number;
-  task_failed: number;
-  estimated_points: number;
-  cost_cny: string;
-  model_group: string;
-  error_reason: string;
-  cover_url: string;
-  created_at: number;
-  updated_at: number;
+  taskTotal: number;
+  taskDone: number;
+  taskFailed: number;
+  estimatedPoints: number;
+  costCny: string;
+  modelGroup: string;
+  errorReason: string;
+  coverUrl: string;
+  createdAt: number;
+  updatedAt: number;
 }
 
 export interface Task {
   id: number;
-  task_id: string;
-  model_index: number;
-  shot_index: number;
-  pose_index: number;
+  taskId: string;
+  modelIndex: number;
+  shotIndex: number;
+  poseIndex: number;
   /** 0 排队 1 生成中 2 成功 3 失败 4 已取消 */
   status: number;
-  result_url: string;
-  result_width: number;
-  result_height: number;
-  error_reason: string;
-  model_group: string;
+  resultUrl: string;
+  resultWidth: number;
+  resultHeight: number;
+  errorReason: string;
+  modelGroup: string;
   /** 完整提示词 */
-  prompt_text: string;
+  promptText: string;
   /** JSON 文本 */
-  prompt_meta: string;
+  promptMeta: string;
   /** 送生图的图序（JSON 文本） */
-  input_images: string;
-  gateway_call_id: string;
-  gateway_status: string;
+  inputImages: string;
+  gatewayCallId: string;
+  gatewayStatus: string;
   attempt: number;
-  admin_locked: boolean;
-  cost_cny: string;
-  billing_request_id: string;
+  adminLocked: boolean;
+  costCny: string;
+  billingRequestId: string;
   /** 0 未计费 1 已冻结 2 已结算 3 已退回 4 影子模式 */
-  billing_status: number;
-  duration_ms: number;
-  created_at: number;
-  started_at: number;
-  finished_at: number;
+  billingStatus: number;
+  durationMs: number;
+  createdAt: number;
+  startedAt: number;
+  finishedAt: number;
 }
 
 /** step_log 数组的一项（后端以 JSON 文本返回，页面里 JSON.parse） */
@@ -140,8 +141,8 @@ export interface StepLog {
   images?: number;
   crops?: number;
   degraded?: boolean;
-  cost_cny?: number;
-  task_total?: number;
+  costCny?: number;
+  taskTotal?: number;
   detail?: string;
   at: number;
 }
@@ -149,22 +150,104 @@ export interface StepLog {
 export interface BatchDetail {
   batch: Batch;
   /** 切图框（JSON 文本，0–1 归一化） */
-  crop_plan: string;
+  cropPlan: string;
   /** 切图质检（JSON 文本） */
-  crop_check: string;
+  cropCheck: string;
   /** 组图（JSON 文本） */
-  selected_images: string;
+  selectedImages: string;
   /** 每步耗时与成本（JSON 文本） */
-  step_log: string;
+  stepLog: string;
   tasks: Task[];
+  /** 排查视图（JSON 文本，解析为 StudioDiagnostics）：任务链路 / 工作流步骤 / 诊断 / 时间线 */
+  diagnostics?: string;
+}
+
+/** 与 Java 任务详情的 TaskTrace / WorkflowStep / Diagnosis / TimelineEvent 口径对齐 */
+export interface StudioTraceStage {
+  key: string;
+  source: string;
+  name: string;
+  /** done / running / failed / pending */
+  status: string;
+  startedAt: string | null;
+  endedAt: string | null;
+  durationMs: number | null;
+  check: string | null;
+  detail: string | null;
+}
+
+export interface StudioDiagnostics {
+  trace: {
+    taskId: string;
+    traceId: string;
+    generatedAt: string;
+    stuckAt: {
+      stage: string;
+      source: string;
+      since: string;
+      elapsedMs: number;
+      reason: string;
+    } | null;
+    stages: StudioTraceStage[];
+    terminal: boolean;
+  };
+  workflowSteps: {
+    stepPath: string;
+    status: string;
+    operation: string;
+    modelGroup: string | null;
+    gatewayCallId: string | null;
+    attempt: number;
+    startedAt: string | null;
+    finishedAt: string | null;
+    errorMsg: string | null;
+  }[];
+  diagnosis: {
+    task: {
+      taskId: string;
+      type: string;
+      status: string;
+      statusLabel: string;
+      errorMsg: string;
+      createTime: string;
+      updateTime: string;
+    } | null;
+    failingStep: {
+      stepPath: string;
+      status: string;
+      operation: string;
+      failureMessage: string;
+      gatewayCallId: string | null;
+      attemptCount: number;
+      startedAt: string | null;
+      completedAt: string | null;
+    } | null;
+    steps: { total: number; byStatus: Record<string, number> };
+    billing: {
+      billingStatus: string;
+      reservationStatus: string;
+      pricePoints: number;
+      settled: boolean;
+    };
+    hints: { text: string }[];
+  };
+  timeline: {
+    id: number;
+    ts: string;
+    stepPath: string;
+    kind: string;
+    status: string;
+    message?: string;
+    source: string;
+  }[];
 }
 
 export interface CostRow {
   key: string;
-  task_total: number;
-  task_succeeded: number;
-  task_failed: number;
-  cost_cny: string;
+  taskTotal: number;
+  taskSucceeded: number;
+  taskFailed: number;
+  costCny: string;
   points: number;
 }
 
@@ -177,28 +260,28 @@ export interface Dependency {
   /** sidecar / ai-gateway / media */
   name: string;
   ok: boolean;
-  base_url: string;
-  latency_ms: number;
+  baseUrl: string;
+  latencyMs: number;
   version: string;
   detail: string;
 }
 
 export interface SidecarStatus {
   deps: Dependency[];
-  running_tasks: number;
-  queued_batches: number;
+  runningTasks: number;
+  queuedBatches: number;
 }
 
 export interface CostQuery {
-  start_at?: number;
-  end_at?: number;
-  group_by?: 'kind' | 'model_group';
+  startAt?: number;
+  endAt?: number;
+  groupBy?: 'kind' | 'model_group';
 }
 
 // ---------------- 接口 ----------------
 
 export function listBatches(query: ListQuery) {
-  return call<PageList<Batch>>(http.get(`${PREFIX}/batches`, { params: query }));
+  return call<PageList<Batch>>(http.get(`${PREFIX}/batches`, { params: toSnakeKeys(query) }));
 }
 
 export function getBatch(id: number | string) {
@@ -218,5 +301,5 @@ export function getSidecarStatus() {
 }
 
 export function getCostSummary(query: CostQuery) {
-  return call<CostSummary>(http.get(`${PREFIX}/cost-summary`, { params: query }));
+  return call<CostSummary>(http.get(`${PREFIX}/cost-summary`, { params: toSnakeKeys(query) }));
 }

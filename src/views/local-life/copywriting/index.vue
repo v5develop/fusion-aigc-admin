@@ -50,8 +50,8 @@
               <template v-if="column.dataIndex === 'body'">
                 <div class="clamp-2">{{ record.body }}</div>
               </template>
-              <template v-else-if="column.dataIndex === 'create_time'">{{
-                formatTime(record.create_time)
+              <template v-else-if="column.dataIndex === 'createTime'">{{
+                formatTime(record.createTime)
               }}</template>
               <template v-else-if="column.dataIndex === 'operation' && canEdit">
                 <a-button
@@ -145,12 +145,12 @@ const userId = ref<number | null>(null);
 const keyword = ref('');
 
 const columns = [
-  { title: '类型', dataIndex: 'content_type_label', width: 120 },
+  { title: '类型', dataIndex: 'contentTypeLabel', width: 120 },
   { title: '标题', dataIndex: 'title', width: 200, ellipsis: true },
   { title: '正文', dataIndex: 'body' },
-  { title: '字数', dataIndex: 'word_count', width: 90, align: 'center' as const },
+  { title: '字数', dataIndex: 'wordCount', width: 90, align: 'center' as const },
   { title: '来源', dataIndex: 'source', width: 120 },
-  { title: '时间', dataIndex: 'create_time', width: 170 },
+  { title: '时间', dataIndex: 'createTime', width: 170 },
   { title: '操作', dataIndex: 'operation', width: 90, align: 'center' as const },
 ];
 const visibleColumns = computed(() =>
@@ -181,7 +181,7 @@ async function submitResolve() {
   resolving.value = true;
   try {
     const result = await resolveCopywriting(target.id, note);
-    message.success(`已退回 ${result?.refunded_points ?? 0} 点，文案已标记失败`);
+    message.success(`已退回 ${result?.refundedPoints ?? 0} 点，文案已标记失败`);
     resolveOpen.value = false;
     load();
   } catch {
@@ -212,10 +212,10 @@ async function load() {
   loading.value = true;
   try {
     const result = await listCopywriting({
-      user_id: userId.value ?? undefined,
+      userId: userId.value ?? undefined,
       keyword: keyword.value.trim() || undefined,
       page: page.value,
-      page_size: pageSize.value,
+      pageSize: pageSize.value,
     });
     rows.value = result?.list || [];
     total.value = result?.total || 0;

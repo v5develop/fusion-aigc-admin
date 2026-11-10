@@ -78,7 +78,7 @@
           </template>
           <template v-else-if="column.key === 'action'">
             <a-button
-              v-if="canUpdate && record.user_id === 0"
+              v-if="canUpdate && record.userId === 0"
               type="link"
               size="small"
               @click="openEdit(record)"
@@ -227,7 +227,7 @@ async function load() {
       enabled: q.enabled,
       q: keyword || undefined,
       page: q.page,
-      page_size: q.pageSize,
+      pageSize: q.pageSize,
     });
     rows.value = result?.list || [];
     total.value = result?.total || 0;

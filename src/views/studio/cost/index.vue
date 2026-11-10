@@ -31,10 +31,10 @@
         <template #summary>
           <a-table-summary-row v-if="summary">
             <a-table-summary-cell><b>合计</b></a-table-summary-cell>
-            <a-table-summary-cell align="right">{{ summary.task_total }}</a-table-summary-cell>
-            <a-table-summary-cell align="right">{{ summary.task_succeeded }}</a-table-summary-cell>
-            <a-table-summary-cell align="right">{{ summary.task_failed }}</a-table-summary-cell>
-            <a-table-summary-cell align="right">{{ summary.cost_cny }}</a-table-summary-cell>
+            <a-table-summary-cell align="right">{{ summary.taskTotal }}</a-table-summary-cell>
+            <a-table-summary-cell align="right">{{ summary.taskSucceeded }}</a-table-summary-cell>
+            <a-table-summary-cell align="right">{{ summary.taskFailed }}</a-table-summary-cell>
+            <a-table-summary-cell align="right">{{ summary.costCny }}</a-table-summary-cell>
             <a-table-summary-cell align="right">{{ summary.points }}</a-table-summary-cell>
           </a-table-summary-row>
         </template>
@@ -59,17 +59,17 @@ const loading = ref(false);
 
 const columns = [
   { title: '分组', dataIndex: 'key' },
-  { title: '任务数', dataIndex: 'task_total', align: 'right' as const },
-  { title: '成功', dataIndex: 'task_succeeded', align: 'right' as const },
-  { title: '失败', dataIndex: 'task_failed', align: 'right' as const },
-  { title: '成本（元）', dataIndex: 'cost_cny', align: 'right' as const },
+  { title: '任务数', dataIndex: 'taskTotal', align: 'right' as const },
+  { title: '成功', dataIndex: 'taskSucceeded', align: 'right' as const },
+  { title: '失败', dataIndex: 'taskFailed', align: 'right' as const },
+  { title: '成本（元）', dataIndex: 'costCny', align: 'right' as const },
   { title: '点数', dataIndex: 'points', align: 'right' as const },
 ];
 
 async function load() {
   loading.value = true;
   try {
-    const result = await getCostSummary({ group_by: groupBy.value, ...rangeToMs(range.value) });
+    const result = await getCostSummary({ groupBy: groupBy.value, ...rangeToMs(range.value) });
     rows.value = result?.rows || [];
     summary.value = result?.total || null;
   } catch {

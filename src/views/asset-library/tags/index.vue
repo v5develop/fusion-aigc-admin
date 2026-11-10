@@ -27,8 +27,8 @@
         size="middle"
       >
         <template #bodyCell="{ column, record }">
-          <template v-if="column.dataIndex === 'created_at'">
-            {{ dayjs(record.created_at).format('YYYY-MM-DD HH:mm:ss') }}
+          <template v-if="column.dataIndex === 'createdAt'">
+            {{ dayjs(record.createdAt).format('YYYY-MM-DD HH:mm:ss') }}
           </template>
         </template>
       </a-table>
@@ -51,7 +51,7 @@
 import dayjs from 'dayjs';
 import { reactive, ref } from 'vue';
 
-import { listTags, type AdminTag } from '@/api/assetlib-admin';
+import { listTags, type AdminTag } from '@/api/asset-library-admin';
 
 const query = reactive({
   page: 1,
@@ -65,9 +65,9 @@ const loading = ref(false);
 
 const columns = [
   { title: '标签名', dataIndex: 'name' },
-  { title: '所属用户', dataIndex: 'user_id' },
-  { title: '使用计数', dataIndex: 'asset_count', align: 'right' as const },
-  { title: '创建时间', dataIndex: 'created_at' },
+  { title: '所属用户', dataIndex: 'userId' },
+  { title: '使用计数', dataIndex: 'assetCount', align: 'right' as const },
+  { title: '创建时间', dataIndex: 'createdAt' },
 ];
 
 async function load() {
@@ -75,8 +75,8 @@ async function load() {
   try {
     const r = await listTags({
       page: query.page,
-      page_size: query.pageSize,
-      user_id: query.userId || 0,
+      pageSize: query.pageSize,
+      userId: query.userId || 0,
       q: query.q.trim() || undefined,
     });
     list.value = r?.list || [];

@@ -43,10 +43,7 @@
     >
       <a-form :model="form" layout="vertical">
         <a-form-item label="类型">
-          <a-select
-            v-model:value="form.option_type"
-            :options="typeOptions.filter((t) => t.value)"
-          />
+          <a-select v-model:value="form.optionType" :options="typeOptions.filter((t) => t.value)" />
         </a-form-item>
         <a-form-item label="编码" :rules="[{ required: true }]">
           <a-input v-model:value="form.code" />
@@ -58,7 +55,7 @@
           <a-textarea v-model:value="form.value" :rows="4" />
         </a-form-item>
         <a-form-item label="排序（越小越靠前）">
-          <a-input-number v-model:value="form.sort_order" :min="0" style="width: 100%" />
+          <a-input-number v-model:value="form.sortOrder" :min="0" style="width: 100%" />
         </a-form-item>
         <a-form-item label="状态">
           <a-switch
@@ -100,20 +97,20 @@ const modalVisible = ref(false);
 const saving = ref(false);
 const editId = ref<number | null>(null);
 const form = reactive<OptionForm>({
-  option_type: props.types[0]?.value ?? '',
+  optionType: props.types[0]?.value ?? '',
   code: '',
   label: '',
   value: '',
-  sort_order: 0,
+  sortOrder: 0,
   status: 1,
 });
 
 const columns = [
-  { title: '类型', dataIndex: 'option_type', width: 140 },
+  { title: '类型', dataIndex: 'optionType', width: 140 },
   { title: '编码', dataIndex: 'code', width: 180 },
   { title: '显示名', dataIndex: 'label', width: 180 },
   { title: '取值', dataIndex: 'value', ellipsis: true },
-  { title: '排序', dataIndex: 'sort_order', width: 80, align: 'center' as const },
+  { title: '排序', dataIndex: 'sortOrder', width: 80, align: 'center' as const },
   { title: '状态', dataIndex: 'status', width: 90, align: 'center' as const },
   { title: '操作', dataIndex: 'operation', width: 140, align: 'center' as const },
 ];
@@ -136,11 +133,11 @@ async function load() {
 function openCreate() {
   editId.value = null;
   Object.assign(form, {
-    option_type: optionType.value || props.types[0]?.value || '',
+    optionType: optionType.value || props.types[0]?.value || '',
     code: '',
     label: '',
     value: '',
-    sort_order: 0,
+    sortOrder: 0,
     status: 1,
   });
   modalVisible.value = true;
@@ -149,11 +146,11 @@ function openCreate() {
 function openEdit(record: Option) {
   editId.value = record.id;
   Object.assign(form, {
-    option_type: record.option_type,
+    optionType: record.optionType,
     code: record.code,
     label: record.label,
     value: record.value,
-    sort_order: record.sort_order,
+    sortOrder: record.sortOrder,
     status: record.status,
   });
   modalVisible.value = true;

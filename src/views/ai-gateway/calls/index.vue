@@ -195,7 +195,7 @@ import {
 } from '@/api/ai-gateway';
 import { getCreationTaskList } from '@/api/creation-task';
 import { formatDateTime } from '@/utils/helpers';
-import { creationTaskIdFromLabels } from '@/views/creation/task/traceHelpers';
+import { creationTaskIdFromLabels } from '@/views/creation/task/trace-helpers';
 
 import { enumLabel, enumShort, fieldLabel, formText } from '../components/gatewayI18n';
 import { isTimeField } from '../components/schema';

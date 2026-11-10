@@ -46,7 +46,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 
-import { getKindStats, type KindStatsResp } from '@/api/assetlib-admin';
+import { getKindStats, type KindStatsResp } from '@/api/asset-library-admin';
 
 const SOURCES = [
   { key: 'upload', label: '上传' },
@@ -101,7 +101,7 @@ const grandTotal = computed(
 async function load() {
   loading.value = true;
   try {
-    data.value = await getKindStats({ user_id: userId.value || 0, media: media.value });
+    data.value = await getKindStats({ userId: userId.value || 0, media: media.value });
   } catch {
     /* 已由 API 层提示 */
   } finally {

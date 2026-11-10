@@ -2,6 +2,7 @@ import { message } from 'antdv-next';
 import { create, type AxiosResponse } from 'axios';
 
 import router from '@/router';
+import { toSnakeKeys } from '@/utils/api-keys';
 import { clearTokens, getToken } from '@/utils/storage';
 
 /**
@@ -78,9 +79,9 @@ export type RunBackend = 'gateway' | 'media' | 'java' | 'studio';
 
 export interface RunsQuery {
   page?: number;
-  page_size?: number;
-  user_id?: number;
-  canvas_id?: string;
+  pageSize?: number;
+  userId?: number;
+  canvasId?: string;
   kind?: RunKind | '';
   /** -1 全部；0 排队 1 运行中 2 成功 3 失败 4 已取消 5 提交中 */
   status?: number;
@@ -93,41 +94,41 @@ export interface RunsQuery {
 export interface CanvasRun {
   /** = request_id */
   id: number;
-  run_id: string;
-  task_id: string;
-  user_id: number;
-  canvas_id: string;
-  node_id: string;
+  runId: string;
+  taskId: string;
+  userId: number;
+  canvasId: string;
+  nodeId: string;
   kind: string;
   /** submitting / queued / running / succeeded / failed / cancelled */
   status: string;
   progress: number;
   model: string;
-  model_group: string;
+  modelGroup: string;
   backend: string;
-  backend_ref: string;
-  billing_request_id: string;
+  backendRef: string;
+  billingRequestId: string;
   /** none / held / settled / unsettled（已交付但确认扣费失败，待对账）/ refunded / shadow / java / studio / review */
-  billing_status: string;
+  billingStatus: string;
   credits: number;
-  cost_cny: string;
+  costCny: string;
   attempt: number;
   candidates: string[];
-  video_url: string;
+  videoUrl: string;
   text: string;
   error: string;
-  error_code: string;
+  errorCode: string;
   /** RunNodeRequest JSON 文本；蒙版只存 mask_rid，不再有 mask_data_url */
   request: string;
-  created_at: number;
-  started_at: number;
-  finished_at: number;
+  createdAt: number;
+  startedAt: number;
+  finishedAt: number;
 }
 
 export interface CostQuery {
   start?: number;
   end?: number;
-  group_by?: 'kind' | 'model_group';
+  groupBy?: 'kind' | 'model_group';
 }
 
 export interface CostRow {
@@ -136,13 +137,13 @@ export interface CostRow {
   succeeded: number;
   failed: number;
   canceled: number;
-  cost_cny: string;
+  costCny: string;
   points: number;
 }
 
 export interface TemplatesQuery {
   page?: number;
-  page_size?: number;
+  pageSize?: number;
   scope?: '' | 'official' | 'user';
   /** -1 全部 */
   enabled?: number;
@@ -152,32 +153,32 @@ export interface TemplatesQuery {
 export interface CanvasTemplate {
   id: number;
   scope: string;
-  user_id: number;
+  userId: number;
   title: string;
   description: string;
-  cover_url: string;
+  coverUrl: string;
   sort: number;
   enabled: boolean;
-  node_count: number;
-  edge_count: number;
+  nodeCount: number;
+  edgeCount: number;
   /** JSON 文本 {nodes, edges} */
   snapshot: string;
-  created_at: number;
-  updated_at: number;
+  createdAt: number;
+  updatedAt: number;
 }
 
 export interface TemplateUpsert {
   title: string;
   description?: string;
   snapshot: string;
-  cover_url?: string;
+  coverUrl?: string;
   sort?: number;
   enabled?: boolean;
 }
 
 export interface PromptsQuery {
   page?: number;
-  page_size?: number;
+  pageSize?: number;
   scope?: 'official' | 'user' | 'all';
   vertical?: string;
   group?: string;
@@ -189,7 +190,7 @@ export interface PromptsQuery {
 export interface PromptItem {
   id: number;
   /** 0 = 官方 */
-  user_id: number;
+  userId: number;
   title: string;
   prompt: string;
   vertical: string;
@@ -200,8 +201,8 @@ export interface PromptItem {
   owner: string;
   enabled: boolean;
   sort: number;
-  created_at: number;
-  updated_at: number;
+  createdAt: number;
+  updatedAt: number;
 }
 
 export interface PromptUpsert {
@@ -219,7 +220,7 @@ export interface PromptUpsert {
 // ---------------- 接口：画布 ----------------
 
 export function listRuns(query: RunsQuery) {
-  return call<PageList<CanvasRun>>(http.get(`${CANVAS}/runs`, { params: query }));
+  return call<PageList<CanvasRun>>(http.get(`${CANVAS}/runs`, { params: toSnakeKeys(query) }));
 }
 
 export function forceFailRun(id: number, reason?: string) {
@@ -229,11 +230,15 @@ export function forceFailRun(id: number, reason?: string) {
 }
 
 export function getCostSummary(query: CostQuery) {
-  return call<{ rows: CostRow[] }>(http.get(`${CANVAS}/cost-summary`, { params: query }));
+  return call<{ rows: CostRow[] }>(
+    http.get(`${CANVAS}/cost-summary`, { params: toSnakeKeys(query) }),
+  );
 }
 
 export function listTemplates(query: TemplatesQuery) {
-  return call<PageList<CanvasTemplate>>(http.get(`${CANVAS}/templates`, { params: query }));
+  return call<PageList<CanvasTemplate>>(
+    http.get(`${CANVAS}/templates`, { params: toSnakeKeys(query) }),
+  );
 }
 
 export function createTemplate(body: TemplateUpsert) {
@@ -251,7 +256,7 @@ export function toggleTemplate(id: number, enabled: boolean) {
 // ---------------- 接口：提示词库 ----------------
 
 export function listPrompts(query: PromptsQuery) {
-  return call<PageList<PromptItem>>(http.get(`${PROMPT}/prompts`, { params: query }));
+  return call<PageList<PromptItem>>(http.get(`${PROMPT}/prompts`, { params: toSnakeKeys(query) }));
 }
 
 export function createPrompt(body: PromptUpsert) {

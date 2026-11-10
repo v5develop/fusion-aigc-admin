@@ -2,6 +2,7 @@ import { message } from 'antdv-next';
 import { create, type AxiosResponse } from 'axios';
 
 import router from '@/router';
+import { toSnakeKeys } from '@/utils/api-keys';
 import { clearTokens, getToken } from '@/utils/storage';
 
 /**
@@ -61,26 +62,26 @@ async function call<T>(request: Promise<AxiosResponse<Envelope<T>>>, silent = fa
 export interface LocalLifeAdmin {
   id: number;
   username: string;
-  real_name: string;
+  realName: string;
   roles: string[];
 }
 
 export interface Option {
   id: number;
-  option_type: string;
+  optionType: string;
   code: string;
   label: string;
   value: string;
-  sort_order: number;
+  sortOrder: number;
   status: number;
 }
 
 export interface OptionForm {
-  option_type: string;
+  optionType: string;
   code: string;
   label: string;
   value?: string;
-  sort_order?: number;
+  sortOrder?: number;
   status: number;
 }
 
@@ -94,14 +95,14 @@ export interface ModelInfo {
 export interface CopywritingItem {
   id: number;
   source: string;
-  content_type: string;
-  content_type_label: string;
+  contentType: string;
+  contentTypeLabel: string;
   title: string;
   body: string;
-  word_count: number;
+  wordCount: number;
   status: number;
-  fail_reason: string;
-  create_time: number;
+  failReason: string;
+  createTime: number;
 }
 
 export interface Voice {
@@ -111,8 +112,8 @@ export interface Voice {
   gender: string;
   style: string;
   categories: string[];
-  preview_url: string;
-  sort_order: number;
+  previewUrl: string;
+  sortOrder: number;
   status: number;
 }
 
@@ -122,69 +123,69 @@ export interface VoiceForm {
   gender: 'female' | 'male';
   style?: string;
   categories?: string[];
-  preview_url?: string;
-  sort_order?: number;
+  previewUrl?: string;
+  sortOrder?: number;
   status: number;
 }
 
 export interface DigitalHumanItem {
   id: number;
-  user_id: number;
+  userId: number;
   name: string;
-  portrait_source: string;
-  image_url: string;
-  voice_id: number;
-  voice_name: string;
+  portraitSource: string;
+  imageUrl: string;
+  voiceId: number;
+  voiceName: string;
   script: string;
-  video_url: string;
+  videoUrl: string;
   duration: number;
   status: number;
-  fail_reason: string;
-  create_time: number;
+  failReason: string;
+  createTime: number;
 }
 
 export interface NoteItem {
   id: number;
-  user_id: number;
-  note_type: string;
-  note_type_label: string;
+  userId: number;
+  noteType: string;
+  noteTypeLabel: string;
   topic: string;
   title: string;
   content: string;
   tags: string[];
-  image_urls: string[];
+  imageUrls: string[];
   status: number;
-  fail_reason: string;
-  create_time: number;
+  failReason: string;
+  createTime: number;
 }
 
 export interface CreationItem {
   id: number;
-  user_id: number;
+  userId: number;
   kind: string;
   /** 成品媒体类型：image 用 image_urls；video（口播、动作迁移）用 video_url */
   media: 'image' | 'video';
   content: string;
-  image_urls: string[];
-  video_url: string;
+  imageUrls: string[];
+  videoUrl: string;
   status: number;
-  fail_reason: string;
-  create_time: number;
+  failReason: string;
+  createTime: number;
 }
 
 export interface VideoCreationItem {
   id: number;
-  user_id: number;
+  userId: number;
   kind: string;
-  user_text: string;
-  selling_points: string;
+  userText: string;
+  sellingPoints: string;
   duration: number;
   size: string;
   model: string;
-  video_url: string;
+  videoUrl: string;
   status: number;
-  fail_reason: string;
-  create_time: number;
+  failReason: string;
+  createTime: number;
 }
 
 export interface PageList<T> {
@@ -193,17 +194,17 @@ export interface PageList<T> {
 }
 
 export interface ListQuery {
-  user_id?: number;
+  userId?: number;
   status?: number;
   page?: number;
-  page_size?: number;
+  pageSize?: number;
 }
 
 // ---------------- 文案 ----------------
 
 export function listCopywritingOptions(optionType?: string) {
   return call<{ list: Option[] }>(
-    http.get(`${PREFIX}/copywriting/options`, { params: { option_type: optionType } }),
+    http.get(`${PREFIX}/copywriting/options`, { params: toSnakeKeys({ optionType: optionType }) }),
   );
 }
 
@@ -224,7 +225,9 @@ export function getCopywritingModel() {
 }
 
 export function listCopywriting(query: ListQuery & { keyword?: string }) {
-  return call<PageList<CopywritingItem>>(http.get(`${PREFIX}/copywriting`, { params: query }));
+  return call<PageList<CopywritingItem>>(
+    http.get(`${PREFIX}/copywriting`, { params: toSnakeKeys(query) }),
+  );
 }
 
 export function deleteCopywriting(id: number) {
@@ -232,8 +235,8 @@ export function deleteCopywriting(id: number) {
 }
 
 export interface ResolveCopywritingResp {
-  reservation_status: string;
-  refunded_points: number;
+  reservationStatus: string;
+  refundedPoints: number;
 }
 
 // 人工处理卡住的文案（生成中且点数已扣）：先退回已扣点数，再标记失败并记录说明；
@@ -246,7 +249,9 @@ export function resolveCopywriting(id: number, note: string) {
 
 export function listDhOptions(optionType?: string) {
   return call<{ list: Option[] }>(
-    http.get(`${PREFIX}/digital-humans/options`, { params: { option_type: optionType } }),
+    http.get(`${PREFIX}/digital-humans/options`, {
+      params: toSnakeKeys({ optionType: optionType }),
+    }),
   );
 }
 
@@ -264,7 +269,7 @@ export function deleteDhOption(id: number) {
 
 export function listVoices(category?: string) {
   return call<{ list: Voice[] }>(
-    http.get(`${PREFIX}/digital-humans/voices`, { params: { category } }),
+    http.get(`${PREFIX}/digital-humans/voices`, { params: toSnakeKeys({ category }) }),
   );
 }
 
@@ -289,22 +294,26 @@ export function getDhTtsModel() {
 }
 
 export function listDigitalHumans(query: ListQuery) {
-  return call<PageList<DigitalHumanItem>>(http.get(`${PREFIX}/digital-humans`, { params: query }));
+  return call<PageList<DigitalHumanItem>>(
+    http.get(`${PREFIX}/digital-humans`, { params: toSnakeKeys(query) }),
+  );
 }
 
 // ---------------- 图文笔记 / 海报长图 / 视频（只读） ----------------
 
 export function listNotes(query: ListQuery) {
-  return call<PageList<NoteItem>>(http.get(`${PREFIX}/notes`, { params: query }));
+  return call<PageList<NoteItem>>(http.get(`${PREFIX}/notes`, { params: toSnakeKeys(query) }));
 }
 
 export function listCreations(query: ListQuery & { kind?: string; media?: 'image' | 'video' }) {
-  return call<PageList<CreationItem>>(http.get(`${PREFIX}/creations`, { params: query }));
+  return call<PageList<CreationItem>>(
+    http.get(`${PREFIX}/creations`, { params: toSnakeKeys(query) }),
+  );
 }
 
 export function listVideoCreations(query: ListQuery & { kind?: string }) {
   return call<PageList<VideoCreationItem>>(
-    http.get(`${PREFIX}/video-creations`, { params: query }),
+    http.get(`${PREFIX}/video-creations`, { params: toSnakeKeys(query) }),
   );
 }
 
@@ -315,28 +324,28 @@ export interface GenOptionItem {
   group: string;
   code: string;
   label: string;
-  sort_order: number;
+  sortOrder: number;
   enabled: boolean;
-  is_default: boolean;
+  isDefault: boolean;
 }
 
 export interface GenOptionUpdate {
   label: string;
-  sort_order: number;
+  sortOrder: number;
   enabled: boolean;
-  is_default: boolean;
+  isDefault: boolean;
 }
 
 export interface GenKindItem {
   kind: string;
-  template_required: boolean;
+  templateRequired: boolean;
 }
 
 export function listGenOptions() {
   return call<{ list: GenOptionItem[]; kinds: GenKindItem[] }>(http.get(`${PREFIX}/gen-options`));
 }
 
-export function updateGenKind(kind: string, data: { template_required: boolean }) {
+export function updateGenKind(kind: string, data: { templateRequired: boolean }) {
   return call<GenKindItem>(http.put(`${PREFIX}/gen-kinds/${kind}`, data));
 }
 

@@ -42,8 +42,8 @@
           <template v-if="column.dataIndex === 'title'">
             <div class="title-cell">
               <a-image
-                v-if="record.cover_url"
-                :src="record.cover_url"
+                v-if="record.coverUrl"
+                :src="record.coverUrl"
                 :width="40"
                 :height="40"
                 class="cover"
@@ -51,13 +51,13 @@
               <div>
                 <div>{{ record.title }}</div>
                 <div class="muted">
-                  {{ record.scope === 'official' ? '官方' : `用户 ${record.user_id}` }}
+                  {{ record.scope === 'official' ? '官方' : `用户 ${record.userId}` }}
                 </div>
               </div>
             </div>
           </template>
           <template v-else-if="column.dataIndex === 'count'">
-            {{ record.node_count }} / {{ record.edge_count }}
+            {{ record.nodeCount }} / {{ record.edgeCount }}
           </template>
           <template v-else-if="column.dataIndex === 'enabled'">
             <a-switch
@@ -67,8 +67,8 @@
               @change="(v: boolean) => onToggle(record, v)"
             />
           </template>
-          <template v-else-if="column.dataIndex === 'updated_at'">{{
-            formatTime(record.updated_at)
+          <template v-else-if="column.dataIndex === 'updatedAt'">{{
+            formatTime(record.updatedAt)
           }}</template>
           <template v-else-if="column.key === 'action'">
             <a-button
@@ -108,7 +108,7 @@
           <a-textarea v-model:value="form.description" :rows="2" :maxlength="500" show-count />
         </a-form-item>
         <a-form-item label="封面 URL">
-          <a-input v-model:value="form.cover_url" placeholder="https://..." />
+          <a-input v-model:value="form.coverUrl" placeholder="https://..." />
         </a-form-item>
         <a-form-item label="排序（越小越靠前）">
           <a-input-number v-model:value="form.sort" :min="0" style="width: 160px" />
@@ -219,7 +219,7 @@ const columns = [
   { title: '节点 / 边', dataIndex: 'count', width: 100 },
   { title: '排序', dataIndex: 'sort', width: 80, align: 'right' as const },
   { title: '启用', dataIndex: 'enabled', width: 80 },
-  { title: '更新时间', dataIndex: 'updated_at', width: 170 },
+  { title: '更新时间', dataIndex: 'updatedAt', width: 170 },
   { title: '操作', key: 'action', width: 80, fixed: 'right' as const },
 ];
 
@@ -243,7 +243,7 @@ async function load() {
       enabled: q.enabled,
       q: q.q.trim() || undefined,
       page: q.page,
-      page_size: q.pageSize,
+      pageSize: q.pageSize,
     });
     rows.value = result?.list || [];
     total.value = result?.total || 0;
@@ -275,7 +275,7 @@ const form = reactive({
   id: 0,
   title: '',
   description: '',
-  cover_url: '',
+  coverUrl: '',
   sort: 0,
   enabled: true,
   snapshot: '',
@@ -292,7 +292,7 @@ function openEdit(record?: CanvasTemplate) {
     id: record?.id ?? 0,
     title: record?.title ?? '',
     description: record?.description ?? '',
-    cover_url: record?.cover_url ?? '',
+    coverUrl: record?.coverUrl ?? '',
     sort: record?.sort ?? 0,
     enabled: record?.enabled ?? true,
     snapshot: prettySnapshot(record?.snapshot ?? ''),
@@ -323,7 +323,7 @@ async function save() {
     const body = {
       title: form.title.trim(),
       description: form.description.trim(),
-      cover_url: form.cover_url.trim(),
+      coverUrl: form.coverUrl.trim(),
       sort: form.sort ?? 0,
       enabled: form.enabled,
       // 剥离模型 / 工具节点的运行态字段，压缩成单行再提交

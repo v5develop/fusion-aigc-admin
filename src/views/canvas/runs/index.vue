@@ -53,14 +53,14 @@
         :scroll="{ x: 1400 }"
       >
         <template #bodyCell="{ column, record }">
-          <template v-if="column.dataIndex === 'run_id'">
-            <a-typography-text copyable :content="record.run_id" style="font-size: 12px">
-              {{ record.run_id }}
+          <template v-if="column.dataIndex === 'runId'">
+            <a-typography-text copyable :content="record.runId" style="font-size: 12px">
+              {{ record.runId }}
             </a-typography-text>
           </template>
-          <template v-else-if="column.dataIndex === 'canvas_id'">
-            <div>{{ record.canvas_id }}</div>
-            <div class="muted">用户 {{ record.user_id }}</div>
+          <template v-else-if="column.dataIndex === 'canvasId'">
+            <div>{{ record.canvasId }}</div>
+            <div class="muted">用户 {{ record.userId }}</div>
           </template>
           <template v-else-if="column.dataIndex === 'kind'">
             {{ RUN_KIND_LABEL[record.kind] || record.kind }}
@@ -72,10 +72,10 @@
             <a-tag :color="statusTag(record.status).color">{{
               statusTag(record.status).text
             }}</a-tag>
-            <a-tag v-if="record.billing_status === 'unsettled'" color="warning">{{
+            <a-tag v-if="record.billingStatus === 'unsettled'" color="warning">{{
               RUN_BILLING_STATUS.unsettled.text
             }}</a-tag>
-            <a-tag v-else-if="record.billing_status === 'review'" color="warning">{{
+            <a-tag v-else-if="record.billingStatus === 'review'" color="warning">{{
               RUN_BILLING_STATUS.review.text
             }}</a-tag>
           </template>
@@ -92,17 +92,17 @@
               <span v-if="!(record.candidates || []).length" class="muted">-</span>
             </div>
           </template>
-          <template v-else-if="column.dataIndex === 'cost_cny'">
-            {{ record.cost_cny || '-' }}
+          <template v-else-if="column.dataIndex === 'costCny'">
+            {{ record.costCny || '-' }}
           </template>
           <template v-else-if="column.dataIndex === 'error'">
             <a-tooltip v-if="record.error" :title="record.error">
-              <span class="bad err">{{ record.error_code || record.error }}</span>
+              <span class="bad err">{{ record.errorCode || record.error }}</span>
             </a-tooltip>
             <span v-else class="muted">-</span>
           </template>
-          <template v-else-if="column.dataIndex === 'created_at'">{{
-            formatTime(record.created_at)
+          <template v-else-if="column.dataIndex === 'createdAt'">{{
+            formatTime(record.createdAt)
           }}</template>
           <template v-else-if="column.key === 'action'">
             <a-popconfirm
@@ -136,6 +136,7 @@ import type { Dayjs } from 'dayjs';
 
 import { message } from 'antdv-next';
 import { computed, ref } from 'vue';
+import { useRoute } from 'vue-router';
 
 import { forceFailRun, listRuns, type CanvasRun } from '@/api/canvas-admin';
 import {
@@ -165,8 +166,10 @@ const statusOptions = [
   ...RUN_STATUS_OPTIONS.map((s) => ({ label: s.text, value: s.value })),
 ];
 
+const route = useRoute();
 const query = ref({
-  canvasId: '',
+  // 支持从任务详情跳转：/canvas/runs?canvas_id=cv_xxx
+  canvasId: String(route.query.canvasId || ''),
   userId: null as number | null,
   kind: '',
   backend: '',
@@ -180,16 +183,16 @@ const total = ref(0);
 const loading = ref(false);
 
 const columns = [
-  { title: 'run_id', dataIndex: 'run_id', width: 210 },
-  { title: '画布', dataIndex: 'canvas_id', width: 170 },
-  { title: '节点', dataIndex: 'node_id', width: 130 },
+  { title: 'run_id', dataIndex: 'runId', width: 210 },
+  { title: '画布', dataIndex: 'canvasId', width: 170 },
+  { title: '节点', dataIndex: 'nodeId', width: 130 },
   { title: 'kind', dataIndex: 'kind', width: 120 },
   { title: '后端', dataIndex: 'backend', width: 90 },
   { title: '状态', dataIndex: 'status', width: 90 },
   { title: '候选图', dataIndex: 'candidates', width: 150 },
-  { title: '成本（元）', dataIndex: 'cost_cny', width: 100, align: 'right' as const },
+  { title: '成本（元）', dataIndex: 'costCny', width: 100, align: 'right' as const },
   { title: '错误', dataIndex: 'error', width: 160 },
-  { title: '创建时间', dataIndex: 'created_at', width: 170 },
+  { title: '创建时间', dataIndex: 'createdAt', width: 170 },
   { title: '操作', key: 'action', width: 100, fixed: 'right' as const },
 ];
 
@@ -223,14 +226,14 @@ async function load() {
   try {
     const q = query.value;
     const result = await listRuns({
-      canvas_id: q.canvasId.trim() || undefined,
-      user_id: q.userId ?? undefined,
+      canvasId: q.canvasId.trim() || undefined,
+      userId: q.userId ?? undefined,
       kind: (q.kind || undefined) as never,
       backend: (q.backend || undefined) as never,
       status: q.status,
       ...rangeToStartEnd(range.value),
       page: q.page,
-      page_size: q.pageSize,
+      pageSize: q.pageSize,
     });
     rows.value = result?.list || [];
     total.value = result?.total || 0;

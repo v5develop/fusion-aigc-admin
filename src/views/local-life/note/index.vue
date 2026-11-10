@@ -34,16 +34,16 @@
           <template v-if="column.dataIndex === 'content'">
             <div class="clamp-2">{{ record.content }}</div>
           </template>
-          <template v-else-if="column.dataIndex === 'image_urls'">
+          <template v-else-if="column.dataIndex === 'imageUrls'">
             <a-image-preview-group>
-              <img v-for="(src, i) in record.image_urls" :key="i" :src="src" alt="" class="thumb" />
+              <img v-for="(src, i) in record.imageUrls" :key="i" :src="src" alt="" class="thumb" />
             </a-image-preview-group>
           </template>
           <template v-else-if="column.dataIndex === 'tags'">
             <a-tag v-for="t in record.tags" :key="t">{{ t }}</a-tag>
           </template>
-          <template v-else-if="column.dataIndex === 'create_time'">{{
-            formatTime(record.create_time)
+          <template v-else-if="column.dataIndex === 'createTime'">{{
+            formatTime(record.createTime)
           }}</template>
         </template>
       </a-table>
@@ -84,16 +84,16 @@ const statusOptions = [
 ];
 
 const columns = [
-  { title: '用户', dataIndex: 'user_id', width: 90 },
-  { title: '类型', dataIndex: 'note_type_label', width: 120 },
+  { title: '用户', dataIndex: 'userId', width: 90 },
+  { title: '类型', dataIndex: 'noteTypeLabel', width: 120 },
   { title: '选题', dataIndex: 'topic', width: 160, ellipsis: true },
   { title: '标题', dataIndex: 'title', width: 200, ellipsis: true },
   { title: '正文', dataIndex: 'content' },
   { title: '标签', dataIndex: 'tags', width: 200 },
-  { title: '配图', dataIndex: 'image_urls', width: 240 },
+  { title: '配图', dataIndex: 'imageUrls', width: 240 },
   { title: '状态', dataIndex: 'status', width: 90, align: 'center' as const },
-  { title: '失败原因', dataIndex: 'fail_reason', width: 180, ellipsis: true },
-  { title: '创建时间', dataIndex: 'create_time', width: 170 },
+  { title: '失败原因', dataIndex: 'failReason', width: 180, ellipsis: true },
+  { title: '创建时间', dataIndex: 'createTime', width: 170 },
 ];
 
 function onFilterChange() {
@@ -111,10 +111,10 @@ async function load() {
   loading.value = true;
   try {
     const result = await listNotes({
-      user_id: userId.value ?? undefined,
+      userId: userId.value ?? undefined,
       status: status.value,
       page: page.value,
-      page_size: pageSize.value,
+      pageSize: pageSize.value,
     });
     rows.value = result?.list || [];
     total.value = result?.total || 0;

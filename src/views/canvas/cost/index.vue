@@ -63,7 +63,7 @@ const columns = [
   { title: '成功', dataIndex: 'succeeded', align: 'right' as const },
   { title: '失败', dataIndex: 'failed', align: 'right' as const },
   { title: '已取消', dataIndex: 'canceled', align: 'right' as const },
-  { title: '成本（元）', dataIndex: 'cost_cny', align: 'right' as const },
+  { title: '成本（元）', dataIndex: 'costCny', align: 'right' as const },
   { title: '点数', dataIndex: 'points', align: 'right' as const },
 ];
 
@@ -75,7 +75,7 @@ const summary = computed(() => {
     s.succeeded += r.succeeded;
     s.failed += r.failed;
     s.canceled += r.canceled;
-    s.cost += Number(r.cost_cny) || 0;
+    s.cost += Number(r.costCny) || 0;
     s.points += r.points;
   }
   return { ...s, cost: s.cost.toFixed(4) };
@@ -85,7 +85,7 @@ async function load() {
   loading.value = true;
   try {
     const result = await getCostSummary({
-      group_by: groupBy.value,
+      groupBy: groupBy.value,
       ...rangeToStartEnd(range.value),
     });
     rows.value = result?.rows || [];

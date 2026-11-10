@@ -2,6 +2,7 @@ import { message } from 'antdv-next';
 import { create, type AxiosResponse } from 'axios';
 
 import router from '@/router';
+import { toSnakeKeys } from '@/utils/api-keys';
 import { clearTokens, getToken } from '@/utils/storage';
 
 /**
@@ -62,20 +63,20 @@ export type AssetLibMedia = 'image' | 'video';
 
 export interface AdminTagsQuery {
   page?: number;
-  page_size?: number;
+  pageSize?: number;
   /** 0 / 空 = 全部用户 */
-  user_id?: number;
+  userId?: number;
   /** 标签名模糊 */
   q?: string;
 }
 
 export interface AdminTag {
   id: number;
-  user_id: number;
+  userId: number;
   name: string;
   /** 使用该标签的资产数 */
-  asset_count: number;
-  created_at: number;
+  assetCount: number;
+  createdAt: number;
 }
 
 export interface AdminTagsResp {
@@ -85,7 +86,7 @@ export interface AdminTagsResp {
 
 export interface KindStatsQuery {
   /** 0 / 空 = 全部用户 */
-  user_id?: number;
+  userId?: number;
   /** 空 = 图片 + 视频 */
   media?: AssetLibMedia | '';
 }
@@ -115,9 +116,9 @@ export interface KindStatsResp {
 // ---------------- 接口 ----------------
 
 export function listTags(query: AdminTagsQuery) {
-  return call<AdminTagsResp>(http.get(`${PREFIX}/tags`, { params: query }));
+  return call<AdminTagsResp>(http.get(`${PREFIX}/tags`, { params: toSnakeKeys(query) }));
 }
 
 export function getKindStats(query: KindStatsQuery) {
-  return call<KindStatsResp>(http.get(`${PREFIX}/kind-stats`, { params: query }));
+  return call<KindStatsResp>(http.get(`${PREFIX}/kind-stats`, { params: toSnakeKeys(query) }));
 }

@@ -48,12 +48,12 @@
             }}</a-tag>
           </template>
           <template v-else-if="column.dataIndex === 'tasks'">
-            <span class="ok">{{ record.task_done }}</span> /
-            <span :class="{ bad: record.task_failed > 0 }">{{ record.task_failed }}</span> /
-            {{ record.task_total }}
+            <span class="ok">{{ record.taskDone }}</span> /
+            <span :class="{ bad: record.taskFailed > 0 }">{{ record.taskFailed }}</span> /
+            {{ record.taskTotal }}
           </template>
-          <template v-else-if="column.dataIndex === 'created_at'">{{
-            formatTime(record.created_at)
+          <template v-else-if="column.dataIndex === 'createdAt'">{{
+            formatTime(record.createdAt)
           }}</template>
           <template v-else-if="column.key === 'action'">
             <a-button type="link" size="small" @click="toDetail(record.id)">详情</a-button>
@@ -112,12 +112,12 @@ const loading = ref(false);
 
 const columns = [
   { title: '批次 ID', dataIndex: 'id', width: 100 },
-  { title: '用户', dataIndex: 'user_id', width: 100 },
+  { title: '用户', dataIndex: 'userId', width: 100 },
   { title: '类型', dataIndex: 'kind', width: 100 },
   { title: '状态', dataIndex: 'status', width: 110 },
   { title: '任务 完成 / 失败 / 总数', dataIndex: 'tasks', width: 180 },
-  { title: '预估点数', dataIndex: 'estimated_points', width: 100, align: 'right' as const },
-  { title: '创建时间', dataIndex: 'created_at', width: 170 },
+  { title: '预估点数', dataIndex: 'estimatedPoints', width: 100, align: 'right' as const },
+  { title: '创建时间', dataIndex: 'createdAt', width: 170 },
   { title: '操作', key: 'action', width: 80, fixed: 'right' as const },
 ];
 
@@ -143,10 +143,10 @@ async function load() {
     const result = await listBatches({
       kind: (q.kind || undefined) as never,
       status: q.status,
-      user_id: q.userId ?? undefined,
+      userId: q.userId ?? undefined,
       ...rangeToMs(range.value),
       page: q.page,
-      page_size: q.pageSize,
+      pageSize: q.pageSize,
     });
     rows.value = result?.list || [];
     total.value = result?.total || 0;
