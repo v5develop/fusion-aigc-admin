@@ -1041,9 +1041,7 @@ import {
   fixTaskContentType,
   deleteCreationTask,
   canShowDeleteTask,
-  extractCheckCode,
-  DELETE_CHECK_NOT_FOUND,
-  DELETE_CHECK_STATE_CHANGED,
+  deleteRejectionOf,
 } from '@/api/creation-task';
 import { getCreationTaskModerationLogs } from '@/api/moderation-log';
 import ReconcileRetryModal from '@/components/Billing/ReconcileRetryModal.vue';
@@ -1912,8 +1910,8 @@ function handleDelete() {
         handleBack();
       } catch (error) {
         const msg = (error as Error)?.message || t('creationTask.deleteFailed');
-        const check = extractCheckCode(msg);
-        if (check === DELETE_CHECK_NOT_FOUND) {
+        const rejection = deleteRejectionOf(error);
+        if (rejection === 'not_found') {
           // 已被删除：回列表（列表激活时会重查），不再提示过期的错误
           message.info(t('creationTask.deleteSuccess'));
           handleBack();
@@ -1921,7 +1919,7 @@ function handleDelete() {
         }
         // 其余拒绝原样提示后端消息，后端已写明原因
         message.error(msg);
-        if (check === DELETE_CHECK_STATE_CHANGED) loadTask();
+        if (rejection === 'state_changed') loadTask();
       } finally {
         deleting.value = false;
       }

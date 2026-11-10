@@ -175,6 +175,7 @@ export default {
     creaftCatalog: '数据目录',
     creaftTemplate: '公共模板',
     creaftPlazaTemplate: '创意广场模板',
+    creaftPlazaHeadline: '本周头条',
     creaftLocalLifeTemplate: '本地生活模板',
     creaftUserLocalLifeTemplate: '用户自建模板',
     creaftSkill: '技能目录',

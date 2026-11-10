@@ -614,6 +614,18 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
+        // 智能体首页「本周头条」：从已启用的广场模板里挑本周爆款 + 一句推荐语；用户端 GET /api/v1/plaza-headlines
+        path: 'plaza-headlines',
+        name: 'CreaftPlazaHeadline',
+        component: () => import('@/views/creaft/plaza-headline/index.vue'),
+        meta: {
+          title: 'menu.creaftPlazaHeadline',
+          icon: 'FireOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'creaft_catalog:view',
+        },
+      },
+      {
         // 用户自建本地生活模板：只读。这是用户的私有内容，后台不代改、不代删；查看详情写审计
         path: 'user-local-life-templates',
         name: 'CreaftUserLocalLifeTemplate',

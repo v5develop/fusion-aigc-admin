@@ -223,6 +223,7 @@ export default {
     creaftCatalog: 'データカタログ',
     creaftTemplate: '公開テンプレート',
     creaftPlazaTemplate: '広場テンプレート',
+    creaftPlazaHeadline: '今週のヘッドライン',
     creaftLocalLifeTemplate: 'ローカルライフテンプレート',
     creaftUserLocalLifeTemplate: 'ユーザーテンプレート',
     creaftSkill: 'スキルカタログ',

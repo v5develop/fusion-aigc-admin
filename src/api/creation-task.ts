@@ -228,7 +228,7 @@ export function cancelCreationTask(taskId: string) {
   return request.post(`/api/v1/admin/creation/tasks/${taskId}/cancel`);
 }
 
-/** 删除拒绝时后端 msg 里带的判据码（形如 "(check=creation.delete_state_changed)"） */
+/** 旧后端删除拒绝时 msg 里带的判据码（形如 "(check=creation.delete_state_changed)"）；新后端改用业务码，见 deleteRejectionOf */
 export const DELETE_CHECK_STATE_CHANGED = 'creation.delete_state_changed';
 export const DELETE_CHECK_BILLING_UNSETTLED = 'creation.delete_billing_unsettled';
 /** 任务已被删除（并发删除或重复点击）：回列表刷新，不再提示过期的错误 */
@@ -254,6 +254,26 @@ export function canShowDeleteTask(
 export function extractCheckCode(msg?: string | null): string | undefined {
   const m = /\(check=([\w.-]+)\)/.exec(msg ?? '');
   return m ? m[1] : undefined;
+}
+
+/**
+ * 删除拒绝的业务码（CommonResult.code）：后端已不在 msg 里带判据，按码分支。
+ * 4001 RESOURCE_NOT_FOUND = 不存在或已删除；3014 TASK_DELETE_STATE_CHANGED = 读之后任务或子任务已变化。
+ */
+export const DELETE_CODE_NOT_FOUND = 4001;
+export const DELETE_CODE_STATE_CHANGED = 3014;
+
+/**
+ * 删除被拒的种类：先看业务码，再兼容旧后端 msg 里的 "(check=…)"；都没有返回 undefined（原样提示 msg）。
+ */
+export function deleteRejectionOf(error: unknown): 'not_found' | 'state_changed' | undefined {
+  const code = (error as { code?: unknown } | null)?.code;
+  if (code === DELETE_CODE_NOT_FOUND) return 'not_found';
+  if (code === DELETE_CODE_STATE_CHANGED) return 'state_changed';
+  const check = extractCheckCode((error as Error | null)?.message);
+  if (check === DELETE_CHECK_NOT_FOUND) return 'not_found';
+  if (check === DELETE_CHECK_STATE_CHANGED) return 'state_changed';
+  return undefined;
 }
 
 /**

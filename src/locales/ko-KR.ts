@@ -223,6 +223,7 @@ export default {
     creaftCatalog: '데이터 카탈로그',
     creaftTemplate: '공개 템플릿',
     creaftPlazaTemplate: '광장 템플릿',
+    creaftPlazaHeadline: '이번 주 헤드라인',
     creaftLocalLifeTemplate: '로컬 라이프 템플릿',
     creaftUserLocalLifeTemplate: '사용자 템플릿',
     creaftSkill: '스킬 카탈로그',

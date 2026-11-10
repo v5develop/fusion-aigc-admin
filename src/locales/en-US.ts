@@ -171,6 +171,7 @@ export default {
     creaftCatalog: 'Data Catalog',
     creaftTemplate: 'Public Templates',
     creaftPlazaTemplate: 'Plaza Templates',
+    creaftPlazaHeadline: 'Weekly Headlines',
     creaftLocalLifeTemplate: 'Local Life Templates',
     creaftUserLocalLifeTemplate: 'User Templates',
     creaftSkill: 'Skill Catalog',
