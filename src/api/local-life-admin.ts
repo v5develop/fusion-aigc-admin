@@ -2,7 +2,6 @@ import { message } from 'antdv-next';
 import { create, type AxiosResponse } from 'axios';
 
 import router from '@/router';
-import { toSnakeKeys } from '@/utils/api-keys';
 import { clearTokens, getToken } from '@/utils/storage';
 
 /**
@@ -204,7 +203,7 @@ export interface ListQuery {
 
 export function listCopywritingOptions(optionType?: string) {
   return call<{ list: Option[] }>(
-    http.get(`${PREFIX}/copywriting/options`, { params: toSnakeKeys({ optionType: optionType }) }),
+    http.get(`${PREFIX}/copywriting/options`, { params: { optionType } }),
   );
 }
 
@@ -225,9 +224,7 @@ export function getCopywritingModel() {
 }
 
 export function listCopywriting(query: ListQuery & { keyword?: string }) {
-  return call<PageList<CopywritingItem>>(
-    http.get(`${PREFIX}/copywriting`, { params: toSnakeKeys(query) }),
-  );
+  return call<PageList<CopywritingItem>>(http.get(`${PREFIX}/copywriting`, { params: query }));
 }
 
 export function deleteCopywriting(id: number) {
@@ -250,7 +247,7 @@ export function resolveCopywriting(id: number, note: string) {
 export function listDhOptions(optionType?: string) {
   return call<{ list: Option[] }>(
     http.get(`${PREFIX}/digital-humans/options`, {
-      params: toSnakeKeys({ optionType: optionType }),
+      params: { optionType },
     }),
   );
 }
@@ -269,7 +266,7 @@ export function deleteDhOption(id: number) {
 
 export function listVoices(category?: string) {
   return call<{ list: Voice[] }>(
-    http.get(`${PREFIX}/digital-humans/voices`, { params: toSnakeKeys({ category }) }),
+    http.get(`${PREFIX}/digital-humans/voices`, { params: { category } }),
   );
 }
 
@@ -294,26 +291,22 @@ export function getDhTtsModel() {
 }
 
 export function listDigitalHumans(query: ListQuery) {
-  return call<PageList<DigitalHumanItem>>(
-    http.get(`${PREFIX}/digital-humans`, { params: toSnakeKeys(query) }),
-  );
+  return call<PageList<DigitalHumanItem>>(http.get(`${PREFIX}/digital-humans`, { params: query }));
 }
 
 // ---------------- 图文笔记 / 海报长图 / 视频（只读） ----------------
 
 export function listNotes(query: ListQuery) {
-  return call<PageList<NoteItem>>(http.get(`${PREFIX}/notes`, { params: toSnakeKeys(query) }));
+  return call<PageList<NoteItem>>(http.get(`${PREFIX}/notes`, { params: query }));
 }
 
 export function listCreations(query: ListQuery & { kind?: string; media?: 'image' | 'video' }) {
-  return call<PageList<CreationItem>>(
-    http.get(`${PREFIX}/creations`, { params: toSnakeKeys(query) }),
-  );
+  return call<PageList<CreationItem>>(http.get(`${PREFIX}/creations`, { params: query }));
 }
 
 export function listVideoCreations(query: ListQuery & { kind?: string }) {
   return call<PageList<VideoCreationItem>>(
-    http.get(`${PREFIX}/video-creations`, { params: toSnakeKeys(query) }),
+    http.get(`${PREFIX}/video-creations`, { params: query }),
   );
 }
 

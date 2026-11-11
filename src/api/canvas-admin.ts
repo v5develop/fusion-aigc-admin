@@ -2,7 +2,6 @@ import { message } from 'antdv-next';
 import { create, type AxiosResponse } from 'axios';
 
 import router from '@/router';
-import { toSnakeKeys } from '@/utils/api-keys';
 import { clearTokens, getToken } from '@/utils/storage';
 
 /**
@@ -220,7 +219,7 @@ export interface PromptUpsert {
 // ---------------- 接口：画布 ----------------
 
 export function listRuns(query: RunsQuery) {
-  return call<PageList<CanvasRun>>(http.get(`${CANVAS}/runs`, { params: toSnakeKeys(query) }));
+  return call<PageList<CanvasRun>>(http.get(`${CANVAS}/runs`, { params: query }));
 }
 
 export function forceFailRun(id: number, reason?: string) {
@@ -230,15 +229,11 @@ export function forceFailRun(id: number, reason?: string) {
 }
 
 export function getCostSummary(query: CostQuery) {
-  return call<{ rows: CostRow[] }>(
-    http.get(`${CANVAS}/cost-summary`, { params: toSnakeKeys(query) }),
-  );
+  return call<{ rows: CostRow[] }>(http.get(`${CANVAS}/cost-summary`, { params: query }));
 }
 
 export function listTemplates(query: TemplatesQuery) {
-  return call<PageList<CanvasTemplate>>(
-    http.get(`${CANVAS}/templates`, { params: toSnakeKeys(query) }),
-  );
+  return call<PageList<CanvasTemplate>>(http.get(`${CANVAS}/templates`, { params: query }));
 }
 
 export function createTemplate(body: TemplateUpsert) {
@@ -256,7 +251,7 @@ export function toggleTemplate(id: number, enabled: boolean) {
 // ---------------- 接口：提示词库 ----------------
 
 export function listPrompts(query: PromptsQuery) {
-  return call<PageList<PromptItem>>(http.get(`${PROMPT}/prompts`, { params: toSnakeKeys(query) }));
+  return call<PageList<PromptItem>>(http.get(`${PROMPT}/prompts`, { params: query }));
 }
 
 export function createPrompt(body: PromptUpsert) {

@@ -2,7 +2,6 @@ import { message } from 'antdv-next';
 import { create, type AxiosResponse } from 'axios';
 
 import router from '@/router';
-import { toSnakeKeys } from '@/utils/api-keys';
 import { clearTokens, getToken } from '@/utils/storage';
 
 /**
@@ -116,9 +115,9 @@ export interface KindStatsResp {
 // ---------------- 接口 ----------------
 
 export function listTags(query: AdminTagsQuery) {
-  return call<AdminTagsResp>(http.get(`${PREFIX}/tags`, { params: toSnakeKeys(query) }));
+  return call<AdminTagsResp>(http.get(`${PREFIX}/tags`, { params: query }));
 }
 
 export function getKindStats(query: KindStatsQuery) {
-  return call<KindStatsResp>(http.get(`${PREFIX}/kind-stats`, { params: toSnakeKeys(query) }));
+  return call<KindStatsResp>(http.get(`${PREFIX}/kind-stats`, { params: query }));
 }

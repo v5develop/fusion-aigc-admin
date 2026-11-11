@@ -2,7 +2,6 @@ import { message } from 'antdv-next';
 import { create, type AxiosResponse } from 'axios';
 
 import router from '@/router';
-import { toSnakeKeys } from '@/utils/api-keys';
 import { clearTokens, getToken } from '@/utils/storage';
 
 /**
@@ -281,7 +280,7 @@ export interface CostQuery {
 // ---------------- 接口 ----------------
 
 export function listBatches(query: ListQuery) {
-  return call<PageList<Batch>>(http.get(`${PREFIX}/batches`, { params: toSnakeKeys(query) }));
+  return call<PageList<Batch>>(http.get(`${PREFIX}/batches`, { params: query }));
 }
 
 export function getBatch(id: number | string) {
@@ -301,5 +300,5 @@ export function getSidecarStatus() {
 }
 
 export function getCostSummary(query: CostQuery) {
-  return call<CostSummary>(http.get(`${PREFIX}/cost-summary`, { params: toSnakeKeys(query) }));
+  return call<CostSummary>(http.get(`${PREFIX}/cost-summary`, { params: query }));
 }
