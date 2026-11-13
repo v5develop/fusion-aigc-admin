@@ -155,7 +155,7 @@ export default {
     llDigitalHuman: 'AI 数字人',
     llNote: '图文笔记',
     llCreations: '海报 / 长图 / 视频',
-    studio: '创作工坊（studio）',
+    studio: '创作商拍',
     studioBatches: '批次列表',
     studioBatchDetail: '批次详情',
     studioCost: '成本汇总',

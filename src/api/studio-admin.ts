@@ -5,7 +5,7 @@ import router from '@/router';
 import { clearTokens, getToken } from '@/utils/storage';
 
 /**
- * 创作工坊（studio：商拍 / 姿态 / 图片生成）运营后台接口。
+ * 创作商拍（studio：商拍 / 姿态 / 图片生成）运营后台接口。
  * fusion_aigc_go 的 admin-api，前缀 /api/v1/studio/admin。
  *
  * 信封与鉴权与 local-life-admin 一致：HTTP 恒为 200，业务结果看 code（0 成功；1002 未登录）。
@@ -175,7 +175,32 @@ export interface StudioTraceStage {
   detail: string | null;
 }
 
+/** 一张图：ref 是库里的原始引用（可复制），url 是后端现签的短期预览地址，签不出为 null */
+export interface StudioImage {
+  ref: string;
+  url: string | null;
+  id?: string;
+  role?: string;
+}
+
+export interface StudioTaskMedia {
+  taskId: string;
+  /** 统一链路 /creation/tasks/{id}/spans 用的任务号（AiCreation_LF_…） */
+  traceTaskId: string;
+  /** 送生图的图序 */
+  inputs: StudioImage[];
+  output: StudioImage | null;
+  mask: StudioImage | null;
+  maskParts: { part: string; image: StudioImage }[];
+}
+
+export interface StudioMedia {
+  selectedImages: { modelIndex: number; images: StudioImage[] }[];
+  tasks: StudioTaskMedia[];
+}
+
 export interface StudioDiagnostics {
+  media?: StudioMedia;
   trace: {
     taskId: string;
     traceId: string;
@@ -192,6 +217,8 @@ export interface StudioDiagnostics {
   };
   workflowSteps: {
     stepPath: string;
+    taskId?: string;
+    traceTaskId?: string;
     status: string;
     operation: string;
     modelGroup: string | null;

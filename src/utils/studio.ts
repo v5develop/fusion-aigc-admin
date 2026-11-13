@@ -67,3 +67,43 @@ export function parseJson<T>(text: string | undefined | null, fallback: T): T {
     return fallback;
   }
 }
+
+/** step_log 步骤码 -> 中文名（唯一一处，后端新增步骤码时只改这里；未收录的原样显示） */
+export const STEP_LABEL: Record<string, string> = {
+  submitted: '提交成功',
+  submit_aborted: '提交中止',
+  hold_failed: '冻结点数失败',
+  ingest: '收图入库',
+  conform: '图片规整',
+  crop_plan: '切图方案',
+  crop: '切图',
+  crop_check: '切图质检',
+  select: '组图（选反推读图）',
+  analyze: '反推提示词',
+  pose_source: '姿态源图',
+  pose_prompt: '姿态提示词',
+  generate: '生图',
+  transfer: '成品转存',
+  failed: '批次失败',
+  done: '批次完成',
+};
+
+export function stepLabel(code: string): string {
+  return STEP_LABEL[code] ?? code;
+}
+
+/** unix 毫秒 -> HH:mm:ss.SSS */
+export function formatClock(ms: number | null | undefined): string {
+  if (!ms) return '-';
+  const d = new Date(ms);
+  const p = (n: number, w = 2) => String(n).padStart(w, '0');
+  return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}.${p(d.getMilliseconds(), 3)}`;
+}
+
+/** 毫秒时长 -> 人话（<1s 显示 ms，其余秒 / 分） */
+export function formatMs(ms: number | null | undefined): string {
+  if (ms == null) return '-';
+  if (ms < 1000) return `${ms} ms`;
+  if (ms < 60000) return `${(ms / 1000).toFixed(1)} s`;
+  return `${Math.floor(ms / 60000)} 分 ${Math.round((ms % 60000) / 1000)} 秒`;
+}

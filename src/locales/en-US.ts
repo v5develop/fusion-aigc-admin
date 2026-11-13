@@ -151,7 +151,7 @@ export default {
     llDigitalHuman: 'Digital Human',
     llNote: 'Notes',
     llCreations: 'Posters / Videos',
-    studio: 'Creation Studio',
+    studio: 'Creative Product Shoot',
     studioBatches: 'Batches',
     studioBatchDetail: 'Batch Detail',
     studioCost: 'Cost Summary',
