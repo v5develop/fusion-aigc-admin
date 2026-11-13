@@ -796,11 +796,11 @@ function openGatewayCall(callId: string) {
   background: var(--tw-c);
   opacity: 0.9;
 }
+/* 根节点「任务」：与子节点同样的实心状态色（同商拍批次页的观感），略矮、略淡，表示整体跨度 */
 .tw-bar--root {
-  border: 1px solid color-mix(in srgb, var(--tw-c) 40%, transparent);
-  background: color-mix(in srgb, var(--tw-c) 8%, transparent);
-  box-sizing: border-box;
-  opacity: 1;
+  top: 11px;
+  height: 10px;
+  opacity: 0.55;
 }
 .tw-bar--running {
   background-image: linear-gradient(

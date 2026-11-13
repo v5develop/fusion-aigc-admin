@@ -1294,7 +1294,8 @@ let traceLastFingerprint = '';
 /** 组件处于激活态（未被 KeepAlive 切走、未卸载） */
 let traceActive = true;
 /** 链路卡片折叠面板：任务链路是主视图，默认展开；用户折叠后不请求、不轮询 */
-const traceActiveKey = ref<string[]>(['trace']);
+// 任务链路默认折叠（展开才拉取 /spans）；从调用检索跳转（trace=1）时才自动展开
+const traceActiveKey = ref<string[]>([]);
 const traceOpen = computed(() => traceActiveKey.value.includes('trace'));
 /** 从调用检索（?trace=1）进入时自动展开一次；记下任务号，之后用户收起不会被再次展开 */
 let autoExpandTraceFor: number | null = null;
