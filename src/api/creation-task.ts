@@ -666,6 +666,80 @@ export function getTaskTrace(taskId: string) {
   );
 }
 
+// ======================== 统一链路（spans）：语言无关的任务调用树 ========================
+
+/** span 所属服务；未知值在渲染层按 java 兜底 */
+export type TaskSpanService = 'java' | 'go' | 'media' | 'gateway' | 'gpu' | 'admin' | 'user';
+/** span 状态；未知值在渲染层按 pending 兜底 */
+export type TaskSpanStatus =
+  | 'ok'
+  | 'failed'
+  | 'running'
+  | 'cancelled'
+  | 'timeout'
+  | 'skipped'
+  | 'pending';
+
+export interface TaskSpanExternal {
+  /** 如 gateway_call / media_op / gpu_job */
+  type: string;
+  ref: string;
+}
+
+export interface TaskSpanFailure {
+  class?: string | null;
+  code?: string | null;
+  /** 命中的判据 */
+  check?: string | null;
+  message?: string | null;
+}
+
+export interface TaskSpan {
+  id: string;
+  parentId: string | null;
+  service: TaskSpanService;
+  key: string;
+  label: string;
+  status: TaskSpanStatus;
+  /** ISO 字符串（兼容毫秒时间戳） */
+  startAt: string | number | null;
+  endAt: string | number | null;
+  durationMs: number | null;
+  attempt: number | null;
+  external: TaskSpanExternal | null;
+  failure: TaskSpanFailure | null;
+  attrs: Record<string, string | number | boolean>;
+}
+
+export interface TaskSpansHint {
+  text: string;
+  manualSection?: string | null;
+}
+
+export interface TaskSpans {
+  taskId: string;
+  /** 任务是否已终态；true 时前端停止轮询 */
+  terminal: boolean;
+  startedAt: string | number | null;
+  endedAt: string | number | null;
+  totalMs: number | null;
+  stuckSpanId: string | null;
+  failingSpanId: string | null;
+  spans: TaskSpan[];
+  hints: TaskSpansHint[];
+}
+
+/** 统一链路；旧后端 404 时调用方回退到 getTaskTrace */
+export function getTaskSpans(taskId: string) {
+  return request.get<TaskSpans>(
+    `/api/v1/admin/creation/tasks/${encodeURIComponent(taskId)}/spans`,
+    {
+      silentError: true,
+      noErrorRedirect: true,
+    } as AxiosRequestConfig,
+  );
+}
+
 export function getPipelineSteps(taskId: string) {
   return request.get<PipelineStepsResponse>(`/api/v1/admin/creation/tasks/${taskId}/steps`);
 }

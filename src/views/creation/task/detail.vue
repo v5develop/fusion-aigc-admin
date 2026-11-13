@@ -120,10 +120,11 @@
           <a-collapse-panel key="trace" :header="$t('creationTask.trace.title')">
             <template #extra>
               <a-space v-if="traceOpen" @click.stop @keypress.stop>
-                <span v-if="trace?.traceId" class="trace-meta">
-                  {{ $t('creationTask.trace.traceId') }}: <code>{{ trace.traceId }}</code>
+                <span v-if="trace?.traceId || spans?.taskId" class="trace-meta">
+                  {{ $t('creationTask.trace.traceId') }}:
+                  <code>{{ trace?.traceId || spans?.taskId }}</code>
                 </span>
-                <span v-if="trace?.generatedAt" class="trace-meta">
+                <span v-if="!spans && trace?.generatedAt" class="trace-meta">
                   {{ $t('creationTask.trace.generatedAt') }}: {{ trace.generatedAt }}
                 </span>
                 <a-tag v-if="tracePolling" color="processing">{{
@@ -166,7 +167,8 @@
             <div v-else-if="traceError" class="error-text" style="margin-bottom: 8px">
               {{ $t('creationTask.trace.loadFail') }}: {{ traceError }}
             </div>
-            <template v-if="trace">
+            <TraceWaterfall v-if="spans" :data="spans" :can-open-gateway="can('ai_gateway:view')" />
+            <template v-else-if="trace">
               <a-alert
                 v-if="trace.stuckAt"
                 type="warning"
@@ -390,16 +392,45 @@
 
       <!-- Error Info -->
       <a-card
-        v-if="task?.errorMsg"
+        v-if="task?.errorMsg || failingSpan"
         :title="$t('creationTask.errorInfo')"
         style="margin-bottom: 16px"
       >
         <a-alert type="error" show-icon>
           <template #message>
-            <span>{{ decodeUnicode(task.errorMsg) }}</span>
+            <span>{{
+              task?.errorMsg ? decodeUnicode(task.errorMsg) : failureSummary(failingSpan)
+            }}</span>
             <a-button type="link" size="small" style="padding: 0 4px" @click="showApiLogs">
               {{ $t('creationTask.errorDetail') }}
             </a-button>
+          </template>
+          <!-- 失败 span（统一链路）：哪个节点、哪类失败、命中哪条判据、现场属性 -->
+          <template v-if="failingSpan" #description>
+            <div class="err-span">
+              <a-tag :color="serviceColor(failingSpan.service)">{{
+                $t(`creationTask.spans.service.${normalizeService(failingSpan.service)}`)
+              }}</a-tag>
+              <b>{{ failingSpan.label || failingSpan.key }}</b>
+              <code class="err-span__key">{{ failingSpan.key }}</code>
+            </div>
+            <div v-if="failingSpan.failure?.class">
+              {{ $t('creationTask.spans.failureClass') }}:
+              <code>{{ failingSpan.failure.class }}</code>
+            </div>
+            <div v-if="failingSpan.failure?.code">
+              {{ $t('creationTask.spans.failureCode') }}:
+              <code>{{ failingSpan.failure.code }}</code>
+            </div>
+            <div v-if="failingSpan.failure?.check">
+              {{ $t('creationTask.trace.check') }}: <code>{{ failingSpan.failure.check }}</code>
+            </div>
+            <div v-if="failingSpan.failure?.message" class="err-span__msg">
+              {{ failingSpan.failure.message }}
+            </div>
+            <div v-if="Object.keys(failingSpan.attrs || {}).length" class="err-span__attrs">
+              <a-tag v-for="(v, k) in failingSpan.attrs" :key="k">{{ k }}: {{ String(v) }}</a-tag>
+            </div>
           </template>
         </a-alert>
       </a-card>
@@ -704,34 +735,43 @@
                     {{ diagnosis.task?.statusLabel || '-' }}
                   </a-descriptions-item>
                   <a-descriptions-item :label="$t('creationTask.diagnosis.failureCode')">
-                    <code v-if="diagnosis.failingStep?.failureCode">{{
-                      diagnosis.failingStep.failureCode
-                    }}</code>
+                    <code v-if="diagFailing.code">{{ diagFailing.code }}</code>
                     <span v-else>-</span>
                   </a-descriptions-item>
                   <a-descriptions-item :label="$t('creationTask.diagnosis.blockedStep')">
-                    <code v-if="diagnosis.failingStep?.stepPath">{{
-                      diagnosis.failingStep.stepPath
-                    }}</code>
+                    <code v-if="diagFailing.step">{{ diagFailing.step }}</code>
                     <span v-else>-</span>
                   </a-descriptions-item>
                   <a-descriptions-item :label="$t('creationTask.diagnosis.gatewayCall')">
+                    <router-link
+                      v-if="
+                        diagFailing.gatewayCallId &&
+                        can('ai_gateway:view') &&
+                        !diagFailing.gatewayCallLink
+                      "
+                      :to="{
+                        path: '/ai-gateway/calls',
+                        query: { callId: diagFailing.gatewayCallId },
+                      }"
+                    >
+                      {{ diagFailing.gatewayCallId }}
+                    </router-link>
                     <a
-                      v-if="safeLink(diagnosis.failingStep?.gatewayCallLink)"
-                      :href="diagnosis.failingStep?.gatewayCallLink || ''"
+                      v-else-if="safeLink(diagFailing.gatewayCallLink)"
+                      :href="diagFailing.gatewayCallLink || ''"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      {{
-                        diagnosis.failingStep?.gatewayCallId ||
-                        diagnosis.failingStep?.gatewayCallLink
-                      }}
+                      {{ diagFailing.gatewayCallId || diagFailing.gatewayCallLink }}
                     </a>
+                    <code v-else-if="diagFailing.gatewayCallId">{{
+                      diagFailing.gatewayCallId
+                    }}</code>
                     <span v-else>-</span>
                   </a-descriptions-item>
                 </a-descriptions>
 
-                <div v-if="diagnosis.hints?.length" class="diag-section">
+                <div v-if="!spans && diagnosis.hints?.length" class="diag-section">
                   <div class="diag-title">{{ $t('creationTask.diagnosis.hints') }}</div>
                   <ul class="diag-hints">
                     <li v-for="(h, i) in diagnosis.hints" :key="i">
@@ -829,7 +869,47 @@
                   />
                 </div>
 
-                <div class="diag-section">
+                <div v-if="spans" class="diag-section">
+                  <div class="diag-title">{{ $t('creationTask.spans.spanTimeline') }}</div>
+                  <a-table
+                    :columns="spanTimelineColumns"
+                    :data-source="spanTimeline"
+                    :pagination="{ pageSize: 50, size: 'small', hideOnSinglePage: true }"
+                    :row-key="(r: TaskSpan) => r.id"
+                    size="small"
+                    :scroll="{ x: 900 }"
+                  >
+                    <template #bodyCell="{ column, record }">
+                      <template v-if="column.dataIndex === 'startAt'">{{
+                        formatDateTime(record.startAt)
+                      }}</template>
+                      <template v-else-if="column.dataIndex === 'service'">
+                        <a-tag :color="serviceColor(record.service)">{{
+                          $t(`creationTask.spans.service.${normalizeService(record.service)}`)
+                        }}</a-tag>
+                      </template>
+                      <template v-else-if="column.dataIndex === 'label'">
+                        {{ record.label || record.key }}
+                        <code class="err-span__key">{{ record.key }}</code>
+                      </template>
+                      <template v-else-if="column.dataIndex === 'status'">
+                        <a-tag :color="spanStatusColor(record.status)">{{
+                          $t(`creationTask.spans.status.${normalizeStatus(record.status)}`)
+                        }}</a-tag>
+                      </template>
+                      <template v-else-if="column.dataIndex === 'durationMs'">{{
+                        formatDuration(record.durationMs)
+                      }}</template>
+                      <template v-else-if="column.dataIndex === 'failure'">
+                        <span v-if="record.failure" class="error-text">{{
+                          failureSummary(record)
+                        }}</span>
+                        <span v-else>-</span>
+                      </template>
+                    </template>
+                  </a-table>
+                </div>
+                <div v-else class="diag-section">
                   <div class="diag-title">{{ $t('creationTask.diagnosis.timeline') }}</div>
                   <a-table
                     :columns="timelineColumns"
@@ -1046,6 +1126,8 @@ import type {
   DiagnosisMediaOp,
   TimelineEvent,
   TaskTrace,
+  TaskSpan,
+  TaskSpans,
 } from '@/api/creation-task';
 import type { ModerationLog } from '@/api/moderation-log';
 
@@ -1078,6 +1160,7 @@ import {
   getTaskDiagnosis,
   getTaskTimeline,
   getTaskTrace,
+  getTaskSpans,
   fixTaskContentType,
   deleteCreationTask,
   canShowDeleteTask,
@@ -1085,8 +1168,20 @@ import {
 } from '@/api/creation-task';
 import { getCreationTaskModerationLogs } from '@/api/moderation-log';
 import ReconcileRetryModal from '@/components/Billing/ReconcileRetryModal.vue';
+import {
+  failureSummary,
+  normalizeService,
+  normalizeStatus,
+  pickFailingSpan,
+  serviceColor,
+  shouldStopSpansPolling,
+  sortSpansByTime,
+  spansFingerprint,
+  statusColor as spanStatusColor,
+} from '@/components/TraceWaterfall/helpers';
+import TraceWaterfall from '@/components/TraceWaterfall/index.vue';
 import { usePermission } from '@/composables/usePermission';
-import { decodeUnicode } from '@/utils/helpers';
+import { decodeUnicode, formatDateTime } from '@/utils/helpers';
 
 import {
   formatDuration,
@@ -1153,6 +1248,10 @@ function normalizeCollapseKeys(keys: unknown): string[] {
 // 「刷新/重试」按钮：清零失败与退避计数，回到 polling 立刻拉一次（由响应决定是否继续）。
 type TracePollState = 'idle' | 'polling' | 'settled' | 'failed' | 'unavailable';
 const trace = ref<TaskTrace | null>(null);
+/** 统一链路（spans）：有值时是 任务链路 / 错误信息 / 诊断 / 时间线 的唯一数据源；旧后端 404 时为 null，回退旧 trace */
+const spans = ref<TaskSpans | null>(null);
+/** /spans 接口 404（旧后端）后本页不再请求，直到用户点「刷新/重试」 */
+let spansMissing = false;
 const traceLoading = ref(false);
 const traceError = ref('');
 const tracePollState = ref<TracePollState>('idle');
@@ -1168,8 +1267,8 @@ let traceUnchanged = 0;
 let traceLastFingerprint = '';
 /** 组件处于激活态（未被 KeepAlive 切走、未卸载） */
 let traceActive = true;
-/** 链路卡片折叠面板：默认折叠，折叠时不请求、不轮询 */
-const traceActiveKey = ref<string[]>([]);
+/** 链路卡片折叠面板：任务链路是主视图，默认展开；用户折叠后不请求、不轮询 */
+const traceActiveKey = ref<string[]>(['trace']);
 const traceOpen = computed(() => traceActiveKey.value.includes('trace'));
 /** 从调用检索（?trace=1）进入时自动展开一次；记下任务号，之后用户收起不会被再次展开 */
 let autoExpandTraceFor: number | null = null;
@@ -1191,6 +1290,37 @@ const traceStages = computed(() =>
     }),
 );
 const stuckRowIndex = computed(() => pickStuckRow(trace.value));
+/** 失败 span / 时间线都从同一份 spans 派生，三处不再各有数据源 */
+const failingSpan = computed(() => pickFailingSpan(spans.value));
+const spanTimeline = computed(() => sortSpansByTime(spans.value?.spans));
+const spanTimelineColumns = [
+  { title: t('creationTask.spans.startAt'), dataIndex: 'startAt', width: 170 },
+  { title: t('creationTask.diagnosis.source'), dataIndex: 'service', width: 100 },
+  { title: t('creationTask.spans.node'), dataIndex: 'label', width: 280 },
+  { title: t('creationTask.diagnosis.status'), dataIndex: 'status', width: 100 },
+  { title: t('creationTask.spans.duration'), dataIndex: 'durationMs', width: 100 },
+  { title: t('creationTask.spans.failure'), dataIndex: 'failure' },
+];
+/** 诊断卡片「失败码 / 卡点步骤 / 网关调用」：有 spans 取失败 span，否则回退 diagnosis.failingStep */
+const diagFailing = computed(() => {
+  const sp = failingSpan.value;
+  if (sp) {
+    const ext = sp.external;
+    return {
+      code: sp.failure?.code || null,
+      step: sp.key,
+      gatewayCallId: ext?.ref && /gateway|call/i.test(ext.type) ? ext.ref : null,
+      gatewayCallLink: null as string | null,
+    };
+  }
+  const f = diagnosis.value?.failingStep;
+  return {
+    code: f?.failureCode ?? null,
+    step: f?.stepPath ?? null,
+    gatewayCallId: f?.gatewayCallId ?? null,
+    gatewayCallLink: f?.gatewayCallLink ?? null,
+  };
+});
 const traceComplete = computed(() => isChainComplete(trace.value));
 const stuckName = computed(() => {
   const stuck = trace.value?.stuckAt;
@@ -1239,13 +1369,38 @@ async function loadTrace() {
   clearTraceTimer();
   traceLoading.value = true;
   let changed = false;
+  let usedSpans = false;
   try {
-    const data = (await getTaskTrace(taskId)) || null;
-    if (session !== traceSession) return;
-    const fp = traceFingerprint(data);
-    changed = fp !== traceLastFingerprint;
-    traceLastFingerprint = fp;
-    trace.value = data;
+    // 优先统一链路 /spans；旧后端 404 → 本页回退到旧 /trace
+    if (!spansMissing) {
+      try {
+        const sp = (await getTaskSpans(taskId)) || null;
+        if (session !== traceSession) return;
+        if (sp && Array.isArray(sp.spans)) {
+          const fp = spansFingerprint(sp);
+          changed = fp !== traceLastFingerprint;
+          traceLastFingerprint = fp;
+          spans.value = sp;
+          trace.value = null;
+          usedSpans = true;
+        } else {
+          spansMissing = true;
+        }
+      } catch (e) {
+        if (session !== traceSession) return;
+        if (!isTraceEndpointMissing(e)) throw e;
+        spansMissing = true;
+        spans.value = null;
+      }
+    }
+    if (!usedSpans) {
+      const data = (await getTaskTrace(taskId)) || null;
+      if (session !== traceSession) return;
+      const fp = traceFingerprint(data);
+      changed = fp !== traceLastFingerprint;
+      traceLastFingerprint = fp;
+      trace.value = data;
+    }
     traceError.value = '';
     traceFailures = 0;
     traceUnchanged = nextUnchangedPolls(traceUnchanged, changed);
@@ -1263,7 +1418,9 @@ async function loadTrace() {
     if (session === traceSession) traceLoading.value = false;
   }
   if (tracePollState.value !== 'polling') return;
-  const stop = shouldStopPolling(trace.value, traceFailures);
+  const stop = usedSpans
+    ? shouldStopSpansPolling(spans.value, traceFailures, TRACE_MAX_CONSECUTIVE_FAILURES)
+    : shouldStopPolling(trace.value, traceFailures);
   if (stop) {
     tracePollState.value = stop === 'failures' ? 'failed' : 'settled';
     clearTraceTimer();
@@ -1286,6 +1443,7 @@ function stopTracePolling() {
 function retryTrace() {
   if (!task.value?.taskId) return;
   resetTracePacing();
+  spansMissing = false;
   tracePollState.value = 'polling';
   void loadTrace();
 }
@@ -1295,6 +1453,7 @@ function startTrace() {
   traceSession++;
   traceInFlight = null;
   trace.value = null;
+  spans.value = null;
   traceError.value = '';
   traceLastFingerprint = '';
   resetTracePacing();
@@ -1351,6 +1510,7 @@ function resetTraceForTask() {
   traceSession++; // 旧任务的在途响应作废
   traceInFlight = null;
   trace.value = null;
+  spans.value = null;
   traceError.value = '';
   traceLoading.value = false;
   traceLastFingerprint = '';
@@ -1503,6 +1663,8 @@ async function loadDiagnosis() {
     diagnosis.value = d || null;
     timelineRows.value = (d?.timeline || []).map((e, i) => ({ ...e, id: `diag-${i}` }));
     diagLoaded = true;
+    // 统一链路已提供时间线（spans），不再拉旧事件流
+    if (spans.value) return;
     // 诊断里的 timeline 是最近 30 条；游标分页从头取完整事件流，替换之
     const tl = await getTaskTimeline(id, { limit: TIMELINE_PAGE_SIZE });
     if (!diagCurrent(session, id)) return;
@@ -2201,6 +2363,24 @@ onMounted(() => {
   margin-top: 2px;
   color: var(--color-text-tertiary, #8c8c8c);
   font-size: 12px;
+}
+.err-span {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.err-span__key {
+  color: var(--color-text-tertiary, #8c8c8c);
+  font-size: 12px;
+}
+.err-span__msg {
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+.err-span__attrs {
+  margin-top: 6px;
 }
 .diag-section {
   margin-top: 12px;
