@@ -38,6 +38,18 @@
           }}</a-tag>
         </template>
 
+        <template v-if="column.dataIndex === 'totalDurationMs'">
+          <a-tooltip
+            v-if="record.deliveredAt"
+            :title="`${$t('latency.deliveredAt')}: ${record.deliveredAt}`"
+          >
+            <span>{{ formatDuration(record.totalDurationMs) }}</span>
+          </a-tooltip>
+          <span v-else>{{
+            record.totalDurationMs != null ? formatDuration(record.totalDurationMs) : '—'
+          }}</span>
+        </template>
+
         <template v-if="column.dataIndex === 'billingStatus'">
           <template v-if="record.hasChildren">
             <a-tag :color="billingStatusColorMap[record.aggregatedBillingStatus]">
@@ -306,6 +318,7 @@ import {
 import ProTable from '@/components/Pro/ProTable/index.vue';
 
 import ChildTaskExpand from './ChildTaskExpand.vue';
+import { formatDuration } from './trace-helpers';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -522,6 +535,15 @@ const columns = computed(() => [
     dataIndex: 'errorMsg',
     ellipsis: true,
     width: 180,
+  },
+  {
+    title: t('latency.total'),
+    dataIndex: 'totalDurationMs',
+    width: 110,
+    align: 'right' as const,
+    // 仅当前页客户端排序（列表接口暂不支持服务端排序）
+    sorter: (a: Record<string, unknown>, b: Record<string, unknown>) =>
+      ((a.totalDurationMs as number | null) ?? -1) - ((b.totalDurationMs as number | null) ?? -1),
   },
   {
     title: t('common.createTime'),

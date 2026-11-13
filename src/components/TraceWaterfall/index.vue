@@ -19,6 +19,13 @@
         </span>
       </a-space>
       <a-alert
+        v-if="data.eventsTruncated"
+        class="tw-alert"
+        type="warning"
+        show-icon
+        :message="t('creationTask.spans.eventsTruncated')"
+      />
+      <a-alert
         v-if="failingNode"
         class="tw-alert"
         type="error"
@@ -70,6 +77,9 @@
           <span v-for="s in legend" :key="s" class="tw-legend__item">
             <i :style="{ background: statusColor(s) }" />{{ t(`creationTask.spans.status.${s}`) }}
           </span>
+          <span v-if="criticalSet.size" class="tw-legend__item">
+            <i class="tw-legend__crit" />{{ t('latency.criticalPath') }}
+          </span>
         </span>
       </div>
       <div
@@ -101,6 +111,8 @@
                 'tw-row--failing': item.row.node.span.id === data.failingSpanId,
                 'tw-row--stuck': item.row.node.span.id === data.stuckSpanId,
                 'tw-row--selected': item.row.node.span.id === selectedId,
+                'tw-row--critical': criticalSet.has(item.row.node.span.id),
+                'tw-row--focus': item.row.node.span.id === focusedId,
               }"
               :style="{ top: `${item.index * ROW_H}px`, height: `${ROW_H}px` }"
               @click="select(item.row.node.span.id)"
@@ -149,6 +161,12 @@
                   v-if="item.row.node.span.attempt && item.row.node.span.attempt > 1"
                   class="tw-attempt"
                   >#{{ item.row.node.span.attempt }}</span
+                >
+                <span
+                  v-if="criticalSet.has(item.row.node.span.id)"
+                  class="tw-crit"
+                  :title="t('latency.criticalPath')"
+                  >&#9679;</span
                 >
                 <a-tag
                   v-if="item.row.node.span.id === data.stuckSpanId"
@@ -349,8 +367,12 @@ const props = withDefaults(
     showHints?: boolean;
     /** 能否跳转 AI 网关调用详情（无权限时只给复制） */
     canOpenGateway?: boolean;
+    /** 关键路径 span id（高亮：行左侧粗标记 + 条描边） */
+    criticalPath?: readonly string[];
+    /** 外部指定要定位并闪烁的 span；同 id 重复定位请用 expose 的 focus() */
+    focusSpanId?: string | null;
   }>(),
-  { showHints: true, canOpenGateway: true },
+  { showHints: true, canOpenGateway: true, criticalPath: () => [], focusSpanId: null },
 );
 
 const { t } = useI18n();
@@ -365,6 +387,9 @@ const LARGE_TRACE = 300;
 const tree = computed(() => buildSpanTree(props.data.spans));
 const collapsed = ref<Set<string>>(new Set());
 const selectedId = ref<string | null>(null);
+const focusedId = ref<string | null>(null);
+let focusTimer: ReturnType<typeof setTimeout> | null = null;
+const criticalSet = computed(() => new Set(props.criticalPath || []));
 const scrollTop = ref(0);
 const viewport = ref<HTMLElement | null>(null);
 
@@ -390,6 +415,7 @@ watch(
 onMounted(syncTimer);
 onBeforeUnmount(() => {
   if (timer) clearInterval(timer);
+  if (focusTimer) clearTimeout(focusTimer);
 });
 
 const rows = computed(() => flattenTree(tree.value.roots, collapsed.value));
@@ -494,6 +520,23 @@ async function locate(id: string) {
   viewport.value.scrollTo({ top, behavior: 'smooth' });
 }
 
+/** 定位并短暂高亮（不打开抽屉）；供外部「最慢节点」点击调用 */
+async function focus(id: string) {
+  if (!tree.value.byId.has(id)) return;
+  focusedId.value = id;
+  if (focusTimer) clearTimeout(focusTimer);
+  focusTimer = setTimeout(() => (focusedId.value = null), 2500);
+  await locate(id);
+  viewport.value?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+watch(
+  () => props.focusSpanId,
+  (id) => {
+    if (id) void focus(id);
+  },
+);
+defineExpose({ focus });
+
 /** 大 trace 默认折叠深层；失败 / 卡点祖先保持展开 */
 function initCollapse() {
   const total = props.data.spans?.length || 0;
@@ -552,6 +595,27 @@ function openGatewayCall(callId: string) {
 </script>
 
 <style scoped>
+.tw-row--critical {
+  box-shadow: inset 3px 0 0 #fa541c;
+}
+.tw-row--critical .tw-bar {
+  outline: 2px solid #fa541c;
+  outline-offset: 1px;
+}
+.tw-row--focus {
+  background: rgba(22, 119, 255, 0.16) !important;
+}
+.tw-crit {
+  margin-left: 4px;
+  color: #fa541c;
+  font-size: 8px;
+}
+.tw-legend__crit {
+  border-radius: 2px;
+  background: transparent !important;
+  border: 2px solid #fa541c;
+  box-sizing: border-box;
+}
 .tw {
   --tw-left-w: 360px;
 }

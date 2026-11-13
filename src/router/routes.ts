@@ -219,6 +219,17 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
+        path: 'latency',
+        name: 'CreationLatencyAnalysis',
+        component: () => import('@/views/creation/latency/index.vue'),
+        meta: {
+          title: 'menu.creationLatencyAnalysis',
+          icon: 'FieldTimeOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'task:view',
+        },
+      },
+      {
         path: 'content',
         name: 'CreationContentList',
         component: () => import('@/views/creation/content.vue'),

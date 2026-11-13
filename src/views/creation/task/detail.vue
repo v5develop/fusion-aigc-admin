@@ -110,6 +110,15 @@
           <a-descriptions-item :label="$t('common.updateTime')">
             {{ task?.updateTime || '-' }}
           </a-descriptions-item>
+          <a-descriptions-item :label="$t('latency.total')">
+            <b v-if="task?.totalDurationMs != null" class="total-duration">{{
+              formatDuration(task.totalDurationMs)
+            }}</b>
+            <span v-else>-</span>
+          </a-descriptions-item>
+          <a-descriptions-item :label="$t('latency.deliveredAt')">
+            {{ task?.deliveredAt || '-' }}
+          </a-descriptions-item>
         </a-descriptions>
       </a-card>
 
@@ -167,7 +176,18 @@
             <div v-else-if="traceError" class="error-text" style="margin-bottom: 8px">
               {{ $t('creationTask.trace.loadFail') }}: {{ traceError }}
             </div>
-            <TraceWaterfall v-if="spans" :data="spans" :can-open-gateway="can('ai_gateway:view')" />
+            <LatencySummaryCard
+              v-if="spans?.summary"
+              :summary="spans.summary"
+              @focus-span="focusSpan"
+            />
+            <TraceWaterfall
+              v-if="spans"
+              ref="waterfall"
+              :data="spans"
+              :critical-path="spans.summary?.criticalPath || []"
+              :can-open-gateway="can('ai_gateway:view')"
+            />
             <template v-else-if="trace">
               <a-alert
                 v-if="trace.stuckAt"
@@ -1168,6 +1188,7 @@ import {
 } from '@/api/creation-task';
 import { getCreationTaskModerationLogs } from '@/api/moderation-log';
 import ReconcileRetryModal from '@/components/Billing/ReconcileRetryModal.vue';
+import LatencySummaryCard from '@/components/LatencySummary/index.vue';
 import {
   failureSummary,
   normalizeService,
@@ -1250,6 +1271,10 @@ type TracePollState = 'idle' | 'polling' | 'settled' | 'failed' | 'unavailable';
 const trace = ref<TaskTrace | null>(null);
 /** 统一链路（spans）：有值时是 任务链路 / 错误信息 / 诊断 / 时间线 的唯一数据源；旧后端 404 时为 null，回退旧 trace */
 const spans = ref<TaskSpans | null>(null);
+const waterfall = ref<InstanceType<typeof TraceWaterfall> | null>(null);
+function focusSpan(id: string) {
+  void waterfall.value?.focus(id);
+}
 /** /spans 接口 404（旧后端）后本页不再请求，直到用户点「刷新/重试」 */
 let spansMissing = false;
 const traceLoading = ref(false);
@@ -2288,6 +2313,10 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.total-duration {
+  color: #1677ff;
+  font-size: 16px;
+}
 .trace-meta {
   color: var(--color-text-secondary);
   font-size: 12px;

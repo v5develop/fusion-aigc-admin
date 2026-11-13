@@ -1,3 +1,4 @@
+import type { TaskLatencySummary } from './creation-latency';
 import type { PageResult } from '@/types/api';
 import type { AxiosRequestConfig } from 'axios';
 
@@ -55,6 +56,10 @@ export interface CreationTask {
   parentTaskId?: string;
   /** 是否有子任务（列表可展开标记） */
   hasChildren?: boolean;
+  /** 提交→交付总耗时（ms）；未交付为 null */
+  totalDurationMs?: number | null;
+  /** 交付时间 */
+  deliveredAt?: string | null;
   /** 子任务数量（父任务聚合） */
   childCount?: number;
   /** 子任务合计消耗点数（父任务聚合，已退款/已取消/已过期不计） */
@@ -727,6 +732,10 @@ export interface TaskSpans {
   failingSpanId: string | null;
   spans: TaskSpan[];
   hints: TaskSpansHint[];
+  /** 总耗时汇总（提交→交付）；旧后端没有 */
+  summary?: TaskLatencySummary | null;
+  /** 事件超过后端上限，只返回了最近的部分 */
+  eventsTruncated?: boolean;
 }
 
 /** 统一链路；旧后端 404 时调用方回退到 getTaskTrace */

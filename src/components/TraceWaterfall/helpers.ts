@@ -292,6 +292,7 @@ export function spansFingerprint(data: TaskSpans | null | undefined): string {
     data.endedAt,
     data.stuckSpanId,
     data.failingSpanId,
+    data.summary?.deliveredAt,
     (data.spans || []).map((s) =>
       s
         ? [s.id, s.parentId, s.status, s.startAt, s.endAt, s.durationMs, s.attempt, s.failure?.code]
