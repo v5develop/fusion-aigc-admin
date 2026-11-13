@@ -2,23 +2,26 @@
  * 链路耗时类别：code → 顺序 / 颜色 / i18n key。详情页与分析页共用，颜色只在这里定义。
  * 顺序即链路先后（用于堆叠条、图例排序）；未知类别归 other。
  */
+import { pickColor, type DualColor } from '../trace-theme';
+
 export interface LatencyCategoryMeta {
   code: string;
   order: number;
-  color: string;
+  /** 亮 / 暗两套低饱和色；唯一定义处 */
+  color: DualColor;
 }
 
 export const LATENCY_CATEGORIES: readonly LatencyCategoryMeta[] = [
-  { code: 'queue', order: 1, color: '#faad14' },
-  { code: 'billing', order: 2, color: '#13c2c2' },
-  { code: 'moderation', order: 3, color: '#eb2f96' },
-  { code: 'input_transfer', order: 4, color: '#2f54eb' },
-  { code: 'gateway_queue', order: 5, color: '#fa8c16' },
-  { code: 'vendor', order: 6, color: '#722ed1' },
-  { code: 'postprocess', order: 7, color: '#1677ff' },
-  { code: 'delivery', order: 8, color: '#52c41a' },
-  { code: 'settle', order: 9, color: '#a0d911' },
-  { code: 'other', order: 10, color: '#8c8c8c' },
+  { code: 'queue', order: 1, color: { light: '#d89614', dark: '#b8923a' } },
+  { code: 'billing', order: 2, color: { light: '#13a8a8', dark: '#3f9ea0' } },
+  { code: 'moderation', order: 3, color: { light: '#d4478a', dark: '#b8628c' } },
+  { code: 'input_transfer', order: 4, color: { light: '#3f5fd6', dark: '#6b80c9' } },
+  { code: 'gateway_queue', order: 5, color: { light: '#d4701a', dark: '#c0804a' } },
+  { code: 'vendor', order: 6, color: { light: '#8a4fd0', dark: '#9378c4' } },
+  { code: 'postprocess', order: 7, color: { light: '#1677ff', dark: '#4f8fd6' } },
+  { code: 'delivery', order: 8, color: { light: '#3da81f', dark: '#5fa04f' } },
+  { code: 'settle', order: 9, color: { light: '#8fb80f', dark: '#98a84a' } },
+  { code: 'other', order: 10, color: { light: '#8c8c8c', dark: '#6e6e6e' } },
 ];
 
 const BY_CODE = new Map(LATENCY_CATEGORIES.map((c) => [c.code, c]));
@@ -27,8 +30,9 @@ export function normalizeCategory(code: unknown): string {
   return typeof code === 'string' && BY_CODE.has(code) ? code : 'other';
 }
 
-export function categoryColor(code: unknown): string {
-  return BY_CODE.get(normalizeCategory(code))!.color;
+/** 类别实色；dark 传 useIsDark().value（echarts 等拿不到 CSS 变量的场景） */
+export function categoryColor(code: unknown, dark = false): string {
+  return pickColor(BY_CODE.get(normalizeCategory(code))!.color, dark);
 }
 
 export function categoryOrder(code: unknown): number {

@@ -2,6 +2,8 @@ import type { TaskSpan, TaskSpanService, TaskSpanStatus, TaskSpans } from '@/api
 
 import { formatDuration } from '@/views/creation/task/trace-helpers';
 
+import { pickColor, type DualColor, type ToneName } from '../trace-theme';
+
 /**
  * 统一链路（spans）瀑布图的纯函数：规范化、建树、扁平化、时间轴换算、轮询决策。
  * 不依赖 Vue / DOM / 时钟（now 由调用方传入），后端字段一律可能为 null 或出现未知枚举值，这里统一兜住。
@@ -36,8 +38,8 @@ export function normalizeStatus(v: unknown): TaskSpanStatus {
   return STATUSES.includes(v as TaskSpanStatus) ? (v as TaskSpanStatus) : 'pending';
 }
 
-/** 服务徽标颜色（antdv 预设色） */
-export function serviceColor(v: unknown): string {
+/** 服务徽标色调（TraceTag 的 tone；亮 / 暗两套在 trace-theme 的 TONES 里） */
+export function serviceTone(v: unknown): ToneName {
   switch (normalizeService(v)) {
     case 'go':
       return 'cyan';
@@ -56,18 +58,36 @@ export function serviceColor(v: unknown): string {
   }
 }
 
-export const STATUS_COLORS: Record<TaskSpanStatus, string> = {
-  ok: '#52c41a',
-  failed: '#ff4d4f',
-  timeout: '#ff4d4f',
-  running: '#1677ff',
-  cancelled: '#8c8c8c',
-  skipped: '#8c8c8c',
-  pending: '#bfbfbf',
+/** 状态实色（亮 / 暗两套，低饱和）；条、图标、图例共用 */
+export const STATUS_COLORS: Record<TaskSpanStatus, DualColor> = {
+  ok: { light: '#52b02c', dark: '#4f9a45' },
+  failed: { light: '#e5484d', dark: '#c9585b' },
+  timeout: { light: '#e07b39', dark: '#c4713f' },
+  running: { light: '#1677ff', dark: '#4f8fd6' },
+  cancelled: { light: '#8c8c8c', dark: '#7a7a7a' },
+  skipped: { light: '#a6a6a6', dark: '#666666' },
+  pending: { light: '#bfbfbf', dark: '#595959' },
 };
 
-export function statusColor(v: unknown): string {
-  return STATUS_COLORS[normalizeStatus(v)];
+/** 状态 → 标签色调 */
+export function statusTone(v: unknown): ToneName {
+  switch (normalizeStatus(v)) {
+    case 'ok':
+      return 'green';
+    case 'failed':
+      return 'red';
+    case 'timeout':
+      return 'orange';
+    case 'running':
+      return 'blue';
+    default:
+      return 'gray';
+  }
+}
+
+/** dark 传 useIsDark().value */
+export function statusColor(v: unknown, dark = false): string {
+  return pickColor(STATUS_COLORS[normalizeStatus(v)], dark);
 }
 
 /** 失败类状态 */

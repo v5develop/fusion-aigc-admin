@@ -5297,6 +5297,8 @@ export default {
     slowestHint: '自身の所要時間（子を除く）順。クリックでウォーターフォール上に表示',
     spanDuration: '子を含む',
     criticalPath: 'クリティカルパス',
+    noBreakdown: 'このタスクには区間ごとのトレースデータがありません（リリース前のタスク、または実行サービスが未対応）。所要時間を分解できません。',
+    restZero: 'その他 {n} 分類 0ms',
     category: {
       queue: 'キュー待ち',
       billing: '課金',

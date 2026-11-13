@@ -142,7 +142,7 @@
               >
                 <template #bodyCell="{ column, record }">
                   <template v-if="column.dataIndex === 'name'">
-                    <a-tag :color="categoryColor(record.category)">{{ record.name }}</a-tag>
+                    <TraceTag :tone="categoryColor(record.category, theme.isDark)">{{ record.name }}</TraceTag>
                   </template>
                   <template v-else-if="column.dataIndex === 'sharePct'">
                     <b>{{ record.sharePct.toFixed(1) }}%</b>
@@ -182,9 +182,9 @@
             <template #bodyCell="{ column, record }">
               <template v-if="column.dataIndex === 'label'">{{ record.label }}</template>
               <template v-else-if="column.dataIndex === 'dominant'">
-                <a-tag :color="categoryColor(record.dominantCategory)">{{
+                <TraceTag :tone="categoryColor(record.dominantCategory, theme.isDark)">{{
                   catLabel(record.dominantCategory)
-                }}</a-tag>
+                }}</TraceTag>
               </template>
               <template v-else-if="column.dataIndex === 'mix'">
                 <StackedBar :items="record.mix" :height="14" />
@@ -242,7 +242,7 @@
               {{ [record.provider, record.deployment].filter(Boolean).join(' / ') || '-' }}
             </template>
             <template v-else-if="column.dataIndex === 'status'">
-              <a-tag :color="statusColorOf(record.status)">{{ statusLabel(record.status) }}</a-tag>
+              <TraceTag :tone="statusColorOf(record.status)">{{ statusLabel(record.status) }}</TraceTag>
             </template>
             <template v-else-if="column.dataIndex === 'totalMs'"
               ><b>{{ formatDuration(record.totalMs) }}</b></template
@@ -251,9 +251,9 @@
               record.firstResultMs != null ? formatDuration(record.firstResultMs) : '-'
             }}</template>
             <template v-else-if="column.dataIndex === 'dominant'">
-              <a-tag :color="categoryColor(record.dominantCategory)">{{
+              <TraceTag :tone="categoryColor(record.dominantCategory, theme.isDark)">{{
                 catLabel(record.dominantCategory)
-              }}</a-tag>
+              }}</TraceTag>
               {{ formatDuration(record.dominantMs) }}
             </template>
             <template v-else-if="column.dataIndex === 'submittedAt'">{{
@@ -298,6 +298,8 @@ import {
   sortByCategory,
 } from '@/components/LatencySummary/categories';
 import StackedBar from '@/components/LatencySummary/StackedBar.vue';
+import TraceTag from '@/components/TraceTag/index.vue';
+import { pickColor, TONES } from '@/components/trace-theme';
 import { useThemeStore } from '@/stores/theme';
 import { formatDateTime } from '@/utils/helpers';
 
@@ -530,13 +532,13 @@ const kpis = computed(() => {
       key: 'p90',
       title: t('latency.page.totalP', { p: 'P90' }),
       value: f(s?.total.p90),
-      color: '#1677ff',
+      color: pickColor(TONES.blue, theme.isDark),
     },
     {
       key: 'p99',
       title: t('latency.page.totalP', { p: 'P99' }),
       value: f(s?.total.p99),
-      color: '#fa541c',
+      color: pickColor(TONES.orange, theme.isDark),
     },
     { key: 'fr', title: t('latency.page.firstResultP90'), value: f(s?.firstResult.p90), color: '' },
   ];
@@ -639,6 +641,8 @@ const vendorNeedsGroupHint = computed(
 );
 
 // ---------------- 图表 ----------------
+const PCT_LIGHT = ['#91caff', '#1677ff', '#e07b39'];
+const PCT_DARK = ['#3f5f86', '#4f8fd6', '#c4713f'];
 const axisColor = computed(() => (theme.isDark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.65)'));
 const lineColor = computed(() => (theme.isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)'));
 const fmtAxis = (v: number) => formatDuration(v);
@@ -661,7 +665,7 @@ const categoryChartOption = computed(() => {
     name: k.toUpperCase(),
     type: 'bar' as const,
     data: rows.map((r) => r[k]),
-    itemStyle: { color: ['#91caff', '#1677ff', '#fa541c'][i] },
+    itemStyle: { color: (theme.isDark ? PCT_DARK : PCT_LIGHT)[i] },
   }));
   return {
     grid: { left: 8, right: 16, top: 36, bottom: 8, containLabel: true },
@@ -694,7 +698,7 @@ const groupChartOption = computed(() => {
     type: 'bar' as const,
     stack: 'p90',
     data: rows.map((r) => r.categories?.[c.code]?.p90 ?? 0),
-    itemStyle: { color: c.color },
+    itemStyle: { color: categoryColor(c.code, theme.isDark) },
     emphasis: { focus: 'series' as const },
   }));
   const labels = rows.map((r) => r.label);
@@ -730,8 +734,8 @@ const groupChartOption = computed(() => {
           data: rows.map((r) => r.p90),
           symbol: 'circle',
           symbolSize: 7,
-          lineStyle: { width: 2, color: theme.isDark ? '#fff' : '#262626' },
-          itemStyle: { color: theme.isDark ? '#fff' : '#262626' },
+          lineStyle: { width: 2, color: theme.isDark ? 'rgba(255,255,255,0.85)' : '#262626' },
+          itemStyle: { color: theme.isDark ? 'rgba(255,255,255,0.85)' : '#262626' },
         },
       ],
     };

@@ -19,9 +19,9 @@
               KIND_LABEL[batch.kind] || batch.kind
             }}</a-descriptions-item>
             <a-descriptions-item label="状态">
-              <a-tag :color="statusTag(BATCH_STATUS, batch.status).color">{{
+              <TraceTag :tone="statusTag(BATCH_STATUS, batch.status).color">{{
                 statusTag(BATCH_STATUS, batch.status).text
-              }}</a-tag>
+              }}</TraceTag>
             </a-descriptions-item>
             <a-descriptions-item label="模型组">{{ batch.modelGroup || '-' }}</a-descriptions-item>
             <a-descriptions-item label="任务 完成 / 失败 / 总数">
@@ -75,7 +75,7 @@
               </template>
               <template v-else-if="column.dataIndex === 'ms'">{{ formatMs(record.ms) }}</template>
               <template v-else-if="column.dataIndex === 'status'">
-                <a-tag :color="record.tagColor">{{ record.tagText }}</a-tag>
+                <TraceTag :tone="record.tagColor">{{ record.tagText }}</TraceTag>
               </template>
               <template v-else-if="column.dataIndex === 'message'">
                 <span :class="record.tagColor === 'error' ? 'bad' : ''">{{ record.message }}</span>
@@ -118,9 +118,9 @@
                   <code>{{ record.key }}</code>
                 </template>
                 <template v-else-if="column.dataIndex === 'status'">
-                  <a-tag :color="STAGE_COLOR[record.status] || 'default'">{{
+                  <TraceTag :tone="STAGE_COLOR[record.status] || 'default'">{{
                     STAGE_LABEL[record.status] || record.status
-                  }}</a-tag>
+                  }}</TraceTag>
                 </template>
                 <template v-else-if="column.dataIndex === 'duration'">
                   {{ record.durationMs != null ? `${record.durationMs} ms` : '-' }}
@@ -150,9 +150,9 @@
                   @click="selectTask(t)"
                 >
                   <span class="sub-idx">#{{ t.modelIndex }}-{{ t.shotIndex }}-{{ t.poseIndex }}</span>
-                  <a-tag :color="statusTag(TASK_STATUS, t.status).color" class="sub-tag">{{
+                  <TraceTag :tone="statusTag(TASK_STATUS, t.status).color" class="sub-tag">{{
                     statusTag(TASK_STATUS, t.status).text
-                  }}</a-tag>
+                  }}</TraceTag>
                 </div>
               </div>
               <div class="sub-body">
@@ -277,9 +277,9 @@
           >
             <template #bodyCell="{ column, record }">
               <template v-if="column.dataIndex === 'ok'">
-                <a-tag :color="record.ok ? 'success' : 'error'">{{
+                <TraceTag :tone="record.ok ? 'success' : 'error'">{{
                   record.ok ? '通过' : '不通过'
-                }}</a-tag>
+                }}</TraceTag>
               </template>
             </template>
           </a-table>
@@ -312,10 +312,10 @@
                 {{ record.modelIndex }} / {{ record.shotIndex }} / {{ record.poseIndex }}
               </template>
               <template v-else-if="column.dataIndex === 'status'">
-                <a-tag :color="statusTag(TASK_STATUS, record.status).color">{{
+                <TraceTag :tone="statusTag(TASK_STATUS, record.status).color">{{
                   statusTag(TASK_STATUS, record.status).text
-                }}</a-tag>
-                <a-tag v-if="record.adminLocked" color="red">已封禁</a-tag>
+                }}</TraceTag>
+                <TraceTag v-if="record.adminLocked" tone="red">已封禁</TraceTag>
               </template>
               <template v-else-if="column.dataIndex === 'resultUrl'">
                 <a-image
@@ -328,9 +328,9 @@
                 <span v-else>-</span>
               </template>
               <template v-else-if="column.dataIndex === 'billingStatus'">
-                <a-tag :color="statusTag(BILLING_STATUS, record.billingStatus).color">{{
+                <TraceTag :tone="statusTag(BILLING_STATUS, record.billingStatus).color">{{
                   statusTag(BILLING_STATUS, record.billingStatus).text
-                }}</a-tag>
+                }}</TraceTag>
               </template>
               <template v-else-if="column.dataIndex === 'gatewayCallId'">
                 <span class="mono">{{ record.gatewayCallId || '-' }}</span>
@@ -407,6 +407,7 @@
 </template>
 
 <script setup lang="ts">
+import TraceTag from '@/components/TraceTag/index.vue';
 import { message, Modal } from 'antdv-next';
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -825,7 +826,7 @@ load();
   white-space: pre-wrap;
   word-break: break-all;
   font-size: 12px;
-  background: var(--ant-color-fill-quaternary, rgba(0, 0, 0, 0.04));
+  background: var(--color-fill-quaternary, rgba(0, 0, 0, 0.04));
   border-radius: 4px;
 }
 .mono {
@@ -834,10 +835,10 @@ load();
 }
 .step-meta {
   font-size: 12px;
-  color: var(--ant-color-text-secondary, #666);
+  color: var(--color-text-secondary, #666);
 }
 .bad {
-  color: var(--ant-color-error, #ff4d4f);
+  color: var(--color-error, #ff4d4f);
 }
 .sel-title {
   font-weight: 600;
@@ -849,7 +850,7 @@ load();
 .step-code {
   margin-left: 6px;
   font-size: 11px;
-  color: var(--ant-color-text-tertiary, #999);
+  color: var(--color-text-tertiary, #999);
 }
 .sec-title {
   margin: 12px 0 6px;
@@ -864,7 +865,7 @@ load();
   flex: 0 0 180px;
   max-height: 560px;
   overflow: auto;
-  border: 1px solid var(--ant-color-border-secondary, #f0f0f0);
+  border: 1px solid var(--color-border-secondary, #f0f0f0);
   border-radius: 6px;
 }
 .sub-item {
@@ -876,10 +877,10 @@ load();
   cursor: pointer;
 }
 .sub-item:hover {
-  background: var(--ant-color-fill-quaternary, rgba(0, 0, 0, 0.04));
+  background: var(--color-fill-quaternary, rgba(0, 0, 0, 0.04));
 }
 .sub-item--on {
-  background: var(--ant-color-primary-bg, #e6f4ff);
+  background: color-mix(in srgb, var(--color-primary, #1677ff) 12%, transparent);
 }
 .sub-idx {
   font-family: ui-monospace, Menlo, monospace;

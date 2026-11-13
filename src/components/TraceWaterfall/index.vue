@@ -1,9 +1,9 @@
 <template>
-  <div class="tw">
+  <div class="tw" :style="rootStyle">
     <!-- 头部：整体状态、总耗时、失败摘要、卡点、排查提示 -->
     <div class="tw-header">
       <a-space wrap :size="[12, 4]">
-        <a-tag :color="overallTagColor">{{ t(`creationTask.spans.overall.${overall}`) }}</a-tag>
+        <TraceTag :tone="overallTone">{{ t(`creationTask.spans.overall.${overall}`) }}</TraceTag>
         <span class="tw-meta">
           {{ t('creationTask.spans.total') }}:
           <b>{{ formatDuration(totalMs) }}</b>
@@ -57,9 +57,9 @@
       <ul v-if="showHints && data.hints?.length" class="tw-hints">
         <li v-for="(h, i) in data.hints" :key="i">
           {{ h.text }}
-          <a-tag v-if="h.manualSection" color="blue" style="margin-left: 8px">{{
+          <TraceTag v-if="h.manualSection" tone="blue" style="margin-left: 8px">{{
             t('creationTask.diagnosis.manual', { section: h.manualSection })
-          }}</a-tag>
+          }}</TraceTag>
         </li>
       </ul>
     </div>
@@ -75,7 +75,7 @@
         }}</a-button>
         <span class="tw-legend">
           <span v-for="s in legend" :key="s" class="tw-legend__item">
-            <i :style="{ background: statusColor(s) }" />{{ t(`creationTask.spans.status.${s}`) }}
+            <i :style="{ background: statusColor(s, isDark) }" />{{ t(`creationTask.spans.status.${s}`) }}
           </span>
           <span v-if="criticalSet.size" class="tw-legend__item">
             <i class="tw-legend__crit" />{{ t('latency.criticalPath') }}
@@ -131,29 +131,29 @@
                 <span class="tw-status-icon">
                   <CheckCircleFilled
                     v-if="item.row.node.status === 'ok'"
-                    :style="{ color: statusColor('ok') }"
+                    :style="{ color: statusColor('ok', isDark) }"
                   />
                   <LoadingOutlined
                     v-else-if="item.row.node.status === 'running'"
-                    :style="{ color: statusColor('running') }"
+                    :style="{ color: statusColor('running', isDark) }"
                   />
                   <CloseCircleFilled
                     v-else-if="isBad(item.row.node.status)"
-                    :style="{ color: statusColor('failed') }"
+                    :style="{ color: statusColor('failed', isDark) }"
                   />
                   <StopOutlined
                     v-else-if="item.row.node.status === 'cancelled'"
-                    :style="{ color: statusColor('cancelled') }"
+                    :style="{ color: statusColor('cancelled', isDark) }"
                   />
                   <MinusCircleOutlined
                     v-else-if="item.row.node.status === 'skipped'"
-                    :style="{ color: statusColor('skipped') }"
+                    :style="{ color: statusColor('skipped', isDark) }"
                   />
-                  <ClockCircleOutlined v-else :style="{ color: statusColor('pending') }" />
+                  <ClockCircleOutlined v-else :style="{ color: statusColor('pending', isDark) }" />
                 </span>
-                <a-tag class="tw-svc" :color="serviceColor(item.row.node.service)">{{
+                <TraceTag class="tw-svc" :tone="serviceTone(item.row.node.service)">{{
                   t(`creationTask.spans.service.${item.row.node.service}`)
-                }}</a-tag>
+                }}</TraceTag>
                 <span class="tw-label" :title="item.row.node.span.key">{{
                   item.row.node.span.label || item.row.node.span.key
                 }}</span>
@@ -162,17 +162,11 @@
                   class="tw-attempt"
                   >#{{ item.row.node.span.attempt }}</span
                 >
-                <span
-                  v-if="criticalSet.has(item.row.node.span.id)"
-                  class="tw-crit"
-                  :title="t('latency.criticalPath')"
-                  >&#9679;</span
-                >
-                <a-tag
+                <TraceTag
                   v-if="item.row.node.span.id === data.stuckSpanId"
-                  color="orange"
+                  tone="orange"
                   class="tw-flag"
-                  >{{ t('creationTask.spans.stuck') }}</a-tag
+                  >{{ t('creationTask.spans.stuck') }}</TraceTag
                 >
               </div>
               <div class="tw-right">
@@ -188,17 +182,20 @@
                     class="tw-point"
                     :style="{
                       left: `${geom(item.row.node)!.left}%`,
-                      background: statusColor(item.row.node.status),
+                      background: statusColor(item.row.node.status, isDark),
                     }"
                   />
                   <span
                     v-else
                     class="tw-bar"
-                    :class="{ 'tw-bar--running': geom(item.row.node)!.running }"
+                    :class="{
+                      'tw-bar--running': geom(item.row.node)!.running,
+                      'tw-bar--root': isRoot(item.row.node),
+                    }"
                     :style="{
                       left: `${geom(item.row.node)!.left}%`,
                       width: `max(${geom(item.row.node)!.width}%, 3px)`,
-                      '--tw-c': statusColor(item.row.node.status),
+                      '--tw-c': statusColor(item.row.node.status, isDark),
                     }"
                   />
                   <span class="tw-dur" :style="durStyle(item.row.node)">{{
@@ -222,15 +219,15 @@
     >
       <template v-if="selectedNode">
         <a-space wrap style="margin-bottom: 12px">
-          <a-tag :color="serviceColor(selectedNode.service)">{{
+          <TraceTag :tone="serviceTone(selectedNode.service)">{{
             t(`creationTask.spans.service.${selectedNode.service}`)
-          }}</a-tag>
-          <a-tag :color="statusColor(selectedNode.status)">{{
+          }}</TraceTag>
+          <TraceTag :tone="statusTone(selectedNode.status)">{{
             t(`creationTask.spans.status.${selectedNode.status}`)
-          }}</a-tag>
-          <a-tag v-if="selectedNode.span.id === data.stuckSpanId" color="orange">{{
+          }}</TraceTag>
+          <TraceTag v-if="selectedNode.span.id === data.stuckSpanId" tone="orange">{{
             t('creationTask.spans.stuck')
-          }}</a-tag>
+          }}</TraceTag>
         </a-space>
         <a-descriptions :column="1" size="small" bordered style="margin-bottom: 12px">
           <a-descriptions-item label="key"
@@ -284,7 +281,7 @@
         <div v-if="selectedNode.span.external" class="tw-section">
           <div class="tw-section__title">{{ t('creationTask.spans.external') }}</div>
           <a-space wrap>
-            <a-tag>{{ selectedNode.span.external.type }}</a-tag>
+            <TraceTag tone="gray">{{ selectedNode.span.external.type }}</TraceTag>
             <code>{{ selectedNode.span.external.ref }}</code>
             <a-button size="small" @click="copyRef(selectedNode.span.external.ref)">
               <template #icon><CopyOutlined /></template>
@@ -343,6 +340,9 @@ import { useRouter } from 'vue-router';
 
 import { copyToClipboard, formatDateTime } from '@/utils/helpers';
 
+import TraceTag from '../TraceTag/index.vue';
+import { ACCENT, GRID_LINE, pickColor, useIsDark } from '../trace-theme';
+
 import {
   ancestorIds,
   axisTicks,
@@ -354,9 +354,10 @@ import {
   formatDuration,
   isBadStatus,
   overallStatus,
-  serviceColor,
+  serviceTone,
   spanDurationMs,
   statusColor,
+  statusTone,
   type SpanNode,
 } from './helpers';
 
@@ -376,6 +377,11 @@ const props = withDefaults(
 );
 
 const { t } = useI18n();
+const isDark = useIsDark();
+const rootStyle = computed(() => ({
+  '--tw-accent': pickColor(ACCENT, isDark.value),
+  '--tw-grid': pickColor(GRID_LINE, isDark.value),
+}));
 const router = useRouter();
 
 const ROW_H = 32;
@@ -425,15 +431,19 @@ const ticks = computed(() => axisTicks(axis.value, 5));
 const gridTicks = computed(() => ticks.value.filter((tk) => tk.pct > 0 && tk.pct < 100));
 const totalMs = computed(() => props.data.totalMs ?? (rows.value.length ? axis.value.span : null));
 const overall = computed(() => overallStatus(props.data));
-const overallTagColor = computed(() =>
+const overallTone = computed(() =>
   overall.value === 'failed'
     ? 'red'
     : overall.value === 'running'
-      ? 'processing'
+      ? 'blue'
       : overall.value === 'ok'
         ? 'green'
-        : 'default',
+        : 'gray',
 );
+/** 根 span（「任务」，无父）：画成半透明轨道而不是实心条，让子节点更突出 */
+function isRoot(n: SpanNode) {
+  return n.span.id === 'task' || !n.span.parentId;
+}
 const failingNode = computed(() =>
   props.data.failingSpanId ? tree.value.byId.get(props.data.failingSpanId) || null : null,
 );
@@ -596,25 +606,21 @@ function openGatewayCall(callId: string) {
 
 <style scoped>
 .tw-row--critical {
-  box-shadow: inset 3px 0 0 #fa541c;
+  box-shadow: inset 3px 0 0 var(--tw-accent);
 }
 .tw-row--critical .tw-bar {
-  outline: 2px solid #fa541c;
+  outline: 1px solid var(--tw-accent);
   outline-offset: 1px;
 }
 .tw-row--focus {
-  background: rgba(22, 119, 255, 0.16) !important;
-}
-.tw-crit {
-  margin-left: 4px;
-  color: #fa541c;
-  font-size: 8px;
+  background: color-mix(in srgb, var(--color-primary, #1677ff) 18%, transparent) !important;
 }
 .tw-legend__crit {
+  width: 3px !important;
+  height: 12px !important;
+  margin-right: 6px !important;
   border-radius: 2px;
-  background: transparent !important;
-  border: 2px solid #fa541c;
-  box-sizing: border-box;
+  background: var(--tw-accent) !important;
 }
 .tw {
   --tw-left-w: 360px;
@@ -627,7 +633,7 @@ function openGatewayCall(callId: string) {
   font-size: 12px;
 }
 .tw-meta--live {
-  color: #1677ff;
+  color: var(--color-primary, #1677ff);
 }
 .tw-alert {
   margin-top: 8px;
@@ -658,9 +664,9 @@ function openGatewayCall(callId: string) {
 }
 .tw-viewport {
   overflow: auto;
-  border: 1px solid var(--color-border-secondary, #f0f0f0);
+  border: 1px solid var(--color-border-secondary);
   border-radius: 6px;
-  background: var(--color-bg-container, #fff);
+  background: var(--color-bg-container);
 }
 .tw-inner {
   min-width: 760px;
@@ -671,8 +677,8 @@ function openGatewayCall(callId: string) {
   z-index: 3;
   display: flex;
   height: 28px;
-  background: var(--color-fill-quaternary, #fafafa);
-  border-bottom: 1px solid var(--color-border-secondary, #f0f0f0);
+  background: var(--color-fill-quaternary);
+  border-bottom: 1px solid var(--color-border-secondary);
 }
 .tw-axis__label {
   align-items: center;
@@ -707,21 +713,21 @@ function openGatewayCall(callId: string) {
   right: 0;
   display: flex;
   cursor: pointer;
-  border-bottom: 1px solid var(--color-border-secondary, #f0f0f0);
+  border-bottom: 1px solid var(--color-border-secondary);
   box-sizing: border-box;
 }
 .tw-row:hover {
   background: var(--color-fill-quaternary, rgba(127, 127, 127, 0.08));
 }
 .tw-row--selected {
-  background: rgba(22, 119, 255, 0.1);
+  background: color-mix(in srgb, var(--color-primary, #1677ff) 12%, transparent);
 }
 .tw-row--stuck {
-  background: rgba(250, 173, 20, 0.14);
+  background: color-mix(in srgb, var(--color-warning, #faad14) 12%, transparent);
 }
 .tw-row--failing {
-  background: rgba(255, 77, 79, 0.12);
-  box-shadow: inset 3px 0 0 #ff4d4f;
+  background: color-mix(in srgb, var(--color-error, #ff4d4f) 10%, transparent);
+  box-shadow: inset 3px 0 0 var(--color-error, #ff4d4f);
 }
 .tw-left {
   flex: none;
@@ -737,7 +743,7 @@ function openGatewayCall(callId: string) {
   position: relative;
   flex: 1;
   min-width: 400px;
-  border-left: 1px solid var(--color-border-secondary, #f0f0f0);
+  border-left: 1px solid var(--color-border-secondary);
 }
 .tw-axis .tw-left {
   display: flex;
@@ -780,7 +786,7 @@ function openGatewayCall(callId: string) {
   position: absolute;
   top: 0;
   bottom: 0;
-  border-left: 1px dashed var(--color-border-secondary, #f0f0f0);
+  border-left: 1px solid var(--tw-grid);
 }
 .tw-bar {
   position: absolute;
@@ -789,6 +795,12 @@ function openGatewayCall(callId: string) {
   border-radius: 3px;
   background: var(--tw-c);
   opacity: 0.9;
+}
+.tw-bar--root {
+  border: 1px solid color-mix(in srgb, var(--tw-c) 40%, transparent);
+  background: color-mix(in srgb, var(--tw-c) 8%, transparent);
+  box-sizing: border-box;
+  opacity: 1;
 }
 .tw-bar--running {
   background-image: linear-gradient(
@@ -803,6 +815,10 @@ function openGatewayCall(callId: string) {
   background-size: 16px 16px;
   animation: tw-stripe 0.8s linear infinite;
 }
+.tw-bar--root.tw-bar--running {
+  background-image: none;
+  animation: none;
+}
 @keyframes tw-stripe {
   to {
     background-position: 16px 0;
@@ -810,10 +826,10 @@ function openGatewayCall(callId: string) {
 }
 .tw-point {
   position: absolute;
-  top: 11px;
-  width: 10px;
-  height: 10px;
-  margin-left: -5px;
+  top: 12px;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
   transform: rotate(45deg);
 }
 .tw-dur {

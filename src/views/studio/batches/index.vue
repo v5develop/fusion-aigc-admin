@@ -43,9 +43,9 @@
             {{ KIND_LABEL[record.kind] || record.kind }}
           </template>
           <template v-else-if="column.dataIndex === 'status'">
-            <a-tag :color="statusTag(BATCH_STATUS, record.status).color">{{
+            <TraceTag :tone="statusTag(BATCH_STATUS, record.status).color">{{
               statusTag(BATCH_STATUS, record.status).text
-            }}</a-tag>
+            }}</TraceTag>
           </template>
           <template v-else-if="column.dataIndex === 'tasks'">
             <span class="ok">{{ record.taskDone }}</span> /
@@ -76,6 +76,7 @@
 </template>
 
 <script setup lang="ts">
+import TraceTag from '@/components/TraceTag/index.vue';
 import type { Dayjs } from 'dayjs';
 
 import { ref } from 'vue';
@@ -187,9 +188,9 @@ load();
   margin-top: 16px;
 }
 .ok {
-  color: var(--ant-color-success, #52c41a);
+  color: var(--color-success, #52c41a);
 }
 .bad {
-  color: var(--ant-color-error, #ff4d4f);
+  color: var(--color-error, #ff4d4f);
 }
 </style>

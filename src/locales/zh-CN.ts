@@ -5506,6 +5506,8 @@ export default {
     slowestHint: '按自身耗时（扣除子节点）排序，点击定位到链路瀑布',
     spanDuration: '含子节点',
     criticalPath: '关键路径',
+    noBreakdown: '该任务暂无分段链路数据（上线前的任务，或执行服务尚未接入链路事件），无法拆分耗时',
+    restZero: '其余 {n} 类 0ms',
     category: {
       queue: '排队',
       billing: '计费',

@@ -12,7 +12,7 @@
         </div>
         <div class="ig-meta">
           <a-tag v-if="img.id" class="ig-tag">{{ img.id }}</a-tag>
-          <a-tag v-if="img.role" color="blue" class="ig-tag">{{ img.role }}</a-tag>
+          <TraceTag v-if="img.role" tone="blue" class="ig-tag">{{ img.role }}</TraceTag>
           <a-tooltip v-if="img.url && img.ref" title="复制原始引用">
             <a class="ig-copy" @click="copy(img.ref)">复制 ref</a>
           </a-tooltip>
@@ -23,6 +23,7 @@
 </template>
 
 <script setup lang="ts">
+import TraceTag from '@/components/TraceTag/index.vue';
 import type { StudioImage } from '@/api/studio-admin';
 
 import { message } from 'antdv-next';
@@ -65,7 +66,7 @@ async function copy(text: string) {
   font-size: 12px;
   font-weight: 600;
   color: #fff;
-  background: var(--ant-color-primary, #1677ff);
+  background: var(--color-primary, #1677ff);
   border-radius: 10px;
 }
 .ig-img {
@@ -81,13 +82,13 @@ async function copy(text: string) {
   height: 96px;
   padding: 4px;
   overflow: hidden;
-  border: 1px dashed var(--ant-color-border, #d9d9d9);
+  border: 1px dashed var(--color-border, #d9d9d9);
   border-radius: 4px;
-  background: var(--ant-color-fill-quaternary, rgba(0, 0, 0, 0.04));
+  background: var(--color-fill-quaternary, rgba(0, 0, 0, 0.04));
 }
 .ig-ph-tip {
   font-size: 12px;
-  color: var(--ant-color-text-secondary, #888);
+  color: var(--color-text-secondary, #888);
 }
 .ig-ph-ref {
   max-width: 88px;

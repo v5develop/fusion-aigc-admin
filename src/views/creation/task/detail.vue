@@ -55,9 +55,9 @@
             <span v-else>-</span>
           </a-descriptions-item>
           <a-descriptions-item :label="$t('creationTask.status')">
-            <a-tag v-if="task" :color="statusColorMap[task.status]">
+            <TraceTag v-if="task" :tone="statusColorMap[task.status]">
               {{ statusMap[task.status] || '-' }}
-            </a-tag>
+            </TraceTag>
           </a-descriptions-item>
           <a-descriptions-item v-if="task?.blockStatus" :label="$t('creationTask.blockStatus')">
             <a-tag color="red">
@@ -428,9 +428,9 @@
           <!-- 失败 span（统一链路）：哪个节点、哪类失败、命中哪条判据、现场属性 -->
           <template v-if="failingSpan" #description>
             <div class="err-span">
-              <a-tag :color="serviceColor(failingSpan.service)">{{
+              <TraceTag :tone="serviceTone(failingSpan.service)">{{
                 $t(`creationTask.spans.service.${normalizeService(failingSpan.service)}`)
-              }}</a-tag>
+              }}</TraceTag>
               <b>{{ failingSpan.label || failingSpan.key }}</b>
               <code class="err-span__key">{{ failingSpan.key }}</code>
             </div>
@@ -599,9 +599,9 @@
               </a-tag>
             </template>
             <template v-if="column.dataIndex === 'status'">
-              <a-tag :color="statusColorMap[record.status]">
+              <TraceTag :tone="statusColorMap[record.status]">
                 {{ statusMap[record.status] || '-' }}
-              </a-tag>
+              </TraceTag>
             </template>
             <template v-if="column.dataIndex === 'result'">
               <a-image
@@ -809,9 +809,9 @@
                       diagnosis.steps?.total ?? 0
                     }})
                   </div>
-                  <a-tag v-for="[k, v] in byStatusEntries" :key="k" :color="diagStatusColor(k)">
+                  <TraceTag v-for="[k, v] in byStatusEntries" :key="k" :tone="diagStatusColor(k)">
                     {{ k }}: {{ v }}
-                  </a-tag>
+                  </TraceTag>
                 </div>
 
                 <div class="diag-section">
@@ -904,18 +904,18 @@
                         formatDateTime(record.startAt)
                       }}</template>
                       <template v-else-if="column.dataIndex === 'service'">
-                        <a-tag :color="serviceColor(record.service)">{{
+                        <TraceTag :tone="serviceTone(record.service)">{{
                           $t(`creationTask.spans.service.${normalizeService(record.service)}`)
-                        }}</a-tag>
+                        }}</TraceTag>
                       </template>
                       <template v-else-if="column.dataIndex === 'label'">
                         {{ record.label || record.key }}
                         <code class="err-span__key">{{ record.key }}</code>
                       </template>
                       <template v-else-if="column.dataIndex === 'status'">
-                        <a-tag :color="spanStatusColor(record.status)">{{
+                        <TraceTag :tone="spanStatusTone(record.status)">{{
                           $t(`creationTask.spans.status.${normalizeStatus(record.status)}`)
-                        }}</a-tag>
+                        }}</TraceTag>
                       </template>
                       <template v-else-if="column.dataIndex === 'durationMs'">{{
                         formatDuration(record.durationMs)
@@ -950,11 +950,11 @@
                         <span v-else>{{ record.kind }}</span>
                       </template>
                       <template v-if="column.dataIndex === 'status'">
-                        <a-tag
+                        <TraceTag
                           v-if="record.status"
-                          :color="diagStatusColor(record.status)"
+                          :tone="diagStatusColor(record.status)"
                           :title="record.status"
-                          >{{ eventStatusLabel(record.status) }}</a-tag
+                          >{{ eventStatusLabel(record.status) }}</TraceTag
                         >
                         <span v-else>-</span>
                       </template>
@@ -1194,12 +1194,13 @@ import {
   normalizeService,
   normalizeStatus,
   pickFailingSpan,
-  serviceColor,
+  serviceTone,
   shouldStopSpansPolling,
   sortSpansByTime,
   spansFingerprint,
-  statusColor as spanStatusColor,
+  statusTone as spanStatusTone,
 } from '@/components/TraceWaterfall/helpers';
+import TraceTag from '@/components/TraceTag/index.vue';
 import TraceWaterfall from '@/components/TraceWaterfall/index.vue';
 import { usePermission } from '@/composables/usePermission';
 import { decodeUnicode, formatDateTime } from '@/utils/helpers';
@@ -2314,7 +2315,7 @@ onMounted(() => {
 
 <style scoped>
 .total-duration {
-  color: #1677ff;
+  color: var(--color-primary, #1677ff);
   font-size: 16px;
 }
 .trace-meta {

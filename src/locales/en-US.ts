@@ -5546,6 +5546,8 @@ export default {
     slowestHint: 'Ranked by self time (excluding children); click to locate in the waterfall',
     spanDuration: 'incl. children',
     criticalPath: 'Critical path',
+    noBreakdown: 'No segmented trace data for this task (created before the feature shipped, or the executor has not reported trace events yet), so the time cannot be broken down.',
+    restZero: '{n} other categories 0ms',
     category: {
       queue: 'Queue',
       billing: 'Billing',

@@ -5278,6 +5278,8 @@ export default {
     slowestHint: '자체 소요 시간(하위 제외) 순. 클릭하면 워터폴에서 위치를 표시합니다',
     spanDuration: '하위 포함',
     criticalPath: '크리티컬 패스',
+    noBreakdown: '이 작업에는 구간별 추적 데이터가 없습니다(출시 전 작업이거나 실행 서비스가 아직 이벤트를 보내지 않음). 소요 시간을 분해할 수 없습니다.',
+    restZero: '나머지 {n}개 분류 0ms',
     category: {
       queue: '대기열',
       billing: '과금',

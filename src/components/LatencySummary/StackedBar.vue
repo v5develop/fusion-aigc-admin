@@ -7,8 +7,8 @@
       </template>
       <span
         class="lsb__seg"
-        :style="{ width: `${seg.width}%`, background: categoryColor(seg.category) }"
-        >{{ seg.width >= 9 ? `${seg.pct.toFixed(0)}%` : '' }}</span
+        :style="{ width: `${seg.width}%`, background: categoryColor(seg.category, isDark) }"
+        >{{ showLabel && seg.width >= 12 ? `${seg.pct.toFixed(0)}%` : '' }}</span
       >
     </a-tooltip>
     <span v-if="!segments.length" class="lsb__empty" />
@@ -19,6 +19,7 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import { useIsDark } from '../trace-theme';
 import { categoryColor, categoryI18nKey, formatDuration, sortByCategory } from './categories';
 
 const props = withDefaults(
@@ -26,8 +27,9 @@ const props = withDefaults(
     items: { category: string; label?: string; pct: number; ms?: number | null }[];
     height?: number;
   }>(),
-  { height: 22 },
+  { height: 10 },
 );
+const isDark = useIsDark();
 const { t, te } = useI18n();
 
 const segments = computed(() => {
@@ -46,30 +48,28 @@ const segments = computed(() => {
     };
   });
 });
+const showLabel = computed(() => props.height >= 16 && segments.value.length > 1);
 </script>
 
 <style scoped>
 .lsb {
   display: flex;
+  gap: 2px;
   width: 100%;
-  overflow: hidden;
-  border-radius: 4px;
-  background: var(--color-fill-quaternary, #f5f5f5);
+  border-radius: 999px;
+  background: var(--color-fill-quaternary, rgba(127, 127, 127, 0.1));
 }
 .lsb__seg {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 2px;
-  color: #fff;
+  min-width: 3px;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.92);
   font-size: 11px;
   line-height: 1;
   white-space: nowrap;
   overflow: hidden;
-  border-right: 1px solid rgba(255, 255, 255, 0.5);
-}
-.lsb__seg:last-child {
-  border-right: none;
 }
 .lsb__empty {
   flex: 1;

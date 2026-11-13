@@ -16,7 +16,7 @@
         <div class="ls-kpi__label">{{ t('latency.deliveredAt') }}</div>
         <div class="ls-kpi__text">
           <template v-if="summary.deliveredAt">{{ formatDateTime(summary.deliveredAt) }}</template>
-          <a-tag v-else>{{ t('latency.notDelivered') }}</a-tag>
+          <TraceTag v-else tone="gray">{{ t('latency.notDelivered') }}</TraceTag>
         </div>
       </div>
       <div class="ls-kpi">
@@ -29,17 +29,25 @@
 
     <template v-if="summary.breakdown?.length">
       <div class="ls-title">{{ t('latency.breakdown') }}</div>
-      <StackedBar :items="summary.breakdown" :height="26" />
-      <div class="ls-legend">
-        <a-tooltip v-for="b in sortedBreakdown" :key="b.category" :title="b.tip">
-          <span class="ls-legend__item">
-            <i :style="{ background: categoryColor(b.category) }" />
-            {{ b.name }}
-            <b>{{ formatDuration(b.ms) }}</b>
-            <em>{{ b.pct.toFixed(1) }}%</em>
-          </span>
-        </a-tooltip>
+      <div v-if="!hasBreakdownData" class="ls-nodata">
+        <InfoCircleOutlined /> {{ t('latency.noBreakdown') }}
       </div>
+      <template v-else>
+        <StackedBar :items="summary.breakdown" :height="10" />
+        <div class="ls-legend">
+          <a-tooltip v-for="b in visibleBreakdown" :key="b.category" :title="b.tip">
+            <span class="ls-legend__item">
+              <i :style="{ background: categoryColor(b.category, isDark) }" />
+              {{ b.name }}
+              <b>{{ formatDuration(b.ms) }}</b>
+              <em>{{ b.pct.toFixed(1) }}%</em>
+            </span>
+          </a-tooltip>
+          <span v-if="zeroCount > 0" class="ls-legend__rest">{{
+            t('latency.restZero', { n: zeroCount })
+          }}</span>
+        </div>
+      </template>
     </template>
 
     <template v-if="summary.slowest?.length">
@@ -55,15 +63,15 @@
           @click="emit('focus-span', s.spanId)"
         >
           <span class="ls-slow__rank">{{ i + 1 }}</span>
-          <a-tag :color="categoryColor(s.category)" class="ls-slow__cat">{{
+          <TraceTag :tone="categoryColor(s.category, isDark)" class="ls-slow__cat">{{
             catName(s.category)
-          }}</a-tag>
+          }}</TraceTag>
           <span class="ls-slow__label" :title="s.key">{{ s.label || s.key || s.spanId }}</span>
           <span class="ls-slow__bar"
             ><i
               :style="{
                 width: `${Math.max(2, (s.selfMs / maxSelf) * 100)}%`,
-                background: categoryColor(s.category),
+                background: categoryColor(s.category, isDark),
               }"
           /></span>
           <span class="ls-slow__ms">{{ formatDuration(s.selfMs) }}</span>
@@ -79,30 +87,46 @@
 <script setup lang="ts">
 import type { TaskLatencySummary } from '@/api/creation-latency';
 
+import { InfoCircleOutlined } from '@antdv-next/icons';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { formatDateTime } from '@/utils/helpers';
 
-import { categoryColor, categoryI18nKey, formatDuration, sortByCategory } from './categories';
+import TraceTag from '../TraceTag/index.vue';
+import { useIsDark } from '../trace-theme';
+import { categoryColor, categoryI18nKey, formatDuration } from './categories';
 import StackedBar from './StackedBar.vue';
 
 const props = defineProps<{ summary: TaskLatencySummary }>();
 const emit = defineEmits<{ (e: 'focus-span', id: string): void }>();
 const { t, te } = useI18n();
+const isDark = useIsDark();
 
 function catName(code: string, label?: string) {
   const key = categoryI18nKey(code);
   return te(key) ? t(key) : label || code;
 }
 
-const sortedBreakdown = computed(() =>
-  sortByCategory(props.summary.breakdown || []).map((b) => ({
+const breakdownRows = computed(() =>
+  (props.summary.breakdown || []).map((b) => ({
     ...b,
     name: catName(b.category, b.label),
     tip: `${catName(b.category, b.label)}: ${formatDuration(b.ms)} (${b.pct.toFixed(1)}%)`,
   })),
 );
+/** 没有任何非 other 类别有耗时，或 other 占 95% 以上：视为没有分段数据，不画条 */
+const hasBreakdownData = computed(() => {
+  const rows = breakdownRows.value;
+  const other = rows.find((r) => r.category === 'other');
+  const hasReal = rows.some((r) => r.category !== 'other' && r.ms > 0);
+  return hasReal && (other?.pct ?? 0) < 95;
+});
+/** 图例只列有耗时的类别，按耗时降序 */
+const visibleBreakdown = computed(() =>
+  breakdownRows.value.filter((r) => r.ms > 0).sort((a, b) => b.ms - a.ms),
+);
+const zeroCount = computed(() => breakdownRows.value.filter((r) => !(r.ms > 0)).length);
 const maxSelf = computed(() => Math.max(1, ...(props.summary.slowest || []).map((s) => s.selfMs)));
 </script>
 
@@ -110,9 +134,9 @@ const maxSelf = computed(() => Math.max(1, ...(props.summary.slowest || []).map(
 .ls {
   margin-bottom: 16px;
   padding: 16px;
-  border: 1px solid var(--color-border-secondary, #f0f0f0);
+  border: 1px solid var(--color-border-secondary);
   border-radius: 8px;
-  background: var(--color-fill-quaternary, #fafafa);
+  background: var(--color-fill-quaternary);
 }
 .ls-top {
   display: flex;
@@ -129,7 +153,7 @@ const maxSelf = computed(() => Math.max(1, ...(props.summary.slowest || []).map(
   font-size: 32px;
   font-weight: 600;
   line-height: 1.2;
-  color: #1677ff;
+  color: var(--color-primary, #1677ff);
 }
 .ls-kpi__sub {
   font-size: 12px;
@@ -155,23 +179,35 @@ const maxSelf = computed(() => Math.max(1, ...(props.summary.slowest || []).map(
   flex-wrap: wrap;
   gap: 6px 16px;
   margin-top: 10px;
+  color: var(--color-text-secondary);
   font-size: 12px;
 }
 .ls-legend__item i {
   display: inline-block;
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   margin-right: 5px;
-  border-radius: 2px;
+  border-radius: 50%;
 }
 .ls-legend__item b {
   margin-left: 6px;
+  color: var(--color-text-primary);
   font-weight: 600;
 }
 .ls-legend__item em {
   margin-left: 4px;
   font-style: normal;
   color: var(--color-text-secondary);
+}
+.ls-nodata {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+.ls-legend__rest {
+  color: var(--color-text-tertiary);
 }
 .ls-slow {
   margin: 0;
@@ -187,7 +223,7 @@ const maxSelf = computed(() => Math.max(1, ...(props.summary.slowest || []).map(
   cursor: pointer;
 }
 .ls-slow__row:hover {
-  background: var(--color-fill-tertiary, rgba(0, 0, 0, 0.04));
+  background: var(--color-fill-quaternary, rgba(127, 127, 127, 0.1));
 }
 .ls-slow__rank {
   width: 18px;
@@ -210,7 +246,7 @@ const maxSelf = computed(() => Math.max(1, ...(props.summary.slowest || []).map(
   flex: 1;
   height: 8px;
   border-radius: 4px;
-  background: var(--color-fill-secondary, rgba(0, 0, 0, 0.06));
+  background: rgba(127, 127, 127, 0.16);
   overflow: hidden;
 }
 .ls-slow__bar i {
