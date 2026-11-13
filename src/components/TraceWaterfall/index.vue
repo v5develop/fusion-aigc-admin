@@ -1,23 +1,33 @@
 <template>
-  <div class="tw" :style="rootStyle">
+  <div ref="rootEl" class="tw" :style="rootStyle">
     <!-- 头部：整体状态、总耗时、失败摘要、卡点、排查提示 -->
     <div class="tw-header">
-      <a-space wrap :size="[12, 4]">
-        <TraceTag :tone="overallTone">{{ t(`creationTask.spans.overall.${overall}`) }}</TraceTag>
-        <span class="tw-meta">
-          {{ t('creationTask.spans.total') }}:
-          <b>{{ formatDuration(totalMs) }}</b>
+      <div class="tw-meta-line">
+        <a-space wrap :size="[12, 4]">
+          <TraceTag :tone="overallTone">{{ t(`creationTask.spans.overall.${overall}`) }}</TraceTag>
+          <span class="tw-meta">
+            {{ t('creationTask.spans.total') }}:
+            <b>{{ formatDuration(totalMs) }}</b>
+          </span>
+          <span class="tw-meta">{{
+            t('creationTask.spans.count', { n: data.spans?.length || 0 })
+          }}</span>
+          <span v-if="data.startedAt" class="tw-meta">
+            {{ t('creationTask.spans.startedAt') }}: {{ formatDateTime(data.startedAt) }}
+          </span>
+          <span v-if="!data.terminal && overall !== 'empty'" class="tw-meta tw-meta--live">
+            <LoadingOutlined /> {{ t('creationTask.spans.live') }}
+          </span>
+        </a-space>
+        <span v-if="rows.length" class="tw-actions">
+          <a-button size="small" type="link" @click="expandAll">{{
+            t('creationTask.spans.expandAll')
+          }}</a-button>
+          <a-button size="small" type="link" @click="collapseAll">{{
+            t('creationTask.spans.collapseAll')
+          }}</a-button>
         </span>
-        <span class="tw-meta">{{
-          t('creationTask.spans.count', { n: data.spans?.length || 0 })
-        }}</span>
-        <span v-if="data.startedAt" class="tw-meta">
-          {{ t('creationTask.spans.startedAt') }}: {{ formatDateTime(data.startedAt) }}
-        </span>
-        <span v-if="!data.terminal && overall !== 'empty'" class="tw-meta tw-meta--live">
-          <LoadingOutlined /> {{ t('creationTask.spans.live') }}
-        </span>
-      </a-space>
+      </div>
       <a-alert
         v-if="data.eventsTruncated"
         class="tw-alert"
@@ -66,19 +76,25 @@
 
     <a-empty v-if="!rows.length" :description="t('creationTask.spans.empty')" />
     <template v-else>
-      <div class="tw-toolbar">
-        <a-button size="small" type="link" @click="expandAll">{{
-          t('creationTask.spans.expandAll')
-        }}</a-button>
-        <a-button size="small" type="link" @click="collapseAll">{{
-          t('creationTask.spans.collapseAll')
-        }}</a-button>
-        <span class="tw-legend">
+      <!-- 图例：状态色（条）+ 服务圆点 + 关键路径竖条 -->
+      <div class="tw-legend">
+        <span class="tw-legend__group">
           <span v-for="s in legend" :key="s" class="tw-legend__item">
-            <i :style="{ background: statusColor(s, isDark) }" />{{ t(`creationTask.spans.status.${s}`) }}
+            <i class="tw-legend__swatch" :style="{ background: statusColor(s, isDark) }" />{{
+              t(`creationTask.spans.status.${s}`)
+            }}
           </span>
-          <span v-if="criticalSet.size" class="tw-legend__item">
-            <i class="tw-legend__crit" />{{ t('latency.criticalPath') }}
+        </span>
+        <span class="tw-legend__group">
+          <span v-for="s in serviceLegend" :key="s" class="tw-legend__item">
+            <i class="tw-legend__dot" :style="{ background: svcColor(s) }" />{{
+              t(`creationTask.spans.service.${s}`)
+            }}
+          </span>
+        </span>
+        <span v-if="criticalSet.size" class="tw-legend__group">
+          <span class="tw-legend__item">
+            <i class="tw-legend__rail" />{{ t('latency.criticalPath') }}
           </span>
         </span>
       </div>
@@ -90,19 +106,35 @@
       >
         <div class="tw-inner">
           <div class="tw-axis">
-            <div class="tw-left tw-axis__label">{{ t('creationTask.spans.spanCol') }}</div>
-            <div class="tw-right tw-axis__ticks">
-              <span
-                v-for="tk in ticks"
-                :key="tk.pct"
-                class="tw-tick"
-                :style="{ left: `${tk.pct}%` }"
-                :class="{ 'tw-tick--last': tk.pct === 100 }"
-                >{{ tk.label }}</span
-              >
+            <div class="tw-cell tw-cell--name tw-axis__title">
+              {{ t('creationTask.spans.node') }}
+            </div>
+            <div class="tw-cell tw-cell--dur tw-axis__title tw-axis__title--dur">
+              {{ t('creationTask.spans.duration') }}
+            </div>
+            <div class="tw-cell tw-cell--line">
+              <div class="tw-plot">
+                <span
+                  v-for="tk in ticks"
+                  :key="tk.pct"
+                  class="tw-tick"
+                  :style="{ left: `${tk.pct}%` }"
+                  >{{ tk.label }}</span
+                >
+              </div>
             </div>
           </div>
           <div class="tw-body" :style="{ height: `${rows.length * ROW_H}px` }">
+            <div class="tw-gridlayer">
+              <div class="tw-plot">
+                <span
+                  v-for="tk in gridTicks"
+                  :key="tk.pct"
+                  class="tw-grid"
+                  :style="{ left: `${tk.pct}%` }"
+                />
+              </div>
+            </div>
             <div
               v-for="item in windowRows"
               :key="item.row.node.span.id"
@@ -117,11 +149,19 @@
               :style="{ top: `${item.index * ROW_H}px`, height: `${ROW_H}px` }"
               @click="select(item.row.node.span.id)"
             >
-              <div class="tw-left">
-                <span class="tw-indent" :style="{ width: `${item.row.depth * 16}px` }" />
+              <div
+                class="tw-cell tw-cell--name"
+                :title="nameTitle(item.row.node)"
+              >
+                <span
+                  v-for="d in item.row.depth"
+                  :key="d"
+                  class="tw-guide"
+                  aria-hidden="true"
+                />
                 <span
                   v-if="item.row.hasChildren"
-                  class="tw-toggle"
+                  class="tw-toggle tw-toggle--on"
                   @click.stop="toggle(item.row.node.span.id)"
                 >
                   <CaretRightOutlined v-if="item.row.collapsed" />
@@ -151,14 +191,16 @@
                   />
                   <ClockCircleOutlined v-else :style="{ color: statusColor('pending', isDark) }" />
                 </span>
-                <TraceTag class="tw-svc" :tone="serviceTone(item.row.node.service)">{{
-                  t(`creationTask.spans.service.${item.row.node.service}`)
-                }}</TraceTag>
-                <span class="tw-label" :title="item.row.node.span.key">{{
-                  item.row.node.span.label || item.row.node.span.key
-                }}</span>
+                <i class="tw-svc" :style="{ background: svcColor(item.row.node.service) }" />
+                <span class="tw-label">
+                  <template v-for="p in [labelParts(item.row.node)]" :key="0">
+                    <span v-if="p.prefix" class="tw-label__prefix">{{ p.prefix }}</span>
+                    <span class="tw-label__main">{{ p.main }}</span>
+                    <span v-if="p.note" class="tw-label__note"> （{{ p.note }}）</span>
+                  </template>
+                </span>
                 <span
-                  v-if="item.row.node.span.attempt && item.row.node.span.attempt > 1"
+                  v-if="item.row.node.span.attempt && item.row.node.span.attempt > 1 && !(item.row.node.span.label || '').includes(`#${item.row.node.span.attempt}`)"
                   class="tw-attempt"
                   >#{{ item.row.node.span.attempt }}</span
                 >
@@ -169,43 +211,57 @@
                   >{{ t('creationTask.spans.stuck') }}</TraceTag
                 >
               </div>
-              <div class="tw-right">
-                <span
-                  v-for="tk in gridTicks"
-                  :key="tk.pct"
-                  class="tw-grid"
-                  :style="{ left: `${tk.pct}%` }"
-                />
-                <template v-if="geom(item.row.node)">
-                  <span
-                    v-if="geom(item.row.node)!.point"
-                    class="tw-point"
-                    :style="{
-                      left: `${geom(item.row.node)!.left}%`,
-                      background: statusColor(item.row.node.status, isDark),
-                    }"
-                  />
-                  <span
-                    v-else
-                    class="tw-bar"
-                    :class="{
-                      'tw-bar--running': geom(item.row.node)!.running,
-                      'tw-bar--root': isRoot(item.row.node),
-                    }"
-                    :style="{
-                      left: `${geom(item.row.node)!.left}%`,
-                      width: `max(${geom(item.row.node)!.width}%, 3px)`,
-                      '--tw-c': statusColor(item.row.node.status, isDark),
-                    }"
-                  />
-                  <span class="tw-dur" :style="durStyle(item.row.node)">{{
-                    durText(item.row.node)
-                  }}</span>
-                </template>
-                <span v-else class="tw-dur tw-dur--na">{{ t('creationTask.spans.noTime') }}</span>
+              <div
+                class="tw-cell tw-cell--dur"
+                :class="{ 'tw-cell--running': geom(item.row.node)?.running }"
+              >
+                <template v-if="durText(item.row.node)">{{ durText(item.row.node) }}</template>
+                <span v-else class="tw-dur--na">—</span>
+              </div>
+              <div class="tw-cell tw-cell--line">
+                <div class="tw-plot">
+                  <template v-if="geom(item.row.node)">
+                    <span
+                      v-if="geom(item.row.node)!.point"
+                      class="tw-point"
+                      :style="{
+                        left: `${geom(item.row.node)!.left}%`,
+                        background: statusColor(item.row.node.status, isDark),
+                      }"
+                    />
+                    <span
+                      v-else
+                      class="tw-bar"
+                      :class="{ 'tw-bar--running': geom(item.row.node)!.running }"
+                      :style="{
+                        left: `${geom(item.row.node)!.left}%`,
+                        width: `max(${geom(item.row.node)!.width}%, 3px)`,
+                        '--tw-c': statusColor(item.row.node.status, isDark),
+                      }"
+                    />
+                  </template>
+                </div>
               </div>
             </div>
           </div>
+          <!-- 列分隔条：拖动 / ← → 调宽，双击复位 -->
+          <div
+            class="tw-splitter"
+            :class="{ 'tw-splitter--active': dragging }"
+            role="separator"
+            aria-orientation="vertical"
+            tabindex="0"
+            :aria-label="t('creationTask.spans.node')"
+            :aria-valuenow="nameW"
+            :aria-valuemin="NAME_MIN"
+            :style="{ left: `${nameW - 3}px` }"
+            @pointerdown="onSplitDown"
+            @pointermove="onSplitMove"
+            @pointerup="onSplitUp"
+            @pointercancel="onSplitUp"
+            @keydown="onSplitKey"
+            @dblclick="resetNameW"
+          />
         </div>
       </div>
     </template>
@@ -333,19 +389,19 @@ import {
   onMounted,
   ref,
   watch,
-  type CSSProperties,
 } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
 import { copyToClipboard, formatDateTime } from '@/utils/helpers';
 
+import { useAuthStore } from '@/stores/auth';
+
 import TraceTag from '../TraceTag/index.vue';
-import { ACCENT, GRID_LINE, pickColor, useIsDark } from '../trace-theme';
+import { ACCENT, GRID_LINE, TONES, pickColor, useIsDark } from '../trace-theme';
 
 import {
   ancestorIds,
-  axisTicks,
   barGeom,
   buildSpanTree,
   computeAxis,
@@ -354,7 +410,9 @@ import {
   formatDuration,
   isBadStatus,
   overallStatus,
+  niceTicks,
   serviceTone,
+  splitLabel,
   spanDurationMs,
   statusColor,
   statusTone,
@@ -368,7 +426,7 @@ const props = withDefaults(
     showHints?: boolean;
     /** 能否跳转 AI 网关调用详情（无权限时只给复制） */
     canOpenGateway?: boolean;
-    /** 关键路径 span id（高亮：行左侧粗标记 + 条描边） */
+    /** 关键路径 span id（高亮：行左缘 3px 紫色竖条） */
     criticalPath?: readonly string[];
     /** 外部指定要定位并闪烁的 span；同 id 重复定位请用 expose 的 focus() */
     focusSpanId?: string | null;
@@ -381,6 +439,9 @@ const isDark = useIsDark();
 const rootStyle = computed(() => ({
   '--tw-accent': pickColor(ACCENT, isDark.value),
   '--tw-grid': pickColor(GRID_LINE, isDark.value),
+  '--tw-name-w': `${nameW.value}px`,
+  '--tw-dur-w': `${DUR_W}px`,
+  '--tw-inner-min': `${nameW.value + DUR_W + LINE_MIN}px`,
 }));
 const router = useRouter();
 
@@ -418,15 +479,28 @@ watch(
     syncTimer();
   },
 );
-onMounted(syncTimer);
+onMounted(() => {
+  syncTimer();
+  if (rootEl.value) {
+    rootW.value = rootEl.value.clientWidth || rootW.value;
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObs = new ResizeObserver((entries) => {
+        const w = entries[0]?.contentRect.width;
+        if (w) rootW.value = w;
+      });
+      resizeObs.observe(rootEl.value);
+    }
+  }
+});
 onBeforeUnmount(() => {
+  resizeObs?.disconnect();
   if (timer) clearInterval(timer);
   if (focusTimer) clearTimeout(focusTimer);
 });
 
 const rows = computed(() => flattenTree(tree.value.roots, collapsed.value));
 const axis = computed(() => computeAxis(props.data, tree.value.byId.values(), now.value));
-const ticks = computed(() => axisTicks(axis.value, 5));
+const ticks = computed(() => niceTicks(axis.value, 7));
 /** 网格线不含 0 / 100 */
 const gridTicks = computed(() => ticks.value.filter((tk) => tk.pct > 0 && tk.pct < 100));
 const totalMs = computed(() => props.data.totalMs ?? (rows.value.length ? axis.value.span : null));
@@ -440,10 +514,6 @@ const overallTone = computed(() =>
         ? 'green'
         : 'gray',
 );
-/** 根 span（「任务」，无父）：画成半透明轨道而不是实心条，让子节点更突出 */
-function isRoot(n: SpanNode) {
-  return n.span.id === 'task' || !n.span.parentId;
-}
 const failingNode = computed(() =>
   props.data.failingSpanId ? tree.value.byId.get(props.data.failingSpanId) || null : null,
 );
@@ -455,6 +525,94 @@ const selectedNode = computed(() =>
 );
 const attrEntries = computed(() => Object.entries(selectedNode.value?.span.attrs || {}));
 const legend = ['ok', 'running', 'failed', 'cancelled'] as const;
+/** 本次链路里出现过的服务（图例的圆点说明），按固定顺序 */
+const SERVICE_ORDER = ['java', 'go', 'media', 'gateway', 'gpu', 'admin', 'user'] as const;
+const serviceLegend = computed(() => {
+  const seen = new Set<string>();
+  for (const n of tree.value.byId.values()) seen.add(n.service);
+  return SERVICE_ORDER.filter((s) => seen.has(s));
+});
+function svcColor(service: unknown) {
+  return pickColor(TONES[serviceTone(service)], isDark.value);
+}
+function labelParts(n: SpanNode) {
+  return splitLabel(n.span.label || n.span.key || '');
+}
+function nameTitle(n: SpanNode) {
+  const svc = t(`creationTask.spans.service.${n.service}`);
+  return `${n.span.label || n.span.key}\n${svc} · ${n.span.key}`;
+}
+
+// ---- 列宽：默认 38%（320px ~ 60%），可拖动，按账号记住 ----
+const NAME_MIN = 320;
+const NAME_DEFAULT_RATIO = 0.38;
+const NAME_MAX_RATIO = 0.6;
+const DUR_W = 76;
+const LINE_MIN = 240;
+const rootEl = ref<HTMLElement | null>(null);
+const rootW = ref(1000);
+let resizeObs: ResizeObserver | null = null;
+const authStore = useAuthStore();
+const storeKey = computed(() => `app-trace-waterfall-name-w:${authStore.user?.id ?? 'anon'}`);
+function loadNameW(): number | null {
+  try {
+    const v = Number(localStorage.getItem(storeKey.value));
+    return Number.isFinite(v) && v > 0 ? v : null;
+  } catch {
+    return null;
+  }
+}
+function saveNameW(v: number | null) {
+  try {
+    if (v == null) localStorage.removeItem(storeKey.value);
+    else localStorage.setItem(storeKey.value, String(Math.round(v)));
+  } catch {
+    /* 隐私模式 / 配额：忽略，仅本次生效 */
+  }
+}
+const userNameW = ref<number | null>(loadNameW());
+function clampNameW(v: number) {
+  const max = Math.max(NAME_MIN, rootW.value * NAME_MAX_RATIO);
+  return Math.round(Math.min(max, Math.max(NAME_MIN, v)));
+}
+const nameW = computed(() =>
+  clampNameW(userNameW.value ?? rootW.value * NAME_DEFAULT_RATIO),
+);
+const dragging = ref(false);
+let dragStartX = 0;
+let dragStartW = 0;
+function onSplitDown(e: PointerEvent) {
+  dragging.value = true;
+  dragStartX = e.clientX;
+  dragStartW = nameW.value;
+  (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  e.preventDefault();
+}
+function onSplitMove(e: PointerEvent) {
+  if (!dragging.value) return;
+  userNameW.value = clampNameW(dragStartW + e.clientX - dragStartX);
+}
+function onSplitUp(e: PointerEvent) {
+  if (!dragging.value) return;
+  dragging.value = false;
+  try {
+    (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+  } catch {
+    /* 已释放 */
+  }
+  saveNameW(userNameW.value);
+}
+function onSplitKey(e: KeyboardEvent) {
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  e.preventDefault();
+  userNameW.value = clampNameW(nameW.value + (e.key === 'ArrowLeft' ? -16 : 16));
+  saveNameW(userNameW.value);
+}
+function resetNameW() {
+  userNameW.value = null;
+  saveNameW(null);
+}
+
 
 // ---- 虚拟滚动：行高固定，只渲染可视窗口 ± OVERSCAN ----
 const windowRows = computed(() => {
@@ -475,17 +633,11 @@ function geom(n: SpanNode) {
   return geomCache.value.get(n.span.id) ?? null;
 }
 function durText(n: SpanNode) {
+  // 点事件（零时长）不显示耗时，由模板落到「—」
+  if (geom(n)?.point) return '';
   const d = spanDurationMs(n, now.value);
   return d == null ? '' : formatDuration(d);
 }
-/** 耗时文字：条靠左时放条右侧，靠右（>60%）时放条左侧，避免溢出 */
-function durStyle(n: SpanNode): CSSProperties {
-  const g = geom(n);
-  if (!g) return {};
-  if (g.left + g.width > 60) return { right: `${100 - g.left}%`, paddingRight: '6px' };
-  return { left: `${g.left + g.width}%`, paddingLeft: '6px' };
-}
-
 function isBad(s: unknown) {
   return isBadStatus(s);
 }
@@ -604,33 +756,35 @@ function openGatewayCall(callId: string) {
 }
 </script>
 
+
 <style scoped>
-.tw-row--critical {
-  box-shadow: inset 3px 0 0 var(--tw-accent);
-}
-.tw-row--critical .tw-bar {
-  outline: 1px solid var(--tw-accent);
-  outline-offset: 1px;
-}
-.tw-row--focus {
-  background: color-mix(in srgb, var(--color-primary, #1677ff) 18%, transparent) !important;
-}
-.tw-legend__crit {
-  width: 3px !important;
-  height: 12px !important;
-  margin-right: 6px !important;
-  border-radius: 2px;
-  background: var(--tw-accent) !important;
-}
 .tw {
-  --tw-left-w: 360px;
+  --tw-row-h: 32px;
+  --tw-dur-w: 76px;
+  --tw-guide: var(--color-border);
+  position: relative;
 }
 .tw-header {
   margin-bottom: 8px;
 }
+.tw-meta-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+.tw-actions {
+  display: inline-flex;
+  gap: 4px;
+}
 .tw-meta {
   color: var(--color-text-secondary);
   font-size: 12px;
+}
+.tw-meta b {
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
 }
 .tw-meta--live {
   color: var(--color-primary, #1677ff);
@@ -642,145 +796,161 @@ function openGatewayCall(callId: string) {
   margin: 8px 0 0;
   padding-left: 20px;
 }
-.tw-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-bottom: 4px;
-}
+
+/* 图例 */
 .tw-legend {
-  margin-left: auto;
   display: flex;
-  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 20px;
+  margin-bottom: 8px;
   font-size: 12px;
   color: var(--color-text-secondary);
 }
-.tw-legend__item i {
+.tw-legend__group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+}
+.tw-legend__item {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+.tw-legend__swatch {
   display: inline-block;
-  width: 10px;
-  height: 10px;
-  margin-right: 4px;
+  width: 14px;
+  height: 8px;
+  margin-right: 6px;
   border-radius: 2px;
 }
+.tw-legend__dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 50%;
+}
+.tw-legend__rail {
+  display: inline-block;
+  width: 3px;
+  height: 12px;
+  margin-right: 6px;
+  border-radius: 2px;
+  background: var(--tw-accent);
+}
+
+/* 容器与三列：名称 | 耗时 | 时间轴 */
 .tw-viewport {
   overflow: auto;
   border: 1px solid var(--color-border-secondary);
-  border-radius: 6px;
+  border-radius: 8px;
   background: var(--color-bg-container);
 }
 .tw-inner {
-  min-width: 760px;
+  position: relative;
+  min-width: var(--tw-inner-min, 640px);
 }
+.tw-cell {
+  box-sizing: border-box;
+  flex: none;
+}
+.tw-cell--name {
+  display: flex;
+  align-items: center;
+  width: var(--tw-name-w);
+  padding: 0 8px;
+  overflow: hidden;
+  border-right: 1px solid var(--color-border-secondary);
+}
+.tw-cell--dur {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: var(--tw-dur-w);
+  padding: 0 12px 0 4px;
+  border-right: 1px solid var(--color-border-secondary);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.tw-cell--running {
+  color: var(--color-primary, #1677ff);
+}
+.tw-cell--line {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.tw-dur--na {
+  color: var(--color-text-quaternary, var(--color-text-tertiary));
+}
+/* 时间区内再留边距，让首尾刻度文字不被裁切 */
+.tw-plot {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 16px;
+  right: 32px;
+}
+
+/* 表头（吸顶） */
 .tw-axis {
   position: sticky;
   top: 0;
-  z-index: 3;
+  z-index: 4;
   display: flex;
-  height: 28px;
-  background: var(--color-fill-quaternary);
+  height: 32px;
+  background: var(--color-bg-container);
   border-bottom: 1px solid var(--color-border-secondary);
 }
-.tw-axis__label {
-  align-items: center;
+.tw-axis .tw-cell {
+  background: var(--color-fill-quaternary);
+}
+.tw-axis__title {
   font-size: 12px;
+  font-weight: 500;
   color: var(--color-text-secondary);
 }
-.tw-axis__ticks {
-  position: relative;
+.tw-axis__title--dur {
+  padding-right: 12px;
 }
 .tw-tick {
   position: absolute;
-  top: 6px;
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
   transform: translateX(-50%);
   font-size: 11px;
+  line-height: 1;
   color: var(--color-text-secondary);
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
-.tw-tick:first-child {
-  transform: none;
-  margin-left: 4px;
+.tw-tick::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  height: 4px;
+  border-left: 1px solid var(--color-border);
 }
-.tw-tick--last {
-  transform: translateX(-100%);
-  margin-left: -4px;
-}
+
+/* 行 */
 .tw-body {
   position: relative;
 }
-.tw-row {
+.tw-gridlayer {
   position: absolute;
-  left: 0;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--tw-name-w) + var(--tw-dur-w));
   right: 0;
-  display: flex;
-  cursor: pointer;
-  border-bottom: 1px solid var(--color-border-secondary);
-  box-sizing: border-box;
-}
-.tw-row:hover {
-  background: var(--color-fill-quaternary, rgba(127, 127, 127, 0.08));
-}
-.tw-row--selected {
-  background: color-mix(in srgb, var(--color-primary, #1677ff) 12%, transparent);
-}
-.tw-row--stuck {
-  background: color-mix(in srgb, var(--color-warning, #faad14) 12%, transparent);
-}
-.tw-row--failing {
-  background: color-mix(in srgb, var(--color-error, #ff4d4f) 10%, transparent);
-  box-shadow: inset 3px 0 0 var(--color-error, #ff4d4f);
-}
-.tw-left {
-  flex: none;
-  width: var(--tw-left-w);
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 0 8px;
-  overflow: hidden;
-  box-sizing: border-box;
-}
-.tw-right {
-  position: relative;
-  flex: 1;
-  min-width: 400px;
-  border-left: 1px solid var(--color-border-secondary);
-}
-.tw-axis .tw-left {
-  display: flex;
-}
-.tw-indent {
-  flex: none;
-}
-.tw-toggle {
-  flex: none;
-  width: 14px;
-  font-size: 11px;
-  color: var(--color-text-secondary);
-  text-align: center;
-}
-.tw-status-icon {
-  flex: none;
-}
-.tw-svc {
-  flex: none;
-  margin: 0 2px;
-  line-height: 18px;
-}
-.tw-label {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 13px;
-}
-.tw-attempt {
-  flex: none;
-  font-size: 11px;
-  color: var(--color-text-secondary);
-}
-.tw-flag {
-  flex: none;
-  margin: 0;
+  z-index: 1;
+  pointer-events: none;
 }
 .tw-grid {
   position: absolute;
@@ -788,36 +958,123 @@ function openGatewayCall(callId: string) {
   bottom: 0;
   border-left: 1px solid var(--tw-grid);
 }
+.tw-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  box-sizing: border-box;
+  cursor: pointer;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border-secondary) 55%, transparent);
+}
+.tw-row:hover {
+  background: var(--color-fill-quaternary, rgba(127, 127, 127, 0.08));
+}
+.tw-row--failing {
+  background: color-mix(in srgb, var(--color-error, #ff4d4f) 8%, transparent);
+}
+.tw-row--stuck {
+  background: color-mix(in srgb, var(--color-warning, #faad14) 10%, transparent);
+}
+.tw-row--selected,
+.tw-row--selected:hover {
+  background: color-mix(in srgb, var(--color-primary, #1677ff) 12%, transparent);
+}
+.tw-row--focus {
+  background: color-mix(in srgb, var(--color-primary, #1677ff) 18%, transparent) !important;
+}
+/* 关键路径：仅行左缘 3px 紫色竖条 */
+.tw-row--critical::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
+  width: 3px;
+  background: var(--tw-accent);
+}
+
+/* 名称单元 */
+.tw-guide {
+  flex: none;
+  align-self: stretch;
+  width: 16px;
+  background: linear-gradient(var(--tw-guide), var(--tw-guide)) 50% 0 / 1px 100% no-repeat;
+  opacity: 0.55;
+}
+.tw-toggle {
+  flex: none;
+  width: 16px;
+  font-size: 11px;
+  color: var(--color-text-tertiary, var(--color-text-secondary));
+  text-align: center;
+}
+.tw-toggle--on:hover {
+  color: var(--color-text);
+}
+.tw-status-icon {
+  flex: none;
+  display: inline-flex;
+  width: 16px;
+  margin-right: 6px;
+  font-size: 14px;
+}
+.tw-svc {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 50%;
+}
+.tw-label {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--color-text);
+}
+.tw-label__prefix {
+  margin-right: 5px;
+}
+.tw-label__prefix,
+.tw-label__note {
+  color: var(--color-text-tertiary, var(--color-text-secondary));
+  font-size: 12px;
+}
+.tw-attempt {
+  flex: none;
+  margin-left: 6px;
+  font-size: 11px;
+  color: var(--color-text-tertiary, var(--color-text-secondary));
+}
+.tw-flag {
+  flex: none;
+  margin: 0 0 0 6px;
+}
+
+/* 条与点：统一 12px 高、3px 圆角、实色 */
 .tw-bar {
   position: absolute;
   top: 9px;
-  height: 14px;
+  height: 12px;
   border-radius: 3px;
-  background: var(--tw-c);
-  opacity: 0.9;
-}
-/* 根节点「任务」：与子节点同样的实心状态色（同商拍批次页的观感），略矮、略淡，表示整体跨度 */
-.tw-bar--root {
-  top: 11px;
-  height: 10px;
-  opacity: 0.55;
+  background-color: var(--tw-c);
 }
 .tw-bar--running {
   background-image: linear-gradient(
     45deg,
-    rgba(255, 255, 255, 0.3) 25%,
+    rgba(255, 255, 255, 0.22) 25%,
     transparent 25%,
     transparent 50%,
-    rgba(255, 255, 255, 0.3) 50%,
-    rgba(255, 255, 255, 0.3) 75%,
+    rgba(255, 255, 255, 0.22) 50%,
+    rgba(255, 255, 255, 0.22) 75%,
     transparent 75%
   );
   background-size: 16px 16px;
   animation: tw-stripe 0.8s linear infinite;
-}
-.tw-bar--root.tw-bar--running {
-  background-image: none;
-  animation: none;
 }
 @keyframes tw-stripe {
   to {
@@ -826,24 +1083,43 @@ function openGatewayCall(callId: string) {
 }
 .tw-point {
   position: absolute;
-  top: 12px;
+  top: 11px;
   width: 8px;
   height: 8px;
   margin-left: -4px;
   transform: rotate(45deg);
 }
-.tw-dur {
+
+/* 列分隔条 */
+.tw-splitter {
   position: absolute;
   top: 0;
-  line-height: 31px;
-  font-size: 11px;
-  color: var(--color-text-secondary);
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
+  bottom: 0;
+  z-index: 6;
+  width: 7px;
+  cursor: col-resize;
+  touch-action: none;
+  outline: none;
 }
-.tw-dur--na {
-  left: 8px;
+.tw-splitter::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 3px;
+  width: 1px;
+  background: transparent;
+  transition: background 0.15s;
 }
+.tw-splitter:hover::after,
+.tw-splitter:focus-visible::after,
+.tw-splitter--active::after {
+  left: 2px;
+  width: 3px;
+  background: var(--color-primary, #1677ff);
+  opacity: 0.55;
+}
+
 .tw-section {
   margin-bottom: 12px;
 }

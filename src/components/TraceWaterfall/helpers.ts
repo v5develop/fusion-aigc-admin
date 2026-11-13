@@ -262,12 +262,66 @@ export function spanDurationMs(n: SpanNode, now: number): number | null {
   return end == null ? null : Math.max(0, end - n.startMs);
 }
 
-/** 时间轴刻度：count+1 个，label 为相对起点的耗时 */
-export function axisTicks(axis: Axis, count = 5): { pct: number; label: string }[] {
-  return Array.from({ length: count + 1 }, (_, i) => ({
-    pct: (i / count) * 100,
-    label: i === 0 ? '0' : `+${formatDuration((axis.span * i) / count)}`,
-  }));
+const TICK_STEPS_MS: readonly number[] = [
+  1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10_000, 15_000, 30_000, 60_000, 120_000,
+  300_000, 600_000, 900_000, 1_800_000, 3_600_000, 7_200_000, 14_400_000, 43_200_000, 86_400_000,
+];
+
+/** 刻度文字：0 / 500ms / 30s / 1min / 1min 30s / 1h 30min（不带小数、不带 +） */
+export function formatTick(ms: number): string {
+  if (ms <= 0) return '0';
+  if (ms < 1000) return `${Math.round(ms)}ms`;
+  const sec = Math.round(ms / 1000);
+  if (sec < 60) return `${sec}s`;
+  if (sec < 3600) {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return s ? `${m}min ${s}s` : `${m}min`;
+  }
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  return m ? `${h}h ${m}min` : `${h}h`;
+}
+
+/**
+ * 「整数」刻度：步长取 1/2/5×10^n（秒以上用 15/30 等自然进位），
+ * 选出使刻度数（含 0）不超过 maxTicks 的最小步长；pct 为相对总跨度的百分比。
+ */
+export function niceTicks(axis: Axis, maxTicks = 7): { pct: number; label: string }[] {
+  const span = Math.max(1, axis.span);
+  let step = TICK_STEPS_MS[TICK_STEPS_MS.length - 1]!;
+  for (const s of TICK_STEPS_MS) {
+    if (Math.floor(span / s) + 1 <= maxTicks) {
+      step = s;
+      break;
+    }
+  }
+  const out: { pct: number; label: string }[] = [];
+  for (let t = 0; t <= span + 1e-6; t += step) {
+    out.push({ pct: (t / span) * 100, label: formatTick(t) });
+  }
+  return out;
+}
+
+/**
+ * 拆分展示名：「主名称（括号说明）」→ main + note；开头的「工作流步骤 」等通用前缀单独拆出，弱化显示。
+ * 没有括号 / 前缀时对应字段为空串。
+ */
+export function splitLabel(label: string): { prefix: string; main: string; note: string } {
+  let rest = label.trim();
+  let prefix = '';
+  const pm = /^(工作流步骤|网关调用|网关尝试|网关转存产物)\s+(\S.*)$/.exec(rest);
+  if (pm && pm[1] === '工作流步骤') {
+    prefix = pm[1];
+    rest = pm[2]!;
+  }
+  let note = '';
+  const m = /^(.*?)\s*[（(](.+)[)）]$/.exec(rest);
+  if (m && m[1]) {
+    rest = m[1];
+    note = m[2]!;
+  }
+  return { prefix, main: rest, note };
 }
 
 /** 失败类 span 的一句话摘要，用于头部与「错误信息」卡片 */
