@@ -1715,4 +1715,42 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
     redirect: (to) => ({ path: `/content/prompt-lab/editor/${to.params.promptId}` }),
     meta: { title: 'menu.promptLab', hidden: true, requiresAuth: true },
   },
+  {
+    // 视频做同款后台（Go admin-api /api/v1/replicate/admin）：任务检索、详情、人工退点、强制收尾
+    path: '/replicate',
+    name: 'Replicate',
+    redirect: '/replicate/jobs',
+    component: () => import('@/components/Layout/AdminLayout.vue'),
+    meta: {
+      title: 'menu.replicateManagement',
+      icon: 'VideoCameraOutlined',
+      requiresAuth: true,
+      order: 55.5,
+    },
+    children: [
+      {
+        path: 'jobs',
+        name: 'ReplicateJobs',
+        component: () => import('@/views/creaft/replicate-job/index.vue'),
+        meta: {
+          title: 'menu.replicateJobs',
+          icon: 'UnorderedListOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'replicate:view',
+        },
+      },
+      {
+        // 示例管理（契约 api-replicate.md §11）：写操作按钮另要 replicate:sample
+        path: 'samples',
+        name: 'ReplicateSamples',
+        component: () => import('@/views/creaft/replicate-sample/index.vue'),
+        meta: {
+          title: 'menu.replicateSamples',
+          icon: 'PlaySquareOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'replicate:view',
+        },
+      },
+    ],
+  },
 ];
