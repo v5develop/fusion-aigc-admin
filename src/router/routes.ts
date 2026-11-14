@@ -637,6 +637,87 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
+        // 行业化改版（Go admin-api /api/v1/plaza/admin）：行业树、全量模板、按行业头条、建议与搜索缺口。
+        // 与上面两个 Java 老页并存，等 Go 接手（DESIGN 9.2）后再下掉老页
+        path: 'template-industry',
+        name: 'CreaftTemplateIndustry',
+        component: () => import('@/views/creaft/template-industry/index.vue'),
+        meta: {
+          title: 'menu.creaftTemplateIndustry',
+          icon: 'ApartmentOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'creaft_catalog:view',
+        },
+      },
+      {
+        path: 'plaza-template-manage',
+        name: 'CreaftPlazaTemplateManage',
+        component: () => import('@/views/creaft/plaza-template-manage/index.vue'),
+        meta: {
+          title: 'menu.creaftPlazaTemplateManage',
+          icon: 'AppstoreAddOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'creaft_catalog:view',
+        },
+      },
+      {
+        path: 'plaza-headline-board',
+        name: 'CreaftPlazaHeadlineBoard',
+        component: () => import('@/views/creaft/plaza-headline-board/index.vue'),
+        meta: {
+          title: 'menu.creaftPlazaHeadlineBoard',
+          icon: 'FireOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'creaft_catalog:view',
+        },
+      },
+      {
+        path: 'plaza-industry-feedback',
+        name: 'CreaftPlazaIndustryFeedback',
+        component: () => import('@/views/creaft/plaza-industry-feedback/index.vue'),
+        meta: {
+          title: 'menu.creaftPlazaIndustryFeedback',
+          icon: 'BulbOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'creaft_catalog:view',
+        },
+      },
+      {
+        path: 'plaza-channels',
+        name: 'CreaftPlazaChannel',
+        component: () => import('@/views/creaft/plaza-channel/index.vue'),
+        meta: {
+          title: 'menu.creaftPlazaChannel',
+          icon: 'ShareAltOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'creaft_catalog:view',
+        },
+      },
+      {
+        // 营销节点（Go /plaza/admin/nodes）：节点本身 + 按行业关联模板
+        path: 'plaza-nodes',
+        name: 'CreaftPlazaNode',
+        component: () => import('@/views/creaft/plaza-node/index.vue'),
+        meta: {
+          title: 'menu.creaftPlazaNode',
+          icon: 'CalendarOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'creaft_catalog:view',
+        },
+      },
+      {
+        // 全局审计检索（Go GET /plaza/admin/audit，路由级权限 plaza:audit）
+        path: 'plaza-audit',
+        name: 'CreaftPlazaAudit',
+        component: () => import('@/views/creaft/plaza-audit/index.vue'),
+        meta: {
+          title: 'menu.creaftPlazaAudit',
+          icon: 'AuditOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'plaza:audit',
+        },
+      },
+      {
         // 用户自建本地生活模板：只读。这是用户的私有内容，后台不代改、不代删；查看详情写审计
         path: 'user-local-life-templates',
         name: 'CreaftUserLocalLifeTemplate',
