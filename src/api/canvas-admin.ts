@@ -8,7 +8,7 @@ import { clearTokens, getToken } from '@/utils/storage';
  * 画布 / 提示词库运营后台接口。
  * fusion_aigc_go 的 admin-api，前缀 /api/v1/canvas/admin 与 /api/v1/prompt-library/admin。
  *
- * 信封与鉴权与 local-life-admin 一致：HTTP 恒为 200，业务结果看 code（0 成功；1002 未登录）。
+ * 信封与鉴权与 local-life-admin 一致：业务失败 HTTP 恒为 200、看 code（0 成功）；未登录是 HTTP 401 + code 2001。
  * local-life-admin 的 axios 实例是模块私有的，这里照抄一份，互不影响。
  */
 const CANVAS = '/api/v1/canvas/admin';
@@ -18,6 +18,8 @@ const http = create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   timeout: 15000,
   headers: { 'Content-Type': 'application/json' },
+  // 未登录是 HTTP 401（信封 code 2001），4xx 也要读 body；5xx 与网络错误仍走异常
+  validateStatus: (status) => status < 500,
 });
 
 http.interceptors.request.use((config) => {
@@ -32,12 +34,18 @@ interface Envelope<T> {
   data: T;
 }
 
-export const CANVAS_CODE_UNAUTHORIZED = 1002;
+/** Go xerr.Unauthorized（HTTP 401）。注意 Go 的 1002 是 PARAM_MISSING，不是未登录 */
+export const CANVAS_CODE_UNAUTHORIZED = 2001;
 
 async function call<T>(request: Promise<AxiosResponse<Envelope<T>>>): Promise<T> {
   let body: Envelope<T>;
   try {
-    body = (await request).data;
+    const res = await request;
+    body = res.data;
+    // 网关 / 代理层的 401 可能没有标准信封，按未登录补齐
+    if (res.status === 401 && body?.code !== CANVAS_CODE_UNAUTHORIZED) {
+      body = { code: CANVAS_CODE_UNAUTHORIZED, msg: '登录已失效', data: undefined as T };
+    }
   } catch {
     message.error('网络异常，请稍后重试');
     throw new Error('network');

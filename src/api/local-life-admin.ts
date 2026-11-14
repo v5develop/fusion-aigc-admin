@@ -8,8 +8,8 @@ import { clearTokens, getToken } from '@/utils/storage';
  * 本地生活运营后台接口（fusion_aigc_go 的 admin-api，前缀 /api/v1/local-life/admin）。
  *
  * 令牌与 Java 后台共用（Go 签发，写入 Java 的会话 Redis），所以这里直接取 Java 的 token。
- * 与 Java 的 request 不同：HTTP 状态恒为 200，业务结果看响应里的 code：
- * 0 成功；1002 未登录 / 已过期（清会话回 /login）；其余为业务错误，直接提示 msg。
+ * 与 Java 的 request 不同：业务失败 HTTP 状态恒为 200，看响应里的 code：
+ * 0 成功；未登录为 HTTP 401 + code 2001 / 已过期（清会话回 /login）；其余为业务错误，直接提示 msg。
  */
 const PREFIX = '/api/v1/local-life/admin';
 
@@ -17,6 +17,8 @@ const http = create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   timeout: 15000,
   headers: { 'Content-Type': 'application/json' },
+  // 未登录是 HTTP 401（信封 code 2001），4xx 也要读 body；5xx 与网络错误仍走异常
+  validateStatus: (status) => status < 500,
 });
 
 http.interceptors.request.use((config) => {
@@ -31,12 +33,18 @@ interface Envelope<T> {
   data: T;
 }
 
-export const LOCAL_LIFE_CODE_UNAUTHORIZED = 1002;
+/** Go xerr.Unauthorized（HTTP 401）。注意 Go 的 1002 是 PARAM_MISSING，不是未登录 */
+export const LOCAL_LIFE_CODE_UNAUTHORIZED = 2001;
 
 async function call<T>(request: Promise<AxiosResponse<Envelope<T>>>, silent = false): Promise<T> {
   let body: Envelope<T>;
   try {
-    body = (await request).data;
+    const res = await request;
+    body = res.data;
+    // 网关 / 代理层的 401 可能没有标准信封，按未登录补齐
+    if (res.status === 401 && body?.code !== LOCAL_LIFE_CODE_UNAUTHORIZED) {
+      body = { code: LOCAL_LIFE_CODE_UNAUTHORIZED, msg: '登录已失效', data: undefined as T };
+    }
   } catch {
     if (!silent) message.error('网络异常，请稍后重试');
     throw new Error('network');
