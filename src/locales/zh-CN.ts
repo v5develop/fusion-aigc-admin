@@ -6065,7 +6065,7 @@ export default {
     fCover: '封面图',
     fResult: '示例成片',
     ridPh: '裸 rid 或 mr://rid',
-    fAnnotations: '标注（JSON）',
+    fAnnotations: '改法',
     annotationsHint: '示例的改法，须为 JSON 对象；只认十一项 key 与三种改法（后端校验）；留空 = 无',
     annotationsInvalid: '标注必须是合法的 JSON 对象',
     fSort: '排序',

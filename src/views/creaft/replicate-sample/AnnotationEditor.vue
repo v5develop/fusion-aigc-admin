@@ -224,26 +224,23 @@ watch(
   margin-bottom: 6px;
 }
 .dims {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--ant-color-border-secondary, #f0f0f0);
-  border-radius: 8px;
-  overflow: hidden;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
 }
 .dim {
-  display: grid;
-  grid-template-columns: 150px 1fr;
-  gap: 12px;
-  align-items: center;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--ant-color-border-secondary, #f0f0f0);
-}
-.dim:last-child {
-  border-bottom: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--ant-color-border-secondary, #f0f0f0);
+  border-radius: 8px;
+  min-width: 0;
 }
 .dim-name {
   display: flex;
-  flex-direction: column;
+  align-items: baseline;
+  gap: 8px;
   min-width: 0;
 }
 .name {
@@ -255,16 +252,13 @@ watch(
 }
 .dim-control {
   display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 6px;
   min-width: 0;
 }
-.mode {
-  width: 160px;
-}
+.mode,
 .ref {
-  width: 260px;
+  width: 100%;
 }
 .audio {
   display: flex;
@@ -279,8 +273,8 @@ watch(
   font-size: 12px;
   white-space: pre-wrap;
 }
-@media (max-width: 720px) {
-  .dim {
+@media (max-width: 900px) {
+  .dims {
     grid-template-columns: 1fr;
   }
 }
