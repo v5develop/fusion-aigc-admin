@@ -54,7 +54,7 @@
         <input
           ref="fileEl"
           type="file"
-          class="hidden"
+          style="display: none"
           :accept="accept"
           :disabled="disabled"
           @change="onFileChange"
@@ -273,17 +273,14 @@ onMounted(() => {
   gap: 6px;
   width: 100%;
 }
-.hidden {
-  display: none;
-}
 .drop {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  min-height: 96px;
-  padding: 12px;
+  gap: 6px;
+  min-height: 80px;
+  padding: 14px 12px;
   border: 1px dashed var(--ant-color-border, #d9d9d9);
   border-radius: 8px;
   cursor: pointer;
@@ -304,6 +301,7 @@ onMounted(() => {
 }
 .title {
   font-weight: 500;
+  color: var(--ant-color-text, inherit);
 }
 .paste-row {
   display: flex;
