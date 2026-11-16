@@ -2355,6 +2355,36 @@ const applyIndustry = (row: Ind, b: IndustryBody): Ind => {
   return r;
 };
 
+// 行业总开关（mock 内存状态）
+const indSw: { db: boolean | null; configDefault: boolean; remark: string } = {
+  db: null,
+  configDefault: false,
+  remark: '',
+};
+const indSwView = () => ({
+  enabled: indSw.db ?? indSw.configDefault,
+  source: indSw.db === null ? 'config' : 'db',
+  configDefault: indSw.configDefault,
+  dbValue: indSw.db === null ? undefined : String(indSw.db),
+  remark: indSw.remark || undefined,
+  effectSeconds: 60,
+});
+on('GET', '/industry-switch', () => indSwView());
+on('PUT', '/industry-switch', (_m, _q, body) => {
+  const b = body as { enabled?: boolean; reason?: string };
+  const reason = String(b.reason ?? '').trim();
+  if (!reason) throw paramErr('请填写原因');
+  indSw.db = !!b.enabled;
+  indSw.remark = `行业功能总开关：管理员 1 设为${indSw.db ? '开启' : '关闭'}。原因：${reason}`;
+  return indSwView();
+});
+on('DELETE', '/industry-switch', (_m, _q, body) => {
+  const reason = String((body as { reason?: string }).reason ?? '').trim();
+  if (!reason) throw paramErr('请填写原因');
+  indSw.db = null;
+  indSw.remark = `行业功能总开关：管理员 1 恢复跟随配置文件。原因：${reason}`;
+  return indSwView();
+});
 on('GET', '/industries', () => tree());
 
 on('POST', '/industries', (_m, _q, body) => {

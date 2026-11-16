@@ -10,6 +10,8 @@
       </a-space>
     </div>
 
+    <IndustrySwitchBar />
+
     <a-alert
       v-if="unassigned > 0"
       type="warning"
@@ -44,33 +46,11 @@
           :expanded-keys="expandedKeys"
           :selected-keys="selectedId && mode === 'edit' ? [selectedId] : []"
           :allow-drop="allowDrop"
+          :title-render="renderTitle"
           @update:expanded-keys="(k: (string | number)[]) => (expandedKeys = k.map(Number))"
           @select="onSelect"
           @drop="onDrop"
         >
-          <template #title="{ dataRef }">
-            <div class="node" :class="{ off: !dataRef.node.enabled }">
-              <span class="node-name">{{ dataRef.node.name }}</span>
-              <a-tag :color="dataRef.node.enabled ? 'green' : 'default'">
-                {{ dataRef.node.enabled ? '启用' : '停用' }}
-              </a-tag>
-              <a-tag color="blue">
-                图 {{ dataRef.node.templateCount.image }} / 视频
-                {{ dataRef.node.templateCount.video }}
-              </a-tag>
-              <span class="muted">用户 {{ dataRef.node.userCount }}</span>
-              <span class="muted">7 天复刻 {{ dataRef.node.replicate7d }}</span>
-              <a-tooltip
-                v-if="dataRef.node.templateCount.published === 0 && !dataRef.node.showWhenEmpty"
-                title="没有用户可见的模板，且未开启「无模板时仍展示」，用户端行业门里不会出现"
-              >
-                <a-tag>用户端不可见</a-tag>
-              </a-tooltip>
-              <a-tooltip v-if="dataRef.node.children?.length" title="有子级的一级行业不可降为二级">
-                <span class="muted lock">含 {{ dataRef.node.children.length }} 个二级</span>
-              </a-tooltip>
-            </div>
-          </template>
         </a-tree>
         <a-empty v-else-if="!loading" description="还没有行业" />
       </a-card>
@@ -203,7 +183,7 @@
 
 <script setup lang="ts">
 import { Modal, message } from 'antdv-next';
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, h, onMounted, reactive, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import {
@@ -221,6 +201,7 @@ import {
 } from '@/api/plaza-admin';
 import { usePermission } from '@/composables/usePermission';
 
+import IndustrySwitchBar from './IndustrySwitchBar.vue';
 import { computeMove, type DropPosition } from './tree-move';
 
 const router = useRouter();
@@ -241,14 +222,36 @@ const current = computed(() => flat.value.find((x) => x.id === selectedId.value)
 
 interface TreeNodeData {
   key: number;
+  title: string;
   node: IndustryNode;
   children?: TreeNodeData[];
 }
+/** 树节点文字：名称 + 启停 + 模板 / 用户 / 复刻数；用 titleRender 直接出文字（插槽在这里不生效，会显示占位 ---） */
+function renderTitle(data: TreeNodeData) {
+  const n = data.node;
+  const count = (k: string, v: number | string) => h('span', { class: 'muted', key: k }, `${v}`);
+  const parts = [
+    h('span', { class: 'node-name' }, n.name),
+    h('span', { class: ['pill', n.enabled ? 'on' : 'off'] }, n.enabled ? '启用' : '停用'),
+    h('span', { class: 'muted' }, `图 ${n.templateCount.image} · 视频 ${n.templateCount.video}`),
+    count('u', `用户 ${n.userCount}`),
+    count('r', `7天复刻 ${n.replicate7d}`),
+  ];
+  if (n.templateCount.published === 0 && !n.showWhenEmpty) {
+    parts.push(h('span', { class: 'pill warn' }, '用户端不可见'));
+  }
+  if (n.children?.length) {
+    parts.push(h('span', { class: 'muted' }, `含 ${n.children.length} 个二级`));
+  }
+  return h('div', { class: ['node', { off: !n.enabled }] }, parts);
+}
+
 const treeData = computed<TreeNodeData[]>(() =>
   roots.value.map((r) => ({
     key: r.id,
+    title: r.name,
     node: r,
-    children: (r.children ?? []).map((c) => ({ key: c.id, node: c })),
+    children: (r.children ?? []).map((c) => ({ key: c.id, title: c.name, node: c })),
   })),
 );
 
@@ -559,6 +562,35 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.node {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  min-width: 0;
+}
+.node-name {
+  font-weight: 500;
+}
+.node.off .node-name {
+  opacity: 0.55;
+}
+.pill {
+  padding: 0 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 18px;
+  background: var(--ant-color-fill-tertiary, #2a2b33);
+}
+.pill.on {
+  color: var(--ant-color-success, #52c41a);
+}
+.pill.off {
+  color: var(--ant-color-text-tertiary, #888);
+}
+.pill.warn {
+  color: var(--ant-color-warning, #faad14);
+}
 .split {
   display: flex;
   gap: 12px;

@@ -335,6 +335,25 @@ export interface IndustryUpdateResult {
 
 export const getIndustries = () => call<IndustryNode[]>('GET', '/industries');
 
+/** 行业功能总开关（数据库 > 配置文件）：库里 plaza.industry.enabled 存在且合法时以库为准，否则跟随配置文件 */
+export interface IndustrySwitch {
+  enabled: boolean;
+  source: 'db' | 'config';
+  configDefault: boolean;
+  dbValue?: string;
+  remark?: string;
+  updatedAt?: string;
+  effectSeconds: number;
+}
+
+export const getIndustrySwitch = () => call<IndustrySwitch>('GET', '/industry-switch');
+
+export const setIndustrySwitch = (body: { enabled: boolean; reason: string }) =>
+  call<IndustrySwitch>('PUT', '/industry-switch', { data: body });
+
+export const resetIndustrySwitch = (body: { reason: string }) =>
+  call<IndustrySwitch>('DELETE', '/industry-switch', { data: body });
+
 /** 新建只返回 id（不是整棵节点），要节点请重拉树 */
 export const createIndustry = (data: IndustrySaveData) =>
   call<{ id: number }>('POST', '/industries', { data });
