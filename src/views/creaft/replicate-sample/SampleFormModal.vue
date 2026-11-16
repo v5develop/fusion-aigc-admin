@@ -61,21 +61,8 @@
           @update:model-value="form.resultRid = $event"
         />
       </a-form-item>
-      <a-form-item
-        :label="t('replicateSample.fAnnotations')"
-        :validate-status="annotationsInvalid ? 'error' : undefined"
-        :help="
-          annotationsInvalid
-            ? t('replicateSample.annotationsInvalid')
-            : t('replicateSample.annotationsHint')
-        "
-      >
-        <a-textarea
-          v-model:value="form.annotations"
-          :rows="6"
-          class="mono"
-          :placeholder="ANNOTATIONS_PH"
-        />
+      <a-form-item :label="t('replicateSample.fAnnotations')">
+        <AnnotationEditor v-model="form.annotations" />
       </a-form-item>
       <a-form-item :label="t('replicateSample.fSort')">
         <a-input-number v-model:value="form.sortOrder" :precision="0" style="width: 160px" />
@@ -102,6 +89,7 @@ import {
   type SampleSaveBody,
 } from '@/api/replicate-admin';
 
+import AnnotationEditor from './AnnotationEditor.vue';
 import { isRidLike, parseAnnotations } from './sample-meta';
 import SampleMediaField from './SampleMediaField.vue';
 
@@ -118,7 +106,6 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 
-const ANNOTATIONS_PH = '{"dims":{"product":{"mode":"replace","refs":[1]}},"audio":"regenerate"}';
 const stripRid = (v: string) => v.trim().replace(/^mr:\/\//, '');
 
 const blank = () => ({
@@ -160,7 +147,6 @@ watch(
   { immediate: true },
 );
 
-const annotationsInvalid = computed(() => parseAnnotations(form.annotations) === undefined);
 /** 编辑时换了原片：后端会清掉已发布的分析 */
 const sourceChanged = computed(
   () =>
