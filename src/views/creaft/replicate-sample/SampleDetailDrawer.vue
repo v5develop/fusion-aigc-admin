@@ -19,13 +19,32 @@
             {{ detail.sortOrder }}
           </a-descriptions-item>
           <a-descriptions-item :label="t('replicateSample.fSource')" :span="2">
-            <code>{{ detail.sourceRid }}</code>
+            <SampleMediaField
+              :model-value="detail.sourceRid"
+              :label="t('replicateSample.fSource')"
+              kind="video"
+              disabled
+            />
           </a-descriptions-item>
           <a-descriptions-item :label="t('replicateSample.fCover')">
-            <code>{{ detail.coverRid || '—' }}</code>
+            <SampleMediaField
+              v-if="detail.coverRid"
+              :model-value="detail.coverRid"
+              :label="t('replicateSample.fCover')"
+              kind="any"
+              disabled
+            />
+            <span v-else class="muted">—</span>
           </a-descriptions-item>
           <a-descriptions-item :label="t('replicateSample.fResult')">
-            <code>{{ detail.resultRid || '—' }}</code>
+            <SampleMediaField
+              v-if="detail.resultRid"
+              :model-value="detail.resultRid"
+              :label="t('replicateSample.fResult')"
+              kind="video"
+              disabled
+            />
+            <span v-else class="muted">—</span>
           </a-descriptions-item>
           <a-descriptions-item :label="t('replicateSample.colAnalysis')">
             <a-tag :color="analysisColor(detail.analysisStatus)">
@@ -94,6 +113,7 @@ import { getSample, type SampleAdminDetail } from '@/api/replicate-admin';
 
 import { fmtTime } from '../replicate-job/job-meta';
 import { analysisColor } from './sample-meta';
+import SampleMediaField from './SampleMediaField.vue';
 
 const props = defineProps<{
   open: boolean;

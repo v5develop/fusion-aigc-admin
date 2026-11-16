@@ -504,3 +504,52 @@ export const deleteSample = (id: number) => call<{ id: number }>('DELETE', `/sam
 /** 触发预分析；上一轮还在跑 → ReplicateError.reason === SAMPLE_ANALYZING（静默，由页面提示） */
 export const analyzeSample = (id: number) =>
   call<SampleAdminRow>('POST', `/samples/${id}/analyze`, { silent: true });
+
+// ---------------------------------------------------------------- 示例素材上传 / 解析（Go_V1.0.50 后台）
+
+/** 运营看到的素材信息；previewUrl 是短时效签名地址，只用于页面预览，不存库 */
+export interface SampleMediaPreview {
+  rid: string;
+  kind: 'video' | 'image' | 'other';
+  mime: string;
+  bytes: number;
+  durationS: number;
+  width: number;
+  height: number;
+  previewUrl: string;
+}
+
+/** 粘贴已有素材编号（裸 rid 或 mr://rid）：校验存在并取预览 */
+export const resolveSampleMedia = (rid: string) =>
+  call<SampleMediaPreview>('POST', '/samples/media/resolve', { data: { rid } });
+
+/** 上传文件到媒体服务，返回 rid 与预览。大文件需要较长时间，超时放宽到 10 分钟 */
+export async function uploadSampleMedia(file: File): Promise<SampleMediaPreview> {
+  if (isReplicateMock()) {
+    const { handleMock } = await import('./replicate-admin.mock');
+    const body = (await handleMock(
+      'POST',
+      '/samples/media/upload',
+      {},
+      { fileName: file.name },
+    )) as Envelope<SampleMediaPreview>;
+    if (body.code !== 0) throw new ReplicateError(body.code, body.msg, body.reason, body.data);
+    return body.data;
+  }
+  const fd = new FormData();
+  fd.append('file', file);
+  const res: AxiosResponse<Envelope<SampleMediaPreview>> = await http.post(
+    `${PREFIX}/samples/media/upload`,
+    fd,
+    {
+      headers: { 'Content-Type': undefined },
+      timeout: 10 * 60 * 1000,
+    },
+  );
+  const body = res.data;
+  if (body.code !== 0) {
+    message.error(body.msg || '上传失败');
+    throw new ReplicateError(body.code, body.msg || 'error', body.reason, body.data);
+  }
+  return body.data;
+}

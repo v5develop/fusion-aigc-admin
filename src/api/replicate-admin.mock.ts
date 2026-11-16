@@ -818,6 +818,26 @@ export async function handleMock(
     if (method === 'POST' && m) return ok(refund(jobById(Number(m[1])), body, key));
     m = path.match(/^\/jobs\/(\d+)\/force-finish$/);
     if (method === 'POST' && m) return ok(force(jobById(Number(m[1])), body, key));
+    if (path === '/samples/media/upload' || path === '/samples/media/resolve') {
+      const rid = path.endsWith('/upload')
+        ? `mock-${Date.now().toString(36)}`
+        : String(body.rid ?? '').replace(/^mr:\/\//, '');
+      if (path.endsWith('/resolve') && !rid)
+        throw new GoError(1003, 'PARAM_INVALID', '素材编号格式不对');
+      const svg = encodeURIComponent(
+        `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="320"><rect width="240" height="320" fill="#2a2b33"/><text x="120" y="164" fill="#9499a5" font-size="16" text-anchor="middle">mock 预览</text></svg>`,
+      );
+      return ok({
+        rid,
+        kind: 'image',
+        mime: 'image/svg+xml',
+        bytes: 1024,
+        durationS: 0,
+        width: 240,
+        height: 320,
+        previewUrl: `data:image/svg+xml,${svg}`,
+      });
+    }
     if (path === '/switch') {
       const res = routeSwitch(method, body);
       if (res) return res;

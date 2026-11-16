@@ -63,8 +63,10 @@
             {{ industryLabel(record.industry) }}
           </template>
           <template v-else-if="column.dataIndex === 'coverRid' || column.dataIndex === 'resultRid'">
-            <code v-if="record[column.dataIndex]" class="code">{{ record[column.dataIndex] }}</code>
-            <span v-else class="muted">—</span>
+            <a-tag v-if="record[column.dataIndex]" color="success">
+              {{ column.dataIndex === 'coverRid' ? '已配封面' : '已配成片' }}
+            </a-tag>
+            <span v-else class="muted">未配置</span>
           </template>
           <template v-else-if="column.dataIndex === 'enabled'">
             <a-switch

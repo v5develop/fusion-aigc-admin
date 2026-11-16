@@ -37,25 +37,28 @@
         />
       </a-form-item>
       <a-form-item :label="t('replicateSample.fSource')" required>
-        <a-input
-          v-model:value="form.sourceRid"
-          allow-clear
-          :placeholder="t('replicateSample.ridPh')"
+        <SampleMediaField
+          :model-value="form.sourceRid"
+          :label="t('replicateSample.fSource')"
+          kind="video"
+          @update:model-value="form.sourceRid = $event"
         />
         <div v-if="sourceChanged" class="warn">{{ t('replicateSample.sourceChangedWarn') }}</div>
       </a-form-item>
       <a-form-item :label="t('replicateSample.fCover')">
-        <a-input
-          v-model:value="form.coverRid"
-          allow-clear
-          :placeholder="t('replicateSample.ridPh')"
+        <SampleMediaField
+          :model-value="form.coverRid"
+          :label="t('replicateSample.fCover')"
+          kind="any"
+          @update:model-value="form.coverRid = $event"
         />
       </a-form-item>
       <a-form-item :label="t('replicateSample.fResult')">
-        <a-input
-          v-model:value="form.resultRid"
-          allow-clear
-          :placeholder="t('replicateSample.ridPh')"
+        <SampleMediaField
+          :model-value="form.resultRid"
+          :label="t('replicateSample.fResult')"
+          kind="video"
+          @update:model-value="form.resultRid = $event"
         />
       </a-form-item>
       <a-form-item
@@ -100,6 +103,7 @@ import {
 } from '@/api/replicate-admin';
 
 import { isRidLike, parseAnnotations } from './sample-meta';
+import SampleMediaField from './SampleMediaField.vue';
 
 const props = defineProps<{
   open: boolean;
