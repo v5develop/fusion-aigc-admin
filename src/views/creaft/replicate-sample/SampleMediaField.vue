@@ -1,5 +1,5 @@
 <template>
-  <div class="media-field">
+  <div class="media-field" :class="{ card: layout === 'card' }">
     <!-- 已有素材：显示预览 + 基本信息 -->
     <div v-if="preview" class="filled">
       <div class="thumb">
@@ -112,8 +112,10 @@ const props = withDefaults(
     /** video = 只收视频；any = 视频或图片 */
     kind?: 'video' | 'any';
     disabled?: boolean;
+    /** compact = 横排小缩略图（详情抽屉）；card = 竖排大卡片（编辑弹窗里三列并排） */
+    layout?: 'compact' | 'card';
   }>(),
-  { kind: 'any', disabled: false },
+  { kind: 'any', disabled: false, layout: 'compact' },
 );
 const emit = defineEmits<{
   'update:modelValue': [rid: string];
@@ -135,8 +137,7 @@ const accept =
   props.kind === 'video'
     ? 'video/mp4,video/quicktime,video/webm'
     : 'video/mp4,video/quicktime,video/webm,image/jpeg,image/png,image/webp';
-const acceptHint =
-  props.kind === 'video' ? 'MP4 / MOV / WebM' : 'MP4 / MOV / WebM，或 JPG / PNG / WebP';
+const acceptHint = props.kind === 'video' ? 'MP4 / MOV / WebM' : '视频或图片';
 
 const stripRid = (v: string) => v.trim().replace(/^mr:\/\//, '');
 const kindText = (k: SampleMediaPreview['kind']) =>
@@ -145,7 +146,13 @@ function metaText(p: SampleMediaPreview): string {
   const parts: string[] = [];
   if (p.durationS > 0) parts.push(`${p.durationS.toFixed(1)} 秒`);
   if (p.width > 0 && p.height > 0) parts.push(`${p.width}×${p.height}`);
-  if (p.bytes > 0) parts.push(`${(p.bytes / 1024 / 1024).toFixed(1)} MB`);
+  if (p.bytes > 0) {
+    parts.push(
+      p.bytes >= 1024 * 1024
+        ? `${(p.bytes / 1024 / 1024).toFixed(1)} MB`
+        : `${Math.max(1, Math.round(p.bytes / 1024))} KB`,
+    );
+  }
   return parts.join(' · ') || '—';
 }
 
@@ -334,6 +341,23 @@ onMounted(() => {
   flex-direction: column;
   gap: 4px;
   min-width: 0;
+}
+/* 卡片版：上传区与预览等高，三列并排时整齐 */
+.card .drop {
+  height: 200px;
+}
+.card .filled {
+  flex-direction: column;
+  gap: 8px;
+}
+.card .thumb {
+  flex: none;
+  width: 100%;
+  height: 200px;
+}
+.card .thumb video,
+.card .thumb img {
+  object-fit: contain;
 }
 .kind {
   font-weight: 500;

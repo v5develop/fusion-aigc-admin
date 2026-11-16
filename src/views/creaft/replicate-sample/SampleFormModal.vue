@@ -3,84 +3,26 @@
     :open="open"
     :title="sample ? t('replicateSample.editTitle') : t('replicateSample.createTitle')"
     width="960px"
-    :body-style="{ maxHeight: 'calc(100vh - 210px)', overflowY: 'auto', paddingRight: '8px' }"
-    :confirm-loading="saving"
+    :body-style="{ maxHeight: 'calc(100vh - 220px)', overflowY: 'auto' }"
     :mask-closable="false"
     destroy-on-close
-    @ok="submit"
     @update:open="(v: boolean) => $emit('update:open', v)"
   >
-    <div class="tabs" role="tablist">
-      <button
-        v-for="tb in TABS"
-        :key="tb.key"
-        type="button"
-        role="tab"
-        class="tab"
-        :class="{ active: tab === tb.key }"
-        :aria-selected="tab === tb.key"
-        @click="tab = tb.key"
-      >
-        {{ tb.label }}
-        <span v-if="tb.done" class="done">✓</span>
-      </button>
-    </div>
-
-    <div class="sections">
-      <section v-show="tab === 'media'" class="sec">
-        <h4 class="sec-title">素材</h4>
-        <div class="materials">
-          <div class="mat">
-            <div class="mat-label">
-              <span class="req">*</span>{{ t('replicateSample.fSource') }}
-            </div>
-            <SampleMediaField
-              :model-value="form.sourceRid"
-              :label="t('replicateSample.fSource')"
-              kind="video"
-              @update:model-value="form.sourceRid = $event"
-            />
-            <div v-if="sourceChanged" class="warn">
-              {{ t('replicateSample.sourceChangedWarn') }}
-            </div>
-          </div>
-          <div class="mat">
-            <div class="mat-label">{{ t('replicateSample.fCover') }}</div>
-            <SampleMediaField
-              :model-value="form.coverRid"
-              :label="t('replicateSample.fCover')"
-              kind="any"
-              @update:model-value="form.coverRid = $event"
-            />
-          </div>
-          <div class="mat">
-            <div class="mat-label">{{ t('replicateSample.fResult') }}</div>
-            <SampleMediaField
-              :model-value="form.resultRid"
-              :label="t('replicateSample.fResult')"
-              kind="video"
-              @update:model-value="form.resultRid = $event"
-            />
-          </div>
-        </div>
-      </section>
-
-      <section v-show="tab === 'basic'" class="sec">
-        <h4 class="sec-title">基本信息</h4>
-        <div class="basic">
-          <label class="field span-2">
-            <span class="field-label"
-              ><span class="req">*</span>{{ t('replicateSample.fTitle') }}</span
-            >
+    <!-- 身份信息：始终可见（标题是示例在列表里的名字） -->
+    <a-form layout="vertical" class="head">
+      <a-row :gutter="16">
+        <a-col :span="12">
+          <a-form-item :label="t('replicateSample.fTitle')" required>
             <a-input
               v-model:value="form.title"
               :maxlength="40"
               show-count
               :placeholder="t('replicateSample.fTitlePh')"
             />
-          </label>
-          <label class="field span-2">
-            <span class="field-label">{{ t('replicateSample.fIndustry') }}</span>
+          </a-form-item>
+        </a-col>
+        <a-col :span="8">
+          <a-form-item :label="t('replicateSample.fIndustry')">
             <a-select
               v-if="industryOptions.length"
               v-model:value="form.industry"
@@ -97,29 +39,84 @@
               allow-clear
               :placeholder="t('replicateSample.fIndustryCodePh')"
             />
-          </label>
-          <label class="field">
-            <span class="field-label">{{ t('replicateSample.fSort') }}</span>
-            <a-input-number v-model:value="form.sortOrder" :precision="0" class="w-full" />
-          </label>
-          <label class="field">
-            <span class="field-label">{{ t('replicateSample.fEnabled') }}</span>
-            <a-switch v-model:checked="form.enabled" />
-          </label>
-          <label class="field">
-            <span class="field-label">&nbsp;</span>
-            <a-checkbox v-model:checked="form.analyze">{{
-              t('replicateSample.fAnalyze')
-            }}</a-checkbox>
-          </label>
-        </div>
-      </section>
+          </a-form-item>
+        </a-col>
+        <a-col :span="4">
+          <a-form-item :label="t('replicateSample.fSort')">
+            <a-input-number v-model:value="form.sortOrder" :precision="0" class="full" />
+          </a-form-item>
+        </a-col>
+      </a-row>
+    </a-form>
 
-      <section v-show="tab === 'annotation'" class="sec">
-        <h4 class="sec-title">改法</h4>
-        <AnnotationEditor v-model="form.annotations" />
-      </section>
-    </div>
+    <!-- 内容多的两块用标签切换；面板不销毁，切换不丢已上传的素材与改法 -->
+    <a-tabs v-model:active-key="tab" class="tabs">
+      <a-tab-pane key="media" :tab="mediaTabLabel">
+        <div class="pane">
+          <a-row :gutter="16">
+            <a-col :span="8">
+              <div class="mat-label">
+                <span class="req">*</span>{{ t('replicateSample.fSource') }}
+              </div>
+              <SampleMediaField
+                :model-value="form.sourceRid"
+                :label="t('replicateSample.fSource')"
+                kind="video"
+                layout="card"
+                @update:model-value="form.sourceRid = $event"
+              />
+              <div v-if="sourceChanged" class="warn">
+                {{ t('replicateSample.sourceChangedWarn') }}
+              </div>
+            </a-col>
+            <a-col :span="8">
+              <div class="mat-label">{{ t('replicateSample.fCover') }}</div>
+              <SampleMediaField
+                :model-value="form.coverRid"
+                :label="t('replicateSample.fCover')"
+                kind="any"
+                layout="card"
+                @update:model-value="form.coverRid = $event"
+              />
+            </a-col>
+            <a-col :span="8">
+              <div class="mat-label">{{ t('replicateSample.fResult') }}</div>
+              <SampleMediaField
+                :model-value="form.resultRid"
+                :label="t('replicateSample.fResult')"
+                kind="video"
+                layout="card"
+                @update:model-value="form.resultRid = $event"
+              />
+            </a-col>
+          </a-row>
+        </div>
+      </a-tab-pane>
+      <a-tab-pane key="annotation" :tab="annotationTabLabel">
+        <div class="pane">
+          <AnnotationEditor v-model="form.annotations" />
+        </div>
+      </a-tab-pane>
+    </a-tabs>
+
+    <!-- 保存时才需要决定的两项放在按钮旁边 -->
+    <template #footer>
+      <div class="footer">
+        <div class="footer-opts">
+          <span class="opt">
+            <a-switch v-model:checked="form.enabled" size="small" />
+            <span>{{ t('replicateSample.fEnabled') }}</span>
+          </span>
+          <a-checkbox v-model:checked="form.analyze">{{
+            t('replicateSample.fAnalyze')
+          }}</a-checkbox>
+        </div>
+        <a-space>
+          <a-button @click="$emit('update:open', false)">取消</a-button>
+          <a-button type="primary" :loading="saving" @click="submit">保存</a-button>
+        </a-space>
+      </div>
+    </template>
   </a-modal>
 </template>
 
@@ -165,21 +162,29 @@ const blank = () => ({
   enabled: true,
   analyze: true,
 });
-type TabKey = 'media' | 'basic' | 'annotation';
+type TabKey = 'media' | 'annotation';
 const tab = ref<TabKey>('media');
-const TABS = computed(() => [
-  { key: 'media' as TabKey, label: '素材', done: !!form.sourceRid },
-  { key: 'basic' as TabKey, label: '基本信息', done: !!form.title.trim() },
-  { key: 'annotation' as TabKey, label: '改法', done: !!form.annotations.trim() },
-]);
-
 const form = reactive(blank());
 const saving = ref(false);
+
+/** 标签名直接显示进度：素材已放几项、改法改了几项 */
+const mediaTabLabel = computed(() => {
+  const n = [form.sourceRid, form.coverRid, form.resultRid].filter((v) => v.trim()).length;
+  return `素材 ${n}/3`;
+});
+const annotationTabLabel = computed(() => {
+  const a = parseAnnotations(form.annotations);
+  if (!a) return '改法 · 未设置';
+  const dims = a.dims && typeof a.dims === 'object' ? Object.keys(a.dims as object).length : 0;
+  const n = dims + (a.audio ? 1 : 0);
+  return n ? `改法 · 改了 ${n} 项` : '改法 · 未设置';
+});
 
 watch(
   () => props.open,
   (v) => {
     if (!v) return;
+    tab.value = 'media';
     const s = props.sample;
     Object.assign(
       form,
@@ -217,7 +222,7 @@ function failOn(key: TabKey, msg: string) {
 
 async function submit() {
   const title = form.title.trim();
-  if (!title) return failOn('basic', t('replicateSample.titleRequired'));
+  if (!title) return message.warning(t('replicateSample.titleRequired'));
   if (!form.sourceRid.trim()) return failOn('media', t('replicateSample.sourceRequired'));
   const rids: [string, string][] = [
     [t('replicateSample.fSource'), form.sourceRid],
@@ -256,98 +261,47 @@ async function submit() {
 </script>
 
 <style scoped>
-.mono :deep(textarea),
-.mono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 12px;
+.head :deep(.ant-form-item) {
+  margin-bottom: 8px;
 }
-.tabs {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 14px;
-  border-bottom: 1px solid var(--ant-color-border-secondary, #f0f0f0);
+.full {
+  width: 100%;
 }
-.tab {
-  padding: 8px 14px;
-  margin-bottom: -1px;
-  border: none;
-  border-bottom: 2px solid transparent;
-  background: transparent;
-  color: var(--ant-color-text-secondary, #666);
-  font-size: 14px;
-  cursor: pointer;
+.tabs :deep(.ant-tabs-nav) {
+  margin-bottom: 12px;
 }
-.tab.active {
-  color: var(--ant-color-primary, #1677ff);
-  border-bottom-color: var(--ant-color-primary, #1677ff);
-  font-weight: 600;
+/* 素材卡片已上传时约 290px：空 / 已上传之间不跳；改法内容更多时弹窗向下长 */
+.pane {
+  min-height: 290px;
 }
-.done {
-  margin-left: 4px;
-  color: var(--ant-color-success, #52c41a);
-  font-size: 12px;
-}
-.sections {
-  min-height: 300px;
-}
-.sec {
-  padding-bottom: 4px;
-}
-.sec-title {
-  margin: 0 0 10px;
-  font-size: 14px;
-  font-weight: 600;
-}
-.materials {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-}
-.mat {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-}
-.mat-label,
-.field-label {
+.mat-label {
+  margin-bottom: 6px;
   font-size: 13px;
   color: var(--ant-color-text-secondary, #666);
 }
-.basic {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px 14px;
-  align-items: start;
-}
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-}
-.span-2 {
-  grid-column: span 2;
-}
-.w-full {
-  width: 100%;
-}
 .req {
-  color: var(--ant-color-error, #ff4d4f);
   margin-right: 2px;
-}
-@media (max-width: 900px) {
-  .materials,
-  .basic {
-    grid-template-columns: 1fr;
-  }
-  .span-2 {
-    grid-column: span 1;
-  }
+  color: var(--ant-color-error, #ff4d4f);
 }
 .warn {
-  margin-top: 4px;
-  color: var(--ant-color-warning, #faad14);
+  margin-top: 6px;
   font-size: 12px;
+  color: var(--ant-color-warning, #faad14);
+}
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.footer-opts {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 </style>

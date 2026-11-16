@@ -17,23 +17,16 @@
             <span class="hint">{{ d.hint }}</span>
           </div>
           <div class="dim-control">
-            <a-select
-              v-model:value="rows[d.key].mode"
-              size="small"
-              :options="MODE_OPTIONS"
-              class="mode"
-            />
+            <a-select v-model:value="rows[d.key].mode" :options="MODE_OPTIONS" class="mode" />
             <a-input
               v-if="rows[d.key].mode === 'describe'"
               v-model:value="rows[d.key].note"
-              size="small"
               :maxlength="200"
               placeholder="用一句话描述要改成什么，例如：改成红色连衣裙"
             />
             <a-input-number
               v-if="rows[d.key].mode === 'replace'"
               v-model:value="rows[d.key].ref"
-              size="small"
               :min="1"
               :max="9"
               addon-before="用用户的第"
@@ -46,12 +39,7 @@
 
       <div class="audio">
         <span class="name">配乐 / 声音</span>
-        <a-select
-          v-model:value="audio"
-          size="small"
-          :options="AUDIO_OPTIONS"
-          class="audio-select"
-        />
+        <a-select v-model:value="audio" :options="AUDIO_OPTIONS" class="audio-select" />
       </div>
 
       <a-collapse ghost class="advanced">
@@ -225,7 +213,7 @@ watch(
 }
 .dims {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px 12px;
 }
 .dim {
