@@ -8,7 +8,7 @@ import { clearTokens, getToken } from '@/utils/storage';
  * 视频做同款后台接口（Go admin-api，前缀 /api/v1/replicate/admin；契约 fusion_aigc_go docs/api/api-replicate.md §9，
  * 实现 app/replicate/admin/admin.go、app/admin/api/internal/handler/replicate/replicate.go，以代码为准）。
  * - 权限码：replicate:view（读）、replicate:refund（人工退点）、replicate:force（强制收尾）、
- *   replicate:sample（示例增删改 / 触发预分析，契约 §11）。
+ *   replicate:sample（示例增删改 / 触发预分析，契约 §11）、replicate:switch（总开关写，契约 §9.x）。
  * - 退点 / 收尾带请求头 Idempotency-Key：同键重放返回第一次结果；退点部分失败（code 5001、无明细）用同一键重试补退剩下的。
  * - Moderation / Delivery / AdminAction 在 Go 侧没有 json tag，键名可能是 PascalCase，这里统一归一化成 camelCase。
  *
@@ -340,7 +340,9 @@ function normDetail(raw: Obj): AdminJobDetail {
 // ---------------------------------------------------------------- 接口
 
 export const getAdminJobs = (query: AdminJobQuery) =>
-  call<AdminJobPage>('GET', '/jobs', { params: query as Record<string, unknown> });
+  call<AdminJobPage>('GET', '/jobs', {
+    params: query as Record<string, unknown>,
+  });
 
 export const getAdminJob = async (jobId: number) =>
   normDetail(await call<Obj>('GET', `/jobs/${jobId}`));
@@ -374,6 +376,35 @@ export const forceFinishJob = (jobId: number, body: { reason: string }, idempote
     silent: true,
     headers: { 'Idempotency-Key': idempotencyKey },
   });
+
+// ---------------------------------------------------------------- 总开关（契约 §9.x，Go_V1.0.50）
+
+/**
+ * 视频做同款总开关：数据库 > 部署配置。库里 replicate.enabled 存在且合法时以库为准（source=db），否则跟随部署配置（source=config）。
+ * 关着只拦新提交，历史 / 我的方案 / 在途任务照常；改动 effectSeconds 秒内在网关生效。
+ */
+export interface ReplicateSwitch {
+  enabled: boolean;
+  source: 'db' | 'config';
+  /** 部署配置里的默认值（source=config 时生效） */
+  configDefault: boolean;
+  /** 库里的原值（库里有这一行才有；值非法时 source 仍是 config） */
+  dbValue?: string;
+  /** 最近一次改动说明（谁、何时、原因） */
+  remark?: string;
+  updatedAt?: string;
+  effectSeconds: number;
+}
+
+export const getReplicateSwitch = () => call<ReplicateSwitch>('GET', '/switch');
+
+/** 写库（从此以库为准），原因必填 ≤200 字 */
+export const setReplicateSwitch = (body: { enabled: boolean; reason: string }) =>
+  call<ReplicateSwitch>('PUT', '/switch', { data: body });
+
+/** 恢复跟随部署配置（逻辑删除库里这一行），原因必填 */
+export const resetReplicateSwitch = (body: { reason: string }) =>
+  call<ReplicateSwitch>('DELETE', '/switch', { data: body });
 
 // ---------------------------------------------------------------- 示例管理（契约 §11）
 
@@ -455,7 +486,9 @@ export interface SampleSaveBody {
 export const SAMPLE_ANALYZING = 'SAMPLE_ANALYZING';
 
 export const getSamples = (query: SampleAdminQuery) =>
-  call<SampleAdminPage>('GET', '/samples', { params: query as Record<string, unknown> });
+  call<SampleAdminPage>('GET', '/samples', {
+    params: query as Record<string, unknown>,
+  });
 
 export const getSample = (id: number) => call<SampleAdminDetail>('GET', `/samples/${id}`);
 

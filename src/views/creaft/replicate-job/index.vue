@@ -5,6 +5,8 @@
       <a-tag v-if="isReplicateMock()" color="orange">mock 数据</a-tag>
     </div>
 
+    <SwitchBar />
+
     <a-card variant="borderless">
       <div class="filter-bar">
         <a-input
@@ -129,6 +131,7 @@ import {
 
 import { STATUS_LABEL, fmtTime, statusColor } from './job-meta';
 import JobDetailDrawer from './JobDetailDrawer.vue';
+import SwitchBar from './SwitchBar.vue';
 
 const statusOptions = (Object.keys(STATUS_LABEL) as JobStatus[]).map((v) => ({
   label: STATUS_LABEL[v],

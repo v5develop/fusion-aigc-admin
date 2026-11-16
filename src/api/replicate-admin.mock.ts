@@ -757,6 +757,49 @@ function routeSample(
   return null;
 }
 
+// 总开关：部署配置默认关，库里没有这一行
+const sw: {
+  db: boolean | null;
+  configDefault: boolean;
+  remark: string;
+  updatedMs: number;
+} = {
+  db: null,
+  configDefault: false,
+  remark: '',
+  updatedMs: 0,
+};
+function switchView() {
+  return {
+    enabled: sw.db ?? sw.configDefault,
+    source: sw.db === null ? 'config' : 'db',
+    configDefault: sw.configDefault,
+    dbValue: sw.db === null ? undefined : String(sw.db),
+    remark: sw.remark || undefined,
+    updatedAt: sw.updatedMs ? new Date(sw.updatedMs).toISOString() : undefined,
+    effectSeconds: 60,
+  };
+}
+function routeSwitch(
+  method: ReplicateMethod,
+  body: Record<string, unknown>,
+): Envelope<unknown> | null {
+  if (method === 'GET') return ok(switchView());
+  const reason = String(body.reason ?? '').trim();
+  if (!reason) throw new GoError(1002, 'PARAM_MISSING', '请填写原因');
+  if (method === 'PUT') {
+    sw.db = !!body.enabled;
+    sw.remark = `视频做同款总开关：管理员 1 设为${sw.db ? '开启（接新提交）' : '暂停新提交'}。原因：${reason}`;
+  } else if (method === 'DELETE') {
+    sw.db = null;
+    sw.remark = `视频做同款总开关：管理员 1 恢复跟随部署配置。原因：${reason}`;
+  } else {
+    return null;
+  }
+  sw.updatedMs = Date.now();
+  return ok(switchView());
+}
+
 export async function handleMock(
   method: ReplicateMethod,
   path: string,
@@ -775,6 +818,10 @@ export async function handleMock(
     if (method === 'POST' && m) return ok(refund(jobById(Number(m[1])), body, key));
     m = path.match(/^\/jobs\/(\d+)\/force-finish$/);
     if (method === 'POST' && m) return ok(force(jobById(Number(m[1])), body, key));
+    if (path === '/switch') {
+      const res = routeSwitch(method, body);
+      if (res) return res;
+    }
     if (path.startsWith('/samples')) {
       const res = routeSample(method, path, query, body);
       if (res) return res;
