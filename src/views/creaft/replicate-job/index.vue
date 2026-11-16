@@ -19,7 +19,7 @@
         <a-input
           v-model:value="filters.jobId"
           allow-clear
-          placeholder="job id"
+          placeholder="任务 ID"
           style="width: 110px"
           @press-enter="reloadFirst"
         />
@@ -139,7 +139,7 @@ const statusOptions = (Object.keys(STATUS_LABEL) as JobStatus[]).map((v) => ({
 }));
 
 const columns = [
-  { title: 'job', dataIndex: 'jobId', width: 90 },
+  { title: '任务 ID', dataIndex: 'jobId', width: 90 },
   { title: '任务号 / 方案号', dataIndex: 'taskId', width: 250 },
   { title: '用户 ID', dataIndex: 'user', width: 100 },
   { title: '状态', dataIndex: 'status', width: 140 },
@@ -175,7 +175,7 @@ async function load() {
   const userId = positiveInt(filters.userId);
   const jobId = positiveInt(filters.jobId);
   if (Number.isNaN(userId) || Number.isNaN(jobId)) {
-    message.warning('用户 ID / job id 需要是正整数');
+    message.warning('用户 ID / 任务 ID 需要是正整数');
     return;
   }
   const s = ++seq;
