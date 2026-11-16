@@ -34,25 +34,101 @@
     />
 
     <div class="split">
-      <a-card variant="borderless" class="left" title="行业与二级细分" :loading="loading">
-        <template #extra>
-          <span class="muted">拖动调整顺序；拖到一级上变成它的二级</span>
+      <a-card variant="borderless" class="left" :loading="loading">
+        <template #title>
+          <span>行业列表</span>
+          <span class="muted title-sub"
+            >共 {{ roots.length }} 个一级行业 · {{ flat.length - roots.length }} 个二级</span
+          >
         </template>
-        <a-tree
-          v-if="treeData.length"
-          block-node
-          :draggable="canEdit ? { icon: false } : false"
-          :tree-data="treeData"
-          :expanded-keys="expandedKeys"
-          :selected-keys="selectedId && mode === 'edit' ? [selectedId] : []"
-          :allow-drop="allowDrop"
-          :title-render="renderTitle"
-          @update:expanded-keys="(k: (string | number)[]) => (expandedKeys = k.map(Number))"
-          @select="onSelect"
-          @drop="onDrop"
-        >
-        </a-tree>
-        <a-empty v-else-if="!loading" description="还没有行业" />
+        <template #extra>
+          <a-radio-group v-if="canEdit" v-model:value="view" size="small" button-style="solid">
+            <a-radio-button value="list">列表</a-radio-button>
+            <a-radio-button value="sort">调整顺序</a-radio-button>
+          </a-radio-group>
+        </template>
+
+        <!-- 列表：每一项一列，表头说明含义；点行在右侧编辑 -->
+        <template v-if="view === 'list'">
+          <a-table
+            v-if="tableRows.length"
+            :columns="columns"
+            :data-source="tableRows"
+            :pagination="false"
+            row-key="id"
+            size="middle"
+            default-expand-all-rows
+            :row-class-name="rowClass"
+            :custom-row="(r: TableRow) => ({ onClick: () => selectRow(r.id) })"
+          >
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.key === 'name'">
+                <div class="name-cell">
+                  <span class="name" :class="{ off: !record.enabled }">{{ record.name }}</span>
+                  <span class="muted code">{{ record.code }}</span>
+                </div>
+              </template>
+              <template v-else-if="column.key === 'status'">
+                <a-tag :color="record.enabled ? 'green' : 'default'">{{
+                  record.enabled ? '启用' : '停用'
+                }}</a-tag>
+              </template>
+              <template v-else-if="column.key === 'visible'">
+                <a-tooltip v-if="!record.userVisible" :title="invisibleReason(record)">
+                  <a-tag color="orange">不可见</a-tag>
+                </a-tooltip>
+                <a-tag v-else color="blue">可见</a-tag>
+              </template>
+              <template v-else-if="column.key === 'templates'">
+                <div class="num-cell">
+                  <span
+                    >图 {{ record.templateCount.image }} · 视频
+                    {{ record.templateCount.video }}</span
+                  >
+                  <span class="muted">已发布 {{ record.templateCount.published }}</span>
+                </div>
+              </template>
+              <template v-else-if="column.key === 'users'">{{ record.userCount }}</template>
+              <template v-else-if="column.key === 'replicate'">{{ record.replicate7d }}</template>
+              <template v-else-if="column.key === 'action'">
+                <a-space :size="4" @click.stop>
+                  <a-button size="small" type="link" @click="selectRow(record.id)">编辑</a-button>
+                  <a-button
+                    v-if="!record.parentId"
+                    v-permission="'creaft_catalog:edit'"
+                    size="small"
+                    type="link"
+                    @click="startCreate(record)"
+                  >
+                    新建二级
+                  </a-button>
+                </a-space>
+              </template>
+            </template>
+          </a-table>
+          <a-empty v-else-if="!loading" description="还没有行业" />
+        </template>
+
+        <!-- 调整顺序：只显示名称，拖动排序；拖到一级上变成它的二级 -->
+        <template v-else>
+          <a-alert
+            type="info"
+            show-icon
+            style="margin-bottom: 12px"
+            message="拖动调整顺序；拖到某个一级行业上，会变成它的二级。有子级的一级行业不能降为二级。"
+          />
+          <a-tree
+            v-if="treeData.length"
+            block-node
+            :draggable="canEdit ? { icon: false } : false"
+            :tree-data="treeData"
+            :expanded-keys="expandedKeys"
+            :selectable="false"
+            :allow-drop="allowDrop"
+            @update:expanded-keys="(k: (string | number)[]) => (expandedKeys = k.map(Number))"
+            @drop="onDrop"
+          />
+        </template>
       </a-card>
 
       <a-card
@@ -183,7 +259,7 @@
 
 <script setup lang="ts">
 import { Modal, message } from 'antdv-next';
-import { computed, h, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import {
@@ -226,32 +302,48 @@ interface TreeNodeData {
   node: IndustryNode;
   children?: TreeNodeData[];
 }
-/** 树节点文字：名称 + 启停 + 模板 / 用户 / 复刻数；用 titleRender 直接出文字（插槽在这里不生效，会显示占位 ---） */
-function renderTitle(data: TreeNodeData) {
-  const n = data.node;
-  const count = (k: string, v: number | string) => h('span', { class: 'muted', key: k }, `${v}`);
-  const parts = [
-    h('span', { class: 'node-name' }, n.name),
-    h('span', { class: ['pill', n.enabled ? 'on' : 'off'] }, n.enabled ? '启用' : '停用'),
-    h('span', { class: 'muted' }, `图 ${n.templateCount.image} · 视频 ${n.templateCount.video}`),
-    count('u', `用户 ${n.userCount}`),
-    count('r', `7天复刻 ${n.replicate7d}`),
-  ];
-  if (n.templateCount.published === 0 && !n.showWhenEmpty) {
-    parts.push(h('span', { class: 'pill warn' }, '用户端不可见'));
-  }
-  if (n.children?.length) {
-    parts.push(h('span', { class: 'muted' }, `含 ${n.children.length} 个二级`));
-  }
-  return h('div', { class: ['node', { off: !n.enabled }] }, parts);
+const sortTitle = (n: IndustryNode) => (n.enabled ? n.name : `${n.name}（停用）`);
+
+/** 列表视图 */
+const view = ref<'list' | 'sort'>('list');
+type TableRow = Omit<IndustryNode, 'children'> & { children?: TableRow[] };
+const tableRows = computed<TableRow[]>(() =>
+  roots.value.map((r) => ({
+    ...r,
+    // 没有子级时不给 children，表格就不会画展开箭头
+    children: r.children?.length
+      ? r.children.map((c) => ({ ...c, children: undefined }))
+      : undefined,
+  })),
+);
+const columns = [
+  { title: '行业', key: 'name', width: 220 },
+  { title: '状态', key: 'status', width: 80 },
+  { title: '用户端', key: 'visible', width: 90 },
+  { title: '模板', key: 'templates', width: 150 },
+  { title: '偏好用户', key: 'users', width: 90, align: 'right' as const },
+  { title: '近 7 天做同款', key: 'replicate', width: 110, align: 'right' as const },
+  { title: '操作', key: 'action', width: 140 },
+];
+function invisibleReason(n: IndustryNode): string {
+  if (!n.enabled) return '行业已停用';
+  if (n.templateCount.published === 0 && !n.showWhenEmpty)
+    return '没有已发布模板，且未开启「无模板时仍展示」';
+  return '上级行业停用或不可见';
+}
+function rowClass(r: TableRow): string {
+  return mode.value === 'edit' && r.id === selectedId.value ? 'row-selected' : '';
+}
+function selectRow(id: number) {
+  onSelect([id]);
 }
 
 const treeData = computed<TreeNodeData[]>(() =>
   roots.value.map((r) => ({
     key: r.id,
-    title: r.name,
+    title: sortTitle(r),
     node: r,
-    children: (r.children ?? []).map((c) => ({ key: c.id, title: c.name, node: c })),
+    children: (r.children ?? []).map((c) => ({ key: c.id, title: sortTitle(c), node: c })),
   })),
 );
 
@@ -562,34 +654,31 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.node {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 10px;
-  min-width: 0;
+.title-sub {
+  margin-left: 8px;
+  font-weight: 400;
 }
-.node-name {
+.name-cell,
+.num-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.4;
+}
+.name {
   font-weight: 500;
 }
-.node.off .node-name {
+.name.off {
   opacity: 0.55;
 }
-.pill {
-  padding: 0 6px;
-  border-radius: 4px;
+.code {
   font-size: 12px;
-  line-height: 18px;
-  background: var(--ant-color-fill-tertiary, #2a2b33);
 }
-.pill.on {
-  color: var(--ant-color-success, #52c41a);
+:deep(.row-selected) > td {
+  background: var(--ant-color-primary-bg, rgba(22, 119, 255, 0.12)) !important;
 }
-.pill.off {
-  color: var(--ant-color-text-tertiary, #888);
-}
-.pill.warn {
-  color: var(--ant-color-warning, #faad14);
+:deep(.ant-table-tbody > tr) {
+  cursor: pointer;
 }
 .split {
   display: flex;
@@ -597,24 +686,12 @@ onMounted(async () => {
   align-items: flex-start;
 }
 .left {
-  flex: 1 1 55%;
+  flex: 1 1 62%;
   min-width: 0;
 }
 .right {
-  flex: 1 1 45%;
+  flex: 1 1 38%;
   min-width: 0;
-}
-.node {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.node.off .node-name {
-  color: var(--ant-color-text-quaternary, #bbb);
-}
-.node-name {
-  font-weight: 600;
 }
 .muted {
   color: var(--ant-color-text-tertiary, #888);
