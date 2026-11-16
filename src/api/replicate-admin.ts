@@ -454,6 +454,8 @@ export interface SampleAdminPage {
   total: number;
   page: number;
   size: number;
+  /** 素材编号（去掉 mr:// 前缀）→ 短时效预览地址；签不出的编号不在里面。旧后端没有该字段 */
+  previews?: Record<string, string>;
 }
 
 export interface SampleAdminQuery {

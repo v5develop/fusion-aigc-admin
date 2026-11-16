@@ -60,13 +60,24 @@
             <div class="muted">#{{ record.id }}</div>
           </template>
           <template v-else-if="column.dataIndex === 'industry'">
-            {{ industryLabel(record.industry) }}
+            <a-tooltip
+              v-if="!industryKnown(record.industry)"
+              :title="`行业编码：${record.industry}`"
+            >
+              <span class="muted">{{ industryLabel(record.industry) }}</span>
+            </a-tooltip>
+            <template v-else>{{ industryLabel(record.industry) }}</template>
           </template>
-          <template v-else-if="column.dataIndex === 'coverRid' || column.dataIndex === 'resultRid'">
-            <a-tag v-if="record[column.dataIndex]" color="success">
-              {{ column.dataIndex === 'coverRid' ? '已配封面' : '已配成片' }}
-            </a-tag>
-            <span v-else class="muted">未配置</span>
+          <template v-else-if="column.key === 'media'">
+            <div class="media-cell">
+              <SampleThumb
+                v-for="m in MEDIA_SLOTS"
+                :key="m.field"
+                :label="m.label"
+                :configured="!!record[m.field]"
+                :url="previewOf(record[m.field])"
+              />
+            </div>
           </template>
           <template v-else-if="column.dataIndex === 'enabled'">
             <a-switch
@@ -204,6 +215,7 @@ import { fmtTime } from '../replicate-job/job-meta';
 import { analysisColor } from './sample-meta';
 import SampleDetailDrawer from './SampleDetailDrawer.vue';
 import SampleFormModal from './SampleFormModal.vue';
+import SampleThumb from './SampleThumb.vue';
 
 defineOptions({ name: 'ReplicateSamples' });
 
@@ -220,8 +232,7 @@ const canWrite = computed(() => hasPerm('replicate:sample'));
 const columns = computed(() => [
   { title: t('replicateSample.colTitle'), dataIndex: 'title', width: 220 },
   { title: t('replicateSample.colIndustry'), dataIndex: 'industry', width: 130 },
-  { title: t('replicateSample.colCover'), dataIndex: 'coverRid', width: 180 },
-  { title: t('replicateSample.colResult'), dataIndex: 'resultRid', width: 180 },
+  { title: '素材', key: 'media', width: 250 },
   { title: t('replicateSample.colSort'), dataIndex: 'sortOrder', width: 70 },
   { title: t('replicateSample.colEnabled'), dataIndex: 'enabled', width: 80 },
   { title: t('replicateSample.colAnalysis'), dataIndex: 'analysisStatus', width: 160 },
@@ -239,8 +250,15 @@ const enabledOptions = computed(() => [
 const industries = ref<{ label: string; value: string }[]>([]);
 const industryNames = computed(() => new Map(industries.value.map((x) => [x.value, x.label])));
 const industryOptions = computed(() => industries.value);
-const industryLabel = (code: string) =>
-  code ? (industryNames.value.get(code) ?? code) : t('replicateSample.industryGeneric');
+/** 行业编码是给机器的：查到名称显示名称；行业树已加载却查不到 = 未登记（编码只放悬停提示）；没权限加载行业树时无从解析，仍显示编码 */
+const industryKnown = (code: string) =>
+  !code || industryNames.value.has(code) || industryNames.value.size === 0;
+const industryLabel = (code: string) => {
+  if (!code) return t('replicateSample.industryGeneric');
+  const name = industryNames.value.get(code);
+  if (name) return name;
+  return industryNames.value.size ? '未登记的行业' : code;
+};
 
 async function loadIndustries() {
   if (!hasPerm('creaft_catalog:view')) return;
@@ -270,6 +288,15 @@ const filters = reactive({
 const page = ref(1);
 const size = ref(20);
 const rows = ref<SampleAdminRow[]>([]);
+/** 本页素材的预览地址（后端整页批量签，短时效） */
+const previews = ref<Record<string, string>>({});
+const MEDIA_SLOTS = [
+  { field: 'sourceRid', label: '原视频' },
+  { field: 'coverRid', label: '封面' },
+  { field: 'resultRid', label: '成片' },
+] as const;
+const previewOf = (rid: string | undefined): string | undefined =>
+  rid ? previews.value[rid.trim().replace(/^mr:\/\//, '')] : undefined;
 const total = ref(0);
 const loading = ref(false);
 
@@ -300,6 +327,7 @@ async function load(quiet = false) {
     });
     if (s !== seq) return;
     rows.value = res?.items ?? [];
+    previews.value = res?.previews ?? {};
     total.value = res?.total ?? 0;
     schedulePoll();
   } catch {
@@ -421,6 +449,10 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+.media-cell {
+  display: flex;
+  gap: 10px;
+}
 .code {
   font-size: 12px;
   word-break: break-all;

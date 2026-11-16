@@ -640,8 +640,19 @@ function sampleList(q: Record<string, unknown>): SampleAdminPage {
     .filter((x) => en === '' || x.enabled === (en === '1'))
     .sort((a, b) => a.sortOrder - b.sortOrder || b.id - a.id)
     .map(sampleRow);
-  return { items: rows.slice((page - 1) * size, page * size), total: rows.length, page, size };
+  const items = rows.slice((page - 1) * size, page * size);
+  const previews: Record<string, string> = {};
+  for (const r of items) {
+    for (const rid of [r.sourceRid, r.coverRid, r.resultRid]) {
+      if (rid) previews[rid.replace(/^mr:\/\//, '')] = mockPreview(rid);
+    }
+  }
+  return { items, total: rows.length, page, size, previews };
 }
+const mockPreview = (rid: string): string =>
+  `data:image/svg+xml,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="160"><rect width="120" height="160" fill="#2a2b33"/><text x="60" y="84" fill="#9499a5" font-size="12" text-anchor="middle">${rid.slice(-6)}</text></svg>`,
+  )}`;
 const normRid = (v: unknown, field: string, required: boolean): string => {
   const s = String(v ?? '')
     .trim()
