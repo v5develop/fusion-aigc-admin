@@ -555,3 +555,78 @@ export async function uploadSampleMedia(file: File): Promise<SampleMediaPreview>
   }
   return body.data;
 }
+
+// ---------------------------------------------------------------- 用户投稿（CONTRACT §T；读 replicate:view，写 replicate:sample）
+
+export type ShareStatus = 'pending' | 'approved' | 'rejected' | 'withdrawn';
+export type ShareRewardStatus = 'none' | 'granted';
+
+export interface ShareChange {
+  /** 改法摘要，如「换模特 + 保留原声」 */
+  label: string;
+  dims: { key: string; mode: string }[];
+  audio?: string;
+}
+
+export interface ShareRow {
+  id: number;
+  /** 真实用户号：只用于调积分接口，界面不要展示 */
+  userId: number;
+  /** 遮掩后的用户号，界面展示用这个 */
+  userIdMasked: string;
+  jobId: number;
+  status: ShareStatus;
+  statusLabel?: string;
+  rejectReason?: string;
+  sampleId?: number;
+  change: ShareChange;
+  videoUrl?: string;
+  coverUrl?: string;
+  rewardStatus: ShareRewardStatus;
+  rewardAllowed: boolean;
+  monthRewardCount: number;
+  rewardLimit: number;
+  /** 调 Java 积分接口的幂等键 */
+  rewardKey: string;
+  reviewedAt?: string;
+  createdAt: string;
+}
+
+export interface ShareQuery {
+  status?: ShareStatus;
+  userId?: number;
+  page: number;
+  size: number;
+}
+
+export interface SharePage {
+  items: ShareRow[];
+  total: number;
+  page: number;
+  size: number;
+}
+
+/** 奖励月度上限（Go 返回 409） */
+export const REWARD_MONTHLY_LIMIT = 'REWARD_MONTHLY_LIMIT';
+
+const normShare = (r: ShareRow): ShareRow => ({
+  ...r,
+  change: { label: r.change?.label ?? '', dims: r.change?.dims ?? [], audio: r.change?.audio },
+});
+
+export const getShares = async (query: ShareQuery): Promise<SharePage> => {
+  const res = await call<SharePage>('GET', '/shares', {
+    params: query as unknown as Record<string, unknown>,
+  });
+  return { ...res, items: (res?.items ?? []).map(normShare) };
+};
+
+export const approveShare = (id: number, title?: string) =>
+  call<ShareRow>('POST', `/shares/${id}/approve`, { data: { title: title || undefined } });
+
+export const rejectShare = (id: number, reason: string) =>
+  call<ShareRow>('POST', `/shares/${id}/reject`, { data: { reason } });
+
+/** 标记奖励已发放：必须在 Java 积分接口成功之后调用；幂等。上限错误由页面自己提示 */
+export const markShareRewarded = (id: number) =>
+  call<ShareRow>('POST', `/shares/${id}/reward`, { silent: true });

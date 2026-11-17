@@ -811,6 +811,114 @@ function routeSwitch(
   return ok(switchView());
 }
 
+// ---------------------------------------------------------------- 用户投稿 mock
+interface MockShare {
+  id: number;
+  userId: number;
+  status: string;
+  label: string;
+  reason: string;
+  sampleId: number;
+  reward: string;
+  createdMs: number;
+}
+const mockShares: MockShare[] = [
+  {
+    id: 4,
+    userId: 12345678,
+    status: 'pending',
+    label: '换模特 + 保留原声',
+    reason: '',
+    sampleId: 0,
+    reward: 'none',
+    createdMs: Date.now() - 3600e3,
+  },
+  {
+    id: 3,
+    userId: 22345678,
+    status: 'pending',
+    label: '换场景 + 换声音',
+    reason: '',
+    sampleId: 0,
+    reward: 'none',
+    createdMs: Date.now() - 7200e3,
+  },
+  {
+    id: 2,
+    userId: 12345678,
+    status: 'approved',
+    label: '换光线',
+    reason: '',
+    sampleId: 9,
+    reward: 'none',
+    createdMs: Date.now() - 86400e3,
+  },
+  {
+    id: 1,
+    userId: 32345678,
+    status: 'rejected',
+    label: '未做改动',
+    reason: '成片含水印',
+    sampleId: 0,
+    reward: 'none',
+    createdMs: Date.now() - 2 * 86400e3,
+  },
+];
+const maskUid = (n: number) => String(n).replace(/^(\d{2})\d+(\d{2})$/, '$1****$2');
+function shareRow(s: MockShare) {
+  const month = mockShares.filter((x) => x.userId === s.userId && x.reward === 'granted').length;
+  return {
+    id: s.id,
+    userId: s.userId,
+    userIdMasked: maskUid(s.userId),
+    jobId: 100 + s.id,
+    status: s.status,
+    rejectReason: s.reason || undefined,
+    sampleId: s.sampleId || undefined,
+    change: { label: s.label, dims: [], audio: '' },
+    videoUrl: '',
+    coverUrl: '',
+    rewardStatus: s.reward,
+    rewardAllowed: s.status === 'approved' && s.reward === 'none' && month < 3,
+    monthRewardCount: month,
+    rewardLimit: 3,
+    rewardKey: `replicate-share-reward:${s.id}`,
+    createdAt: new Date(s.createdMs).toISOString(),
+    reviewedAt: s.status === 'pending' ? undefined : new Date().toISOString(),
+  };
+}
+function routeShare(
+  method: string,
+  path: string,
+  query: Record<string, unknown>,
+  body: Record<string, unknown>,
+) {
+  if (method === 'GET' && path === '/shares') {
+    const items = mockShares.filter((s) => !query.status || s.status === query.status);
+    return ok({ items: items.map(shareRow), total: items.length, page: 1, size: 20 });
+  }
+  const m = path.match(/^\/shares\/(\d+)\/(approve|reject|reward)$/);
+  const s = m && mockShares.find((x) => x.id === Number(m[1]));
+  if (!m || !s) return null;
+  if (m[2] === 'approve') {
+    if (s.status !== 'pending')
+      throw new GoError(1003, 'SHARE_NOT_PENDING', '该投稿不是待审核状态');
+    s.status = 'approved';
+    s.sampleId = 100 + s.id;
+  } else if (m[2] === 'reject') {
+    if (s.status !== 'pending')
+      throw new GoError(1003, 'SHARE_NOT_PENDING', '该投稿不是待审核状态');
+    if (!String(body.reason ?? '').trim())
+      throw new GoError(1003, 'PARAM_INVALID', '请填写驳回原因');
+    s.status = 'rejected';
+    s.reason = String(body.reason);
+  } else {
+    if (s.status !== 'approved') throw new GoError(1003, 'SHARE_NOT_APPROVED', '投稿未通过审核');
+    s.reward = 'granted';
+  }
+  return ok(shareRow(s));
+}
+
 export async function handleMock(
   method: ReplicateMethod,
   path: string,
@@ -851,6 +959,10 @@ export async function handleMock(
     }
     if (path === '/switch') {
       const res = routeSwitch(method, body);
+      if (res) return res;
+    }
+    if (path.startsWith('/shares')) {
+      const res = routeShare(method, path, query, body);
       if (res) return res;
     }
     if (path.startsWith('/samples')) {

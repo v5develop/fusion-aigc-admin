@@ -6,168 +6,175 @@
     </div>
 
     <a-card variant="borderless">
-      <div class="filter-bar">
-        <a-select
-          v-if="industryOptions.length"
-          v-model:value="filters.industry"
-          allow-clear
-          show-search
-          option-filter-prop="label"
-          :placeholder="t('replicateSample.industryAll')"
-          style="width: 200px"
-          :options="industryOptions"
-          @change="reloadFirst"
-        />
-        <a-input
-          v-else
-          v-model:value="filters.industry"
-          allow-clear
-          :placeholder="t('replicateSample.industryCodeFilter')"
-          style="width: 200px"
-          @press-enter="reloadFirst"
-        />
-        <a-select
-          v-model:value="filters.enabled"
-          allow-clear
-          :placeholder="t('replicateSample.enabledAll')"
-          style="width: 140px"
-          :options="enabledOptions"
-          @change="reloadFirst"
-        />
-        <a-button type="primary" @click="reloadFirst">{{ t('replicateSample.query') }}</a-button>
-        <a-button @click="reset">{{ t('replicateSample.reset') }}</a-button>
-        <a-button v-permission="'replicate:sample'" type="primary" ghost @click="openForm(null)">
-          {{ t('replicateSample.create') }}
-        </a-button>
-        <span v-if="polling" class="muted">{{ t('replicateSample.polling') }}</span>
-      </div>
+      <a-tabs v-model:active-key="activeTab">
+        <a-tab-pane key="samples" tab="示例" />
+        <a-tab-pane key="shares" tab="用户投稿" />
+      </a-tabs>
+      <SharePanel v-if="activeTab === 'shares'" @open-sample="openDetail" />
+      <template v-else>
+        <div class="filter-bar">
+          <a-select
+            v-if="industryOptions.length"
+            v-model:value="filters.industry"
+            allow-clear
+            show-search
+            option-filter-prop="label"
+            :placeholder="t('replicateSample.industryAll')"
+            style="width: 200px"
+            :options="industryOptions"
+            @change="reloadFirst"
+          />
+          <a-input
+            v-else
+            v-model:value="filters.industry"
+            allow-clear
+            :placeholder="t('replicateSample.industryCodeFilter')"
+            style="width: 200px"
+            @press-enter="reloadFirst"
+          />
+          <a-select
+            v-model:value="filters.enabled"
+            allow-clear
+            :placeholder="t('replicateSample.enabledAll')"
+            style="width: 140px"
+            :options="enabledOptions"
+            @change="reloadFirst"
+          />
+          <a-button type="primary" @click="reloadFirst">{{ t('replicateSample.query') }}</a-button>
+          <a-button @click="reset">{{ t('replicateSample.reset') }}</a-button>
+          <a-button v-permission="'replicate:sample'" type="primary" ghost @click="openForm(null)">
+            {{ t('replicateSample.create') }}
+          </a-button>
+          <span v-if="polling" class="muted">{{ t('replicateSample.polling') }}</span>
+        </div>
 
-      <a-table
-        :columns="columns"
-        :data-source="rows"
-        :loading="loading"
-        :pagination="false"
-        row-key="id"
-        size="middle"
-        :scroll="{ x: 1400 }"
-      >
-        <template #emptyText>
-          <a-empty :description="t('replicateSample.empty')" />
-        </template>
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.dataIndex === 'title'">
-            <a @click="openDetail(record.id)">{{ record.title }}</a>
-            <div class="muted">#{{ record.id }}</div>
+        <a-table
+          :columns="columns"
+          :data-source="rows"
+          :loading="loading"
+          :pagination="false"
+          row-key="id"
+          size="middle"
+          :scroll="{ x: 1400 }"
+        >
+          <template #emptyText>
+            <a-empty :description="t('replicateSample.empty')" />
           </template>
-          <template v-else-if="column.dataIndex === 'industry'">
-            <a-tooltip
-              v-if="!industryKnown(record.industry)"
-              :title="`行业编码：${record.industry}`"
-            >
-              <span class="muted">{{ industryLabel(record.industry) }}</span>
-            </a-tooltip>
-            <template v-else>{{ industryLabel(record.industry) }}</template>
-          </template>
-          <template v-else-if="column.key === 'media'">
-            <div class="media-cell">
-              <SampleThumb
-                v-for="m in MEDIA_SLOTS"
-                :key="m.field"
-                :label="m.label"
-                :configured="!!record[m.field]"
-                :url="previewOf(record[m.field])"
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.dataIndex === 'title'">
+              <a @click="openDetail(record.id)">{{ record.title }}</a>
+              <div class="muted">#{{ record.id }}</div>
+            </template>
+            <template v-else-if="column.dataIndex === 'industry'">
+              <a-tooltip
+                v-if="!industryKnown(record.industry)"
+                :title="`行业编码：${record.industry}`"
+              >
+                <span class="muted">{{ industryLabel(record.industry) }}</span>
+              </a-tooltip>
+              <template v-else>{{ industryLabel(record.industry) }}</template>
+            </template>
+            <template v-else-if="column.key === 'media'">
+              <div class="media-cell">
+                <SampleThumb
+                  v-for="m in MEDIA_SLOTS"
+                  :key="m.field"
+                  :label="m.label"
+                  :configured="!!record[m.field]"
+                  :url="previewOf(record[m.field])"
+                />
+              </div>
+            </template>
+            <template v-else-if="column.dataIndex === 'enabled'">
+              <a-switch
+                v-if="canWrite"
+                :checked="record.enabled"
+                :loading="toggling === record.id"
+                size="small"
+                @change="toggleEnabled(record)"
               />
-            </div>
-          </template>
-          <template v-else-if="column.dataIndex === 'enabled'">
-            <a-switch
-              v-if="canWrite"
-              :checked="record.enabled"
-              :loading="toggling === record.id"
-              size="small"
-              @change="toggleEnabled(record)"
-            />
-            <a-tag v-else :color="record.enabled ? 'green' : 'default'">
-              {{
-                record.enabled ? t('replicateSample.enabledOn') : t('replicateSample.enabledOff')
-              }}
-            </a-tag>
-          </template>
-          <template v-else-if="column.dataIndex === 'analysisStatus'">
-            <a-tooltip :title="analysisTip(record)">
-              <a-tag :color="analysisColor(record.analysisStatus)">
-                {{ record.analysisStatusLabel || record.analysisStatus }}
-              </a-tag>
-            </a-tooltip>
-            <div
-              v-if="isSampleAnalyzing(record.analysisStatus) && record.analysisStage"
-              class="muted"
-            >
-              {{ t('replicateSample.stage', { stage: record.analysisStage }) }}
-            </div>
-            <div v-else-if="record.analysisError" class="bad small">
-              {{
-                record.analysisStatus === 'ready'
-                  ? t('replicateSample.lastRoundFailed')
-                  : record.analysisError
-              }}
-            </div>
-          </template>
-          <template v-else-if="column.dataIndex === 'userVisible'">
-            <a-tooltip :title="record.userVisible ? '' : t('replicateSample.visibleNoHint')">
-              <a-tag :color="record.userVisible ? 'green' : 'default'">
+              <a-tag v-else :color="record.enabled ? 'green' : 'default'">
                 {{
-                  record.userVisible
-                    ? t('replicateSample.visibleYes')
-                    : t('replicateSample.visibleNo')
+                  record.enabled ? t('replicateSample.enabledOn') : t('replicateSample.enabledOff')
                 }}
               </a-tag>
-            </a-tooltip>
-          </template>
-          <template v-else-if="column.dataIndex === 'updatedAt'">
-            {{ fmtTime(record.updatedAt) }}
-          </template>
-          <template v-else-if="column.key === 'operation'">
-            <a-button size="small" type="link" @click="openDetail(record.id)">
-              {{ t('replicateSample.detail') }}
-            </a-button>
-            <template v-if="canWrite">
-              <a-button size="small" type="link" @click="openForm(record)">
-                {{ t('replicateSample.edit') }}
-              </a-button>
-              <a-button
-                size="small"
-                type="link"
-                :disabled="isSampleAnalyzing(record.analysisStatus)"
-                :loading="analyzing === record.id"
-                @click="triggerAnalyze(record)"
+            </template>
+            <template v-else-if="column.dataIndex === 'analysisStatus'">
+              <a-tooltip :title="analysisTip(record)">
+                <a-tag :color="analysisColor(record.analysisStatus)">
+                  {{ record.analysisStatusLabel || record.analysisStatus }}
+                </a-tag>
+              </a-tooltip>
+              <div
+                v-if="isSampleAnalyzing(record.analysisStatus) && record.analysisStage"
+                class="muted"
               >
-                {{ t('replicateSample.analyze') }}
+                {{ t('replicateSample.stage', { stage: record.analysisStage }) }}
+              </div>
+              <div v-else-if="record.analysisError" class="bad small">
+                {{
+                  record.analysisStatus === 'ready'
+                    ? t('replicateSample.lastRoundFailed')
+                    : record.analysisError
+                }}
+              </div>
+            </template>
+            <template v-else-if="column.dataIndex === 'userVisible'">
+              <a-tooltip :title="record.userVisible ? '' : t('replicateSample.visibleNoHint')">
+                <a-tag :color="record.userVisible ? 'green' : 'default'">
+                  {{
+                    record.userVisible
+                      ? t('replicateSample.visibleYes')
+                      : t('replicateSample.visibleNo')
+                  }}
+                </a-tag>
+              </a-tooltip>
+            </template>
+            <template v-else-if="column.dataIndex === 'updatedAt'">
+              {{ fmtTime(record.updatedAt) }}
+            </template>
+            <template v-else-if="column.key === 'operation'">
+              <a-button size="small" type="link" @click="openDetail(record.id)">
+                {{ t('replicateSample.detail') }}
               </a-button>
-              <a-popconfirm
-                :title="t('replicateSample.deleteConfirm', { title: record.title })"
-                @confirm="remove(record)"
-              >
-                <a-button size="small" type="link" danger>
-                  {{ t('replicateSample.delete') }}
+              <template v-if="canWrite">
+                <a-button size="small" type="link" @click="openForm(record)">
+                  {{ t('replicateSample.edit') }}
                 </a-button>
-              </a-popconfirm>
+                <a-button
+                  size="small"
+                  type="link"
+                  :disabled="isSampleAnalyzing(record.analysisStatus)"
+                  :loading="analyzing === record.id"
+                  @click="triggerAnalyze(record)"
+                >
+                  {{ t('replicateSample.analyze') }}
+                </a-button>
+                <a-popconfirm
+                  :title="t('replicateSample.deleteConfirm', { title: record.title })"
+                  @confirm="remove(record)"
+                >
+                  <a-button size="small" type="link" danger>
+                    {{ t('replicateSample.delete') }}
+                  </a-button>
+                </a-popconfirm>
+              </template>
             </template>
           </template>
-        </template>
-      </a-table>
+        </a-table>
 
-      <div class="pager">
-        <span class="muted">{{ t('replicateSample.total', { n: total }) }}</span>
-        <a-pagination
-          v-model:current="page"
-          v-model:page-size="size"
-          :total="total"
-          show-size-changer
-          :page-size-options="['20', '50', '100']"
-          @change="() => load()"
-        />
-      </div>
+        <div class="pager">
+          <span class="muted">{{ t('replicateSample.total', { n: total }) }}</span>
+          <a-pagination
+            v-model:current="page"
+            v-model:page-size="size"
+            :total="total"
+            show-size-changer
+            :page-size-options="['20', '50', '100']"
+            @change="() => load()"
+          />
+        </div>
+      </template>
     </a-card>
 
     <SampleFormModal
@@ -216,12 +223,15 @@ import { analysisColor } from './sample-meta';
 import SampleDetailDrawer from './SampleDetailDrawer.vue';
 import SampleFormModal from './SampleFormModal.vue';
 import SampleThumb from './SampleThumb.vue';
+import SharePanel from './SharePanel.vue';
 
 defineOptions({ name: 'ReplicateSamples' });
 
 const POLL_MS = 5000;
 
 const { t } = useI18n();
+/** 顶部页签：示例管理 / 用户投稿审核 */
+const activeTab = ref<'samples' | 'shares'>('samples');
 const authStore = useAuthStore();
 const hasPerm = (p: string) => {
   const perms = authStore.user?.permissions ?? [];
