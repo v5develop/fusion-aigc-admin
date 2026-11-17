@@ -559,7 +559,8 @@ export async function uploadSampleMedia(file: File): Promise<SampleMediaPreview>
 // ---------------------------------------------------------------- 用户投稿（CONTRACT §T；读 replicate:view，写 replicate:sample）
 
 export type ShareStatus = 'pending' | 'approved' | 'rejected' | 'withdrawn';
-export type ShareRewardStatus = 'none' | 'granted';
+/** none 未发放 / granting 已占位（发放中，点数快照已定）/ granted 已发放 */
+export type ShareRewardStatus = 'none' | 'granting' | 'granted';
 
 export interface ShareChange {
   /** 改法摘要，如「换模特 + 保留原声」 */
@@ -584,6 +585,8 @@ export interface ShareRow {
   coverUrl?: string;
   rewardStatus: ShareRewardStatus;
   rewardAllowed: boolean;
+  /** 点数：占位（granting / granted）后是占位时的快照，否则是当前规则的点数；发放时以 claim 返回的为准 */
+  rewardPoints: number;
   monthRewardCount: number;
   rewardLimit: number;
   /** 调 Java 积分接口的幂等键 */
@@ -609,6 +612,18 @@ export interface SharePage {
 /** 奖励月度上限（Go 返回 409） */
 export const REWARD_MONTHLY_LIMIT = 'REWARD_MONTHLY_LIMIT';
 
+/** 奖励已在后台关闭（Go 在占位 claim 时返回 409；占位之后不再检查） */
+export const REWARD_DISABLED = 'REWARD_DISABLED';
+
+/** 投稿没通过审核 / 已被用户撤回（占位时 409） */
+export const SHARE_NOT_APPROVED = 'SHARE_NOT_APPROVED';
+
+/** 标记发放时这条还没占位（409） */
+export const REWARD_NOT_CLAIMED = 'REWARD_NOT_CLAIMED';
+
+/** 取消占位时这条已经发放完成（409） */
+export const REWARD_ALREADY_GRANTED = 'REWARD_ALREADY_GRANTED';
+
 const normShare = (r: ShareRow): ShareRow => ({
   ...r,
   change: { label: r.change?.label ?? '', dims: r.change?.dims ?? [], audio: r.change?.audio },
@@ -627,6 +642,55 @@ export const approveShare = (id: number, title?: string) =>
 export const rejectShare = (id: number, reason: string) =>
   call<ShareRow>('POST', `/shares/${id}/reject`, { data: { reason } });
 
-/** 标记奖励已发放：必须在 Java 积分接口成功之后调用；幂等。上限错误由页面自己提示 */
+/** 占位的结果：发放时 Java 积分的 amount = rewardPoints、幂等键 = rewardKey */
+export interface ShareRewardClaim {
+  rewardKey: string;
+  /** 占位时定下的点数快照（重试沿用，与当前规则无关） */
+  rewardPoints: number;
+  rewardStatus: 'granting' | 'granted';
+  /** true = 已经发放完成，无需再调 Java / 标记 */
+  granted: boolean;
+}
+
+/**
+ * 奖励发放三步：claim（Go 占位，校验开关 / 月上限）→ adjustPoints（Java，amount = rewardPoints，key = rewardKey）→ mark（Go）。
+ * 第 1 步：占位；幂等，已是发放中时原样返回同一份快照（重试可继续）。拒收原因（REWARD_DISABLED 等）由页面自己提示。
+ */
+export const claimShareReward = (id: number) =>
+  call<ShareRewardClaim>('POST', `/shares/${id}/reward/claim`, { silent: true });
+
+/** 第 3 步：标记奖励已发放：必须在 Java 积分接口成功之后调用；granting → granted 无条件、幂等 */
 export const markShareRewarded = (id: number) =>
   call<ShareRow>('POST', `/shares/${id}/reward`, { silent: true });
+
+/** 取消占位（granting → none）：只在 Java 明确没有加点（明确不可重试的失败）时用；幂等 */
+export const releaseShareReward = (id: number) =>
+  call<ShareRow>('POST', `/shares/${id}/reward/release`, { silent: true });
+
+// ---------------------------------------------------------------- 投稿奖励设置（读 replicate:view，写 replicate:sample）
+
+export interface ShareRewardRule {
+  enabled: boolean;
+  /** 每条奖励点数（1–1000） */
+  points: number;
+  /** 每人每月最多发放次数（0–100，0 = 不限） */
+  monthlyLimit: number;
+}
+
+export interface ShareRewardSettings extends ShareRewardRule {
+  /** db = 以数据库为准；config = 跟随配置文件 */
+  source: 'db' | 'config';
+  configDefault: ShareRewardRule;
+  remark?: string;
+  updatedAt?: string;
+}
+
+export const getShareRewardSettings = () =>
+  call<ShareRewardSettings>('GET', '/share-reward-settings');
+
+export const setShareRewardSettings = (body: ShareRewardRule & { reason: string }) =>
+  call<ShareRewardSettings>('PUT', '/share-reward-settings', { data: body });
+
+/** 恢复跟随配置文件（删掉库里的设置） */
+export const resetShareRewardSettings = (body: { reason: string }) =>
+  call<ShareRewardSettings>('DELETE', '/share-reward-settings', { data: body });

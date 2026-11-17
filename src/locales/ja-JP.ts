@@ -235,6 +235,7 @@ export default {
     replicateManagement: '動画の同スタイル作成',
     replicateJobs: 'ジョブ管理',
     replicateSamples: 'サンプル管理',
+    agentEval: 'エージェント評価',
     creaftLocalLifeTemplate: 'ローカルライフテンプレート',
     creaftUserLocalLifeTemplate: 'ユーザーテンプレート',
     creaftSkill: 'スキルカタログ',

@@ -1,5 +1,6 @@
 <template>
   <div>
+    <ShareRewardBar ref="barRef" @change="onSettings" />
     <div class="filter-bar">
       <a-radio-group v-model:value="status" button-style="solid" @change="reloadFirst">
         <a-radio-button v-for="o in STATUS_TABS" :key="o.value" :value="o.value">
@@ -7,6 +8,7 @@
         </a-radio-button>
       </a-radio-group>
       <a-button @click="() => load()">刷新</a-button>
+      <span v-if="rewardOff" class="muted">投稿奖励已关闭</span>
     </div>
 
     <a-alert
@@ -59,6 +61,10 @@
             </a>
             <span v-if="record.rewardStatus === 'granted'"> · 奖励已发放</span>
           </div>
+          <div v-if="record.rewardStatus === 'granting'" class="muted">
+            <a-tag color="processing">发放中</a-tag>
+            已占位 {{ record.rewardPoints }} 点，待发放完成
+          </div>
         </template>
         <template v-else-if="column.key === 'operation'">
           <template v-if="record.status === 'pending'">
@@ -80,7 +86,20 @@
               驳回
             </a-button>
           </template>
-          <template v-else-if="record.status === 'approved' && record.rewardStatus === 'none'">
+          <!-- 发放中：占位已定、点数快照已定（即使奖励后来被关闭也要能继续）；重新走 占位 → Java → 标记，三步都幂等 -->
+          <template v-else-if="record.rewardStatus === 'granting'">
+            <a-button
+              v-permission="'replicate:sample'"
+              size="small"
+              type="link"
+              @click="openReward(record)"
+            >
+              继续发放
+            </a-button>
+          </template>
+          <template
+            v-else-if="!rewardOff && record.status === 'approved' && record.rewardStatus === 'none'"
+          >
             <a-tooltip
               :title="
                 record.rewardAllowed
@@ -154,21 +173,48 @@
       </div>
     </a-modal>
 
-    <!-- 发放奖励 -->
+    <!-- 发放奖励：占位（Go）→ 加点（Java）→ 标记（Go） -->
     <a-modal
       v-model:open="reward.open"
-      title="发放奖励"
-      ok-text="确认发放"
+      :title="reward.row?.rewardStatus === 'granting' ? '继续发放奖励' : '发放奖励'"
       :confirm-loading="reward.busy"
-      @ok="doReward"
+      :mask-closable="!reward.busy"
     >
-      <p>给该用户（{{ reward.row?.userIdMasked }}）发放 {{ REWARD_POINTS }} 点？</p>
+      <p v-if="reward.row?.rewardStatus === 'granting'">
+        该投稿的奖励处于「发放中」（已占位 {{ reward.row?.rewardPoints }} 点），继续给该用户（{{
+          reward.row?.userIdMasked
+        }}）发放？重复点击不会重复发点。
+      </p>
+      <p v-else>
+        给该用户（{{ reward.row?.userIdMasked }}）发放 {{ reward.row?.rewardPoints }} 点？
+      </p>
       <a-alert
-        v-if="reward.retryHint"
+        v-if="reward.retryHint === 'java'"
         type="warning"
         show-icon
-        message="点数已发放成功，但投稿状态还没更新。请直接再点一次「确认发放」补记状态，不会重复发点。"
+        :message="
+          reward.javaFailed
+            ? '点数发放失败（接口明确拒绝）。投稿保持「发放中」，可修正问题后点「继续发放」重试，或点「取消发放」放弃并释放本月次数。'
+            : '点数发放结果未知（网络或服务异常）。投稿保持「发放中」，请点「继续发放」重试，不会重复发点；先不要取消。'
+        "
       />
+      <a-alert
+        v-else-if="reward.retryHint === 'mark'"
+        type="warning"
+        show-icon
+        message="点数已发放成功，但投稿状态还没更新。请直接再点一次「继续发放」补记状态，不会重复发点。"
+      />
+      <template #footer>
+        <a-button v-if="reward.javaFailed" danger :disabled="reward.busy" @click="doRelease">
+          取消发放
+        </a-button>
+        <a-button :disabled="reward.busy" @click="reward.open = false">关闭</a-button>
+        <a-button type="primary" :loading="reward.busy" @click="doReward">
+          {{
+            reward.retryHint || reward.row?.rewardStatus === 'granting' ? '继续发放' : '确认发放'
+          }}
+        </a-button>
+      </template>
     </a-modal>
 
     <!-- 通过成功：给出示例入口 -->
@@ -182,31 +228,51 @@
 <script setup lang="ts">
 /**
  * 用户投稿审核（CONTRACT §T）：待审核 / 已通过 / 已驳回 / 已撤回四个状态页签。
- * 发放奖励的顺序：先调 Java 积分接口（幂等键 = row.rewardKey），成功后再调 Go 标记；两步都幂等，
- * 若 Go 标记失败，保留弹窗并提示重试即可（Java 侧同键重放不会重复发点）。
+ * 发放奖励三步（Go 占位 → Java 加点 → Go 标记），开关 / 月上限只在第 1 步判定，所以不会出现「Java 已加点、Go 拒收」：
+ *   1) claim：Go 同事务校验并占位（none → granting），返回点数快照 rewardPoints 与幂等键 rewardKey；已占位时原样返回，可重试；
+ *   2) adjustPoints：Java，amount = claim.rewardPoints，idempotencyKey = claim.rewardKey（同键重放不会重复发点）；
+ *   3) mark：Go granting → granted（无条件，幂等）。
+ * Java 失败：保留 granting 并提示重试；只有 Java 明确拒绝（HTTP 4xx 类错误）才允许「取消发放」（release）；
+ * 结果不明（超时 / 5xx / 断网）不给取消，因为点数可能已经发出。
  */
 import { message } from 'antdv-next';
 import { computed, onMounted, reactive, ref } from 'vue';
 
 import { adjustPoints } from '@/api/points';
 import {
+  REWARD_ALREADY_GRANTED,
+  REWARD_DISABLED,
   REWARD_MONTHLY_LIMIT,
+  REWARD_NOT_CLAIMED,
   ReplicateError,
+  SHARE_NOT_APPROVED,
   approveShare,
+  claimShareReward,
   getShares,
   markShareRewarded,
   rejectShare,
+  releaseShareReward,
+  type ShareRewardSettings,
   type ShareRow,
   type ShareStatus,
 } from '@/api/replicate-admin';
 
 import { fmtTime } from '../replicate-job/job-meta';
 import SampleThumb from './SampleThumb.vue';
+import ShareRewardBar from './ShareRewardBar.vue';
 
 const emit = defineEmits<{ 'open-sample': [id: number] }>();
 
-/** 每条投稿奖励的点数（DECISIONS 2026-11-17） */
-const REWARD_POINTS = 30;
+// 奖励规则由 ShareRewardBar 读取并上报；读到之前不隐藏，避免闪烁
+const barRef = ref<InstanceType<typeof ShareRewardBar> | null>(null);
+const settings = ref<ShareRewardSettings | null>(null);
+const rewardOff = computed(() => settings.value?.enabled === false);
+function onSettings(v: ShareRewardSettings) {
+  const first = !settings.value;
+  settings.value = v;
+  // 规则改了，行里的 rewardPoints / rewardAllowed 要重取（首次读取时列表已在自己加载）
+  if (!first) load();
+}
 
 const STATUS_TABS: { label: string; value: ShareStatus }[] = [
   { label: '待审核', value: 'pending' },
@@ -336,44 +402,110 @@ const reward = reactive({
   open: false,
   busy: false,
   row: null as ShareRow | null,
-  /** Java 已成功、Go 标记失败：提示重试 */
-  retryHint: false,
+  /** 失败提示：java = 加点没成功（投稿保持发放中）；mark = Java 已成功、Go 标记失败 */
+  retryHint: '' as '' | 'java' | 'mark',
+  /** Java 明确拒绝（4xx 类，未加点）：才允许取消发放 */
+  javaFailed: false,
 });
 function openReward(r: ShareRow) {
-  Object.assign(reward, { open: true, row: r, retryHint: false });
+  Object.assign(reward, { open: true, row: r, retryHint: '', javaFailed: false });
 }
+
+/** Java 调用是否「明确没加点」：HTTP / 业务 4xx（不含 401 登录失效、408 超时、429 限流）；网络错误、5xx、超时都算结果不明 */
+function isDefiniteFailure(e: unknown): boolean {
+  const x = e as { status?: number; code?: number } | null;
+  const n = x?.status ?? x?.code;
+  return typeof n === 'number' && n >= 400 && n < 500 && n !== 401 && n !== 408 && n !== 429;
+}
+
 async function doReward() {
   const row = reward.row;
   if (!row) return;
   reward.busy = true;
+  reward.javaFailed = false;
   try {
-    // 1) Java 积分：用真实 userId，幂等键固定为 rewardKey，重放不会重复发点
-    await adjustPoints({
-      userId: row.userId,
-      adjustType: 'ADD',
-      amount: REWARD_POINTS,
-      reason: `示例投稿奖励（投稿 #${row.id}）`,
-      idempotencyKey: row.rewardKey,
-      grantSource: 'ADMIN_GIFT',
-    });
-  } catch {
-    // 积分没发成功：request 层通常已提示，这里不进入第二步
+    // 1) Go 占位：校验开关 / 月上限并锁定点数快照；已占位则原样返回
+    let claim;
+    try {
+      claim = await claimShareReward(row.id);
+    } catch (e) {
+      handleClaimError(e);
+      return;
+    }
+    if (!claim.granted) {
+      // 2) Java 积分：amount 与幂等键都取自占位结果，重放不会重复发点
+      try {
+        await adjustPoints({
+          userId: row.userId,
+          adjustType: 'ADD',
+          amount: claim.rewardPoints,
+          reason: `示例投稿奖励（投稿 #${row.id}）`,
+          idempotencyKey: claim.rewardKey,
+          grantSource: 'ADMIN_GIFT',
+        });
+      } catch (e) {
+        reward.retryHint = 'java';
+        reward.javaFailed = isDefiniteFailure(e);
+        load(); // 行已是发放中，刷新让列表也显示「继续发放」
+        return;
+      }
+      // 3) Go 标记（granting → granted，无条件、幂等）
+      try {
+        await markShareRewarded(row.id);
+      } catch (e) {
+        if (e instanceof ReplicateError && e.reason === REWARD_NOT_CLAIMED) {
+          message.error('占位已被取消，请刷新后重新发放（点数已发出，请先到积分流水核对）');
+          reward.open = false;
+          load();
+        } else {
+          reward.retryHint = 'mark';
+        }
+        return;
+      }
+    }
+    reward.open = false;
+    message.success(`已发放 ${claim.rewardPoints} 点`);
+    load();
+  } finally {
     reward.busy = false;
+  }
+}
+
+/** 占位被拒：此时 Java 还没调用，什么都没发出 */
+function handleClaimError(e: unknown) {
+  const reason = e instanceof ReplicateError ? e.reason : '';
+  if (reason === REWARD_DISABLED) {
+    message.error('投稿奖励已关闭，无法发放');
+    barRef.value?.reload();
+  } else if (reason === REWARD_MONTHLY_LIMIT) {
+    message.error('该用户本月奖励次数已达上限');
+  } else if (reason === SHARE_NOT_APPROVED) {
+    message.error('投稿已不是「已通过」状态（可能被用户撤回），无法发放');
+  } else {
+    message.error(e instanceof Error && e.message ? e.message : '占位失败，请稍后重试');
     return;
   }
+  reward.open = false;
+  load();
+}
+
+/** 取消发放：仅在 Java 明确失败后可用；释放占位与本月次数 */
+async function doRelease() {
+  const row = reward.row;
+  if (!row) return;
+  reward.busy = true;
   try {
-    // 2) Go 标记（幂等）
-    await markShareRewarded(row.id);
+    await releaseShareReward(row.id);
     reward.open = false;
-    message.success(`已发放 ${REWARD_POINTS} 点`);
+    message.success('已取消发放');
     load();
   } catch (e) {
-    if (e instanceof ReplicateError && e.reason === REWARD_MONTHLY_LIMIT) {
-      message.error('该用户本月奖励次数已达上限');
+    if (e instanceof ReplicateError && e.reason === REWARD_ALREADY_GRANTED) {
+      message.error('这条奖励已经发放完成，不能取消');
       reward.open = false;
       load();
     } else {
-      reward.retryHint = true;
+      message.error(e instanceof Error && e.message ? e.message : '取消失败，请稍后重试');
     }
   } finally {
     reward.busy = false;

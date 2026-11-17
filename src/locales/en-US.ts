@@ -183,6 +183,7 @@ export default {
     replicateManagement: 'Video Replicate',
     replicateJobs: 'Job Management',
     replicateSamples: 'Samples',
+    agentEval: 'Agent Evaluation',
     creaftLocalLifeTemplate: 'Local Life Templates',
     creaftUserLocalLifeTemplate: 'User Templates',
     creaftSkill: 'Skill Catalog',

@@ -1751,6 +1751,18 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
           requiredPermissions: 'replicate:view',
         },
       },
+      {
+        // 智能体评测（Java /api/v1/admin/agent-eval，契约 §W）：发起另要 agent_eval:run
+        path: 'agent-eval',
+        name: 'AgentEval',
+        component: () => import('@/views/creaft/agent-eval/index.vue'),
+        meta: {
+          title: 'menu.agentEval',
+          icon: 'ExperimentOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'agent_eval:view',
+        },
+      },
     ],
   },
 ];

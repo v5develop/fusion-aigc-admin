@@ -235,6 +235,7 @@ export default {
     replicateManagement: '영상 따라 만들기',
     replicateJobs: '작업 관리',
     replicateSamples: '샘플 관리',
+    agentEval: '에이전트 평가',
     creaftLocalLifeTemplate: '로컬 라이프 템플릿',
     creaftUserLocalLifeTemplate: '사용자 템플릿',
     creaftSkill: '스킬 카탈로그',

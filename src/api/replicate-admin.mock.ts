@@ -820,6 +820,8 @@ interface MockShare {
   reason: string;
   sampleId: number;
   reward: string;
+  /** 占位时的点数快照 */
+  rewardPoints?: number;
   createdMs: number;
 }
 const mockShares: MockShare[] = [
@@ -864,9 +866,52 @@ const mockShares: MockShare[] = [
     createdMs: Date.now() - 2 * 86400e3,
   },
 ];
+// 投稿奖励设置：部署配置默认 开 / 30 点 / 每月 3 次，库里没有这一行
+const rw: {
+  db: { enabled: boolean; points: number; monthlyLimit: number } | null;
+  remark: string;
+  updatedMs: number;
+} = { db: null, remark: '', updatedMs: 0 };
+const RW_CONFIG = { enabled: true, points: 30, monthlyLimit: 3 };
+const rewardRule = () => rw.db ?? RW_CONFIG;
+function rewardView() {
+  return {
+    ...rewardRule(),
+    source: rw.db ? 'db' : 'config',
+    configDefault: RW_CONFIG,
+    remark: rw.remark || undefined,
+    updatedAt: rw.updatedMs ? new Date(rw.updatedMs).toISOString() : undefined,
+  };
+}
+function routeRewardSettings(method: string, body: Record<string, unknown>) {
+  if (method === 'GET') return ok(rewardView());
+  const reason = String(body.reason ?? '').trim();
+  if (!reason) throw new GoError(1002, 'PARAM_MISSING', '请填写原因');
+  if (method === 'PUT') {
+    const points = Number(body.points);
+    const monthlyLimit = Number(body.monthlyLimit);
+    if (!(points >= 1 && points <= 1000))
+      throw new GoError(1003, 'PARAM_INVALID', '每条奖励点数须在 1–1000 之间');
+    if (!(monthlyLimit >= 0 && monthlyLimit <= 100))
+      throw new GoError(1003, 'PARAM_INVALID', '每月上限须在 0–100 之间（0 表示不限）');
+    rw.db = { enabled: !!body.enabled, points, monthlyLimit };
+    rw.remark = `投稿奖励：管理员 1 修改。原因：${reason}`;
+  } else if (method === 'DELETE') {
+    rw.db = null;
+    rw.remark = `投稿奖励：管理员 1 恢复跟随部署配置。原因：${reason}`;
+  } else {
+    return null;
+  }
+  rw.updatedMs = Date.now();
+  return ok(rewardView());
+}
 const maskUid = (n: number) => String(n).replace(/^(\d{2})\d+(\d{2})$/, '$1****$2');
 function shareRow(s: MockShare) {
-  const month = mockShares.filter((x) => x.userId === s.userId && x.reward === 'granted').length;
+  const month = mockShares.filter(
+    (x) => x.userId === s.userId && (x.reward === 'granted' || x.reward === 'granting'),
+  ).length;
+  const rule = rewardRule();
+  const underLimit = rule.monthlyLimit === 0 || month < rule.monthlyLimit;
   return {
     id: s.id,
     userId: s.userId,
@@ -879,9 +924,10 @@ function shareRow(s: MockShare) {
     videoUrl: '',
     coverUrl: '',
     rewardStatus: s.reward,
-    rewardAllowed: s.status === 'approved' && s.reward === 'none' && month < 3,
+    rewardAllowed: rule.enabled && s.status === 'approved' && s.reward === 'none' && underLimit,
+    rewardPoints: s.reward === 'none' ? rule.points : s.rewardPoints || rule.points,
     monthRewardCount: month,
-    rewardLimit: 3,
+    rewardLimit: rule.monthlyLimit,
     rewardKey: `replicate-share-reward:${s.id}`,
     createdAt: new Date(s.createdMs).toISOString(),
     reviewedAt: s.status === 'pending' ? undefined : new Date().toISOString(),
@@ -897,7 +943,7 @@ function routeShare(
     const items = mockShares.filter((s) => !query.status || s.status === query.status);
     return ok({ items: items.map(shareRow), total: items.length, page: 1, size: 20 });
   }
-  const m = path.match(/^\/shares\/(\d+)\/(approve|reject|reward)$/);
+  const m = path.match(/^\/shares\/(\d+)\/(approve|reject|reward|reward\/claim|reward\/release)$/);
   const s = m && mockShares.find((x) => x.id === Number(m[1]));
   if (!m || !s) return null;
   if (m[2] === 'approve') {
@@ -912,8 +958,32 @@ function routeShare(
       throw new GoError(1003, 'PARAM_INVALID', '请填写驳回原因');
     s.status = 'rejected';
     s.reason = String(body.reason);
+  } else if (m[2] === 'reward/claim') {
+    // 占位：开关 / 月上限只在这一步判；已是发放中 / 已发放原样返回
+    if (s.reward === 'none') {
+      if (s.status !== 'approved') throw new GoError(1003, 'SHARE_NOT_APPROVED', '投稿未通过审核');
+      const rule = rewardRule();
+      if (!rule.enabled) throw new GoError(1004, 'REWARD_DISABLED', '投稿奖励已关闭');
+      const month = shareRow(s).monthRewardCount;
+      if (rule.monthlyLimit > 0 && month >= rule.monthlyLimit)
+        throw new GoError(1004, 'REWARD_MONTHLY_LIMIT', '该用户本月奖励次数已达上限');
+      s.reward = 'granting';
+      s.rewardPoints = rule.points;
+    }
+    return ok({
+      rewardKey: `replicate-share-reward:${s.id}`,
+      rewardPoints: s.rewardPoints || rewardRule().points,
+      rewardStatus: s.reward,
+      granted: s.reward === 'granted',
+    });
+  } else if (m[2] === 'reward/release') {
+    if (s.reward === 'granted')
+      throw new GoError(1004, 'REWARD_ALREADY_GRANTED', '这条奖励已经发放完成，不能取消');
+    s.reward = 'none';
+    s.rewardPoints = 0;
   } else {
-    if (s.status !== 'approved') throw new GoError(1003, 'SHARE_NOT_APPROVED', '投稿未通过审核');
+    // 标记：granting → granted 无条件（不再看开关 / 上限）；没占位不行
+    if (s.reward === 'none') throw new GoError(1004, 'REWARD_NOT_CLAIMED', '这条投稿还没占位发放');
     s.reward = 'granted';
   }
   return ok(shareRow(s));
@@ -959,6 +1029,10 @@ export async function handleMock(
     }
     if (path === '/switch') {
       const res = routeSwitch(method, body);
+      if (res) return res;
+    }
+    if (path === '/share-reward-settings') {
+      const res = routeRewardSettings(method, body);
       if (res) return res;
     }
     if (path.startsWith('/shares')) {
