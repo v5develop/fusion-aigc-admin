@@ -116,6 +116,15 @@ export type JobStatus =
 export const IN_FLIGHT_STATUSES: JobStatus[] = ['submitting', 'queued', 'running', 'continuing'];
 export const isInFlight = (s: JobStatus): boolean => IN_FLIGHT_STATUSES.includes(s);
 
+/** 画面连贯度：fast 更快 / smooth 更连贯（上一段末帧衔接下一段） */
+export type ReplicateContinuity = 'fast' | 'smooth';
+/** 段间衔接：used 已衔接；其余是没衔接的原因（仅 smooth 第 2 段起有） */
+export type SegmentBridge =
+  | 'used'
+  | 'skipped_prev_failed'
+  | 'skipped_no_frame'
+  | 'skipped_refs_full';
+
 export interface AdminJobRow {
   jobId: number;
   taskId: string;
@@ -133,6 +142,8 @@ export interface AdminJobRow {
   stopReason?: string;
   createdAt: string;
   finishedAt?: string;
+  /** 画面连贯度（契约 §AB）：fast 更快 / smooth 更连贯；老任务没有 */
+  continuity?: ReplicateContinuity;
 }
 
 export interface AdminJobPage {
@@ -207,6 +218,58 @@ export interface AdminSegment {
   charges: AdminCharge[];
   refundablePoints: number;
   canRefund: boolean;
+  /** 衔接情况（契约 §AB），仅 smooth 第 2 段起有 */
+  bridge?: SegmentBridge;
+}
+
+/** 用户成片反馈（契约 §AB） */
+export type FeedbackRating = 'up' | 'down';
+export type FeedbackReason =
+  | 'face_mismatch'
+  | 'product_deformed'
+  | 'motion_weird'
+  | 'seam_jump'
+  | 'text_garbled'
+  | 'other';
+
+export interface AdminFeedback {
+  id: number;
+  userId: number;
+  jobId: number;
+  /** 0 = 整条 */
+  segIndex: number;
+  rating: FeedbackRating;
+  reasons: FeedbackReason[];
+  note?: string;
+  continuity?: ReplicateContinuity;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminFeedbackPage {
+  total: number;
+  items: AdminFeedback[];
+}
+
+export interface AdminFeedbackQuery {
+  page?: number;
+  pageSize?: number;
+  rating?: FeedbackRating;
+  reason?: FeedbackReason;
+  continuity?: ReplicateContinuity;
+  /** YYYY-MM-DD（北京时间，to 含当天） */
+  from?: string;
+  to?: string;
+  userId?: number;
+  jobId?: number;
+}
+
+export interface FeedbackSummary {
+  total: number;
+  up: number;
+  down: number;
+  byReason: { reason: FeedbackReason; count: number; smooth: number; fast: number }[];
+  byContinuity: { continuity: ReplicateContinuity; up: number; down: number }[];
 }
 
 export interface AdminModeration {
@@ -257,6 +320,10 @@ export interface AdminJobDetail {
   canRefund: boolean;
   canForce: boolean;
   forceBlocker?: string;
+  /** 方案里按人点名的逐行说明（plan.subjectText，契约 §AB） */
+  subjectText: string[];
+  /** 该任务的用户反馈（contract §AB） */
+  feedback: AdminFeedback[];
 }
 
 export interface RefundLine {
@@ -316,6 +383,8 @@ const normAction = (o: Obj): AdminAction => ({
   createdAt: String(pick(o, 'createdAt', 'CreatedAt') ?? ''),
 });
 
+const normFeedback = (f: AdminFeedback): AdminFeedback => ({ ...f, reasons: f.reasons ?? [] });
+
 function normDetail(raw: Obj): AdminJobDetail {
   return {
     job: raw.job as AdminJobRow,
@@ -334,6 +403,10 @@ function normDetail(raw: Obj): AdminJobDetail {
     canRefund: !!raw.canRefund,
     canForce: !!raw.canForce,
     forceBlocker: (raw.forceBlocker as string) || undefined,
+    subjectText: (
+      ((raw.plan as Obj | undefined)?.subjectText as string[] | undefined) ?? []
+    ).filter(Boolean),
+    feedback: ((raw.feedback as AdminFeedback[] | undefined) ?? []).map(normFeedback),
   };
 }
 
@@ -346,6 +419,26 @@ export const getAdminJobs = (query: AdminJobQuery) =>
 
 export const getAdminJob = async (jobId: number) =>
   normDetail(await call<Obj>('GET', `/jobs/${jobId}`));
+
+// ---------------------------------------------------------------- 成片反馈（契约 §AB）
+
+export const getAdminFeedback = async (query: AdminFeedbackQuery) => {
+  const r = await call<AdminFeedbackPage>('GET', '/feedback', {
+    params: query as Record<string, unknown>,
+  });
+  return { total: r?.total ?? 0, items: (r?.items ?? []).map(normFeedback) };
+};
+
+export const getFeedbackSummary = async (query: { from?: string; to?: string }) => {
+  const r = await call<FeedbackSummary>('GET', '/feedback/summary', { params: query });
+  return {
+    total: r?.total ?? 0,
+    up: r?.up ?? 0,
+    down: r?.down ?? 0,
+    byReason: r?.byReason ?? [],
+    byContinuity: r?.byContinuity ?? [],
+  } as FeedbackSummary;
+};
 
 /** 每次新的退点动作生成一个幂等键；部分失败（5001）重试时复用同一个，后端只补退剩下的 */
 export const newIdempotencyKey = (): string =>

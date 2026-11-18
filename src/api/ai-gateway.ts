@@ -441,6 +441,8 @@ export interface CallSummary {
   attempt_count: number;
   last_deployment?: string | null;
   cost_amount_cny?: string | null;
+  /** false = 成本待核对（等待供应商回报实扣）；缺省视为已定稿 */
+  cost_final?: boolean | null;
   money_at_risk: boolean;
   labels?: Record<string, string>;
   created_at: string;

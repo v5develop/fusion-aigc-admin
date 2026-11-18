@@ -1752,6 +1752,18 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
+        // 成片反馈（Go /api/v1/replicate/admin/feedback，契约 §AB）；权限码见 job-meta.ts 的 FEEDBACK_VIEW_PERMISSION，改那里时同步这里
+        path: 'feedback',
+        name: 'ReplicateFeedback',
+        component: () => import('@/views/creaft/replicate-feedback/index.vue'),
+        meta: {
+          title: 'menu.replicateFeedback',
+          icon: 'LikeOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'replicate:view',
+        },
+      },
+      {
         // 智能体评测（Java /api/v1/admin/agent-eval，契约 §W）：发起另要 agent_eval:run
         path: 'agent-eval',
         name: 'AgentEval',

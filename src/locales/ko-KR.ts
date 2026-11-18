@@ -235,6 +235,7 @@ export default {
     replicateManagement: '영상 따라 만들기',
     replicateJobs: '작업 관리',
     replicateSamples: '샘플 관리',
+    replicateFeedback: '결과물 피드백',
     agentEval: '에이전트 평가',
     creaftLocalLifeTemplate: '로컬 라이프 템플릿',
     creaftUserLocalLifeTemplate: '사용자 템플릿',
@@ -5289,7 +5290,8 @@ export default {
     slowestHint: '자체 소요 시간(하위 제외) 순. 클릭하면 워터폴에서 위치를 표시합니다',
     spanDuration: '하위 포함',
     criticalPath: '크리티컬 패스',
-    noBreakdown: '이 작업에는 구간별 추적 데이터가 없습니다(출시 전 작업이거나 실행 서비스가 아직 이벤트를 보내지 않음). 소요 시간을 분해할 수 없습니다.',
+    noBreakdown:
+      '이 작업에는 구간별 추적 데이터가 없습니다(출시 전 작업이거나 실행 서비스가 아직 이벤트를 보내지 않음). 소요 시간을 분해할 수 없습니다.',
     restZero: '나머지 {n}개 분류 0ms',
     category: {
       queue: '대기열',
@@ -5317,7 +5319,8 @@ export default {
       rangeTooLong: '사용자 지정 기간은 {n}일을 넘을 수 없습니다',
       loadFail: '통계를 불러오지 못했습니다',
       degraded: '{n}개 작업은 소요 시간을 완전히 계산할 수 없어 통계에서 제외되었습니다',
-      gatewayDegraded: '{n}개 작업은 게이트웨이 데이터를 일시적으로 가져올 수 없어 통계에서 제외되었습니다(나중에 자동으로 다시 계산됩니다)',
+      gatewayDegraded:
+        '{n}개 작업은 게이트웨이 데이터를 일시적으로 가져올 수 없어 통계에서 제외되었습니다(나중에 자동으로 다시 계산됩니다)',
       truncated: '샘플 수가 한도를 초과하여 잘렸습니다. 기간을 줄이거나 필터를 추가하세요.',
       samples: '샘플 수',
       totalP: '총 시간 {p}',

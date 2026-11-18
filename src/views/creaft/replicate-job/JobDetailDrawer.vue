@@ -62,6 +62,11 @@
             <a-tag :color="statusColor(detail.job.status)">{{ detail.job.statusLabel }}</a-tag>
             <span v-if="detail.job.stopReason === 'admin_force'" class="muted">后台强制收尾</span>
           </a-descriptions-item>
+          <a-descriptions-item v-if="detail.job.continuity" label="画面连贯度">
+            <a-tag :color="detail.job.continuity === 'smooth' ? 'blue' : 'default'">{{
+              continuityLabel(detail.job.continuity)
+            }}</a-tag>
+          </a-descriptions-item>
           <a-descriptions-item label="用户 ID">{{ detail.job.userId }}</a-descriptions-item>
           <a-descriptions-item label="模型组">{{ detail.job.modelGroup }}</a-descriptions-item>
           <a-descriptions-item label="任务号" :span="2">
@@ -82,6 +87,13 @@
           </a-descriptions-item>
         </a-descriptions>
 
+        <template v-if="detail.subjectText.length">
+          <h4>按人点名说明</h4>
+          <ul class="subject-text">
+            <li v-for="(t, i) in detail.subjectText" :key="i">{{ t }}</li>
+          </ul>
+        </template>
+
         <h4>段</h4>
         <a-table
           :columns="segColumns"
@@ -93,6 +105,12 @@
         >
           <template #bodyCell="{ column, record }">
             <template v-if="column.dataIndex === 'index'">第 {{ record.index }} 段</template>
+            <template v-else-if="column.dataIndex === 'bridge'">
+              <a-tag v-if="record.bridge" :color="record.bridge === 'used' ? 'green' : 'orange'">{{
+                BRIDGE_LABEL[record.bridge as SegmentBridge] ?? record.bridge
+              }}</a-tag>
+              <span v-else class="muted">—</span>
+            </template>
             <template v-else-if="column.dataIndex === 'state'">
               <a-tag :color="stepColor(record.state)">{{ record.state }}</a-tag>
               <div v-if="record.failReason" class="bad small">{{ record.failReason }}</div>
@@ -110,6 +128,19 @@
             </template>
           </template>
         </a-table>
+
+        <template v-if="detail.feedback.length">
+          <h4 style="margin-top: 20px">用户反馈</h4>
+          <div v-for="f in detail.feedback" :key="f.id" class="fb-block">
+            <a-tag :color="f.rating === 'up' ? 'green' : 'red'">{{
+              f.rating === 'up' ? '满意' : '不满意'
+            }}</a-tag>
+            <span class="muted small">{{ f.segIndex ? `第 ${f.segIndex} 段` : '整条' }}</span>
+            <a-tag v-for="r in f.reasons" :key="r" color="orange">{{ reasonLabel(r) }}</a-tag>
+            <span class="muted small">{{ fmtTime(f.updatedAt || f.createdAt) }}</span>
+            <div v-if="f.note" class="fb-note">备注：{{ f.note }}</div>
+          </div>
+        </template>
 
         <h4 style="margin-top: 20px">步骤时间线</h4>
         <a-timeline class="steps">
@@ -315,9 +346,18 @@ import {
   newIdempotencyKey,
   refundJobSegments,
   type AdminJobDetail,
+  type SegmentBridge,
 } from '@/api/replicate-admin';
 
-import { copyText, fmtTime, reservationColor, statusColor } from './job-meta';
+import {
+  BRIDGE_LABEL,
+  continuityLabel,
+  copyText,
+  fmtTime,
+  reasonLabel,
+  reservationColor,
+  statusColor,
+} from './job-meta';
 
 const props = defineProps<{ open: boolean; jobId: number }>();
 const emit = defineEmits<{ 'update:open': [v: boolean]; changed: [] }>();
@@ -326,12 +366,16 @@ const detail = ref<AdminJobDetail | null>(null);
 const loading = ref(false);
 const acting = ref(false);
 
-const segColumns = [
+const segColumns = computed(() => [
   { title: '段', dataIndex: 'index', width: 80 },
+  // 衔接只在 smooth 任务（后端给了 bridge）时出现
+  ...((detail.value?.segments ?? []).some((s) => s.bridge)
+    ? [{ title: '衔接', dataIndex: 'bridge', width: 170 }]
+    : []),
   { title: '链尾状态', dataIndex: 'state', width: 220 },
   { title: '可退点数', dataIndex: 'refundablePoints', width: 90 },
   { title: '网关调用 id', dataIndex: 'gatewayCallIds' },
-];
+]);
 const chargeColumns = [
   { title: '对应段', dataIndex: 'segIndex', width: 80 },
   { title: '阶段', dataIndex: 'stage', width: 70 },
@@ -541,6 +585,23 @@ h4 {
 }
 .bad {
   color: var(--ant-color-error, #ff4d4f);
+}
+.subject-text {
+  margin: 0 0 16px;
+  padding-left: 20px;
+}
+.fb-block {
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  background: var(--ant-color-fill-quaternary, #f5f5f5);
+}
+.fb-block > * {
+  margin-right: 6px;
+}
+.fb-note {
+  margin-top: 4px;
+  white-space: pre-wrap;
 }
 .seg-pick {
   padding: 4px 0;

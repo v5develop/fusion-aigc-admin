@@ -8,6 +8,12 @@ import type {
   ForceResult,
   JobStatus,
   RefundResult,
+  ReplicateContinuity,
+  SegmentBridge,
+  AdminFeedback,
+  AdminFeedbackPage,
+  FeedbackReason,
+  FeedbackSummary,
   ReplicateMethod,
   SampleAdminPage,
   SampleAdminRow,
@@ -177,6 +183,16 @@ const refundableOf = (s: Seg): number =>
 const callId = (j: Job, i: number) =>
   `gw_${j.id.toString(16)}${(i + 1).toString(16).padStart(2, '0')}c7e1`;
 
+/** mock：奇数任务更连贯，偶数更快；最早几条不带（模拟老任务） */
+const continuityOf = (j: Job): ReplicateContinuity | undefined =>
+  j.id < 1004 ? undefined : j.id % 2 ? 'smooth' : 'fast';
+const BRIDGES: SegmentBridge[] = [
+  'used',
+  'skipped_prev_failed',
+  'skipped_no_frame',
+  'skipped_refs_full',
+];
+
 const rowOf = (j: Job): AdminJobRow => ({
   jobId: j.id,
   taskId: `AiCreation_RP_${(900000 + j.id).toString(36).toUpperCase()}`,
@@ -194,6 +210,7 @@ const rowOf = (j: Job): AdminJobRow => ({
   stopReason: j.actions.some((a) => a.Action === 'FORCE_FINISH') ? 'admin_force' : undefined,
   createdAt: iso(j.createdMs),
   finishedAt: inFlight(j) ? undefined : iso(j.createdMs + 40 * 60_000),
+  continuity: continuityOf(j),
 });
 
 const chargesOf = (j: Job): AdminCharge[] =>
@@ -288,6 +305,13 @@ const detailOf = (j: Job) => {
       charges: cs,
       refundablePoints: cs.reduce((a, c) => a + c.refundablePoints, 0),
       canRefund: cs.some((c) => c.refundablePoints > 0),
+      // smooth 第 2 段起才有衔接信息；上一段失败就给 skipped_prev_failed，其余轮换
+      bridge:
+        continuityOf(j) === 'smooth' && i > 0
+          ? j.segs[i - 1].state === 'failed'
+            ? ('skipped_prev_failed' as SegmentBridge)
+            : BRIDGES[(j.id + i) % 4 === 1 ? 2 : (j.id + i) % 4 === 2 ? 3 : 0]
+          : undefined,
     };
   });
   const rejected = j.error.includes('审核');
@@ -337,6 +361,11 @@ const detailOf = (j: Job) => {
     canRefund: charges.some((c) => c.refundablePoints > 0),
     canForce: !blocker,
     forceBlocker: blocker || undefined,
+    plan: {
+      subjectText:
+        j.id % 2 ? ['人物 A：换成参考图 1 的模特，保留原动作', '人物 B：保持原样，不替换'] : [],
+    },
+    feedback: feedbackRows.filter((f) => f.jobId === j.id),
   };
 };
 
@@ -381,6 +410,84 @@ function list(q: Record<string, unknown>): AdminJobPage {
     .filter((r) => !plan || r.planNo.toLowerCase() === plan)
     .sort((a, b) => b.jobId - a.jobId);
   return { total: rows.length, page, size, items: rows.slice((page - 1) * size, page * size) };
+}
+
+// ---- 成片反馈（契约 §AB）----
+const REASONS: FeedbackReason[] = [
+  'face_mismatch',
+  'product_deformed',
+  'motion_weird',
+  'seam_jump',
+  'text_garbled',
+  'other',
+];
+const feedbackRows: AdminFeedback[] = jobs
+  .filter((j) => continuityOf(j))
+  .flatMap((j, n): AdminFeedback[] => {
+    const down = n % 3 !== 0;
+    const t = iso(j.createdMs + 50 * 60_000);
+    return [
+      {
+        id: j.id * 10,
+        userId: j.userId,
+        jobId: j.id,
+        segIndex: down && n % 2 ? 2 : 0,
+        rating: down ? 'down' : 'up',
+        reasons: down ? [REASONS[n % 6], ...(n % 4 === 0 ? [REASONS[(n + 3) % 6]] : [])] : [],
+        note: down && n % 5 === 0 ? '第二段接上去人脸变了' : undefined,
+        continuity: continuityOf(j),
+        createdAt: t,
+        updatedAt: t,
+      },
+    ];
+  });
+
+function feedbackFilter(q: Record<string, unknown>) {
+  const from = parseT(q.from, false);
+  const to = parseT(q.to, true);
+  const uid = Number(q.userId) || 0;
+  const jid = Number(q.jobId) || 0;
+  return feedbackRows
+    .filter((f) => !uid || f.userId === uid)
+    .filter((f) => !jid || f.jobId === jid)
+    .filter((f) => !q.rating || f.rating === q.rating)
+    .filter((f) => !q.reason || f.reasons.includes(q.reason as FeedbackReason))
+    .filter((f) => !q.continuity || f.continuity === q.continuity)
+    .filter((f) => from === null || Date.parse(f.createdAt) >= from)
+    .filter((f) => to === null || Date.parse(f.createdAt) < to)
+    .sort((a, b) => b.id - a.id);
+}
+
+function feedbackList(q: Record<string, unknown>): AdminFeedbackPage {
+  const page = normNum(q.page, 1);
+  const size = Math.min(100, normNum(q.pageSize, 20));
+  const rows = feedbackFilter(q);
+  return { total: rows.length, items: rows.slice((page - 1) * size, page * size) };
+}
+
+function feedbackSummary(q: Record<string, unknown>): FeedbackSummary {
+  const rows = feedbackFilter({ from: q.from, to: q.to });
+  const byReason = REASONS.map((reason) => {
+    const hit = rows.filter((f) => f.reasons.includes(reason));
+    return {
+      reason,
+      count: hit.length,
+      smooth: hit.filter((f) => f.continuity === 'smooth').length,
+      fast: hit.filter((f) => f.continuity === 'fast').length,
+    };
+  }).filter((r) => r.count > 0);
+  const byContinuity = (['smooth', 'fast'] as ReplicateContinuity[]).map((continuity) => ({
+    continuity,
+    up: rows.filter((f) => f.continuity === continuity && f.rating === 'up').length,
+    down: rows.filter((f) => f.continuity === continuity && f.rating === 'down').length,
+  }));
+  return {
+    total: rows.length,
+    up: rows.filter((f) => f.rating === 'up').length,
+    down: rows.filter((f) => f.rating === 'down').length,
+    byReason,
+    byContinuity,
+  };
 }
 
 // 幂等：key → 第一次成功的结果；部分失败的 key → 已退的段
@@ -1001,6 +1108,8 @@ export async function handleMock(
   const key = headers['Idempotency-Key'] || `auto:${JSON.stringify(body)}`;
   try {
     if (method === 'GET' && path === '/jobs') return ok(list(query));
+    if (method === 'GET' && path === '/feedback') return ok(feedbackList(query));
+    if (method === 'GET' && path === '/feedback/summary') return ok(feedbackSummary(query));
     let m = path.match(/^\/jobs\/(\d+)$/);
     if (method === 'GET' && m) return ok(detailOf(jobById(Number(m[1]))));
     m = path.match(/^\/jobs\/(\d+)\/refund$/);

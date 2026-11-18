@@ -187,6 +187,7 @@ export default {
     replicateManagement: '视频做同款',
     replicateJobs: '任务管理',
     replicateSamples: '示例管理',
+    replicateFeedback: '成片反馈',
     agentEval: '智能体评测',
     creaftLocalLifeTemplate: '本地生活模板',
     creaftUserLocalLifeTemplate: '用户自建模板',

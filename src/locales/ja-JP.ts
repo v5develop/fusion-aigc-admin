@@ -235,6 +235,7 @@ export default {
     replicateManagement: '動画の同スタイル作成',
     replicateJobs: 'ジョブ管理',
     replicateSamples: 'サンプル管理',
+    replicateFeedback: '完成動画フィードバック',
     agentEval: 'エージェント評価',
     creaftLocalLifeTemplate: 'ローカルライフテンプレート',
     creaftUserLocalLifeTemplate: 'ユーザーテンプレート',
@@ -5308,7 +5309,8 @@ export default {
     slowestHint: '自身の所要時間（子を除く）順。クリックでウォーターフォール上に表示',
     spanDuration: '子を含む',
     criticalPath: 'クリティカルパス',
-    noBreakdown: 'このタスクには区間ごとのトレースデータがありません（リリース前のタスク、または実行サービスが未対応）。所要時間を分解できません。',
+    noBreakdown:
+      'このタスクには区間ごとのトレースデータがありません（リリース前のタスク、または実行サービスが未対応）。所要時間を分解できません。',
     restZero: 'その他 {n} 分類 0ms',
     category: {
       queue: 'キュー待ち',
@@ -5382,7 +5384,8 @@ export default {
       settle: '精算が {share}%：課金精算経路とDB負荷を確認してください。',
       tail: 'ロングテールが顕著：P99 は P50 の {ratio} 倍（{p50} → {p99}）。「最も遅いタスク」でステージ別に調査してください。',
       degraded: '{n} 件のタスクは所要時間を完全に算出できず、統計から除外されています',
-      gatewayDegraded: '{n} 件のタスクはゲートウェイのデータが一時的に取得できないため統計から除外されています（後で自動再計算されます）',
+      gatewayDegraded:
+        '{n} 件のタスクはゲートウェイのデータが一時的に取得できないため統計から除外されています（後で自動再計算されます）',
       truncated: 'サンプルが切り詰められたため参考値です。',
       balanced: '各ステージはバランスしており、明確なボトルネックはありません。',
     },

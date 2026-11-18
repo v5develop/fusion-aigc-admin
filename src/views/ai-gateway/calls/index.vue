@@ -82,6 +82,12 @@
             }}</a-tag>
             <a-tag v-if="record.money_at_risk" color="red">{{ $t('aiGateway.moneyAtRisk') }}</a-tag>
           </template>
+          <template v-if="column.dataIndex === 'cost_amount_cny'">
+            <span>{{ record.cost_amount_cny ?? '—' }}</span>
+            <a-tag v-if="costPending(record)" color="orange" class="cost-pending-tag">{{
+              fieldLabel('costPending')
+            }}</a-tag>
+          </template>
           <template v-if="column.dataIndex === 'idempotency_key'">
             <code class="wrap">{{ record.idempotency_key }}</code>
           </template>
@@ -153,11 +159,19 @@
               :key="String(attempt.seq)"
               :header="`#${attempt.seq} · ${attempt.deployment || attempt.provider} · ${attempt.state}`"
             >
+              <a-tag v-if="costPending(attempt)" color="orange" class="cost-pending-tag">{{
+                fieldLabel('costPending')
+              }}</a-tag>
               <pre class="json-viewer">{{ pretty(attempt) }}</pre>
             </a-collapse-panel>
           </a-collapse>
           <a-empty v-else />
-          <h4>{{ formText('detailOutcome') }}</h4>
+          <h4>
+            {{ formText('detailOutcome') }}
+            <a-tag v-if="costPending(detail.outcome)" color="orange">{{
+              fieldLabel('costPending')
+            }}</a-tag>
+          </h4>
           <pre class="json-viewer">{{ pretty(detail.outcome) }}</pre>
           <template v-if="lateInfo.success">
             <h4>{{ $t('aiGateway.lateResult') }}</h4>
@@ -268,6 +282,7 @@ async function fetchPage(cursor?: string) {
           attempt_count: found.attempts.length,
           last_deployment: String(found.attempts.at(-1)?.deployment || '') || null,
           cost_amount_cny: cost?.amount_cny ?? null,
+          cost_final: (found.outcome.cost as { final?: boolean } | undefined)?.final ?? null,
         },
       ];
       nextCursor.value = null;
@@ -332,6 +347,12 @@ function statusColor(s: string) {
   if (s === 'UNKNOWN') return 'volcano';
   if (s === 'CANCELLED') return 'default';
   return 'blue';
+}
+
+/** 成本待核对：网关返回 cost.final === false（或列表行的 cost_final === false），等供应商回报实扣后才定稿 */
+function costPending(src: unknown): boolean {
+  const o = src as { cost?: { final?: boolean } | null; cost_final?: boolean | null } | null;
+  return o?.cost?.final === false || o?.cost_final === false;
 }
 
 const columns = computed(() => [

@@ -1,4 +1,9 @@
-import type { JobStatus } from '@/api/replicate-admin';
+import type {
+  FeedbackReason,
+  JobStatus,
+  ReplicateContinuity,
+  SegmentBridge,
+} from '@/api/replicate-admin';
 
 export const STATUS_LABEL: Record<JobStatus, string> = {
   submitting: '提交中',
@@ -57,3 +62,32 @@ export function fmtTime(v?: string | null): string {
   if (Number.isNaN(t)) return v;
   return new Date(t + 8 * 3600_000).toISOString().slice(0, 19).replace('T', ' ');
 }
+
+/** 成片反馈权限（契约 §AB：Go 若按资源细分才有 replicate:feedback:view；否则沿用任务查看权限）。要切换只改这一处 */
+export const FEEDBACK_VIEW_PERMISSION = 'replicate:view';
+
+export const CONTINUITY_LABEL: Record<ReplicateContinuity, string> = {
+  fast: '更快',
+  smooth: '更连贯',
+};
+
+export const BRIDGE_LABEL: Record<SegmentBridge, string> = {
+  used: '已衔接',
+  skipped_prev_failed: '没衔接：上一段失败',
+  skipped_no_frame: '没衔接：没有末帧',
+  skipped_refs_full: '没衔接：参考图已满',
+};
+
+export const FEEDBACK_REASON_LABEL: Record<FeedbackReason, string> = {
+  face_mismatch: '人不像',
+  product_deformed: '商品变形',
+  motion_weird: '动作奇怪',
+  seam_jump: '接缝跳变',
+  text_garbled: '画面有乱码',
+  other: '其他',
+};
+
+export const reasonLabel = (r: string): string =>
+  (FEEDBACK_REASON_LABEL as Record<string, string>)[r] ?? r;
+export const continuityLabel = (c?: string): string =>
+  c ? ((CONTINUITY_LABEL as Record<string, string>)[c] ?? c) : '—';
