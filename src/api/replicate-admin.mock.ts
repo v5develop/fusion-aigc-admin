@@ -433,7 +433,14 @@ const feedbackRows: AdminFeedback[] = jobs
         jobId: j.id,
         segIndex: down && n % 2 ? 2 : 0,
         rating: down ? 'down' : 'up',
-        reasons: down ? [REASONS[n % 6], ...(n % 4 === 0 ? [REASONS[(n + 3) % 6]] : [])] : [],
+        reasons: down
+          ? [
+              REASONS[n % 6],
+              ...(n % 4 === 0 ? [REASONS[(n + 3) % 6]] : []),
+              // 接缝跳变：让「按连贯度对比」两侧都有样本（原公式永远凑不出该原因）
+              ...(n % 5 === 1 && n % 6 !== 3 ? (['seam_jump'] as FeedbackReason[]) : []),
+            ]
+          : [],
         note: down && n % 5 === 0 ? '第二段接上去人脸变了' : undefined,
         continuity: continuityOf(j),
         createdAt: t,

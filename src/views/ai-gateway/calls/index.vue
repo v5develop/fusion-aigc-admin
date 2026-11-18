@@ -159,6 +159,7 @@
               :key="String(attempt.seq)"
               :header="`#${attempt.seq} · ${attempt.deployment || attempt.provider} · ${attempt.state}`"
             >
+              <a-tag v-if="costText(attempt)">{{ costText(attempt) }}</a-tag>
               <a-tag v-if="costPending(attempt)" color="orange" class="cost-pending-tag">{{
                 fieldLabel('costPending')
               }}</a-tag>
@@ -168,6 +169,7 @@
           <a-empty v-else />
           <h4>
             {{ formText('detailOutcome') }}
+            <a-tag v-if="costText(detail.outcome)">{{ costText(detail.outcome) }}</a-tag>
             <a-tag v-if="costPending(detail.outcome)" color="orange">{{
               fieldLabel('costPending')
             }}</a-tag>
@@ -355,6 +357,16 @@ function costPending(src: unknown): boolean {
   return o?.cost?.final === false || o?.cost_final === false;
 }
 
+/** 成本摘要「¥3.01 · 供应商实扣」：来源用网关枚举的中文名（JSON 里只有 source 码），没有成本时为空 */
+function costText(src: unknown): string {
+  const c = (src as { cost?: { amount_cny?: string | null; source?: string | null } | null } | null)
+    ?.cost;
+  if (!c || (!c.amount_cny && !c.source)) return '';
+  return [c.amount_cny ? `¥${c.amount_cny}` : '', c.source ? enumLabel(c.source) : '']
+    .filter(Boolean)
+    .join(' · ');
+}
+
 const columns = computed(() => [
   { title: fieldLabel('call_id'), dataIndex: 'id', width: 230, fixed: 'left' as const },
   { title: t('aiGateway.status'), dataIndex: 'status', width: 190 },
@@ -362,7 +374,7 @@ const columns = computed(() => [
   { title: t('aiGateway.modelGroup'), dataIndex: 'model_group', width: 180 },
   { title: t('aiGateway.lastDeployment'), dataIndex: 'last_deployment', width: 180 },
   { title: t('aiGateway.attempts'), dataIndex: 'attempt_count', width: 80 },
-  { title: t('aiGateway.costCny'), dataIndex: 'cost_amount_cny', width: 100 },
+  { title: t('aiGateway.costCny'), dataIndex: 'cost_amount_cny', width: 150 },
   { title: fieldLabel('idempotency_key'), dataIndex: 'idempotency_key', width: 260 },
   { title: fieldLabel('labels'), dataIndex: 'labels', width: 260 },
   { title: t('aiGateway.createdAt'), dataIndex: 'created_at', width: 190 },
@@ -488,6 +500,15 @@ watch(
 </script>
 
 <style scoped>
+.cost-pending-tag {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  height: auto;
+  margin: 2px 0 0;
+  line-height: 1.4;
+  white-space: normal;
+}
 .page-container {
   padding: 24px;
 }
