@@ -30,6 +30,61 @@ export const statusColor = (s: JobStatus): string =>
     canceled: 'default',
   })[s] ?? 'default';
 
+/** 步骤状态（Go model.Step*，大写；兼容小写）→ 中文 */
+const STEP_LABEL: Record<string, string> = {
+  HOLDING: '预留中',
+  PENDING: '待开始',
+  RUNNING: '生成中',
+  DELIVERING: '确认扣费中',
+  SUCCEEDED: '成功',
+  DONE: '成功',
+  FAILED: '失败',
+  CANCELLED: '已取消',
+  CANCELED: '已取消',
+  WAITING: '等用户继续',
+  SKIPPED: '已跳过',
+};
+export const stepLabel = (s?: string | null): string =>
+  s ? (STEP_LABEL[s.toUpperCase()] ?? s) : '—';
+export const stepColor = (s?: string | null): string =>
+  (
+    ({
+      SUCCEEDED: 'green',
+      DONE: 'green',
+      FAILED: 'red',
+      RUNNING: 'blue',
+      DELIVERING: 'blue',
+      HOLDING: 'orange',
+      WAITING: 'gold',
+    }) as Record<string, string>
+  )[(s ?? '').toUpperCase()] ?? 'gray';
+
+/** 预留单扣费阶段（Go model.ChargeStage*）→ 中文 */
+const STAGE_LABEL: Record<string, string> = {
+  first: '先做第 1 段',
+  all: '整单',
+  rest: '其余段',
+  redo: '重做',
+};
+export const stageLabel = (s?: string | null): string => (s ? (STAGE_LABEL[s] ?? s) : '—');
+
+/** 预留 / 计费状态 → 中文 */
+const BILLING_LABEL: Record<string, string> = {
+  HELD: '冻结中',
+  CONFIRMED: '已扣费',
+  REFUNDED: '已退回',
+};
+export const billingLabel = (s?: string | null): string => (s ? (BILLING_LABEL[s] ?? s) : '没有单');
+
+/** 方案审核结论（Go model.Moderation*）→ 中文 */
+const MODERATION_LABEL: Record<string, string> = {
+  PASSED: '通过',
+  REJECTED: '未通过',
+  ERROR_OPEN: '审核故障，已放行',
+};
+export const moderationLabel = (s?: string | null): string =>
+  s ? (MODERATION_LABEL[s] ?? s) : '—';
+
 /** 预留 / 计费状态的颜色：已确认绿、已退蓝、冻结橙、其余灰 */
 export const reservationColor = (s: string): string =>
   ({ CONFIRMED: 'green', REFUNDED: 'blue', HELD: 'orange' })[s] ?? 'default';

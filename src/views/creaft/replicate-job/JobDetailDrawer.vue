@@ -112,7 +112,9 @@
               <span v-else class="muted">—</span>
             </template>
             <template v-else-if="column.dataIndex === 'state'">
-              <a-tag :color="stepColor(record.state)">{{ record.state }}</a-tag>
+              <a-tag :color="stepColor(record.state)" :title="record.state">{{
+                stepLabel(record.state)
+              }}</a-tag>
               <div v-if="record.failReason" class="bad small">{{ record.failReason }}</div>
             </template>
             <template v-else-if="column.dataIndex === 'gatewayCallIds'">
@@ -147,7 +149,9 @@
           <a-timeline-item v-for="s in detail.steps" :key="s.id" :color="stepColor(s.status)">
             <div>
               <b>{{ s.stepKey }}</b>
-              <a-tag style="margin-left: 8px">{{ s.status }}</a-tag>
+              <a-tag style="margin-left: 8px" :color="stepColor(s.status)" :title="s.status">{{
+                stepLabel(s.status)
+              }}</a-tag>
               <span v-if="s.attempt > 1" class="muted">第 {{ s.attempt }} 次</span>
               <span v-if="s.retryOf" class="muted">（重试自 {{ s.retryOf }}）</span>
             </div>
@@ -184,9 +188,12 @@
             <template v-else-if="column.dataIndex === 'mirrorLabel'">
               <a-tag>{{ record.mirrorLabel }}</a-tag>
             </template>
+            <template v-else-if="column.dataIndex === 'stage'">
+              {{ stageLabel(record.stage) }}
+            </template>
             <template v-else-if="column.dataIndex === 'billingStatus'">
               <a-tag :color="reservationColor(record.billingStatus)">
-                {{ record.billingStatus || '没有单' }}
+                {{ billingLabel(record.billingStatus) }}
               </a-tag>
             </template>
             <template v-else-if="column.dataIndex === 'mismatch'">
@@ -211,9 +218,17 @@
           <template #emptyText><a-empty description="没有审核记录" /></template>
           <template #bodyCell="{ column, record }">
             <template v-if="column.dataIndex === 'status'">
-              <a-tag :color="record.status === 'REJECTED' ? 'red' : 'green'">{{
-                record.status
-              }}</a-tag>
+              <a-tag
+                :color="
+                  record.status === 'REJECTED'
+                    ? 'red'
+                    : record.status === 'ERROR_OPEN'
+                      ? 'orange'
+                      : 'green'
+                "
+                :title="record.status"
+                >{{ moderationLabel(record.status) }}</a-tag
+              >
             </template>
             <template v-else-if="column.dataIndex === 'createdAt'">
               {{ fmtTime(record.createdAt) }}
@@ -351,12 +366,17 @@ import {
 
 import {
   BRIDGE_LABEL,
+  billingLabel,
   continuityLabel,
   copyText,
   fmtTime,
+  moderationLabel,
   reasonLabel,
   reservationColor,
+  stageLabel,
   statusColor,
+  stepColor,
+  stepLabel,
 } from './job-meta';
 
 const props = defineProps<{ open: boolean; jobId: number }>();
@@ -400,16 +420,6 @@ const logColumns = [
   { title: '命中对象', dataIndex: 'rejectedTarget' },
   { title: '时间', dataIndex: 'createTime', width: 180 },
 ];
-const stepColor = (s: string) =>
-  ({
-    done: 'green',
-    succeeded: 'green',
-    failed: 'red',
-    running: 'blue',
-    pending: 'gray',
-    skipped: 'gray',
-    canceled: 'gray',
-  })[s] ?? 'gray';
 
 const mismatch = computed(() => (detail.value?.charges ?? []).filter((c) => c.mismatch));
 const refundable = computed(() =>
