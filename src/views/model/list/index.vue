@@ -185,7 +185,7 @@
                 </thead>
                 <tbody>
                   <tr v-for="row in freezeCapPreview.rows" :key="row.quality">
-                    <td>{{ row.quality }}</td>
+                    <td>{{ qualityLabel(row.quality) }}</td>
                     <td v-for="sz in freezeCapPreview.sizes" :key="sz">
                       {{ row.cells[sz] ?? '-' }}
                     </td>
@@ -392,6 +392,17 @@ function handleValidateFreezeCap() {
   if (validateFreezeCap()) message.success(t('model.freezeCapValid'));
 }
 
+/** 画质行按档位从低到高排（MySQL 存 JSON 时对象键按长度重排，原样展示会乱序）；不认识的键排在最后 */
+const QUALITY_ORDER = ['low', 'medium', 'high', 'xhigh', 'max'];
+const qualityOrder = (q: string) => {
+  const i = QUALITY_ORDER.indexOf(q);
+  return i < 0 ? QUALITY_ORDER.length : i;
+};
+/** 已知画质显示「中文名（键）」，如「超高（xhigh）」；其余原样显示键 */
+function qualityLabel(q: string) {
+  return QUALITY_ORDER.includes(q) ? `${t(`model.freezeCapQualityName.${q}`)}（${q}）` : q;
+}
+
 /** 关键数字预览：rate_factor / buffer / 输出 token 表（画质 × 尺寸） */
 const freezeCapPreview = computed(() => {
   try {
@@ -409,7 +420,9 @@ const freezeCapPreview = computed(() => {
       rateFactor: String(tm.rate_factor ?? '0.35（默认）'),
       buffer: String(tm.buffer ?? '0.15（默认）'),
       sizes,
-      rows: Object.entries(table).map(([quality, tiers]) => ({ quality, cells: tiers ?? {} })),
+      rows: Object.entries(table)
+        .sort(([a], [b]) => qualityOrder(a) - qualityOrder(b))
+        .map(([quality, tiers]) => ({ quality, cells: tiers ?? {} })),
     };
   } catch {
     return null;

@@ -2603,6 +2603,7 @@ export default {
     freezeCapBuffer: '余量 buffer',
     freezeCapOutputTable: '输出 token 表（画质 × 尺寸）',
     freezeCapQuality: '画质 \\ 尺寸',
+    freezeCapQualityName: { low: '低', medium: '中', high: '高', xhigh: '超高', max: '极致' },
     freezeCapNoTokenModel: '未配置 token_model 段，将走旧的「画质 × 面积」冻结公式',
     list: '模型列表',
     pricing: '模型定价',

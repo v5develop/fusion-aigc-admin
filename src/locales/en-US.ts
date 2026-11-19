@@ -2579,6 +2579,13 @@ export default {
     freezeCapBuffer: 'Buffer',
     freezeCapOutputTable: 'Output token table (quality x size)',
     freezeCapQuality: 'Quality \\ Size',
+    freezeCapQualityName: {
+      low: 'Low',
+      medium: 'Medium',
+      high: 'High',
+      xhigh: 'Extra high',
+      max: 'Max',
+    },
     freezeCapNoTokenModel: 'No token_model section; the legacy quality x area formula is used',
     list: 'Model List',
     pricing: 'Model Pricing',
