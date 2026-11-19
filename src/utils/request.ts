@@ -33,7 +33,25 @@ type RequestFlags = {
   silentError?: boolean;
   noRetry?: boolean;
   noErrorRedirect?: boolean;
+  /** 路由级主数据加载失败时才允许 500 跳 /500（默认只 toast，避免操作类请求把人踢出当前页） */
+  redirectOn500?: boolean;
 };
+
+/** 自动重试白名单：只重试天然幂等的方法，或显式带 Idempotency-Key 的请求（重试复用同一 config，键不变） */
+const IDEMPOTENT_METHODS = ['get', 'head', 'options'];
+function isRetrySafe(config: InternalAxiosRequestConfig): boolean {
+  if (IDEMPOTENT_METHODS.includes((config.method ?? 'get').toLowerCase())) return true;
+  const key = config.headers?.get?.('Idempotency-Key');
+  return typeof key === 'string' && key.length > 0;
+}
+
+/** 取响应里的 requestId（优先响应体，其次 X-Request-Id 头），用于报障 */
+function requestIdOf(error: AxiosError): string | undefined {
+  const body = error.response?.data as { requestId?: unknown } | undefined;
+  if (typeof body?.requestId === 'string' && body.requestId) return body.requestId;
+  const h = error.response?.headers?.['x-request-id'];
+  return typeof h === 'string' && h ? h : undefined;
+}
 
 /**
  * 业务失败时 reject 的错误：仍是 `Error`（`message` = 后端 msg，老代码照旧只读 message），
@@ -210,6 +228,7 @@ service.interceptors.response.use(
     if (
       originalRequest &&
       !(originalRequest as RequestFlags).noRetry &&
+      isRetrySafe(originalRequest) &&
       RETRYABLE_STATUS.includes(error.response?.status ?? 0)
     ) {
       const retryCount = originalRequest._retryCount ?? 0;
@@ -312,9 +331,16 @@ function handleHttpError(error: AxiosError) {
 
   // 请求显式声明静默时，不弹全局错误，交由上层自行处理
   const silentError = (error.config as AxiosRequestConfig & RequestFlags)?.silentError;
+  const flags = error.config as (AxiosRequestConfig & RequestFlags) | undefined;
   const redirect = (path: string) => {
-    if (!(error.config as AxiosRequestConfig & RequestFlags)?.noErrorRedirect) router.push(path);
+    if (!flags?.noErrorRedirect) router.push(path);
   };
+  // 500 只在显式声明为路由级主数据加载时才跳 /500，其余只 toast（附 requestId 便于报障）
+  const redirect500 = () => {
+    if (flags?.redirectOn500) redirect('/500');
+  };
+  const rid = requestIdOf(error);
+  const withRid = (m: string) => (rid ? `${m}（编号 ${rid}）` : m);
 
   if (error.response) {
     const { status, data } = error.response as { status: number; data?: unknown };
@@ -323,7 +349,10 @@ function handleHttpError(error: AxiosError) {
     if (silentError) {
       // 静默：仅对需要跳转的状态码做路由跳转，不弹 message
       if (status === 403) redirect('/403');
-      if (status === 500) redirect('/500');
+      if (status === 500) {
+        // 静默请求不 toast，但主数据加载仍可跳 500 页
+        redirect500();
+      }
       return;
     }
 
@@ -354,8 +383,8 @@ function handleHttpError(error: AxiosError) {
         message.error(errorMsg || '请求过于频繁，请稍后重试');
         break;
       case 500:
-        message.error(errorMsg || '服务器错误，请稍后重试');
-        redirect('/500');
+        message.error(withRid(errorMsg || '服务器错误，请稍后重试'));
+        redirect500();
         break;
       case 502:
         message.error(errorMsg || '网关错误');
