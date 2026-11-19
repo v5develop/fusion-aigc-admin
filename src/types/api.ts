@@ -208,6 +208,10 @@ export interface AIModel {
   aiProviderId?: number;
   /** AI 网关模型组编码（afv_ai_model.gateway_model_group）；有值时该模型经网关调用 */
   gatewayModelGroup?: string | null;
+  /** 结算方式：ACTUAL_COST = 按供应商实际用量结算，需配置冻结上限 */
+  settleMode?: string | null;
+  /** 冻结上限配置（JSON 文本）；更新时缺省 = 不改，null / 空串 = 清除，非法 JSON 后端返回 400 */
+  freezeCapJson?: string | null;
   createTime: string;
   updateTime: string;
 }
@@ -833,7 +837,7 @@ export interface PointsAdjustParams {
 
 // Compensation Types
 export interface CompensationParams {
-  actionType: 'RETRY' | 'IGNORE' | 'REFUND';
+  actionType: 'RETRY' | 'IGNORE' | 'REFUND' | 'PARTIAL_SETTLE';
   reservationNo: string;
   requestId: string;
   reason: string;

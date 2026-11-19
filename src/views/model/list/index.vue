@@ -127,6 +127,75 @@
           />
           <div class="form-hint">{{ $t('model.generationTimeoutHint') }}</div>
         </a-form-item>
+        <template v-if="isEdit && settleMode === 'ACTUAL_COST'">
+          <a-form-item :label="$t('model.settleMode')">
+            <a-tag color="blue">{{ settleMode }}</a-tag>
+          </a-form-item>
+          <a-form-item
+            :label="$t('model.freezeCapTitle')"
+            :label-col="{ span: 24 }"
+            :wrapper-col="{ span: 24 }"
+          >
+            <div class="form-hint">{{ $t('model.freezeCapHint') }}</div>
+            <a-textarea
+              v-model:value="freezeCapText"
+              :rows="12"
+              spellcheck="false"
+              style="font-family: Menlo, Consolas, monospace; font-size: 12px"
+            />
+            <a-space style="margin-top: 8px">
+              <a-button size="small" @click="handleFormatFreezeCap">{{
+                $t('model.freezeCapFormat')
+              }}</a-button>
+              <a-button size="small" @click="handleValidateFreezeCap">{{
+                $t('model.freezeCapValidate')
+              }}</a-button>
+            </a-space>
+            <a-alert
+              v-if="freezeCapError"
+              type="error"
+              show-icon
+              :message="freezeCapError"
+              style="margin-top: 8px"
+            />
+            <div v-if="freezeCapPreview" style="margin-top: 12px">
+              <div style="font-weight: 500; margin-bottom: 6px">
+                {{ $t('model.freezeCapPreview') }}
+              </div>
+              <a-space wrap>
+                <span
+                  >{{ $t('model.freezeCapRateFactor') }}:
+                  <b>{{ freezeCapPreview.rateFactor }}</b></span
+                >
+                <span
+                  >{{ $t('model.freezeCapBuffer') }}: <b>{{ freezeCapPreview.buffer }}</b></span
+                >
+              </a-space>
+              <table v-if="freezeCapPreview.sizes.length" class="freeze-grid">
+                <caption>
+                  {{
+                    $t('model.freezeCapOutputTable')
+                  }}
+                </caption>
+                <thead>
+                  <tr>
+                    <th>{{ $t('model.freezeCapQuality') }}</th>
+                    <th v-for="sz in freezeCapPreview.sizes" :key="sz">{{ sz }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="row in freezeCapPreview.rows" :key="row.quality">
+                    <td>{{ row.quality }}</td>
+                    <td v-for="sz in freezeCapPreview.sizes" :key="sz">
+                      {{ row.cells[sz] ?? '-' }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div v-else class="form-hint">{{ $t('model.freezeCapNoTokenModel') }}</div>
+            </div>
+          </a-form-item>
+        </template>
       </a-form>
     </a-modal>
   </div>
@@ -289,6 +358,64 @@ const gatewayGroupOptions = computed(() => {
 // 保存编辑前的 config JSON 其它键（temperature/top_p 等），提交时只覆盖 enableSearch，不丢失
 let configExtras: Record<string, unknown> = {};
 
+// 冻结上限配置：原始文本用于判断「是否改过」，只有改过才随保存提交
+const settleMode = ref<string | null>(null);
+const freezeCapText = ref('');
+const freezeCapOriginal = ref('');
+const freezeCapError = ref('');
+
+/** 校验文本；合法返回 true，非法写入 freezeCapError */
+function validateFreezeCap(): boolean {
+  freezeCapError.value = '';
+  const raw = freezeCapText.value.trim();
+  if (!raw) return true;
+  try {
+    const v = JSON.parse(raw);
+    if (!v || typeof v !== 'object' || Array.isArray(v)) {
+      freezeCapError.value = t('model.freezeCapMustObject');
+      return false;
+    }
+    return true;
+  } catch (e) {
+    freezeCapError.value = t('model.freezeCapInvalid') + (e as Error).message;
+    return false;
+  }
+}
+
+function handleFormatFreezeCap() {
+  if (!validateFreezeCap()) return;
+  const raw = freezeCapText.value.trim();
+  if (raw) freezeCapText.value = JSON.stringify(JSON.parse(raw), null, 2);
+}
+
+function handleValidateFreezeCap() {
+  if (validateFreezeCap()) message.success(t('model.freezeCapValid'));
+}
+
+/** 关键数字预览：rate_factor / buffer / 输出 token 表（画质 × 尺寸） */
+const freezeCapPreview = computed(() => {
+  try {
+    const raw = freezeCapText.value.trim();
+    if (!raw) return null;
+    const tm = JSON.parse(raw)?.token_model;
+    if (!tm || typeof tm !== 'object') return { rateFactor: '-', buffer: '-', sizes: [], rows: [] };
+    const table = (tm.output_tokens ?? {}) as Record<string, Record<string, number>>;
+    const sizes: string[] = [];
+    for (const tiers of Object.values(table)) {
+      for (const sz of Object.keys(tiers ?? {})) if (!sizes.includes(sz)) sizes.push(sz);
+    }
+    return {
+      // 缺省值与 Go 端解析一致：rate_factor 0.35、buffer 0.15
+      rateFactor: String(tm.rate_factor ?? '0.35（默认）'),
+      buffer: String(tm.buffer ?? '0.15（默认）'),
+      sizes,
+      rows: Object.entries(table).map(([quality, tiers]) => ({ quality, cells: tiers ?? {} })),
+    };
+  } catch {
+    return null;
+  }
+});
+
 function parseConfig(config?: string): Record<string, unknown> {
   if (!config) return {};
   try {
@@ -356,6 +483,10 @@ function handleCreate() {
   formData.enableSearch = false;
   formData.gatewayModelGroup = undefined;
   configExtras = {};
+  settleMode.value = null;
+  freezeCapText.value = '';
+  freezeCapOriginal.value = '';
+  freezeCapError.value = '';
   modalVisible.value = true;
 }
 
@@ -375,6 +506,10 @@ function handleEdit(record: AIModel) {
   formData.gatewayModelGroup = record.gatewayModelGroup || undefined;
   configExtras = parseConfig(record.config);
   formData.enableSearch = configExtras.enableSearch === true || configExtras.enable_search === true;
+  settleMode.value = record.settleMode ?? null;
+  freezeCapOriginal.value = record.freezeCapJson ?? '';
+  freezeCapText.value = freezeCapOriginal.value;
+  freezeCapError.value = '';
   modalVisible.value = true;
 }
 
@@ -388,9 +523,15 @@ async function handleSubmit() {
     return;
   }
 
+  const freezeCapChanged =
+    isEdit.value &&
+    settleMode.value === 'ACTUAL_COST' &&
+    freezeCapText.value.trim() !== freezeCapOriginal.value.trim();
+  if (freezeCapChanged && !validateFreezeCap()) return;
+
   submitLoading.value = true;
   try {
-    const data = {
+    const data: Record<string, unknown> = {
       code: formData.code,
       name: formData.name,
       modelType: formData.modelType,
@@ -405,6 +546,9 @@ async function handleSubmit() {
       // 显式传 null 表示「不走网关」，与「没传这个字段」区分开
       gatewayModelGroup: formData.gatewayModelGroup || null,
     };
+
+    // 只在改过时才带 freezeCapJson；清空传 null 表示清除
+    if (freezeCapChanged) data.freezeCapJson = freezeCapText.value.trim() || null;
 
     if (isEdit.value && editId.value) {
       await updateModel(editId.value, data);
@@ -438,3 +582,23 @@ onMounted(() => {
   loadGatewayGroups();
 });
 </script>
+
+<style scoped>
+.freeze-grid {
+  margin-top: 8px;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.freeze-grid caption {
+  caption-side: top;
+  text-align: left;
+  padding-bottom: 4px;
+  color: rgba(0, 0, 0, 0.45);
+}
+.freeze-grid th,
+.freeze-grid td {
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  padding: 2px 10px;
+  text-align: right;
+}
+</style>

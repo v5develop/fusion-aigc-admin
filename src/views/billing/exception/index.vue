@@ -43,6 +43,13 @@
               <a-button type="link" size="small" @click="handleOpenCompensation(record, 'RETRY')">
                 重试
               </a-button>
+              <a-button
+                type="link"
+                size="small"
+                @click="handleOpenCompensation(record, 'PARTIAL_SETTLE')"
+              >
+                按份数结算
+              </a-button>
               <a-button type="link" size="small" @click="handleOpenCompensation(record, 'REFUND')">
                 退款
               </a-button>
@@ -93,6 +100,7 @@
       @ok="handleConfirmCompensation"
       :confirmLoading="submitting"
     >
+      <a-alert type="info" show-icon style="margin-bottom: 12px" :message="compensationHint" />
       <a-form layout="vertical" :model="compensationForm">
         <a-form-item label="原因" name="reason">
           <a-textarea
@@ -302,18 +310,29 @@ async function loadAgedReservations() {
 const submitting = ref(false);
 const compensationVisible = ref(false);
 const compensationForm = ref({ reason: '' });
-const compensationAction = ref('RETRY' as 'RETRY' | 'IGNORE' | 'REFUND');
+type CompensationAction = 'RETRY' | 'IGNORE' | 'REFUND' | 'PARTIAL_SETTLE';
+const compensationAction = ref('RETRY' as CompensationAction);
 const compensationReservationNo = ref('');
 
+/** 各操作对用户点数的影响：忽略 = 按已消费处理（照常扣点），不是退款 */
+const compensationHint = computed(() => {
+  const map = {
+    RETRY: '按已消费确认扣点（部分成功 / 失败 / 已取消的任务会被拒绝）。',
+    REFUND: '把冻结的点数退还给用户。',
+    PARTIAL_SETTLE:
+      '部分成功的任务：按实际交付份数扣点（总价 × 已交付 ÷ 预期，向下取整），其余退回。仅支持非工作流、非分组的创作任务，其余情况会被拒绝。',
+    IGNORE:
+      '不再追究这笔异常，按已消费处理、照常扣点（不是退款）；部分成功 / 失败 / 已取消的任务会被拒绝，请改用退款或按实际份数处理。',
+  };
+  return map[compensationAction.value];
+});
+
 const compensationTitle = computed(() => {
-  const map = { RETRY: '重试结算', REFUND: '退款', IGNORE: '忽略' };
+  const map = { RETRY: '重试结算', REFUND: '退款', IGNORE: '忽略', PARTIAL_SETTLE: '按份数结算' };
   return map[compensationAction.value] || '补偿操作';
 });
 
-function handleOpenCompensation(
-  record: { reservationNo: string },
-  action: 'RETRY' | 'IGNORE' | 'REFUND',
-) {
+function handleOpenCompensation(record: { reservationNo: string }, action: CompensationAction) {
   compensationAction.value = action;
   compensationReservationNo.value = record.reservationNo;
   compensationForm.value.reason = '';
