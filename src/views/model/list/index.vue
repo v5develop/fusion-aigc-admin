@@ -593,7 +593,7 @@ onMounted(() => {
   caption-side: top;
   text-align: left;
   padding-bottom: 4px;
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--ant-color-text-tertiary, rgba(0, 0, 0, 0.45));
 }
 .freeze-grid th,
 .freeze-grid td {

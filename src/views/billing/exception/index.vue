@@ -234,7 +234,7 @@ const taskColumns = [
     title: '操作',
     dataIndex: 'operation',
     key: 'operation',
-    width: 200,
+    width: 280,
     align: 'center' as const,
     fixed: 'right' as const,
   },
