@@ -1006,6 +1006,18 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
+        // 轮询节奏自学习：管理端写草稿，发布后生效（未设置时沿用网关启动环境变量）
+        path: 'poll-latency-learning',
+        name: 'AiGatewayPollLatencyLearning',
+        component: () => import('@/views/ai-gateway/poll-latency-learning/index.vue'),
+        meta: {
+          title: 'menu.aiGatewayPollLatencyLearning',
+          icon: 'FieldTimeOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'ai_gateway:view',
+        },
+      },
+      {
         path: 'config-versions',
         name: 'AiGatewayConfigVersions',
         component: () => import('@/views/ai-gateway/config-versions/index.vue'),

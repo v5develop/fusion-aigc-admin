@@ -135,6 +135,7 @@ export default {
     aiGatewayPricing: '가격 모델',
     aiGatewayConfigVersions: '설정 게시',
     aiGatewayInputSources: '입력 소스 허용 목록',
+    aiGatewayPollLatencyLearning: '폴링 주기 자동 학습',
     aiGatewayRuntime: '런타임',
     aiGatewayCalls: '호출 검색',
     aiGatewayAlerts: '알림',

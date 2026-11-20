@@ -706,4 +706,25 @@ export default {
     loadFailed: '입력 소스 허용 목록을 불러오지 못했습니다',
     saveFailed: '입력 소스 허용 목록 저장에 실패했습니다',
   },
+  pollLatencyLearning: {
+    title: '폴링 주기 자동 학습',
+    hint: '게이트웨이는 "배포 + 화질 + 크기"별로 최근 N시간 동안 성공한 호출의 접수부터 결과 생성까지 걸린 시간의 중앙값을 집계해 결과를 집중적으로 조회하기 시작할 시점을 정합니다. 샘플이 부족하면 모델 내장 값을 사용합니다. 배포에 수동으로 입력한 "예상 소요 시간(expected_latency_s)"이 우선하며, 개별 배포는 배포 파라미터에서 끌 수 있습니다(poll_latency_learning=false). 저장은 초안에만 기록되며 게시 후 적용됩니다.',
+    statusConfigured: '초안에 설정되어 있으며 게시 후 적용됩니다.',
+    statusFallback:
+      '현재 환경 변수 기본값입니다(초안에 설정되지 않음). 한 번 저장하면 여기서 관리할 수 있습니다.',
+    enabledLabel: '자동 학습 사용',
+    minSamplesLabel: '최소 샘플 수',
+    minSamplesHelp:
+      '같은 "배포 + 화질 + 크기"에 성공 샘플이 이 수 이상일 때만 학습 값을 사용합니다({min}~{max}).',
+    windowHoursLabel: '집계 기간(시간)',
+    windowHoursHelp: '최근 이 시간 안의 성공 호출만 집계합니다({min}~{max}).',
+    rangeError: '{min}~{max} 사이의 정수를 입력하세요',
+    save: '초안에 저장',
+    saved: '초안에 저장했습니다. 게시 후 적용됩니다.',
+    loadFailed: '폴링 주기 자동 학습 설정을 불러오지 못했습니다',
+    loadFailedHint:
+      '설정을 불러오기 전에는 저장할 수 없습니다(임시 값이 초안에 기록되지 않도록). 다시 시도하세요.',
+    retry: '다시 시도',
+    saveFailed: '폴링 주기 자동 학습 설정 저장에 실패했습니다',
+  },
 };

@@ -135,6 +135,7 @@ export default {
     aiGatewayPricing: '価格モデル',
     aiGatewayConfigVersions: '設定公開',
     aiGatewayInputSources: '入力元ホワイトリスト',
+    aiGatewayPollLatencyLearning: 'ポーリング間隔の自動学習',
     aiGatewayRuntime: 'ランタイム',
     aiGatewayCalls: '呼び出し検索',
     aiGatewayAlerts: 'アラート',

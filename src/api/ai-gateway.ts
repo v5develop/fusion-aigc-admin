@@ -610,3 +610,28 @@ export function putInputSourceHosts(hosts: string[]) {
     writeCfg(),
   );
 }
+
+/**
+ * 轮询节奏自学习设置。保存只写草稿，发布后生效。
+ * configured=false 表示草稿里从未设置，此时返回的是网关启动环境变量的只读值。
+ */
+export interface PollLatencyLearning {
+  enabled: boolean;
+  min_samples: number;
+  window_hours: number;
+  configured?: boolean;
+}
+
+export type PollLatencyLearningInput = Omit<PollLatencyLearning, 'configured'>;
+
+export function getPollLatencyLearning() {
+  return request.get<PollLatencyLearning>(`${BASE}/settings/poll-latency-learning`, cfg());
+}
+
+export function putPollLatencyLearning(body: PollLatencyLearningInput) {
+  return request.put<PollLatencyLearning>(
+    `${BASE}/settings/poll-latency-learning`,
+    body,
+    writeCfg(),
+  );
+}

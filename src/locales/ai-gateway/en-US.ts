@@ -726,4 +726,26 @@ export default {
     loadFailed: 'Failed to load the input source allowlist',
     saveFailed: 'Failed to save the input source allowlist',
   },
+  pollLatencyLearning: {
+    title: 'Poll latency learning',
+    hint: 'The gateway computes, per "deployment + quality + size", the median time from acceptance to output for successful calls over the last N hours, and uses it to decide when to start polling for results frequently; with too few samples it falls back to the model built-in value. A manually set "expected latency (expected_latency_s)" on a deployment takes precedence; a single deployment can opt out in its params (poll_latency_learning=false). Saving only writes the draft; it takes effect after publishing.',
+    statusConfigured: 'Set in the draft; takes effect after publishing.',
+    statusFallback:
+      'Showing environment variable defaults (not set in the draft). Save once to maintain it here.',
+    enabledLabel: 'Enable learning',
+    minSamplesLabel: 'Minimum samples',
+    minSamplesHelp:
+      'A "deployment + quality + size" needs at least this many successful samples before the learned value is used ({min}-{max}).',
+    windowHoursLabel: 'Window (hours)',
+    windowHoursHelp:
+      'Only successful calls within this many recent hours are counted ({min}-{max}).',
+    rangeError: 'Enter an integer between {min} and {max}',
+    save: 'Save to draft',
+    saved: 'Saved to the draft; takes effect after publishing.',
+    loadFailed: 'Failed to load poll latency learning settings',
+    loadFailedHint:
+      'Saving is disabled until the settings load, so placeholder values are never written to the draft. Please retry.',
+    retry: 'Retry',
+    saveFailed: 'Failed to save poll latency learning settings',
+  },
 };

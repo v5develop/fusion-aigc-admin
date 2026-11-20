@@ -719,4 +719,23 @@ export default {
     loadFailed: '读取输入来源白名单失败',
     saveFailed: '保存输入来源白名单失败',
   },
+  pollLatencyLearning: {
+    title: '轮询节奏自学习',
+    hint: '网关按「部署 + 画质 + 尺寸」统计近 N 小时成功调用从受理到出图的耗时中位数，用来决定何时开始密集查询结果；样本不足时用模型内置值。部署上手工填写的「预期耗时（expected_latency_s）」优先；单个部署可在部署参数里关闭（poll_latency_learning=false）。保存只写草稿，发布后生效。',
+    statusConfigured: '草稿中已设置，发布后生效。',
+    statusFallback: '当前为环境变量默认值（草稿中未设置）。保存一次即可改为在管理端维护。',
+    enabledLabel: '启用自学习',
+    minSamplesLabel: '最少样本数',
+    minSamplesHelp:
+      '同一「部署 + 画质 + 尺寸」至少有这么多成功样本才使用学习值，范围 {min}~{max}。',
+    windowHoursLabel: '统计窗口（小时）',
+    windowHoursHelp: '只统计最近这么多小时内的成功调用，范围 {min}~{max}。',
+    rangeError: '请输入 {min}~{max} 之间的整数',
+    save: '保存到草稿',
+    saved: '已写入草稿，发布后生效。',
+    loadFailed: '读取轮询节奏自学习设置失败',
+    loadFailedHint: '成功读取前不能保存，避免把占位值写进草稿。请重试。',
+    retry: '重试',
+    saveFailed: '保存轮询节奏自学习设置失败',
+  },
 };

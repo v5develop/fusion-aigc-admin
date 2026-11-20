@@ -205,6 +205,7 @@ export default {
     aiGatewayPricing: '价格模型',
     aiGatewayConfigVersions: '配置发布',
     aiGatewayInputSources: '输入来源白名单',
+    aiGatewayPollLatencyLearning: '轮询节奏自学习',
     aiGatewayRuntime: '运行态',
     aiGatewayCalls: '调用检索',
     aiGatewayAlerts: '告警',

@@ -201,6 +201,7 @@ export default {
     aiGatewayPricing: 'Price Models',
     aiGatewayConfigVersions: 'Config Publishing',
     aiGatewayInputSources: 'Input Sources',
+    aiGatewayPollLatencyLearning: 'Poll Latency Learning',
     aiGatewayRuntime: 'Runtime',
     aiGatewayCalls: 'Calls',
     aiGatewayAlerts: 'Alerts',
