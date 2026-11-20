@@ -158,6 +158,7 @@ export default {
     billingPointsLog: '포인트 내역',
     billingPointsAdjust: '포인트 조정',
     billingException: '예외 작업',
+    billingCostReconciliation: '비용 대사',
     billingReconcile: '대사 건',
     billingActionType: '액션 타입',
     reconciliationManagement: '대조 관리',
@@ -6112,5 +6113,92 @@ export default {
     createdAt: '생성 시간',
     analysisJson: '게시된 분석 결과',
     noAnalysis: '아직 게시된 분석이 없습니다',
+  },
+  costRecon: {
+    title: '비용 대사',
+    emptyDaily: '선택한 기간에 대사 결과가 없습니다',
+    emptyDetail: '상세 내역이 없습니다',
+    viewDetails: '상세 보기',
+    infoNoDetail: '정보성 판정은 집계만 제공되며 상세 내역은 없습니다',
+    detailTitle: '{date} 상세',
+    bizNoPlaceholder: '업무 번호로 정확히 검색',
+    noBizNo: '(업무 주문 없음)',
+    total: '총 {total}건',
+    rangeTooLong: '기간은 {days}일을 초과할 수 없습니다',
+    col: {
+      date: '날짜',
+      check: '판정',
+      source: '출처',
+      orderCount: '건수',
+      costCny: '비용(위안)',
+      chargedPoints: '실수령 포인트',
+      revenueCny: '실수령(위안 환산)',
+      sampleBizNos: '샘플 업무 번호',
+      bizNo: '업무 번호',
+      callerId: '호출자',
+      modelGroup: '모델 그룹',
+      reservation: '예약 차감 번호 / 상태',
+      attemptCount: '시도 횟수',
+      callId: '호출 ID',
+    },
+    check: {
+      refunded: '공급사 과금됨, 사용자 환불됨',
+      noCharge: '비용 있음, 포인트 미차감',
+      unkeyed: '업무 주문을 찾을 수 없음',
+      overRevenue: '비용이 실수령보다 높음',
+      overhead: '운영 비용',
+      free: '설계상 무료',
+    },
+    guide: {
+      title: '판정 의미와 처리 방법',
+      intro:
+        '매일 새벽 전날의 AI 게이트웨이 공급사 비용과 포인트 차감을 건별로 대사합니다. 이 페이지는 알림만 제공하며 포인트를 추가 차감하거나 과금 데이터를 변경하지 않습니다. 빨강(ERROR)은 조사·처리가 필요하고, 노랑(WARN)은 주의가 필요하며, 회색(INFO)은 참고용 집계로 상세 내역이 없습니다. 상세 내역은 30일간 보관됩니다.',
+      actionPrefix: '처리 방법: ',
+      refunded: {
+        meaning:
+          '공급사는 비용을 청구했지만 사용자 주문은 전액 환불되어 플랫폼이 비용을 전부 부담합니다.',
+        action:
+          '환불 사유를 확인하세요. 결과물이 실제로 전달되었다면 전달/정산 흐름이 왜 환불했는지 조사하고, 공급사 실패인데도 과금되었다면 공급사에 대사 이의를 제기하세요. 사용자에게 직접 추가 차감하지 마세요.',
+      },
+      noCharge: {
+        meaning:
+          '공급사 비용은 있지만 해당 업무 주문에 차감된 포인트가 없습니다(예약 차감 미확정 또는 과금 설정 누락).',
+        action:
+          '「예외 작업」에서 예약 차감 번호의 정산 상태를 확인하고, 과금 설정 누락이면 설정을 보완하고, 정산 실패면 예외 작업 절차대로 처리하세요.',
+      },
+      unkeyed: {
+        meaning:
+          '비용 행의 업무 키에 해당하는 업무 주문이 없어 사용자나 작업에 귀속할 수 없습니다.',
+        action:
+          '호출 ID로 AI 게이트웨이에서 호출 출처와 라벨을 확인하고, 작업 체계를 거치지 않고 게이트웨이를 직접 호출하는 경로를 찾아 업무 라벨을 보완하세요.',
+      },
+      overRevenue: {
+        meaning:
+          '이 주문의 공급사 비용이 사용자가 실제로 지불한 포인트 환산액보다 높습니다(마이너스 마진).',
+        action:
+          '모델 그룹의 과금 단가와 비용 단가를 확인하세요. 일회성이면 무시해도 되지만, 지속되면 가격 조정이나 더 저렴한 배포로 전환하세요.',
+      },
+      overhead: {
+        meaning:
+          '플랫폼 자체 운영 비용(검수, 내부 보조 호출 등)으로 원래 사용자에게 과금하지 않습니다.',
+        action: '처리 불필요. 전체 추이만 확인하세요.',
+      },
+      free: {
+        meaning:
+          '설계상 무료인 호출(무료 할당량, 무료 기능)로, 비용이 있어도 포인트를 차감하지 않는 것이 정상입니다.',
+        action: '처리 불필요. 총량이 비정상적으로 늘면 무료 할당량 설정을 확인하세요.',
+      },
+    },
+    run: {
+      button: '특정 날짜 재실행',
+      title: '비용 대사 재실행',
+      hint: '선택한 날짜를 다시 대사하고 그날의 대사 결과를 전부 덮어씁니다. 과금 데이터는 변경하지 않습니다. 어제 이전 날짜만 선택할 수 있습니다.',
+      ok: '재실행',
+      confirmTitle: '재실행 확인',
+      confirmContent: '{date}을(를) 다시 대사하고 기존 대사 결과를 덮어씁니다. 계속하시겠습니까?',
+      success: '{date} 대사 완료: 비용 {costRows}행, 상세 {details}건',
+      conflict: '대사가 이미 진행 중입니다(예약 작업 또는 다른 관리자). 잠시 후 다시 시도하세요',
+      failed: '재실행 실패',
+    },
   },
 };

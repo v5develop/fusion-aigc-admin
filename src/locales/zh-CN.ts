@@ -144,6 +144,7 @@ export default {
     billingPointsLog: '点数流水',
     billingPointsAdjust: '点数调整',
     billingException: '异常任务',
+    billingCostReconciliation: '成本对账',
     billingReconcile: '核对单',
     billingActionType: '动作类型',
     billingOffer: '计费场景',
@@ -6106,5 +6107,86 @@ export default {
     createdAt: '创建时间',
     analysisJson: '已发布的分析结果',
     noAnalysis: '还没有已发布的分析',
+  },
+  costRecon: {
+    title: '成本对账',
+    emptyDaily: '所选日期内没有对账结果',
+    emptyDetail: '暂无明细',
+    viewDetails: '查看明细',
+    infoNoDetail: '提示类判据只出汇总，不出明细',
+    detailTitle: '{date} 明细',
+    bizNoPlaceholder: '按业务号精确查找',
+    noBizNo: '（无业务单）',
+    total: '共 {total} 条',
+    rangeTooLong: '日期跨度不能超过 {days} 天',
+    col: {
+      date: '日期',
+      check: '判据',
+      source: '来源',
+      orderCount: '单数',
+      costCny: '成本（元）',
+      chargedPoints: '实收点数',
+      revenueCny: '实收折元',
+      sampleBizNos: '样例业务号',
+      bizNo: '业务号',
+      callerId: '调用方',
+      modelGroup: '模型组',
+      reservation: '预扣单号 / 状态',
+      attemptCount: '尝试次数',
+      callId: '调用 ID',
+    },
+    check: {
+      refunded: '供应商已收费、用户已退款',
+      noCharge: '有成本无扣点',
+      unkeyed: '找不到业务单',
+      overRevenue: '成本高于实收',
+      overhead: '运营开销',
+      free: '按设计免费',
+    },
+    guide: {
+      title: '判据说明与处置建议',
+      intro:
+        '每天凌晨把前一天 AI 网关的供应商成本与点数扣费逐单对账。本页只报警、不自动追扣，也不会改动任何计费数据；红色（ERROR）需要排查处置，黄色（WARN）需要关注，灰色（INFO）仅作汇总参考、不出明细。明细保留 30 天。',
+      actionPrefix: '处置建议：',
+      refunded: {
+        meaning: '供应商已经收了钱，但用户这一单被整单退款，平台全额承担成本。',
+        action:
+          '核对退款原因：若产物其实已交付，应查交付 / 结算链路为何走了退款；若属供应商失败却仍计费，向供应商申诉对账。不要直接给用户追扣点数。',
+      },
+      noCharge: {
+        meaning: '有供应商成本，但找到的业务单没有任何扣点（预扣未确认或计费漏挂）。',
+        action:
+          '按预扣单号到「异常任务」查结算状态；属计费配置漏挂的，补上计费配置；属结算失败的，按异常任务流程处理。',
+      },
+      unkeyed: {
+        meaning: '成本行带的业务标识找不到对应的业务单，无法归属到用户或任务。',
+        action:
+          '按调用 ID 到 AI 网关查调用来源与标签，确认是否有绕过任务体系直接调用网关的路径，补齐业务标签。',
+      },
+      overRevenue: {
+        meaning: '这一单的供应商成本高于用户实际支付的点数折算金额（毛利为负）。',
+        action:
+          '核对该模型组的计费单价与成本单价，偶发可忽略；持续出现应调整定价或切换更便宜的部署。',
+      },
+      overhead: {
+        meaning: '平台自身运营产生的成本（如审核、内部辅助调用），本来就不向用户收费。',
+        action: '无需处置，关注总量趋势即可。',
+      },
+      free: {
+        meaning: '按设计免费的调用（免费额度、免费功能），有成本但不扣点是预期行为。',
+        action: '无需处置；如总量异常增长，检查免费额度配置。',
+      },
+    },
+    run: {
+      button: '重跑某天',
+      title: '重跑成本对账',
+      hint: '重新对账所选日期并整天覆盖对账结果，不会改动任何计费数据。只能选择昨天及以前。',
+      ok: '重跑',
+      confirmTitle: '确认重跑',
+      confirmContent: '将重新对账 {date}，并覆盖该日已有的对账结果，确定继续吗？',
+      success: '{date} 对账完成：成本 {costRows} 行，明细 {details} 条',
+      conflict: '对账正在进行（定时任务或其他人正在跑），请稍后再试',
+      failed: '重跑失败',
+    },
   },
 };

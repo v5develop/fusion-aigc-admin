@@ -140,6 +140,7 @@ export default {
     billingPointsLog: 'Points Log',
     billingPointsAdjust: 'Points Adjustment',
     billingException: 'Exception Tasks',
+    billingCostReconciliation: 'Cost Reconciliation',
     billingReconcile: 'Reconciliations',
     billingActionType: 'Action Type',
     billingOffer: 'Billing Scenes',
@@ -6184,5 +6185,94 @@ export default {
     createdAt: 'Created at',
     analysisJson: 'Published analysis result',
     noAnalysis: 'No published analysis yet',
+  },
+  costRecon: {
+    title: 'Cost Reconciliation',
+    emptyDaily: 'No reconciliation results in the selected range',
+    emptyDetail: 'No details',
+    viewDetails: 'View details',
+    infoNoDetail: 'Informational checks are summarized only, without details',
+    detailTitle: 'Details for {date}',
+    bizNoPlaceholder: 'Exact business number',
+    noBizNo: '(no business order)',
+    total: '{total} in total',
+    rangeTooLong: 'The date range cannot exceed {days} days',
+    col: {
+      date: 'Date',
+      check: 'Check',
+      source: 'Source',
+      orderCount: 'Orders',
+      costCny: 'Cost (CNY)',
+      chargedPoints: 'Points charged',
+      revenueCny: 'Revenue (CNY)',
+      sampleBizNos: 'Sample business numbers',
+      bizNo: 'Business number',
+      callerId: 'Caller',
+      modelGroup: 'Model group',
+      reservation: 'Reservation / status',
+      attemptCount: 'Attempts',
+      callId: 'Call ID',
+    },
+    check: {
+      refunded: 'Vendor charged, user refunded',
+      noCharge: 'Cost without charge',
+      unkeyed: 'Business order not found',
+      overRevenue: 'Cost above revenue',
+      overhead: 'Operating overhead',
+      free: 'Free by design',
+    },
+    guide: {
+      title: 'What each check means and what to do',
+      intro:
+        "Every night the previous day's AI Gateway vendor costs are reconciled order by order against points charged. This page only alerts: it never claws back points and never changes billing data. Red (ERROR) needs investigation, yellow (WARN) needs attention, grey (INFO) is a summary for reference only, without details. Details are kept for 30 days.",
+      actionPrefix: 'Suggested action: ',
+      refunded: {
+        meaning:
+          "The vendor charged us, but the user's order was fully refunded, so the platform bears the whole cost.",
+        action:
+          'Check why it was refunded: if the output was actually delivered, find out why delivery / settlement refunded it; if the vendor failed but still charged, dispute it with the vendor. Do not charge the user directly.',
+      },
+      noCharge: {
+        meaning:
+          'There is vendor cost, but the matching business order has no points charged (reservation not confirmed, or billing not attached).',
+        action:
+          'Look up the reservation in Exception Tasks to see its settlement status; add the missing billing configuration, or follow the exception-task process for failed settlements.',
+      },
+      unkeyed: {
+        meaning:
+          "The cost row's business key matches no business order, so it cannot be attributed to a user or task.",
+        action:
+          'Look up the call ID in the AI Gateway to see its origin and labels, find any path calling the gateway outside the task system, and add the business labels.',
+      },
+      overRevenue: {
+        meaning:
+          'The vendor cost of this order is higher than what the user actually paid in points (negative margin).',
+        action:
+          "Compare the model group's price and cost; occasional cases can be ignored, persistent ones call for repricing or a cheaper deployment.",
+      },
+      overhead: {
+        meaning:
+          "Cost of the platform's own operations (e.g. moderation, internal helper calls), never charged to users.",
+        action: 'No action needed; watch the overall trend.',
+      },
+      free: {
+        meaning:
+          'Calls that are free by design (free quota, free features); cost without points charged is expected.',
+        action:
+          'No action needed; if the volume grows abnormally, check the free quota configuration.',
+      },
+    },
+    run: {
+      button: 'Re-run a day',
+      title: 'Re-run cost reconciliation',
+      hint: "Reconciles the selected date again and overwrites that day's results. Billing data is never changed. Only yesterday or earlier can be chosen.",
+      ok: 'Re-run',
+      confirmTitle: 'Confirm re-run',
+      confirmContent: 'Reconcile {date} again and overwrite its existing results?',
+      success: '{date} reconciled: {costRows} cost rows, {details} details',
+      conflict:
+        'A reconciliation is already running (scheduled job or another admin). Please try again later.',
+      failed: 'Re-run failed',
+    },
   },
 };

@@ -494,6 +494,17 @@ export const asyncRoutes: AppRouteRecordRaw[] = [
         },
       },
       {
+        path: 'cost-reconciliation',
+        name: 'BillingCostReconciliation',
+        component: () => import('@/views/billing/cost-reconciliation/index.vue'),
+        meta: {
+          title: 'menu.billingCostReconciliation',
+          icon: 'ReconciliationOutlined',
+          requiresAuth: true,
+          requiredPermissions: 'billing:exception',
+        },
+      },
+      {
         path: 'reconcile',
         name: 'BillingReconcile',
         component: () => import('@/views/billing/reconcile/index.vue'),
